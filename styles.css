@@ -1,202 +1,352 @@
-body{
-    margin:0;
-    font-family:GDS Transport,Arial,sans-serif;
-    background:#f4f4f4;
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
 }
+
+body{
+font-family:Inter,Arial,sans-serif;
+background:#050505;
+color:white;
+}
+
+
+/* HERO */
 
 .hero{
 
-    position:relative;
-    min-height:90vh;
+min-height:100vh;
 
-    display:flex;
-    align-items:center;
-    justify-content:center;
+display:flex;
+align-items:center;
+justify-content:center;
 
-    background:
-        linear-gradient(135deg,#021c45 0%,#003366 55%,#00122f 100%);
-    overflow:hidden;
+padding:40px;
+
+background:
+linear-gradient(
+90deg,
+rgba(0,0,0,.85),
+rgba(0,0,0,.55)
+),
+url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2000&q=80");
+
+background-size:cover;
+background-position:center;
+
 }
 
-.hero::before{
 
-    content:"";
+.container{
 
-    position:absolute;
-    width:160%;
-    height:220px;
+max-width:1200px;
+width:100%;
 
-    background:#ffd400;
+animation:fade .8s ease;
 
-    transform:rotate(-8deg);
-
-    top:140px;
-    left:-20%;
-
-    opacity:.95;
 }
 
-.hero-overlay{
 
-    position:absolute;
-    inset:0;
+/* TOP LABEL */
 
-    background:
-        radial-gradient(circle at top right,
-        rgba(255,255,255,.08),transparent 50%);
+.tag{
+
+display:inline-block;
+
+background:#FFD400;
+
+color:#000;
+
+font-size:1rem;
+
+font-weight:900;
+
+letter-spacing:3px;
+
+padding:14px 25px;
+
+text-transform:uppercase;
+
+margin-bottom:45px;
+
 }
 
-.hero-content{
 
-    position:relative;
-    z-index:2;
+/* MAIN TITLE */
 
-    width:min(1100px,90%);
-    text-align:center;
-    color:white;
+h1{
+
+font-size:clamp(5rem,15vw,11rem);
+
+font-weight:900;
+
+line-height:.78;
+
+letter-spacing:-5px;
+
+text-transform:uppercase;
+
+transform:rotate(-3deg);
+
+text-shadow:
+
+10px 10px 0 #FFD400,
+18px 18px 0 #000;
+
+margin-bottom:45px;
+
 }
 
-.campaign-tag{
 
-    display:inline-block;
+.yellow{
 
-    background:#111;
-    color:#ffd400;
+color:#FFD400;
 
-    padding:10px 18px;
-
-    font-weight:700;
-    letter-spacing:2px;
 }
 
-.hero-title{
 
-    margin:40px 0;
+/* INTRO */
 
-    line-height:.85;
+.lead{
 
-    text-transform:uppercase;
+font-size:1.5rem;
+
+max-width:760px;
+
+line-height:1.5;
+
+font-weight:600;
+
+margin-bottom:55px;
+
 }
 
-.hero-title span{
 
-    display:block;
+/* MONEY */
 
-    font-size:clamp(70px,14vw,180px);
+.target{
 
-    font-weight:900;
+font-size:3.5rem;
 
-    color:white;
+font-weight:900;
 
-    transform:rotate(-5deg);
+letter-spacing:-2px;
 
-    text-shadow:
-        8px 8px 0 #000,
-        14px 14px 24px rgba(0,0,0,.35);
 }
 
-.hero-title span:last-child{
-
-    color:#ffd400;
-    margin-left:90px;
-}
-
-.hero-text{
-
-    max-width:760px;
-
-    margin:0 auto 40px;
-
-    font-size:1.45rem;
-
-    line-height:1.6;
-}
-
-.fundraiser{
-
-    max-width:700px;
-
-    margin:50px auto;
-}
-
-.amount{
-
-    font-size:2.6rem;
-
-    font-weight:900;
-
-    margin-bottom:20px;
-}
 
 .progress{
 
-    height:28px;
+height:25px;
 
-    background:white;
+max-width:750px;
 
-    border-radius:40px;
+background:white;
 
-    overflow:hidden;
+margin-top:20px;
+
+overflow:hidden;
+
 }
+
 
 .progress-fill{
 
-    width:12%;
+height:100%;
 
-    height:100%;
+width:18%;
 
-    background:#ffd400;
+background:#FFD400;
+
 }
 
-.hero-buttons{
 
-    display:flex;
-    justify-content:center;
-    gap:20px;
-    flex-wrap:wrap;
+/* BUTTONS */
+
+
+.buttons{
+
+display:flex;
+
+gap:25px;
+
+margin-top:55px;
+
+flex-wrap:wrap;
+
 }
 
-.donate-btn{
 
-    background:#ffd400;
-    color:#111;
+.btn{
 
-    padding:22px 42px;
+font-size:1.2rem;
 
-    text-decoration:none;
+font-weight:900;
 
-    font-size:1.35rem;
+text-transform:uppercase;
 
-    font-weight:900;
+padding:22px 45px;
 
-    border-radius:4px;
+text-decoration:none;
 
-    box-shadow:8px 8px 0 #000;
+transition:.2s;
+
 }
 
-.volunteer-btn{
 
-    background:transparent;
+.primary{
 
-    color:white;
+background:#FFD400;
 
-    border:4px solid white;
+color:#000;
 
-    padding:20px 40px;
+box-shadow:8px 8px 0 white;
 
-    text-decoration:none;
-
-    font-weight:700;
 }
 
-.donate-btn:hover{
 
-    transform:translate(-3px,-3px);
-    box-shadow:11px 11px 0 #000;
+.primary:hover{
+
+transform:translate(-5px,-5px);
+
+box-shadow:14px 14px 0 white;
+
 }
 
-.volunteer-btn:hover{
 
-    background:white;
-    color:#002b55;
+.secondary{
+
+border:4px solid white;
+
+color:white;
+
 }
+
+
+.secondary:hover{
+
+background:white;
+
+color:black;
+
+}
+
+
+
+/* CARDS */
+
+section{
+
+padding:100px 30px;
+
+background:#FFD400;
+
+}
+
+
+.cards{
+
+display:grid;
+
+grid-template-columns:
+repeat(auto-fit,minmax(300px,1fr));
+
+gap:30px;
+
+max-width:1200px;
+
+margin:auto;
+
+}
+
+
+.card{
+
+background:#050505;
+
+padding:45px;
+
+min-height:300px;
+
+}
+
+
+.card h2{
+
+font-size:2.4rem;
+
+font-weight:900;
+
+text-transform:uppercase;
+
+margin-bottom:20px;
+
+}
+
+
+.card p{
+
+font-size:1.1rem;
+
+line-height:1.7;
+
+}
+
+
+.card a{
+
+display:inline-block;
+
+margin-top:25px;
+
+background:#FFD400;
+
+color:black;
+
+font-weight:900;
+
+padding:15px 30px;
+
+text-decoration:none;
+
+text-transform:uppercase;
+
+}
+
+
+footer{
+
+background:#000;
+
+padding:50px;
+
+text-align:center;
+
+font-weight:700;
+
+}
+
+
+
+@keyframes fade{
+
+from{
+
+opacity:0;
+
+transform:translateY(40px);
+
+}
+
+to{
+
+opacity:1;
+
+}
+
+}
+
+
+</style>
