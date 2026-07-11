@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 
 <meta charset="UTF-8">
@@ -13,11 +14,14 @@
 
 </head>
 
+
 <body>
+
 
 <section class="hero">
 
 <div class="container">
+
 
 <div class="tag">
 TENDRING DEMOCRACY PROJECT
@@ -43,15 +47,13 @@ Help us organise volunteers, reach voters and build a democratic alternative for
 
 
 <div class="target">
-
 £100,000 TARGET
-
 </div>
 
 
 <div class="progress" aria-label="Campaign fundraising progress">
 
-<div class="progress-fill" style="width: 5%;"></div>
+<div class="progress-fill" style="width:5%;"></div>
 
 </div>
 
@@ -61,6 +63,23 @@ Help us organise volunteers, reach voters and build a democratic alternative for
 £1,860.50 raised so far (£1,860.50 / £100,000)
 
 </p>
+
+
+<div class="countdown">
+
+<h2>
+POLLING DAY COUNTDOWN
+</h2>
+
+<div id="timer">
+Loading...
+</div>
+
+<p>
+Polls open: 7AM, 27 August 2026
+</p>
+
+</div>
 
 
 <div class="buttons">
@@ -160,5 +179,54 @@ Promoted by Tendring Democracy Project, all at PO Box 2002, Clacton on Sea, CO15
 </footer>
 
 
+
+<script>
+
+const pollingDay = new Date("August 27, 2026 07:00:00").getTime();
+
+
+const countdown = setInterval(function() {
+
+
+const now = new Date().getTime();
+
+const distance = pollingDay - now;
+
+
+const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+
+const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+
+const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+
+const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+
+
+document.getElementById("timer").innerHTML =
+days + " DAYS " +
+hours + " HOURS " +
+minutes + " MINUTES " +
+seconds + " SECONDS";
+
+
+
+if (distance < 0) {
+
+clearInterval(countdown);
+
+document.getElementById("timer").innerHTML =
+"POLLING IS NOW OPEN";
+
+}
+
+
+}, 1000);
+
+
+</script>
+
+
 </body>
+
 </html>
