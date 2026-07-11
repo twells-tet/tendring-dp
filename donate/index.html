@@ -1,1 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Donate | Tendring Democracy Project</title>
+
+<link rel="stylesheet" href="../style.css">
+
+</head>
+
+<body>
+
+<section class="hero">
+
+<div class="container">
+
+<h1>
+SUPPORT THE
+<br>
+<span class="yellow">CAMPAIGN</span>
+</h1>
+
+<p class="lead">
+Help us organise volunteers, reach voters and build a democratic alternative in Clacton.
+</p>
+
+
+<form id="donation-form">
+
+
+<h2>Select donation amount</h2>
+
+
+<label>
+<input type="radio" name="amount" value="1000" required>
+£10
+</label>
+
+
+<label>
+<input type="radio" name="amount" value="2500">
+£25
+</label>
+
+
+<label>
+<input type="radio" name="amount" value="5000">
+£50
+</label>
+
+
+<label>
+<input type="radio" name="amount" value="other">
+Other
+</label>
+
+
+<br><br>
+
+
+<input 
+type="text" 
+id="otherAmount" 
+placeholder="Other amount (£)"
+>
+
+
+
+<h2>Your details</h2>
+
+
+<label>
+<input 
+type="text"
+id="firstName"
+placeholder="Legal first name"
+required>
+</label>
+
+
+<label>
+<input 
+type="text"
+id="surname"
+placeholder="Legal surname"
+required>
+</label>
+
+
+<label>
+<input 
+type="text"
+id="postcode"
+placeholder="Postcode"
+required>
+</label>
+
+
+<br>
+
+
+<label>
+
+<input 
+type="checkbox"
+id="registered"
+required>
+
+I confirm I am registered to vote in the United Kingdom
+
+</label>
+
+
+<br><br>
+
+
+<button class="btn primary" type="submit">
+
+Proceed to Stripe →
+
+</button>
+
+
+</form>
+
+
+</div>
+
+</section>
+
+
+<script>
+
+document.getElementById("donation-form").addEventListener("submit", function(e){
+
+e.preventDefault();
+
+
+if (!document.getElementById("registered").checked) {
+
+alert("You must confirm that you are registered to vote in the United Kingdom.");
+
+return;
+
+}
+
+
+// This is where you call your Stripe Checkout backend
+
+alert("Sending you to Stripe...");
+
+
+});
+
+
+</script>
+
+
+</body>
+
+</html>
