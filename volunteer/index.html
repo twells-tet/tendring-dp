@@ -64,7 +64,7 @@ No
 type="text"
 id="address"
 name="address"
-placeholder="123 High Street, Clacton-on-Sea"
+placeholder="First line of your address"
 required>
 </div>
 
@@ -111,6 +111,10 @@ Knock on doors
 <label class="checkbox-label">
 <input type="checkbox" name="help_events" value="yes">
 Help with local events in the Clacton constituency
+</label>
+<label class="checkbox-label">
+<input type="checkbox" name="help_poster" value="yes">
+Display a poster in my window or garden
 </label>
 </div>
 
@@ -219,7 +223,8 @@ form.addEventListener("submit", async function(event) {
       phone: document.getElementById("phone-yes").value.trim(),
       help_leaflets: document.querySelector('input[name="help_leaflets"]').checked,
       help_doors: document.querySelector('input[name="help_doors"]').checked,
-      help_events: document.querySelector('input[name="help_events"]').checked
+      help_events: document.querySelector('input[name="help_events"]').checked,
+      help_poster: document.querySelector('input[name="help_poster"]').checked
     } : {
       postcode: document.getElementById("postcode-no").value.trim().toUpperCase(),
       email: document.getElementById("email-no").value.trim(),
