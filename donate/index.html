@@ -97,15 +97,6 @@ required>
 <p>By clicking proceed to checkout you confirm you are registered to vote in the United Kingdom.</p>
 </div>
 
-<label class="form-checkbox">
-<input 
-type="checkbox"
-id="registered"
-name="registered"
-required>
-<span>I confirm I am registered to vote in the United Kingdom</span>
-</label>
-
 <p id="error" class="error-message"></p>
 
 <button class="btn primary btn-large" id="submit-button" type="submit">
@@ -162,9 +153,7 @@ name: document.getElementById("name").value.trim(),
 
 email: document.getElementById("email").value.trim(),
 
-postcode: document.getElementById("postcode").value.trim().toUpperCase(),
-
-registered: document.getElementById("registered").checked
+postcode: document.getElementById("postcode").value.trim().toUpperCase()
 
 };
 
