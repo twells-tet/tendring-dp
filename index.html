@@ -12,7 +12,7 @@
 
 <meta name="theme-color" content="#002B49">
 
-<link rel="icon" href="/favicon.ico">
+<link rel="icon" href="/tdp-icon.svg" type="image/svg+xml">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
 
@@ -36,6 +36,18 @@ TENDRING DEMOCRACY PROJECT
 UNSEAT<br>
 <span class="yellow">FARAGE</span>
 </h1>
+
+<div class="buttons">
+
+<a href="donate/" class="btn primary">
+DONATE →
+</a>
+
+<a href="volunteer/" class="btn secondary">
+VOLUNTEER
+</a>
+
+</div>
 
 <p class="lead">
 
@@ -70,28 +82,20 @@ aria-valuenow="1860.50">
 <div class="countdown">
 
 <h2>
-POLLING DAY COUNTDOWN
+CAMPAIGN TIMELINE
 </h2>
 
-<div id="timer">
-Loading...
-</div>
-
 <p>
-Polls open: 7AM, 13 August 2026
+<strong>FIRST BY-ELECTION:</strong> THURS. 13 AUGUST 2026
 </p>
 
-</div>
+<p>
+<strong>RECALL PETITION:</strong> SEPTEMBER 2026?
+</p>
 
-<div class="buttons">
-
-<a href="donate/" class="btn primary">
-DONATE →
-</a>
-
-<a href="volunteer/" class="btn secondary">
-VOLUNTEER
-</a>
+<p>
+<strong>SECOND BY-ELECTION:</strong> TBC
+</p>
 
 </div>
 
@@ -165,32 +169,7 @@ Promoted by Tendring Democracy Project, all at PO Box 2002, Clacton-on-Sea, CO15
 
 <script>
 
-const pollingDay = new Date("August 13, 2026 07:00:00").getTime();
-
-const timer = document.getElementById("timer");
-
-const countdown = setInterval(function () {
-
-    const now = new Date().getTime();
-    const distance = pollingDay - now;
-
-    if (distance <= 0) {
-
-        clearInterval(countdown);
-        timer.textContent = "POLLING IS NOW OPEN";
-        return;
-
-    }
-
-    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-    timer.textContent =
-        `${days} DAYS ${hours} HOURS ${minutes} MINUTES ${seconds} SECONDS`;
-
-}, 1000);
+// Campaign timeline - no longer active countdown
 
 </script>
 
