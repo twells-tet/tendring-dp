@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Volunteer | Tendring Democracy Project</title>
+
+<link rel="stylesheet" href="../style.css">
+
+</head>
+
+<body>
+
+<section class="hero">
+
+<div class="container">
+
+<div class="tag">
+TENDRING DEMOCRACY PROJECT
+</div>
+
+<h1>
+GET
+<br>
+<span class="yellow">INVOLVED</span>
+</h1>
+
+<p class="lead">
+Join the grassroots campaign to build a democratic alternative to Reform in Clacton.
+</p>
+
+</div>
+
+</section>
+
+<section class="form-section">
+
+<div class="container form-container">
+
+<form id="volunteer-form" class="volunteer-form">
+
+<div class="form-question">
+<h3>Do you live in the Tendring local authority area?</h3>
+<div class="radio-group">
+<label class="radio-label">
+<input type="radio" name="tendring" value="yes" required>
+Yes
+</label>
+<label class="radio-label">
+<input type="radio" name="tendring" value="no" required>
+No
+</label>
+</div>
+</div>
+
+<div id="tendring-yes" class="conditional-form" style="display:none;">
+
+<div class="form-group">
+<label for="address" class="form-label">Full Address</label>
+<input 
+type="text"
+id="address"
+name="address"
+placeholder="123 High Street, Clacton-on-Sea"
+required>
+</div>
+
+<div class="form-group">
+<label for="postcode-yes" class="form-label">Postcode</label>
+<input 
+type="text"
+id="postcode-yes"
+name="postcode_yes"
+placeholder="CO15 1JA"
+required>
+</div>
+
+<div class="form-group">
+<label for="email-yes" class="form-label">Email Address</label>
+<input 
+type="email"
+id="email-yes"
+name="email_yes"
+placeholder="your@email.com"
+required>
+</div>
+
+<div class="form-group">
+<label for="phone-yes" class="form-label">Mobile Number</label>
+<input 
+type="tel"
+id="phone-yes"
+name="phone_yes"
+placeholder="07700 000000"
+required>
+</div>
+
+<div class="form-group">
+<h4>How would you like to help?</h4>
+<label class="checkbox-label">
+<input type="checkbox" name="help_leaflets" value="yes">
+Deliver leaflets
+</label>
+<label class="checkbox-label">
+<input type="checkbox" name="help_doors" value="yes">
+Knock on doors
+</label>
+<label class="checkbox-label">
+<input type="checkbox" name="help_events" value="yes">
+Help with local events in the Clacton constituency
+</label>
+</div>
+
+</div>
+
+<div id="tendring-no" class="conditional-form" style="display:none;">
+
+<div class="form-group">
+<label for="postcode-no" class="form-label">Postcode</label>
+<input 
+type="text"
+id="postcode-no"
+name="postcode_no"
+placeholder="e.g. CO15 1JA"
+required>
+</div>
+
+<div class="form-group">
+<label for="email-no" class="form-label">Email Address</label>
+<input 
+type="email"
+id="email-no"
+name="email_no"
+placeholder="your@email.com"
+required>
+</div>
+
+<div class="form-group">
+<h4>How would you like to help?</h4>
+<label class="checkbox-label">
+<input type="checkbox" name="help_money" value="yes">
+Help raise money
+</label>
+<label class="checkbox-label">
+<input type="checkbox" name="help_campaign" value="yes">
+Travel to Clacton to help with campaigning
+</label>
+</div>
+
+</div>
+
+<p id="error" class="error-message"></p>
+
+<button class="btn primary btn-large" id="submit-button" type="submit" style="display:none;">
+SIGN ME UP →
+</button>
+
+</form>
+
+</div>
+
+</section>
+
+<footer>
+
+Promoted by Tendring Democracy Project, all at PO Box 2002, Clacton-on-Sea, CO15 1JA.
+
+</footer>
+
+<script>
+
+const form = document.getElementById("volunteer-form");
+const radioButtons = document.querySelectorAll('input[name="tendring"]');
+const tendringYes = document.getElementById("tendring-yes");
+const tendringNo = document.getElementById("tendring-no");
+const submitButton = document.getElementById("submit-button");
+
+radioButtons.forEach(radio => {
+  radio.addEventListener("change", function() {
+    if (this.value === "yes") {
+      tendringYes.style.display = "block";
+      tendringNo.style.display = "none";
+      document.getElementById("address").required = true;
+      document.getElementById("postcode-yes").required = true;
+      document.getElementById("email-yes").required = true;
+      document.getElementById("phone-yes").required = true;
+      document.getElementById("postcode-no").required = false;
+      document.getElementById("email-no").required = false;
+    } else {
+      tendringNo.style.display = "block";
+      tendringYes.style.display = "none";
+      document.getElementById("address").required = false;
+      document.getElementById("postcode-yes").required = false;
+      document.getElementById("email-yes").required = false;
+      document.getElementById("phone-yes").required = false;
+      document.getElementById("postcode-no").required = true;
+      document.getElementById("email-no").required = true;
+    }
+    submitButton.style.display = "block";
+  });
+});
+
+form.addEventListener("submit", async function(event) {
+  event.preventDefault();
+  
+  document.getElementById("submit-button").disabled = true;
+  
+  const tendring = document.querySelector('input[name="tendring"]:checked').value;
+  
+  const data = {
+    tendring: tendring,
+    ...(tendring === "yes" ? {
+      address: document.getElementById("address").value.trim(),
+      postcode: document.getElementById("postcode-yes").value.trim().toUpperCase(),
+      email: document.getElementById("email-yes").value.trim(),
+      phone: document.getElementById("phone-yes").value.trim(),
+      help_leaflets: document.querySelector('input[name="help_leaflets"]').checked,
+      help_doors: document.querySelector('input[name="help_doors"]').checked,
+      help_events: document.querySelector('input[name="help_events"]').checked
+    } : {
+      postcode: document.getElementById("postcode-no").value.trim().toUpperCase(),
+      email: document.getElementById("email-no").value.trim(),
+      help_money: document.querySelector('input[name="help_money"]').checked,
+      help_campaign: document.querySelector('input[name="help_campaign"]').checked
+    })
+  };
+  
+  try {
+    const response = await fetch(
+      "https://tendring-volunteer.twells-tet.workers.dev",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      }
+    );
+    
+    const result = await response.json();
+    
+    if(result.success) {
+      document.getElementById("error").innerText = "Thank you! We'll be in touch soon.";
+      document.getElementById("error").style.color = "#e31b23";
+      form.reset();
+      tendringYes.style.display = "none";
+      tendringNo.style.display = "none";
+      submitButton.style.display = "none";
+    } else {
+      document.getElementById("error").innerText = result.error || "There was a problem. Please try again.";
+      document.getElementById("submit-button").disabled = false;
+    }
+  } catch(error) {
+    document.getElementById("error").innerText = "Service unavailable. Please try again later.";
+    console.error(error);
+    document.getElementById("submit-button").disabled = false;
+  }
+});
+
+</script>
+
+</body>
+
+</html>

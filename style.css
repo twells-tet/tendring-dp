@@ -462,3 +462,148 @@ margin:15px 0 0 0;
 text-align:center;
 
 }
+
+
+/* Form Section */
+
+.form-section {
+
+padding:60px 20px;
+background:#fcf4ed;
+
+}
+
+
+.form-container {
+
+max-width:600px;
+
+}
+
+
+.volunteer-form,
+.pledge-form {
+
+margin:0 auto;
+
+}
+
+
+.form-question {
+
+margin-bottom:30px;
+padding:20px;
+background:#fff;
+border:2px solid #e31b23;
+border-radius:8px;
+
+}
+
+
+.form-question h3 {
+
+margin:0 0 20px 0;
+font-size:18px;
+color:#0a1a3e;
+
+}
+
+
+.radio-group,
+.checkbox-group {
+
+display:flex;
+flex-direction:column;
+gap:15px;
+
+}
+
+
+.radio-label,
+.checkbox-label {
+
+display:flex;
+align-items:flex-start;
+gap:12px;
+cursor:pointer;
+font-size:15px;
+line-height:1.5;
+
+}
+
+
+.radio-label input,
+.checkbox-label input {
+
+width:20px;
+height:20px;
+margin-top:3px;
+cursor:pointer;
+accent-color:#e31b23;
+flex-shrink:0;
+
+}
+
+
+.conditional-form {
+
+margin:30px 0;
+padding:20px;
+background:#fff;
+border:2px solid #0a1a3e;
+border-radius:8px;
+
+}
+
+
+.conditional-form .form-group {
+
+margin-bottom:20px;
+
+}
+
+
+.conditional-form h4 {
+
+font-size:16px;
+color:#0a1a3e;
+margin:20px 0 15px 0;
+font-weight:700;
+
+}
+
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="tel"] {
+
+padding:14px;
+font-size:15px;
+border:2px solid #e31b23;
+border-radius:8px;
+font-family:'Inter', sans-serif;
+width:100%;
+transition:all 0.2s ease;
+
+}
+
+
+.form-group input[type="text"]:focus,
+.form-group input[type="email"]:focus,
+.form-group input[type="tel"]:focus {
+
+outline:none;
+border-color:#1c3b7c;
+box-shadow:0 0 0 3px rgba(28, 59, 124, 0.1);
+
+}
+
+
+.form-hint {
+
+font-size:13px;
+color:#666;
+margin:8px 0 0 0;
+line-height:1.4;
+
+}
