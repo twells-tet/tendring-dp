@@ -39,13 +39,14 @@ Help us organise volunteers, reach voters and build a democratic alternative in 
 
 
 
-<form id="donation-form">
+<form id="donation-form" class="donation-form">
 
+<div class="form-grid">
 
-<label>
-Donation amount (£)
-<br>
-
+<div class="form-group">
+<label for="amount" class="form-label">Donation Amount</label>
+<div class="input-wrapper">
+<span class="currency-symbol">£</span>
 <input 
 type="number"
 id="amount"
@@ -54,88 +55,62 @@ min="1"
 max="4999.99"
 step="0.01"
 value="25"
-placeholder="£1.00 - £4,999.99"
+placeholder="25.00"
 required>
+</div>
+<p class="form-hint">£1.00 - £4,999.99</p>
+</div>
 
-</label>
-
-
-<br><br>
-
-
-<label>
-Name as it appears on the electoral register
-<br>
-
+<div class="form-group">
+<label for="name" class="form-label">Full Name</label>
 <input 
 type="text"
 id="name"
 name="name"
+placeholder="As it appears on electoral register"
 required>
+</div>
 
-</label>
-
-
-<br><br>
-
-
-<label>
-Email address
-<br>
-
-<input 
-type="email"
-id="email"
-name="email"
-required>
-
-</label>
-
-
-<br><br>
-
-
-<label>
-Postcode
-<br>
-
+<div class="form-group">
+<label for="postcode" class="form-label">Postcode</label>
 <input 
 type="text"
 id="postcode"
 name="postcode"
+placeholder="e.g. CO15 1JA"
 required>
+</div>
 
-</label>
+</div>
 
+<div class="form-group">
+<label for="email" class="form-label">Email Address</label>
+<input 
+type="email"
+id="email"
+name="email"
+placeholder="your@email.com"
+required>
+</div>
 
-<br><br>
+<div class="form-notice">
+<p>By clicking proceed to checkout you confirm you are registered to vote in the United Kingdom.</p>
+</div>
 
-
-<label>
-
+<label class="form-checkbox">
 <input 
 type="checkbox"
 id="registered"
 name="registered"
 required>
-
-I am registered to vote in the United Kingdom
-
+<span>I confirm I am registered to vote in the United Kingdom</span>
 </label>
 
+<p id="error" class="error-message"></p>
 
-<br><br>
-
-
-<p id="error"></p>
-
-
-<button class="btn primary" id="submit-button" type="submit">
-
-CONTINUE TO SECURE PAYMENT →
-
+<button class="btn primary btn-large" id="submit-button" type="submit">
+PROCEED TO CHECKOUT →
 </button>
-
 
 </form>
 
