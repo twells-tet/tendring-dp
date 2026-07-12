@@ -129,7 +129,7 @@ I am registered to vote in the United Kingdom
 <p id="error"></p>
 
 
-<button class="btn primary" type="submit">
+<button class="btn primary" id="submit-button" type="submit">
 
 CONTINUE TO SECURE PAYMENT →
 
@@ -155,6 +155,9 @@ form.addEventListener("submit", async function(event) {
 event.preventDefault();
 
 
+document.getElementById("submit-button").disabled = true;
+
+
 
 const amount = Number(
 document.getElementById("amount").value
@@ -167,6 +170,8 @@ if (amount < 1 || amount > 4999.99) {
 document.getElementById("error").innerText =
 "Please enter a donation between £1 and £4,999.99.";
 
+document.getElementById("submit-button").disabled = false;
+
 return;
 
 }
@@ -177,11 +182,11 @@ const data = {
 
 amount: amount,
 
-name: document.getElementById("name").value,
+name: document.getElementById("name").value.trim(),
 
-email: document.getElementById("email").value,
+email: document.getElementById("email").value.trim(),
 
-postcode: document.getElementById("postcode").value,
+postcode: document.getElementById("postcode").value.trim().toUpperCase(),
 
 registered: document.getElementById("registered").checked
 
@@ -194,7 +199,7 @@ try {
 
 const response = await fetch(
 
-"https://tendring-donation-stripe-2.twells-tet.workers.dev/",
+"https://tendring-donation-stripe-2.twells-tet.workers.dev",
 
 {
 
@@ -229,6 +234,8 @@ else {
 document.getElementById("error").innerText =
 "There was a problem starting payment. Please try again.";
 
+document.getElementById("submit-button").disabled = false;
+
 }
 
 
@@ -238,7 +245,11 @@ document.getElementById("error").innerText =
 catch(error) {
 
 document.getElementById("error").innerText =
-"There was a problem connecting to payment. Please try again.";
+"Payment service unavailable. Please try again later.";
+
+console.error(error);
+
+document.getElementById("submit-button").disabled = false;
 
 }
 
