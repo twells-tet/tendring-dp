@@ -7,15 +7,15 @@ body {
 
 margin:0;
 font-family:'Inter', sans-serif;
-color:#111;
-background:#fff;
+color:#0a1a3e;
+background:#fcf4ed;
 
 }
 
 
 .hero {
 
-background:#000;
+background:#0a1a3e;
 color:white;
 padding:70px 20px;
 
@@ -38,8 +38,8 @@ font-weight:900;
 letter-spacing:2px;
 font-size:14px;
 padding:10px 15px;
-border:2px solid #ffd900;
-color:#ffd900;
+border:2px solid #e31b23;
+color:#e31b23;
 margin-bottom:30px;
 
 }
@@ -57,7 +57,7 @@ margin:0;
 
 .yellow {
 
-color:#ffd900;
+color:#e31b23;
 
 }
 
@@ -84,7 +84,7 @@ margin-bottom:15px;
 .progress {
 
 height:25px;
-background:#333;
+background:#1c3b7c;
 border-radius:20px;
 overflow:hidden;
 margin:20px auto;
@@ -96,7 +96,7 @@ max-width:700px;
 .progress-fill {
 
 height:100%;
-background:#ffd900;
+background:#e31b23;
 border-radius:20px;
 
 }
@@ -114,7 +114,7 @@ font-weight:700;
 
 margin:40px auto;
 padding:25px;
-border:2px solid #ffd900;
+border:2px solid #e31b23;
 max-width:700px;
 
 }
@@ -132,7 +132,7 @@ font-weight:900;
 
 font-size:35px;
 font-weight:900;
-color:#ffd900;
+color:#e31b23;
 margin:15px 0;
 
 }
@@ -161,16 +161,16 @@ border-radius:5px;
 
 .primary {
 
-background:#ffd900;
-color:#000;
+background:#e31b23;
+color:#fff;
 
 }
 
 
 .secondary {
 
-border:2px solid white;
-color:white;
+border:2px solid #fcf4ed;
+color:#fcf4ed;
 
 }
 
@@ -193,7 +193,7 @@ flex-wrap:wrap;
 flex:1;
 min-width:250px;
 padding:30px;
-border:2px solid #ddd;
+border:2px solid #0a1a3e;
 
 }
 
@@ -208,7 +208,7 @@ font-weight:900;
 .card a {
 
 font-weight:900;
-color:#000;
+color:#e31b23;
 
 }
 
@@ -216,7 +216,7 @@ color:#000;
 
 footer {
 
-background:#000;
+background:#0a1a3e;
 color:white;
 padding:25px;
 text-align:center;
