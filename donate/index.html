@@ -39,22 +39,22 @@ Help us organise volunteers, reach voters and build a democratic alternative in 
 
 
 
-<form 
-action="https://formspree.io/f/YOUR_FORMSPREE_ID"
-method="POST"
-id="donation-form">
+<form id="donation-form">
 
 
 <label>
 Donation amount (£)
 <br>
+
 <input 
 type="number"
-name="Donation amount"
+id="amount"
+name="amount"
 min="1"
 step="1"
 placeholder="Enter amount"
 required>
+
 </label>
 
 
@@ -62,12 +62,15 @@ required>
 
 
 <label>
-Legal first name
+Name as it appears on the electoral register
 <br>
+
 <input 
 type="text"
-name="Legal first name"
+id="name"
+name="name"
 required>
+
 </label>
 
 
@@ -75,12 +78,15 @@ required>
 
 
 <label>
-Legal surname
+Email address
 <br>
+
 <input 
-type="text"
-name="Legal surname"
+type="email"
+id="email"
+name="email"
 required>
+
 </label>
 
 
@@ -90,10 +96,13 @@ required>
 <label>
 Postcode
 <br>
+
 <input 
 type="text"
-name="Postcode"
+id="postcode"
+name="postcode"
 required>
+
 </label>
 
 
@@ -104,11 +113,11 @@ required>
 
 <input 
 type="checkbox"
-name="Registered to vote in UK"
-value="Yes"
+id="registered"
+name="registered"
 required>
 
-I confirm I am registered to vote in the United Kingdom
+I am registered to vote in the United Kingdom
 
 </label>
 
@@ -116,15 +125,12 @@ I confirm I am registered to vote in the United Kingdom
 <br><br>
 
 
-<input type="hidden" name="_subject" value="New Tendring Democracy Project donation declaration">
-
-
-<input type="hidden" name="_next" value="https://YOUR-WEBSITE.com/donate/payment.html">
+<p id="error"></p>
 
 
 <button class="btn primary" type="submit">
 
-DONATE NOW →
+CONTINUE TO SECURE PAYMENT →
 
 </button>
 
@@ -135,6 +141,92 @@ DONATE NOW →
 </div>
 
 </section>
+
+
+
+<script>
+
+const form = document.getElementById("donation-form");
+
+form.addEventListener("submit", async function(event) {
+
+event.preventDefault();
+
+
+const data = {
+
+amount: document.getElementById("amount").value,
+
+name: document.getElementById("name").value,
+
+email: document.getElementById("email").value,
+
+postcode: document.getElementById("postcode").value,
+
+registered: document.getElementById("registered").checked
+
+};
+
+
+
+try {
+
+
+const response = await fetch(
+
+"YOUR-WORKER-URL",
+
+{
+
+method: "POST",
+
+headers: {
+
+"Content-Type": "application/json"
+
+},
+
+body: JSON.stringify(data)
+
+}
+
+);
+
+
+
+const result = await response.json();
+
+
+
+if(result.url) {
+
+window.location.href = result.url;
+
+}
+
+else {
+
+document.getElementById("error").innerText =
+"There was a problem starting payment. Please try again.";
+
+}
+
+
+
+}
+
+catch(error) {
+
+document.getElementById("error").innerText =
+"There was a problem connecting to payment. Please try again.";
+
+}
+
+
+});
+
+
+</script>
 
 
 
