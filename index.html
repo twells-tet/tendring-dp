@@ -82,15 +82,19 @@ aria-valuenow="1860.50">
 <div class="countdown">
 
 <h2>
-POLLING DAY COUNTDOWN
+CAMPAIGN TIMELINE
 </h2>
 
-<div id="timer">
-Loading...
-</div>
+<p>
+<strong>First by-election:</strong> Thurs. 13 August 2026
+</p>
 
 <p>
-Polls open: 7AM, 13 August 2026
+<strong>Recall petition:</strong> September 2026?
+</p>
+
+<p>
+<strong>Second by-election:</strong> TBC
 </p>
 
 </div>
@@ -165,32 +169,7 @@ Promoted by Tendring Democracy Project, all at PO Box 2002, Clacton-on-Sea, CO15
 
 <script>
 
-const pollingDay = new Date("August 13, 2026 07:00:00").getTime();
-
-const timer = document.getElementById("timer");
-
-const countdown = setInterval(function () {
-
-    const now = new Date().getTime();
-    const distance = pollingDay - now;
-
-    if (distance <= 0) {
-
-        clearInterval(countdown);
-        timer.textContent = "POLLING IS NOW OPEN";
-        return;
-
-    }
-
-    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-    timer.textContent =
-        `${days} DAYS ${hours} HOURS ${minutes} MINUTES ${seconds} SECONDS`;
-
-}, 1000);
+// Campaign timeline - no longer active countdown
 
 </script>
 
