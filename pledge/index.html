@@ -111,6 +111,14 @@ I would like to get involved
 <p class="form-hint" id="involved-hint" style="display:none;">Click sign me up below to join our volunteer team.</p>
 </div>
 
+<div class="form-group">
+<h4>Stand as a candidate</h4>
+<label class="checkbox-label">
+<input type="checkbox" name="stand_candidate" value="yes">
+I am interested in standing for the North East Essex unitary authority in May 2027
+</label>
+</div>
+
 </div>
 
 <p id="error" class="error-message"></p>
@@ -186,7 +194,8 @@ form.addEventListener("submit", async function(event) {
     postcode: document.getElementById("postcode").value.trim().toUpperCase(),
     name: document.getElementById("name").value.trim(),
     recall_vote: document.querySelector('input[name="recall_vote"]').checked,
-    postal_vote: document.querySelector('input[name="postal_vote"]').checked
+    postal_vote: document.querySelector('input[name="postal_vote"]').checked,
+    stand_candidate: document.querySelector('input[name="stand_candidate"]').checked
   };
   
   try {
