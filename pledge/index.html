@@ -161,7 +161,9 @@ radioButtons.forEach(radio => {
       clactonYes.style.display = "none";
       submitButton.style.display = "none";
       document.getElementById("error").innerText = "";
-      window.location.href = "/";
+      // Redirect to the volunteer page and indicate they do NOT live in the constituency.
+      // The volunteer page will interpret the query param and show the non-Tendring form.
+      window.location.href = "/volunteer/?from=pledge&tendring=no";
     }
   });
 });

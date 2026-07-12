@@ -207,6 +207,32 @@ radioButtons.forEach(radio => {
   });
 });
 
+// If the volunteer page is reached with query params (e.g. from the pledge page),
+// preselect the Tendring radio and reveal the appropriate section.
+(function applyPrefillFromQuery() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const tendringParam = params.get('tendring');
+    if (tendringParam === 'no') {
+      const radioNo = document.querySelector('input[name="tendring"][value="no"]');
+      if (radioNo) {
+        radioNo.checked = true;
+        // trigger the same change handler logic
+        radioNo.dispatchEvent(new Event('change'));
+      }
+    } else if (tendringParam === 'yes') {
+      const radioYes = document.querySelector('input[name="tendring"][value="yes"]');
+      if (radioYes) {
+        radioYes.checked = true;
+        radioYes.dispatchEvent(new Event('change'));
+      }
+    }
+  } catch (e) {
+    // ignore if URLSearchParams not supported or other error
+    console.warn('Prefill query handling failed', e);
+  }
+})();
+
 form.addEventListener("submit", async function(event) {
   event.preventDefault();
   
