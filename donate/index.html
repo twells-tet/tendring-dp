@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Donate | Tendring Democracy Project</title>
+
+<link rel="stylesheet" href="../style.css">
+
+</head>
+
+
+<body>
+
+
+<section class="hero">
+
+<div class="container">
+
+
+<div class="tag">
+TENDRING DEMOCRACY PROJECT
+</div>
+
+
+<h1>
+SUPPORT THE
+<br>
+<span class="yellow">CAMPAIGN</span>
+</h1>
+
+
+<p class="lead">
+Help us organise volunteers, reach voters and build a democratic alternative to Reform in Clacton.
+</p>
+
+
+
+<form id="donation-form" class="donation-form">
+
+<div class="form-grid">
+
+<div class="form-group">
+<label for="amount" class="form-label">Amount</label>
+<div class="input-wrapper">
+<span class="currency-symbol">£</span>
+<input 
+type="number"
+id="amount"
+name="amount"
+min="1"
+max="4999.99"
+step="0.01"
+value="25"
+placeholder="25.00"
+required>
+</div>
+<p class="form-hint">minimum £1.00</p>
+</div>
+
+<div class="form-group">
+<label for="name" class="form-label">Name</label>
+<input 
+type="text"
+id="name"
+name="name"
+placeholder="Name as it appears on the electoral register"
+required>
+</div>
+
+<div class="form-group">
+<label for="postcode" class="form-label">Postcode</label>
+<input 
+type="text"
+id="postcode"
+name="postcode"
+placeholder="CO15 1AA"
+required>
+</div>
+
+</div>
+
+<div class="form-group">
+<label for="email" class="form-label">Email</label>
+<input 
+type="email"
+id="email"
+name="email"
+placeholder="your@email.com"
+required>
+</div>
+
+<div class="form-notice">
+<p>By clicking proceed to checkout you confirm you are registered to vote in the United Kingdom.</p>
+</div>
+
+<p id="error" class="error-message"></p>
+
+<button class="btn primary btn-large" id="submit-button" type="submit">
+PROCEED TO CHECKOUT →
+</button>
+
+<p class="form-helper">All fields must be filled in before proceeding.</p>
+
+</form>
+
+
+</div>
+
+</section>
+
+
+
+<script>
+
+const form = document.getElementById("donation-form");
+
+
+form.addEventListener("submit", async function(event) {
+
+event.preventDefault();
+
+
+document.getElementById("submit-button").disabled = true;
+
+
+
+const amount = Number(
+document.getElementById("amount").value
+);
+
+
+
+if (amount < 1 || amount > 4999.99) {
+
+document.getElementById("error").innerText =
+"Please enter a donation between £1 and £4,999.99.";
+
+document.getElementById("submit-button").disabled = false;
+
+return;
+
+}
+
+
+
+const data = {
+
+amount: amount,
+
+name: document.getElementById("name").value.trim(),
+
+email: document.getElementById("email").value.trim(),
+
+postcode: document.getElementById("postcode").value.trim().toUpperCase()
+
+};
+
+
+
+try {
+
+
+const response = await fetch(
+
+"https://tendring-donation-stripe-2.twells-tet.workers.dev",
+
+{
+
+method: "POST",
+
+headers: {
+
+"Content-Type": "application/json"
+
+},
+
+body: JSON.stringify(data)
+
+}
+
+);
+
+
+
+const result = await response.json();
+
+
+
+if(result.url) {
+
+window.location.href = result.url;
+
+}
+
+else {
+
+document.getElementById("error").innerText =
+"There was a problem starting payment. Please try again.";
+
+document.getElementById("submit-button").disabled = false;
+
+}
+
+
+
+}
+
+catch(error) {
+
+document.getElementById("error").innerText =
+"Payment service unavailable. Please try again later.";
+
+console.error(error);
+
+document.getElementById("submit-button").disabled = false;
+
+}
+
+
+});
+
+
+</script>
+
+
+
+</body>
+
+</html>
