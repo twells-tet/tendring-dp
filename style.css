@@ -47,8 +47,8 @@ margin-bottom:30px;
 
 h1 {
 
-font-size:90px;
-line-height:0.85;
+font-size:clamp(48px, 10vw, 90px);
+line-height:0.9;
 font-weight:900;
 margin:0;
 
@@ -64,7 +64,7 @@ color:#e31b23;
 
 .lead {
 
-font-size:22px;
+font-size:clamp(18px, 4vw, 22px);
 line-height:1.5;
 max-width:700px;
 margin:40px auto;
@@ -231,6 +231,29 @@ color:#e31b23;
 }
 
 
+.card-subaction {
+
+display:inline-block;
+margin-top:18px;
+padding:14px 16px;
+background:#0a1a3e;
+color:#fff;
+border:2px solid #0a1a3e;
+border-radius:8px;
+text-decoration:none;
+
+}
+
+
+.contact-link-row {
+
+text-align:center;
+margin:0 auto 60px;
+padding:0 20px;
+
+}
+
+
 
 footer {
 
@@ -265,6 +288,25 @@ margin-bottom:25px;
 
 
 @media (max-width:600px) {
+.hero {
+padding:50px 20px;
+}
+
+.tag {
+font-size:12px;
+letter-spacing:1.5px;
+padding:8px 12px;
+margin-bottom:20px;
+}
+
+.lead {
+margin:28px auto;
+}
+
+.btn {
+padding:16px 24px;
+}
+
 .form-grid {
 grid-template-columns:1fr;
 }
@@ -302,7 +344,30 @@ transition:all 0.2s ease;
 }
 
 
+.form-group textarea {
+
+padding:16px;
+font-size:16px;
+border:2px solid #e31b23;
+border-radius:8px;
+font-family:'Inter', sans-serif;
+transition:all 0.2s ease;
+min-height:180px;
+resize:vertical;
+
+}
+
+
 .form-group input:focus {
+
+outline:none;
+border-color:#1c3b7c;
+box-shadow:0 0 0 3px rgba(28, 59, 124, 0.1);
+
+}
+
+
+.form-group textarea:focus {
 
 outline:none;
 border-color:#1c3b7c;
@@ -529,6 +594,21 @@ cursor:pointer;
 font-size:15px;
 line-height:1.5;
 text-align:left;
+
+}
+
+
+.checkbox-label span {
+
+flex:1;
+
+}
+
+
+.checkbox-label a {
+
+color:inherit;
+text-decoration:underline;
 
 }
 
