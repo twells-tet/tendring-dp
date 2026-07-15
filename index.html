@@ -69,15 +69,14 @@ role="progressbar"
 aria-label="Campaign fundraising"
 aria-valuemin="0"
 aria-valuemax="20000"
-aria-valuenow="0"
-id="progress-bar">
+aria-valuenow="1861.50">
 
-<div class="progress-fill" id="progress-fill" style="width:0%;"></div>
+<div class="progress-fill" style="width:9.3075%;"></div>
 
 </div>
 
-<p class="progress-text" id="progress-text">
-Loading donation total...
+<p class="progress-text">
+£1,861.50 raised so far.
 </p>
 
 <div class="countdown">
@@ -170,16 +169,7 @@ Promoted by Tendring Democracy Project, all at PO Box 2002, Clacton-on-Sea, CO15
 
 <script>
 
-// UPDATE THIS VALUE MANUALLY WHEN THE TOTAL CHANGES
-const RAISED = 1861.50;
-const TARGET = 20000;
-
-(function() {
-  const percentage = Math.min((RAISED / TARGET) * 100, 100).toFixed(2);
-  document.getElementById("progress-fill").style.width = percentage + "%";
-  document.getElementById("progress-bar").setAttribute("aria-valuenow", RAISED);
-  document.getElementById("progress-text").textContent = `£${RAISED.toFixed(2)} raised so far.`;
-})();
+// Campaign timeline - no longer active countdown
 
 </script>
 
