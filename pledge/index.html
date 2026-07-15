@@ -79,7 +79,7 @@ required>
 </div>
 
 <div class="form-group">
-<label for="name" class="form-label">Full Name</label>
+<label for="name" class="form-label">Your Name</label>
 <input 
 type="text"
 id="name"
@@ -106,16 +106,7 @@ I would like a postal vote for the recall petition
 <h4>Get involved</h4>
 <label class="checkbox-label">
 <input type="checkbox" name="get_involved" value="yes">
-I would like to get involved
-</label>
-<p class="form-hint" id="involved-hint" style="display:none;">Click sign me up below to join our volunteer team.</p>
-</div>
-
-<div class="form-group">
-<h4>Stand as a candidate</h4>
-<label class="checkbox-label">
-<input type="checkbox" name="stand_candidate" value="yes">
-Standing to be a councillor on the new North East Essex unitary authority in May 2027
+I would like to get more involved in the campaign to unseat Farage
 </label>
 </div>
 
@@ -150,7 +141,6 @@ const radioButtons = document.querySelectorAll('input[name="clacton"]');
 const clactonYes = document.getElementById("clacton-yes");
 const submitButton = document.getElementById("submit-button");
 const involvedCheckbox = document.querySelector('input[name="get_involved"]');
-const involvedHint = document.getElementById("involved-hint");
 
 radioButtons.forEach(radio => {
   radio.addEventListener("change", function() {
@@ -166,13 +156,7 @@ radioButtons.forEach(radio => {
   });
 });
 
-involvedCheckbox.addEventListener("change", function() {
-  if (this.checked) {
-    involvedHint.style.display = "block";
-  } else {
-    involvedHint.style.display = "none";
-  }
-});
+involvedCheckbox.addEventListener("change", function() {});
 
 form.addEventListener("submit", async function(event) {
   event.preventDefault();
@@ -181,21 +165,13 @@ form.addEventListener("submit", async function(event) {
   
   const getInvolved = document.querySelector('input[name="get_involved"]').checked;
   
-  if (getInvolved) {
-    document.getElementById("redirect-note").style.display = "block";
-    setTimeout(() => {
-      window.location.href = "/volunteer/";
-    }, 1500);
-    return;
-  }
-  
   const data = {
     address: document.getElementById("address").value.trim(),
     postcode: document.getElementById("postcode").value.trim().toUpperCase(),
     name: document.getElementById("name").value.trim(),
     recall_vote: document.querySelector('input[name="recall_vote"]').checked,
     postal_vote: document.querySelector('input[name="postal_vote"]').checked,
-    stand_candidate: document.querySelector('input[name="stand_candidate"]').checked
+    get_involved: getInvolved
   };
   
   try {
@@ -215,6 +191,9 @@ form.addEventListener("submit", async function(event) {
     if(result.success) {
       document.getElementById("error").innerText = "Thank you for your pledge! We'll be in touch.";
       document.getElementById("error").style.color = "#e31b23";
+      if (getInvolved) {
+        window.open("/volunteer/?tendring=yes", "_blank");
+      }
       form.reset();
       clactonYes.style.display = "none";
       submitButton.style.display = "none";
