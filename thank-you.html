@@ -10,14 +10,15 @@
     .card { max-width:720px; padding:2rem; background:#fff; border:4px solid #e31b23; border-radius:8px; box-shadow:0 10px 30px rgba(10,26,62,0.08); text-align:center; }
     h1 { margin:0 0 0.5rem; color:#e31b23; }
     p { margin:0 0 1rem; font-size:1.1rem; }
-    a.button { display:inline-block; background:#e31b23; color:#fff; padding:0.6rem 1rem; border-radius:6px; text-decoration:none; font-weight:600; }
+    .button { display:inline-block; background:#e31b23; color:#fff; padding:0.85rem 1.35rem; border-radius:10px; border:0; font-weight:800; letter-spacing:0.8px; text-transform:uppercase; cursor:pointer; box-shadow:0 8px 20px rgba(227,27,35,0.25); transition:transform 0.15s ease, box-shadow 0.15s ease; }
+    .button:hover { transform:translateY(-1px); box-shadow:0 10px 24px rgba(227,27,35,0.3); }
   </style>
 </head>
 <body>
   <main class="card">
     <h1>Thank you</h1>
-    <p>Thank you for your kind donation to support our campaign to end Nigel Farage's career as MP for Clacton.</p>
-    <p><button class="button" onclick="navigator.clipboard.writeText('https://tendring-dp.org.uk/').then(() => { this.textContent = 'Link copied! ✓'; setTimeout(() => this.textContent = 'Copy link to share on social media', 2000); })">Copy link to share on social media</button></p>
+    <p>The fastest way to help right now is to get this page in front of one more person. Please share the below link too.</p>
+    <p><button class="button" onclick="navigator.clipboard.writeText('https://tendring-dp.org.uk/').then(() => { this.textContent = 'LINK COPIED! ✓'; setTimeout(() => this.textContent = 'COPY LINK', 2000); })">COPY LINK</button></p>
   </main>
 </body>
 </html>
