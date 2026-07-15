@@ -79,12 +79,12 @@ required>
 </div>
 
 <div class="form-group">
-<label for="name" class="form-label">Name as it appears on the electoral register</label>
+<label for="name" class="form-label">Full Name</label>
 <input 
 type="text"
 id="name"
 name="name"
-placeholder="Your full name"
+placeholder="Jo Smith"
 required>
 </div>
 
@@ -160,10 +160,8 @@ radioButtons.forEach(radio => {
     } else {
       clactonYes.style.display = "none";
       submitButton.style.display = "none";
-      document.getElementById("error").innerText = "";
-      // Redirect to the volunteer page and indicate they do NOT live in the constituency.
-      // The volunteer page will interpret the query param and show the non-Tendring form.
-      window.location.href = "/volunteer/?from=pledge&tendring=no";
+      // Redirect to volunteer page with tendring=no pre-selected
+      window.location.href = "/volunteer/?tendring=no";
     }
   });
 });

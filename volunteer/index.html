@@ -59,13 +59,23 @@ No
 <div id="tendring-yes" class="conditional-form" style="display:none;">
 
 <div class="form-group">
+<label for="name-yes" class="form-label">Full Name</label>
+<input 
+type="text"
+id="name-yes"
+name="name_yes"
+placeholder="Jo Smith"
+required>
+</div>
+
+<div class="form-group">
 <label for="address" class="form-label">Address Line 1</label>
 <input 
 type="text"
 id="address"
 name="address"
-placeholder="First line of your address"
-required>
+placeholder="123 High Street"
+>
 </div>
 
 <div class="form-group">
@@ -74,7 +84,7 @@ required>
 type="text"
 id="postcode-yes"
 name="postcode_yes"
-placeholder="CO15 1JA"
+placeholder="CO15 1AA"
 required>
 </div>
 
@@ -95,7 +105,7 @@ type="tel"
 id="phone-yes"
 name="phone_yes"
 placeholder="07700 000000"
-required>
+>
 </div>
 
 <div class="form-group">
@@ -123,12 +133,22 @@ Display a poster in my window or garden
 <div id="tendring-no" class="conditional-form" style="display:none;">
 
 <div class="form-group">
+<label for="name-no" class="form-label">Full Name</label>
+<input 
+type="text"
+id="name-no"
+name="name_no"
+placeholder="Jo Smith"
+required>
+</div>
+
+<div class="form-group">
 <label for="postcode-no" class="form-label">Postcode</label>
 <input 
 type="text"
 id="postcode-no"
 name="postcode_no"
-placeholder="e.g. CO15 1JA"
+placeholder="CO15 1AA"
 required>
 </div>
 
@@ -143,14 +163,24 @@ required>
 </div>
 
 <div class="form-group">
+<label for="phone-no" class="form-label">Mobile Number</label>
+<input 
+type="tel"
+id="phone-no"
+name="phone_no"
+placeholder="07700 000000"
+>
+</div>
+
+<div class="form-group">
 <h4>How would you like to help?</h4>
 <label class="checkbox-label">
 <input type="checkbox" name="help_money" value="yes">
-I can help raise money, e.g. by delivering leaflets in my local area
+I can help raise money, e.g. by delivering leaflets in my local area or outside railway stations
 </label>
 <label class="checkbox-label">
 <input type="checkbox" name="help_campaign" value="yes">
-I will travel to Clacton to help with campaigning
+I will travel to the Clacton constituency to help with campaigning
 </label>
 </div>
 
@@ -187,10 +217,10 @@ radioButtons.forEach(radio => {
     if (this.value === "yes") {
       tendringYes.style.display = "block";
       tendringNo.style.display = "none";
-      document.getElementById("address").required = true;
+    document.getElementById("address").required = false;
       document.getElementById("postcode-yes").required = true;
       document.getElementById("email-yes").required = true;
-      document.getElementById("phone-yes").required = true;
+    document.getElementById("phone-yes").required = false;
       document.getElementById("postcode-no").required = false;
       document.getElementById("email-no").required = false;
     } else {

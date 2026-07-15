@@ -170,34 +170,16 @@ Promoted by Tendring Democracy Project, all at PO Box 2002, Clacton-on-Sea, CO15
 
 <script>
 
-// Fetch donation total from Google Sheets
-const SHEET_ID = "1RdTF5USlCAUfx7Wkw2MOlj7f4nOwyS2tWlTk6wKsRCU";
-const CELL = "I1";
-const SHEET_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${CELL}?key=AIzaSyCwJUdTkH-QMqt1H7_QCg-R0J8v9xHN2Ek`;
+// UPDATE THIS VALUE MANUALLY WHEN THE TOTAL CHANGES
+const RAISED = 1861.50;
+const TARGET = 20000;
 
-async function updateDonationTotal() {
-  try {
-    const response = await fetch(SHEET_URL);
-    const data = await response.json();
-    const total = parseFloat(data.values[0][0]) || 0;
-    
-    const target = 20000;
-    const percentage = Math.min((total / target) * 100, 100);
-    
-    document.getElementById("progress-fill").style.width = percentage + "%";
-    document.getElementById("progress-bar").setAttribute("aria-valuenow", total);
-    document.getElementById("progress-text").textContent = `£${total.toFixed(2)} raised so far.`;
-  } catch (error) {
-    console.error("Failed to fetch donation total:", error);
-    document.getElementById("progress-text").textContent = "£0.00 raised so far.";
-  }
-}
-
-// Update on page load
-updateDonationTotal();
-
-// Update every 30 seconds
-setInterval(updateDonationTotal, 30000);
+(function() {
+  const percentage = Math.min((RAISED / TARGET) * 100, 100).toFixed(2);
+  document.getElementById("progress-fill").style.width = percentage + "%";
+  document.getElementById("progress-bar").setAttribute("aria-valuenow", RAISED);
+  document.getElementById("progress-text").textContent = `£${RAISED.toFixed(2)} raised so far.`;
+})();
 
 </script>
 
