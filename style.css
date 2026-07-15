@@ -275,6 +275,14 @@ font-size:14px;
 }
 
 
+footer a {
+
+color:#fcf4ed;
+text-decoration:underline;
+
+}
+
+
 /* Donation Form Styles */
 
 .donation-form {
