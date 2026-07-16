@@ -1,1 +1,764 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gwynedd 2027 | Electors</title>
+  <meta name="description" content="Gwynedd council election canvassing tool — elector list by ward and polling district.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="page-header">
+    <h1>Gwynedd 2027</h1>
+  </header>
 
+  <main class="app-shell">
+    <section class="controls" aria-label="Filters">
+      <!-- Hidden select keeps JS filtering logic intact; value is always Gwynedd -->
+      <select id="local-authority" hidden>
+        <option value="gwynedd" selected>Gwynedd</option>
+      </select>
+      <div class="filter-grid">
+        <label for="ward">
+          Ward
+          <select id="ward">
+            <option value="">All wards</option>
+            <option value="abererch">Abererch</option>
+            <option value="abersoch gyda llanengan" selected>Abersoch gyda Llanengan</option>
+            <option value="criccieth">Criccieth</option>
+            <option value="de pwllheli">De Pwllheli</option>
+            <option value="efailnewydd a buan">Efailnewydd a Buan</option>
+            <option value="gogledd pwllheli">Gogledd Pwllheli</option>
+            <option value="llanbedrog gyda mynytho">Llanbedrog gyda Mynytho</option>
+            <option value="llanystumdwy">Llanystumdwy</option>
+            <option value="morfa nefyn a thudweiliog">Morfa Nefyn a Thudweiliog</option>
+            <option value="nefyn">Nefyn</option>
+            <option value="pen draw llŷn">Pen draw Llŷn</option>
+            <option value="yr eifl">Yr Eifl</option>
+          </select>
+        </label>
+        <label for="polling-district">
+          Polling District
+          <select id="polling-district" disabled>
+            <option value="">To be supplied</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <section class="stats" aria-label="Elector statistics">
+      <div class="stat-card">
+        <span class="stat-label">Electors</span>
+        <strong id="stat-loaded">0</strong>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Households</span>
+        <strong id="stat-complete">0</strong>
+      </div>
+    </section>
+
+    <section class="workspace" aria-label="Elector boundaries and list">
+      <div class="panel map-panel">
+        <h2>Property Map</h2>
+        <div class="ward-preview-crop">
+          <iframe id="ward-preview" title="Property location on OpenStreetMap" loading="lazy"></iframe>
+        </div>
+      </div>
+
+      <div class="panel list-panel">
+        <div class="list-head">
+          <h2>Elector list</h2>
+          <input id="search" type="search" placeholder="Search name, address, postcode">
+        </div>
+        <div id="elector-list" class="elector-list"></div>
+      </div>
+    </section>
+
+    <section class="sheet-url-section" aria-label="Data source">
+      <label for="sheet-url">Google Sheet URL</label>
+      <input id="sheet-url" type="url" placeholder="https://docs.google.com/spreadsheets/d/.../edit#gid=0">
+      <p id="message" class="message" role="status" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <script>
+    const EXPECTED_ELECTORS = 500;
+
+    // Welsh connectives/prepositions that should stay lowercase mid-address.
+    const WELSH_LOWERCASE = new Set([
+      "a", "ac", "â", "i", "o", "y", "yr", "yn", "am", "ar", "at", "dan", "dros",
+      "drwy", "heb", "tan", "tros", "trwy", "wrth",
+      "a'r", "i'r", "o'r", "y'r", "yr", "â'r"
+    ]);
+
+    const WARD_CODES = {
+      abererch: "165910",
+      "abersoch gyda llanengan": "166295",
+      criccieth: "165924",
+      "de pwllheli": "166269",
+      "efailnewydd a buan": "165909",
+      "gogledd pwllheli": "166271",
+      "llanbedrog gyda mynytho": "166115",
+      llanystumdwy: "165911",
+      "morfa nefyn a thudweiliog": "165908",
+      nefyn: "166270",
+      "pen draw llŷn": "166296",
+      "yr eifl": "165912"
+    };
+    const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/edit?usp=sharing";
+    const STORAGE_KEYS = {
+      sheetUrl: "abersoch-sheet-url",
+      progress: "abersoch-elector-progress-v1"
+    };
+
+    const canvassIdOptions = [
+      "No Data",
+      "Definite Plaid",
+      "Probable Plaid",
+      "Conservative",
+      "Green",
+      "Independent",
+      "Labour",
+      "Lib Dem",
+      "Reform"
+    ];
+    const independenceOptions = ["No Data", "Yes", "No"];
+    const languageOptions = ["English", "Cymraeg"];
+    const state = {
+      electors: [],
+      progress: loadFromStorage(STORAGE_KEYS.progress, {}),
+      householdPageIndex: 0
+    };
+
+    const sheetUrlInput = document.getElementById("sheet-url");
+    const localAuthorityEl = document.getElementById("local-authority");
+    const wardEl = document.getElementById("ward");
+    const pollingDistrictEl = document.getElementById("polling-district");
+    const wardPreviewEl = document.getElementById("ward-preview");
+    const messageEl = document.getElementById("message");
+    const listSizeWarningEl = document.getElementById("list-size-warning");
+    const listEl = document.getElementById("elector-list");
+    const searchEl = document.getElementById("search");
+    const statLoadedEl = document.getElementById("stat-loaded");
+    const statCanvassEl = document.getElementById("stat-complete");
+    const statWardCodeEl = document.getElementById("stat-ward-code");
+
+    initControls();
+
+    function initControls() {
+      const savedUrl = localStorage.getItem(STORAGE_KEYS.sheetUrl) || DEFAULT_SHEET_URL;
+      sheetUrlInput.value = savedUrl;
+      if (savedUrl) {
+        loadElectorsFromSheet(savedUrl);
+      }
+
+      sheetUrlInput.addEventListener("change", () => {
+        const url = sheetUrlInput.value.trim();
+        if (!url) return;
+        localStorage.setItem(STORAGE_KEYS.sheetUrl, url);
+        loadElectorsFromSheet(url);
+      });
+
+      searchEl.addEventListener("input", () => {
+        state.householdPageIndex = 0;
+        renderElectorList();
+      });
+      localAuthorityEl.addEventListener("change", handleFilterChange);
+      wardEl.addEventListener("change", handleFilterChange);
+      pollingDistrictEl.addEventListener("change", handleFilterChange);
+      updateWardPreview();
+      updateStats();
+    }
+
+    function handleFilterChange() {
+      state.householdPageIndex = 0;
+      updateWardPreview();
+      renderElectorList();
+    }
+
+    async function loadElectorsFromSheet(inputUrl) {
+      setMessage("Loading electors...");
+      const csvUrl = toGoogleCsvUrl(inputUrl);
+
+      try {
+        const response = await fetch(csvUrl);
+        if (!response.ok) {
+          throw new Error("Could not fetch sheet data.");
+        }
+        const csvText = await response.text();
+        const rows = parseCsv(csvText);
+        if (!rows.length) {
+          throw new Error("No rows found in the sheet.");
+        }
+
+        const headers = rows[0].map((h) => normalizeHeader(h));
+        const electors = rows
+          .slice(1)
+          .map((row, index) => mapRowToElector(row, headers, index))
+          .filter((entry) => entry.name || entry.address || entry.postcode);
+
+        state.electors = assignHouseholdLabels(electors);
+        renderElectorList();
+        updateWardPreview();
+
+        const loadedCount = electors.length;
+        const community = (electors[0] && electors[0].community) ? welshProperCase(electors[0].community) : "";
+        const communitySuffix = community ? " \u2013 " + community : "";
+        setMessage(loadedCount + " Electors" + communitySuffix);
+      } catch (error) {
+        setMessage("Unable to load sheet: " + error.message);
+      }
+    }
+
+    function mapRowToElector(row, headers, index) {
+      const data = {};
+      headers.forEach((header, idx) => {
+        data[header] = (row[idx] || "").trim();
+      });
+
+      const sourceRow = index + 2;
+      const id = data.electorid || data.id || data.reference || data.uprn || ("row-" + sourceRow);
+      const name = data.name || data.elector || data.electorname || "";
+      const address = [
+        data.address,
+        data.address1,
+        data.address2,
+        data.address3,
+        data.household
+      ].filter((part) => part && !/^\d+$/.test(part) && part.toLowerCase() !== "gwynedd").join(", ");
+      const postcode = data.postcode || "";
+      const localAuthority = data.localauthority || data.localauthorityname || data.authority || data.council || "";
+      const ward = data.ward || data.electoralward || "";
+      const pollingDistrict = data.pollingdistrict || data.pollingdist || data.district || data.pd || (row[15] || "").trim();
+      const pollingElectorNumber = data.electornumber || data.electorno || data.electornum || (row[16] || "").trim();
+      const community = data.community || data.communityname || (row[18] || "").trim();
+      const uprn = data.uprn || (row[19] || "").trim();
+      const lat = parseFloat(row[20]) || null;
+      const lng = parseFloat(row[21]) || null;
+      const postalProxy = formatPostalProxy(data.postalproxy || data.postalorproxy || data.absentvote || data.votetype || (row[17] || "").trim());
+      const householdKey = data.householdkey || data.key || (row[11] || "").trim();
+      const electorsInHousehold = parseInt((data.numberofelectors || data.electors || data.householdcount || row[14] || "").trim(), 10) || null;
+      const normalizedHouseholdKey = normalizeText(householdKey) || ("row-" + sourceRow);
+      return {
+        id: String(id),
+        name,
+        address,
+        postcode,
+        localAuthority,
+        ward,
+        pollingDistrict,
+        pollingElectorNumber,
+        community,
+        uprn,
+        lat,
+        lng,
+        postalProxy,
+        sourceRow,
+        householdKey,
+        householdGroupKey: normalizedHouseholdKey,
+        electorsInHousehold,
+        householdNumber: null,
+        electorNumber: null,
+        displayId: String(id)
+      };
+    }
+
+    function assignHouseholdLabels(electors) {
+      const householdTracker = new Map();
+      let householdCounter = 0;
+
+      return electors.map((elector) => {
+        const normalizedKey = elector.householdGroupKey;
+        if (!householdTracker.has(normalizedKey)) {
+          householdCounter += 1;
+          householdTracker.set(normalizedKey, {
+            householdNumber: householdCounter,
+            nextElectorNumber: 1
+          });
+        }
+        const tracker = householdTracker.get(normalizedKey);
+        const electorNumber = tracker.nextElectorNumber;
+        tracker.nextElectorNumber += 1;
+
+        return {
+          ...elector,
+          householdNumber: tracker.householdNumber,
+          electorNumber,
+          displayId: buildHouseholdDisplayId(
+            electorNumber,
+            elector.electorsInHousehold,
+            elector.pollingDistrict,
+            elector.pollingElectorNumber
+          )
+        };
+      });
+    }
+
+    function buildHouseholdDisplayId(electorNumber, totalElectors, pollingDistrict, pollingElectorNumber) {
+      const total = totalElectors ? " of " + totalElectors : "";
+      const district = String(pollingDistrict || "").trim();
+      const electorNo = String(pollingElectorNumber || "").trim();
+      const suffix = (district && electorNo) ? " - " + district + "-" + electorNo : "";
+      return "Elector " + electorNumber + total + suffix;
+    }
+
+    function renderElectorList() {
+      const searchTerm = searchEl.value.trim().toLowerCase();
+      const filteredElectors = getActiveElectors().filter((elector) => {
+        if (!searchTerm) {
+          return true;
+        }
+        const text = [
+          elector.displayId,
+          elector.id,
+          elector.name,
+          elector.address,
+          elector.postcode,
+          elector.pollingDistrict,
+          elector.community,
+          elector.uprn
+        ].join(" ").toLowerCase();
+        return text.includes(searchTerm);
+      });
+      const households = buildVisibleHouseholds(filteredElectors);
+
+      listEl.innerHTML = "";
+      if (!households.length) {
+        listEl.innerHTML = "<p class=\"empty-state\">No households match your current filters.</p>";
+        updateStats();
+        return;
+      }
+
+      state.householdPageIndex = Math.min(state.householdPageIndex, households.length - 1);
+      state.householdPageIndex = Math.max(state.householdPageIndex, 0);
+      const currentHousehold = households[state.householdPageIndex];
+      const firstElector = currentHousehold.electors[0];
+      updatePropertyMap(firstElector);
+
+      const householdPanel = document.createElement("section");
+      householdPanel.className = "household-panel";
+      householdPanel.innerHTML = `
+        <div class="household-nav">
+          <button type="button" class="household-nav-btn" data-action="prev" ${state.householdPageIndex === 0 ? "disabled" : ""}>Previous household</button>
+          <p>Household ${state.householdPageIndex + 1} of ${households.length}</p>
+          <button type="button" class="household-nav-btn" data-action="next" ${state.householdPageIndex >= households.length - 1 ? "disabled" : ""}>Next household</button>
+        </div>
+        <div class="household-meta">
+          <p><strong>UPRN:</strong> ${escapeHtml(firstElector.uprn || "—")}</p>
+          <p><strong>Property Address:</strong> ${escapeHtml(formatHouseholdAddress(firstElector))}</p>
+          <p><strong>Polling District:</strong> ${escapeHtml(formatPollingDistrictSummary(firstElector))}</p>
+        </div>
+      `;
+      listEl.appendChild(householdPanel);
+
+      currentHousehold.electors.forEach((elector) => {
+        const progress = getElectorProgress(elector.id);
+
+        const item = document.createElement("article");
+        item.className = "elector-item";
+        item.innerHTML = `
+          <div class="elector-main">
+            <p class="elector-id">${escapeHtml(elector.displayId || elector.id)}</p>
+            <h3>${escapeHtml(elector.name || "Unnamed elector")}${elector.postalProxy === "Postal" ? "<span title=\"Postal voter\">*</span>" : ""}</h3>
+          </div>
+          <div class="elector-edit">
+            <label>
+              Canvass ID
+              <select data-id="${escapeHtmlAttr(elector.id)}" class="canvass-select">
+                ${canvassIdOptions.map((option) => `
+                  <option value="${escapeHtmlAttr(option)}" ${option === progress.canvassId ? "selected" : ""}>
+                    ${escapeHtml(option)}
+                  </option>
+                `).join("")}
+              </select>
+            </label>
+            <label>
+              Support Independence?
+              <select data-id="${escapeHtmlAttr(elector.id)}" class="independence-select">
+                ${independenceOptions.map((option) => `
+                  <option value="${escapeHtmlAttr(option)}" ${option === progress.supportIndependence ? "selected" : ""}>
+                    ${escapeHtml(option)}
+                  </option>
+                `).join("")}
+              </select>
+            </label>
+            <label>
+              First language
+              <select data-id="${escapeHtmlAttr(elector.id)}" class="language-select">
+                ${languageOptions.map((option) => `
+                  <option value="${escapeHtmlAttr(option)}" ${option === progress.firstLanguage ? "selected" : ""}>
+                    ${escapeHtml(option)}
+                  </option>
+                `).join("")}
+              </select>
+            </label>
+            <label>
+              Postal / Proxy
+              <div class="postal-proxy-value">${escapeHtml(elector.postalProxy || "—")}</div>
+            </label>
+          </div>
+        `;
+
+        listEl.appendChild(item);
+      });
+
+      bindHouseholdNavigation(households.length);
+      bindProgressEditors();
+      updateStats();
+    }
+
+    function buildVisibleHouseholds(electors) {
+      const groups = new Map();
+      electors.forEach((elector) => {
+        const key = elector.householdGroupKey;
+        if (!groups.has(key)) {
+          groups.set(key, {
+            householdNumber: elector.householdNumber || Number.MAX_SAFE_INTEGER,
+            electors: []
+          });
+        }
+        groups.get(key).electors.push(elector);
+      });
+      return Array.from(groups.values())
+        .sort((a, b) => a.householdNumber - b.householdNumber);
+    }
+
+    function bindHouseholdNavigation(totalHouseholds) {
+      const buttons = listEl.querySelectorAll(".household-nav-btn");
+      buttons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const action = button.dataset.action;
+          if (action === "prev" && state.householdPageIndex > 0) {
+            state.householdPageIndex -= 1;
+            renderElectorList();
+          }
+          if (action === "next" && state.householdPageIndex < totalHouseholds - 1) {
+            state.householdPageIndex += 1;
+            renderElectorList();
+          }
+        });
+      });
+    }
+
+
+    function welshProperCase(str) {
+      if (!str) return str;
+      return str
+        .toLowerCase()
+        .replace(/\S+/g, (word, offset) => {
+          // Strip leading/trailing punctuation to get the core word for lookup
+          const core = word.replace(/^[^a-zA-Z']+|[^a-zA-Z']+$/g, "").toLowerCase();
+          if (offset > 0 && WELSH_LOWERCASE.has(core)) return word;
+          // Capitalise the first letter in the token, even if preceded by punctuation
+          return word.replace(/[a-zA-Z]/, (ch) => ch.toUpperCase());
+        });
+    }
+
+    function formatHouseholdAddress(elector) {
+      const segments = [];
+      if (elector.address) {
+        // Normalise any comma-without-space from raw data before proper-casing
+        const normalised = elector.address.replace(/,(?!\s)/g, ", ");
+        segments.push(welshProperCase(normalised));
+      }
+      if (elector.postcode) {
+        segments.push(elector.postcode.toUpperCase());
+      }
+      return segments.join(", ");
+    }
+
+    function formatPollingDistrictSummary(elector) {
+      const district = String(elector.pollingDistrict || "").trim();
+      const community = String(elector.community || "").trim();
+      const wardContext = extractWardContext(elector.ward);
+      if (district || community || wardContext) {
+        let summary = district;
+        if (community) {
+          summary += (summary ? " " : "") + community;
+        }
+        if (wardContext) {
+          summary += (summary ? " " : "") + "(" + wardContext + ")";
+        }
+        return summary.trim();
+      }
+      return "—";
+    }
+
+    function extractWardContext(ward) {
+      const value = String(ward || "").trim();
+      if (!value) {
+        return "";
+      }
+      const marker = "gyda ";
+      const lowered = value.toLowerCase();
+      const idx = lowered.indexOf(marker);
+      if (idx >= 0) {
+        return value.slice(idx + marker.length).trim();
+      }
+      return value;
+    }
+
+    function bindProgressEditors() {
+      const canvassInputs = listEl.querySelectorAll(".canvass-select");
+      const independenceInputs = listEl.querySelectorAll(".independence-select");
+      const languageInputs = listEl.querySelectorAll(".language-select");
+
+      canvassInputs.forEach((input) => {
+        input.addEventListener("change", (event) => {
+          const id = event.target.dataset.id;
+          const existing = getElectorProgress(id);
+          state.progress[id] = {
+            ...existing,
+            canvassId: event.target.value
+          };
+          saveToStorage(STORAGE_KEYS.progress, state.progress);
+          updateStats();
+        });
+      });
+
+      independenceInputs.forEach((input) => {
+        input.addEventListener("change", (event) => {
+          const id = event.target.dataset.id;
+          const existing = getElectorProgress(id);
+          state.progress[id] = {
+            ...existing,
+            supportIndependence: event.target.value
+          };
+          saveToStorage(STORAGE_KEYS.progress, state.progress);
+        });
+      });
+
+      languageInputs.forEach((input) => {
+        input.addEventListener("change", (event) => {
+          const id = event.target.dataset.id;
+          const existing = getElectorProgress(id);
+          state.progress[id] = {
+            ...existing,
+            firstLanguage: event.target.value
+          };
+          saveToStorage(STORAGE_KEYS.progress, state.progress);
+        });
+      });
+    }
+
+    function getSelectedWardName() {
+      if (!wardEl.value) {
+        return "";
+      }
+      const selected = wardEl.selectedOptions[0];
+      return selected ? selected.textContent.trim() : "";
+    }
+
+    function getSelectedWardCode() {
+      const wardValue = normalizeText(wardEl.value);
+      return WARD_CODES[wardValue] || "";
+    }
+
+    function updatePropertyMap(elector) {
+      if (!elector || !elector.lat || !elector.lng) {
+        wardPreviewEl.removeAttribute("src");
+        return;
+      }
+      const lat = elector.lat;
+      const lng = elector.lng;
+      const delta = 0.004;
+      const bbox = [lng - delta, lat - delta * 0.6, lng + delta, lat + delta * 0.6].join(",");
+      wardPreviewEl.src =
+        "https://www.openstreetmap.org/export/embed.html?bbox=" + bbox +
+        "&layer=mapnik&marker=" + lat + "," + lng;
+    }
+
+    function updateWardPreview() {
+      // kept for backward-compat; map is now driven by household selection
+    }
+
+    function updateStats() {
+      const active = getActiveElectors();
+      const householdCount = new Set(active.map((e) => e.householdGroupKey)).size;
+      const selectedWardCode = getSelectedWardCode();
+      statLoadedEl.textContent = String(active.length);
+      statCanvassEl.textContent = String(householdCount);
+      if (statWardCodeEl) statWardCodeEl.textContent = selectedWardCode || "—";
+      if (listSizeWarningEl) {
+        listSizeWarningEl.textContent = active.length > 700
+          ? "Current selection has " + active.length + " records (above your 700-household target)."
+          : "";
+      }
+    }
+
+    function getElectorProgress(electorId) {
+      const existing = state.progress[electorId] || {};
+      const legacyCanvassId = existing.canvassId || existing.status || "No Data";
+      const canvassId = normalizeCanvassId(legacyCanvassId);
+      const supportIndependence = existing.supportIndependence || "No Data";
+      const firstLanguage = existing.firstLanguage || "English";
+      return {
+        canvassId: canvassIdOptions.includes(canvassId) ? canvassId : "No Data",
+        supportIndependence: independenceOptions.includes(supportIndependence) ? supportIndependence : "No Data",
+        firstLanguage: languageOptions.includes(firstLanguage) ? firstLanguage : "English"
+      };
+    }
+
+    function normalizeCanvassId(value) {
+      const cleaned = String(value || "").trim();
+      if (cleaned === "Tory") {
+        return "Conservative";
+      }
+      if (cleaned === "Plaid") {
+        return "Probable Plaid";
+      }
+      return cleaned || "No Data";
+    }
+
+    function getActiveElectors() {
+      const authority = normalizeText(localAuthorityEl.value);
+      const ward = normalizeText(wardEl.value);
+      const pollingDistrict = normalizeText(pollingDistrictEl.value);
+
+      return state.electors.filter((elector) => {
+        const electorAuthority = normalizeText(elector.localAuthority);
+        const electorWard = normalizeText(elector.ward);
+        const electorPollingDistrict = normalizeText(elector.pollingDistrict);
+
+        if (authority && electorAuthority && electorAuthority !== authority) {
+          return false;
+        }
+        if (ward && electorWard && electorWard !== ward) {
+          return false;
+        }
+        if (pollingDistrict && electorPollingDistrict && electorPollingDistrict !== pollingDistrict) {
+          return false;
+        }
+        return true;
+      });
+    }
+
+    function toGoogleCsvUrl(rawUrl) {
+      if (rawUrl.includes("output=csv") || rawUrl.includes("/export?format=csv")) {
+        return rawUrl;
+      }
+      const match = rawUrl.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+      if (!match) {
+        return rawUrl;
+      }
+      const sheetId = match[1];
+      const gidMatch = rawUrl.match(/[?&#]gid=([0-9]+)/);
+      const gid = gidMatch ? gidMatch[1] : "0";
+      return "https://docs.google.com/spreadsheets/d/" + sheetId + "/export?format=csv&gid=" + gid;
+    }
+
+    function parseCsv(csvText) {
+      const rows = [];
+      let row = [];
+      let value = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < csvText.length; i += 1) {
+        const char = csvText[i];
+        const next = csvText[i + 1];
+
+        if (char === "\"" && inQuotes && next === "\"") {
+          value += "\"";
+          i += 1;
+          continue;
+        }
+
+        if (char === "\"") {
+          inQuotes = !inQuotes;
+          continue;
+        }
+
+        if (char === "," && !inQuotes) {
+          row.push(value);
+          value = "";
+          continue;
+        }
+
+        if ((char === "\n" || char === "\r") && !inQuotes) {
+          if (char === "\r" && next === "\n") {
+            i += 1;
+          }
+          row.push(value);
+          rows.push(row);
+          row = [];
+          value = "";
+          continue;
+        }
+
+        value += char;
+      }
+
+      if (value.length || row.length) {
+        row.push(value);
+        rows.push(row);
+      }
+
+      return rows;
+    }
+
+    function normalizeHeader(value) {
+      return (value || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+    }
+
+    function normalizeText(value) {
+      return String(value || "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function formatPostalProxy(value) {
+      const cleaned = String(value || "").trim();
+      const normalized = normalizeText(cleaned);
+      if (!normalized) {
+        return "";
+      }
+      if (normalized.includes("postal")) {
+        return "Postal";
+      }
+      if (normalized.includes("proxy")) {
+        return "Proxy";
+      }
+      return cleaned;
+    }
+
+    function setMessage(text) {
+      messageEl.textContent = text;
+    }
+
+    function loadFromStorage(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch (_error) {
+        return fallback;
+      }
+    }
+
+    function saveToStorage(key, value) {
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+
+    function wait(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function escapeHtmlAttr(value) {
+      return escapeHtml(value).replace(/`/g, "&#096;");
+    }
+  </script>
+</body>
+</html>
