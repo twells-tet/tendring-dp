@@ -213,57 +213,167 @@
       }
     }
 
-    function mapRowToElector(row, headers, index) {
-      const data = {};
-      headers.forEach((header, idx) => {
-        data[header] = (row[idx] || "").trim();
-      });
+  function mapRowToElector(row, headers, index) {
+  const data = {};
 
-      const sourceRow = index + 2;
-      const id = data.electorid || data.id || data.reference || data.uprn || ("row-" + sourceRow);
-      const name = data.name || data.elector || data.electorname || "";
-      const address = [
-        data.address,
-        data.address1,
-        data.address2,
-        data.address3,
-        data.household
-      ].filter((part) => part && !/^\d+$/.test(part) && part.toLowerCase() !== "gwynedd").join(", ");
-      const postcode = data.postcode || "";
-      const localAuthority = data.localauthority || data.localauthorityname || data.authority || data.council || "";
-      const ward = data.ward || data.electoralward || "";
-      const pollingDistrict = data.pollingdistrict || data.pollingdist || data.district || data.pd || (row[15] || "").trim();
-      const pollingElectorNumber = data.electornumber || data.electorno || data.electornum || (row[16] || "").trim();
-      const community = data.community || data.communityname || (row[18] || "").trim();
-      const uprn = data.uprn || (row[19] || "").trim();
-      const lat = parseFloat(row[20]) || null;
-      const lng = parseFloat(row[21]) || null;
-      const postalProxy = formatPostalProxy(data.postalproxy || data.postalorproxy || data.absentvote || data.votetype || (row[17] || "").trim());
-      const householdKey = data.householdkey || data.key || (row[11] || "").trim();
-      const electorsInHousehold = parseInt((data.numberofelectors || data.electors || data.householdcount || row[14] || "").trim(), 10) || null;
-      const normalizedHouseholdKey = normalizeText(householdKey) || ("row-" + sourceRow);
-      return {
-        id: String(id),
-        name,
-        address,
-        postcode,
-        localAuthority,
-        ward,
-        pollingDistrict,
-        pollingElectorNumber,
-        community,
-        uprn,
-        lat,
-        lng,
-        postalProxy,
-        sourceRow,
-        householdKey,
-        householdGroupKey: normalizedHouseholdKey,
-        electorsInHousehold,
-        householdNumber: null,
-        electorNumber: null,
-        displayId: String(id)
-      };
+  headers.forEach((header, idx) => {
+    data[header] = (row[idx] || "").trim();
+  });
+
+  const sourceRow = index + 2;
+
+  const id =
+    data.electorid ||
+    data.id ||
+    data.reference ||
+    data.uprn ||
+    ("row-" + sourceRow);
+
+  const name =
+    data.name ||
+    data.elector ||
+    data.electorname ||
+    "";
+
+  const address = [
+    data.address,
+    data.address1,
+    data.address2,
+    data.address3,
+    data.household
+  ]
+    .filter(
+      (part) =>
+        part &&
+        !/^\d+$/.test(part) &&
+        part.toLowerCase() !== "gwynedd"
+    )
+    .join(", ");
+
+  const postcode = data.postcode || "";
+
+  const localAuthority =
+    data.localauthority ||
+    data.localauthorityname ||
+    data.authority ||
+    data.council ||
+    "";
+
+  const ward =
+    data.ward ||
+    data.electoralward ||
+    "";
+
+  const pollingDistrict =
+    data.pollingdistrict ||
+    data.pollingdist ||
+    data.district ||
+    data.pd ||
+    (row[15] || "").trim();
+
+  const pollingElectorNumber =
+    data.electornumber ||
+    data.electorno ||
+    data.electornum ||
+    (row[16] || "").trim();
+
+  const community =
+    data.community ||
+    data.communityname ||
+    (row[18] || "").trim();
+
+  const uprn =
+    data.uprn ||
+    (row[19] || "").trim();
+
+
+  /*
+    LOCATION DATA
+
+    Sheet columns:
+    U = Latitude  (index 20)
+    W = Longitude (index 22)
+
+    Also allows headers:
+    Latitude
+    Longitude
+  */
+
+  const lat =
+    parseFloat(
+      data.latitude ||
+      data.lat ||
+      row[20]
+    ) || null;
+
+  const lng =
+    parseFloat(
+      data.longitude ||
+      data.lng ||
+      data.lon ||
+      row[22]
+    ) || null;
+
+
+  const postalProxy = formatPostalProxy(
+    data.postalproxy ||
+    data.postalorproxy ||
+    data.absentvote ||
+    data.votetype ||
+    (row[17] || "").trim()
+  );
+
+  const householdKey =
+    data.householdkey ||
+    data.key ||
+    (row[11] || "").trim();
+
+  const electorsInHousehold =
+    parseInt(
+      (
+        data.numberofelectors ||
+        data.electors ||
+        data.householdcount ||
+        row[14] ||
+        ""
+      ).trim(),
+      10
+    ) || null;
+
+
+  const normalizedHouseholdKey =
+    normalizeText(householdKey) ||
+    ("row-" + sourceRow);
+
+
+  return {
+    id: String(id),
+    name,
+    address,
+    postcode,
+    localAuthority,
+    ward,
+    pollingDistrict,
+    pollingElectorNumber,
+    community,
+    uprn,
+
+    // OpenStreetMap coordinates
+    lat,
+    lng,
+
+    postalProxy,
+    sourceRow,
+
+    householdKey,
+    householdGroupKey: normalizedHouseholdKey,
+
+    electorsInHousehold,
+
+    householdNumber: null,
+    electorNumber: null,
+    displayId: String(id)
+  };
     }
 
     function assignHouseholdLabels(electors) {
@@ -557,18 +667,30 @@
       return WARD_CODES[wardValue] || "";
     }
 
-    function updatePropertyMap(elector) {
-      if (!elector || !elector.lat || !elector.lng) {
-        wardPreviewEl.removeAttribute("src");
-        return;
-      }
-      const lat = elector.lat;
-      const lng = elector.lng;
-      const delta = 0.004;
-      const bbox = [lng - delta, lat - delta * 0.6, lng + delta, lat + delta * 0.6].join(",");
-      wardPreviewEl.src =
-        "https://www.openstreetmap.org/export/embed.html?bbox=" + bbox +
-        "&layer=mapnik&marker=" + lat + "," + lng;
+  function updatePropertyMap(elector) {
+  if (
+    !elector ||
+    elector.lat === null ||
+    elector.lng === null
+  ) {
+    wardPreviewEl.removeAttribute("src");
+    return;
+  }
+
+  const lat = elector.lat;
+  const lng = elector.lng;
+  const delta = 0.004;
+
+  const bbox = [
+    lng - delta,
+    lat - delta * 0.6,
+    lng + delta,
+    lat + delta * 0.6
+  ].join(",");
+
+  wardPreviewEl.src =
+    "https://www.openstreetmap.org/export/embed.html?bbox=" + bbox +
+    "&layer=mapnik&marker=" + lat + "," + lng;
     }
 
     function updateWardPreview() {
