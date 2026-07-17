@@ -41,11 +41,31 @@
           </select>
         </label>
         <label for="polling-district">
-          Polling District
-          <select id="polling-district" disabled>
-            <option value="">To be supplied</option>
-          </select>
-        </label>
+  Polling District
+  <select id="polling-district">
+    <option value="">All polling districts</option>
+  </select>
+</label>
+
+<label>
+  Local Authority
+  <input id="display-local-authority" readonly>
+</label>
+
+<label>
+  Senedd
+  <input id="display-senedd" readonly>
+</label>
+
+<label>
+  Westminster
+  <input id="display-westminster" readonly>
+</label>
+
+<label>
+  Community
+  <input id="display-community" readonly>
+</label>
       </div>
     </section>
 
@@ -145,6 +165,10 @@
     const statLoadedEl = document.getElementById("stat-loaded");
     const statCanvassEl = document.getElementById("stat-complete");
     const statWardCodeEl = document.getElementById("stat-ward-code");
+    const displayLocalAuthorityEl = document.getElementById("display-local-authority");
+    const displaySeneddEl = document.getElementById("display-senedd");
+    const displayWestminsterEl = document.getElementById("display-westminster");
+    const displayCommunityEl = document.getElementById("display-community");
 
     initControls();
 
@@ -201,6 +225,8 @@
           .filter((entry) => entry.name || entry.address || entry.postcode);
 
         state.electors = assignHouseholdLabels(electors);
+        populateFilters();
+        updateSummaryFields();
         renderElectorList();
         updateWardPreview();
 
@@ -257,11 +283,23 @@
     data.localauthorityname ||
     data.authority ||
     data.council ||
+    row[30] ||
+    "";
+
+const senedd =
+    data.senedd ||
+    row[31] ||
+    "";
+
+const westminster =
+    data.westminster ||
+    row[32] ||
     "";
 
   const ward =
     data.ward ||
     data.electoralward ||
+    row[33] ||
     "";
 
   const pollingDistrict =
@@ -280,7 +318,8 @@
   const community =
     data.community ||
     data.communityname ||
-    (row[18] || "").trim();
+    row[34] ||
+    "";
 
   const uprn =
     data.uprn ||
@@ -352,6 +391,8 @@
     address,
     postcode,
     localAuthority,
+    senedd,
+    westminster,
     ward,
     pollingDistrict,
     pollingElectorNumber,
@@ -435,6 +476,68 @@
       });
       const households = buildVisibleHouseholds(filteredElectors);
 
+function populateFilters() {
+
+  // Polling districts
+  const districts = [
+    ...new Set(
+      state.electors
+        .map(e => e.pollingDistrict)
+        .filter(Boolean)
+    )
+  ].sort();
+
+  pollingDistrictEl.innerHTML =
+    '<option value="">All polling districts</option>';
+
+  districts.forEach(district => {
+    const option = document.createElement("option");
+    option.value = district;
+    option.textContent = district;
+    pollingDistrictEl.appendChild(option);
+  });
+
+
+  // Ward dropdown
+  const wards = [
+    ...new Set(
+      state.electors
+        .map(e => e.ward)
+        .filter(Boolean)
+    )
+  ].sort();
+
+  wardEl.innerHTML =
+    '<option value="">All wards</option>';
+
+  wards.forEach(ward => {
+    const option = document.createElement("option");
+    option.value = normalizeText(ward);
+    option.textContent = ward;
+    wardEl.appendChild(option);
+  });
+}
+
+
+function updateSummaryFields() {
+
+  const first = state.electors[0];
+
+  if (!first) return;
+
+  displayLocalAuthorityEl.value =
+    first.localAuthority || "";
+
+  displaySeneddEl.value =
+    first.senedd || "";
+
+  displayWestminsterEl.value =
+    first.westminster || "";
+
+  displayCommunityEl.value =
+    first.community || "";
+}
+      
       listEl.innerHTML = "";
       if (!households.length) {
         listEl.innerHTML = "<p class=\"empty-state\">No households match your current filters.</p>";
