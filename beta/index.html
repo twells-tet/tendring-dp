@@ -1014,7 +1014,7 @@ function renderElectorList() {
 
 
       <p>
-        <strong>Polling:</strong>
+        <strong>Polling District:</strong>
         ${escapeHtml(formatPollingDistrictSummary(firstElector))}
       </p>
 
@@ -1298,31 +1298,18 @@ function formatHouseholdAddress(elector) {
 function formatPollingDistrictSummary(elector) {
 
   const district =
-    String(elector.pollingDistrict || "").trim();
+    normalizeText(elector.pollingDistrict || "");
 
-  const community =
-    String(elector.community || "").trim();
+  const POLLING_DISTRICT_LABELS = {
+    ra1: "RA1 (Abersoch)",
+    qb6: "QB6 (Llanengan)"
+  };
 
-  const wardContext =
-    extractWardContext(elector.ward);
-
-  if (district || community || wardContext) {
-
-    let summary = district;
-
-    if (community) {
-      summary += (summary ? " " : "") + community;
-    }
-
-    if (wardContext) {
-      summary += (summary ? " " : "") + "(" + wardContext + ")";
-    }
-
-    return summary.trim();
-
+  if (POLLING_DISTRICT_LABELS[district]) {
+    return POLLING_DISTRICT_LABELS[district];
   }
 
-  return "—";
+  return String(elector.pollingDistrict || "").trim() || "—";
 
 }
 
