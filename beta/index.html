@@ -10,24 +10,20 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
-  <body>
+<body>
   <header class="page-header">
     <h1>Gwynedd 2027</h1>
   </header>
 
   <main class="app-shell">
-
     <section class="controls" aria-label="Filters">
-
       <div class="filter-grid">
-
         <label for="ward">
           Ward
           <select id="ward">
             <option value="">All wards</option>
           </select>
         </label>
-
 
         <label for="polling-district">
           Polling District
@@ -36,1277 +32,517 @@
           </select>
         </label>
 
-
         <label for="display-local-authority">
           Local Authority
-          <input 
-            id="display-local-authority"
-            type="text"
-            readonly
-          >
+          <input id="display-local-authority" type="text" readonly>
         </label>
-
 
         <label for="display-senedd">
           Senedd
-          <input 
-            id="display-senedd"
-            type="text"
-            readonly
-          >
+          <input id="display-senedd" type="text" readonly>
         </label>
-
 
         <label for="display-westminster">
           Westminster
-          <input 
-            id="display-westminster"
-            type="text"
-            readonly
-          >
+          <input id="display-westminster" type="text" readonly>
         </label>
-
 
         <label for="display-community">
           Community
-          <input 
-            id="display-community"
-            type="text"
-            readonly
-          >
+          <input id="display-community" type="text" readonly>
         </label>
-
       </div>
-
     </section>
 
-
     <section class="stats" aria-label="Elector statistics">
-
       <div class="stat-card">
         <span class="stat-label">Electors</span>
         <strong id="stat-loaded">0</strong>
       </div>
 
-
       <div class="stat-card">
         <span class="stat-label">Households</span>
         <strong id="stat-complete">0</strong>
       </div>
-
     </section>
-
 
     <section class="workspace" aria-label="Elector boundaries and list">
-
       <div class="panel map-panel">
         <h2>Property Map</h2>
-
         <div class="ward-preview-crop">
-          <iframe
-            id="ward-preview"
-            title="Property location on OpenStreetMap"
-            loading="lazy">
-          </iframe>
+          <iframe id="ward-preview" title="Property location on OpenStreetMap" loading="lazy"></iframe>
         </div>
-
       </div>
-
 
       <div class="panel list-panel">
-
         <div class="list-head">
           <h2>Elector list</h2>
-
-          <input
-            id="search"
-            type="search"
-            placeholder="Search name, address, postcode">
+          <input id="search" type="search" placeholder="Search name, address, postcode">
         </div>
 
-
         <div id="elector-list" class="elector-list"></div>
-
       </div>
-
     </section>
-
 
     <section class="sheet-url-section" aria-label="Data source">
+      <label for="sheet-url">Google Sheet URL</label>
+      <input id="sheet-url" type="url" placeholder="https://docs.google.com/spreadsheets/d/.../edit#gid=0">
 
-      <label for="sheet-url">
-        Google Sheet URL
-      </label>
-
-      <input
-        id="sheet-url"
-        type="url"
-        placeholder="https://docs.google.com/spreadsheets/d/.../edit#gid=0">
-
-
-      <p
-        id="message"
-        class="message"
-        role="status"
-        aria-live="polite">
-      </p>
-
+      <p id="message" class="message" role="status" aria-live="polite"></p>
     </section>
-
-
   </main>
 
-
   <script>
-    
     const EXPECTED_ELECTORS = 500;
 
-// Welsh connectives/prepositions that should stay lowercase mid-address.
-const WELSH_LOWERCASE = new Set([
-  "a", "ac", "â", "i", "o", "y", "yr", "yn", "am", "ar", "at", "dan", "dros",
-  "drwy", "heb", "tan", "tros", "trwy", "wrth",
-  "a'r", "i'r", "o'r", "y'r", "yr", "â'r"
-]);
-
-
-const DEFAULT_SHEET_URL =
-  "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/edit?usp=sharing";
-
-
-const STORAGE_KEYS = {
-  sheetUrl: "abersoch-sheet-url",
-  progress: "abersoch-elector-progress-v1"
-};
-
-
-const canvassIdOptions = [
-  "No Data",
-  "Definite Plaid",
-  "Probable Plaid",
-  "Conservative",
-  "Green",
-  "Independent",
-  "Labour",
-  "Lib Dem",
-  "Reform"
-];
-
-
-const independenceOptions = [
-  "No Data",
-  "Yes",
-  "No"
-];
-
-
-const languageOptions = [
-  "English",
-  "Cymraeg"
-];
-
-
-const state = {
-  electors: [],
-  progress: loadFromStorage(
-    STORAGE_KEYS.progress,
-    {}
-  ),
-  householdPageIndex: 0
-};
-
-
-
-const sheetUrlInput =
-  document.getElementById("sheet-url");
-
-const wardEl =
-  document.getElementById("ward");
-
-const pollingDistrictEl =
-  document.getElementById("polling-district");
-
-const wardPreviewEl =
-  document.getElementById("ward-preview");
-
-const messageEl =
-  document.getElementById("message");
-
-const listEl =
-  document.getElementById("elector-list");
-
-const searchEl =
-  document.getElementById("search");
-
-const statLoadedEl =
-  document.getElementById("stat-loaded");
-
-const statCanvassEl =
-  document.getElementById("stat-complete");
-
-
-const displayLocalAuthorityEl =
-  document.getElementById(
-    "display-local-authority"
-  );
-
-const displaySeneddEl =
-  document.getElementById(
-    "display-senedd"
-  );
-
-const displayWestminsterEl =
-  document.getElementById(
-    "display-westminster"
-  );
-
-const displayCommunityEl =
-  document.getElementById(
-    "display-community"
-  );
-
-
-
-initControls();
-
-
-
-function initControls() {
-
-
-  const savedUrl =
-    localStorage.getItem(
-      STORAGE_KEYS.sheetUrl
-    ) ||
-    DEFAULT_SHEET_URL;
-
-
-  sheetUrlInput.value = savedUrl;
-
-
-  if (savedUrl) {
-
-    loadElectorsFromSheet(
-      savedUrl
-    );
-
-  }
-
-
-
-  sheetUrlInput.addEventListener(
-    "change",
-    () => {
-
-      const url =
-        sheetUrlInput.value.trim();
-
-
-      if (!url) return;
-
-
-      localStorage.setItem(
-        STORAGE_KEYS.sheetUrl,
-        url
-      );
-
-
-      loadElectorsFromSheet(
-        url
-      );
-
-    }
-  );
-
-
-
-  searchEl.addEventListener(
-    "input",
-    () => {
-
-      state.householdPageIndex = 0;
-
-      renderElectorList();
-
-    }
-  );
-
-
-
-  wardEl.addEventListener(
-    "change",
-    handleFilterChange
-  );
-
-
-  pollingDistrictEl.addEventListener(
-    "change",
-    handleFilterChange
-  );
-
-
-  updateStats();
-
-}
-
-
-
-function handleFilterChange() {
-
-
-  state.householdPageIndex = 0;
-
-
-  populateFilters();
-
-
-  updateSummaryFields();
-
-
-  renderElectorList();
-
-}
-
-
-
-
-
-async function loadElectorsFromSheet(inputUrl) {
-
-
-  setMessage(
-    "Loading electors..."
-  );
-
-
-  const csvUrl =
-    toGoogleCsvUrl(
-      inputUrl
-    );
-
-
-  try {
-
-
-    const response =
-      await fetch(
-        csvUrl
-      );
-
-
-    if (!response.ok) {
-
-      throw new Error(
-        "Could not fetch sheet data."
-      );
-
-    }
-
-
-
-    const csvText =
-      await response.text();
-
-
-
-    const rows =
-      parseCsv(
-        csvText
-      );
-
-
-
-    const headers =
-      rows[0].map(
-        h => normalizeHeader(h)
-      );
-
-
-
-    const electors =
-      rows
-        .slice(1)
-        .map(
-          (row,index) =>
-            mapRowToElector(
-              row,
-              headers,
-              index
-            )
-        )
-        .filter(
-          e =>
-            e.name ||
-            e.address ||
-            e.postcode
-        );
-
-
-
-    state.electors =
-      assignHouseholdLabels(
-        electors
-      );
-
-
-
-    populateFilters();
-
-
-    updateSummaryFields();
-
-
-    renderElectorList();
-
-
-
-    setMessage(
-      electors.length +
-      " Electors"
-    );
-
-
-  } catch(error) {
-
-
-    setMessage(
-      "Unable to load sheet: " +
-      error.message
-    );
-
-
-  }
-
-}
-
-
-
-
-
-
-function populateFilters() {
-
-
-  const currentWard =
-    wardEl.value;
-
-
-  const currentDistrict =
-    pollingDistrictEl.value;
-
-
-
-
-  const wards =
-    [
-      ...new Set(
-        state.electors
-          .map(
-            e => e.ward
-          )
-          .filter(Boolean)
-      )
-    ]
-    .sort();
-
-
-
-  wardEl.innerHTML =
-    '<option value="">All wards</option>';
-
-
-
-  wards.forEach(
-    ward => {
-
-      const option =
-        document.createElement(
-          "option"
-        );
-
-
-      option.value =
-        normalizeText(
-          ward
-        );
-
-
-      option.textContent =
-        ward;
-
-
-      wardEl.appendChild(
-        option
-      );
-
-    }
-  );
-
-
-
-  if (currentWard) {
-
-    wardEl.value =
-      currentWard;
-
-  }
-
-
-
-
-
-  const selectedWard =
-    normalizeText(
-      wardEl.value
-    );
-
-
-
-  const districts =
-    [
-      ...new Set(
-
-        state.electors
-
-          .filter(
-            e =>
-              !selectedWard ||
-              normalizeText(e.ward)
-              === selectedWard
-          )
-
-          .map(
-            e =>
-              e.pollingDistrict
-          )
-
-          .filter(Boolean)
-
-      )
-    ]
-    .sort();
-
-
-
-  pollingDistrictEl.innerHTML =
-    '<option value="">All polling districts</option>';
-
-
-
-  districts.forEach(
-    district => {
-
-      const option =
-        document.createElement(
-          "option"
-        );
-
-
-      option.value =
-        district;
-
-
-      option.textContent =
-        district;
-
-
-      pollingDistrictEl.appendChild(
-        option
-      );
-
-    }
-  );
-
-
-
-  if (
-    districts.includes(
-      currentDistrict
-    )
-  ) {
-
-    pollingDistrictEl.value =
-      currentDistrict;
-
-  }
-
-}
-
-
-
-
-
-
-function updateSummaryFields() {
-
-
-  const active =
-    getActiveElectors();
-
-
-  const first =
-    active[0];
-
-
-
-  if (!first) {
-
-    displayLocalAuthorityEl.value = "";
-    displaySeneddEl.value = "";
-    displayWestminsterEl.value = "";
-    displayCommunityEl.value = "";
-
-    return;
-
-  }
-
-
-
-  displayLocalAuthorityEl.value =
-    first.localAuthority || "";
-
-
-  displaySeneddEl.value =
-    first.senedd || "";
-
-
-  displayWestminsterEl.value =
-    first.westminster || "";
-
-
-  displayCommunityEl.value =
-    first.community || "";
-
-}
-
-
-
-
-
-
-function mapRowToElector(row, headers, index) {
-
-
-  const data = {};
-
-
-  headers.forEach(
-    (header, idx) => {
-
-      data[header] =
-        (row[idx] || "").trim();
-
-    }
-  );
-
-
-
-  const sourceRow =
-    index + 2;
-
-
-
-  const id =
-    data.electorid ||
-    data.id ||
-    data.reference ||
-    data.uprn ||
-    ("row-" + sourceRow);
-
-
-
-  const name =
-    data.name ||
-    data.elector ||
-    data.electorname ||
-    "";
-
-
-
-  const address =
-    [
-      data.address,
-      data.address1,
-      data.address2,
-      data.address3,
-      data.household
-    ]
-    .filter(
-      part =>
-        part &&
-        !/^\d+$/.test(part) &&
-        part.toLowerCase() !== "gwynedd"
-    )
-    .join(", ");
-
-
-
-  const postcode =
-    data.postcode || "";
-
-
-
-  return {
-
-    id: String(id),
-
-    name,
-
-    address,
-
-    postcode,
-
-
-    localAuthority:
-      data.localauthority ||
-      data.localauthorityname ||
-      row[30] ||
-      "",
-
-
-    senedd:
-      data.senedd ||
-      row[31] ||
-      "",
-
-
-    westminster:
-      data.westminster ||
-      row[32] ||
-      "",
-
-
-    ward:
-      data.ward ||
-      data.electoralward ||
-      row[33] ||
-      "",
-
-
-    pollingDistrict:
-      data.pollingdistrict ||
-      data.pollingdist ||
-      data.district ||
-      data.pd ||
-      row[15] ||
-      "",
-
-
-    pollingElectorNumber:
-      data.electornumber ||
-      data.electorno ||
-      data.electornum ||
-      row[16] ||
-      "",
-
-
-    community:
-      data.community ||
-      data.communityname ||
-      row[34] ||
-      "",
-
-
-    uprn:
-      data.uprn ||
-      row[19] ||
-      "",
-
-
-    lat:
-      parseFloat(
-        data.latitude ||
-        data.lat ||
-        row[20]
-      ) || null,
-
-
-    lng:
-      parseFloat(
-        data.longitude ||
-        data.lng ||
-        data.lon ||
-        row[22]
-      ) || null,
-
-
-    postalProxy:
-      formatPostalProxy(
-        data.postalproxy ||
-        data.postalorproxy ||
-        row[17] ||
-        ""
-      ),
-
-
-    sourceRow,
-
-
-    householdKey:
-      data.householdkey ||
-      data.key ||
-      row[11] ||
-      "",
-
-
-    householdGroupKey:
-      normalizeText(
-        data.householdkey ||
-        data.key ||
-        row[11] ||
-        ""
-      ) ||
-      ("row-" + sourceRow),
-
-
-    electorsInHousehold:
-      parseInt(
-        data.numberofelectors ||
-        data.electors ||
-        data.householdcount ||
-        row[14] ||
-        "",
-        10
-      ) || null,
-
-
-    householdNumber:null,
-
-    electorNumber:null,
-
-    displayId:String(id)
-
-  };
-
-}
-    function assignHouseholdLabels(electors) {
-
-  const householdTracker = new Map();
-
-  let householdCounter = 0;
-
-
-  return electors.map(elector => {
-
-    const key =
-      elector.householdGroupKey;
-
-
-    if (!householdTracker.has(key)) {
-
-      householdCounter += 1;
-
-      householdTracker.set(
-        key,
-        {
-          householdNumber: householdCounter,
-          nextElectorNumber: 1
-        }
-      );
-
-    }
-
-
-    const tracker =
-      householdTracker.get(key);
-
-
-    const electorNumber =
-      tracker.nextElectorNumber;
-
-
-    tracker.nextElectorNumber += 1;
-
-
-    return {
-
-      ...elector,
-
-      householdNumber:
-        tracker.householdNumber,
-
-
-      electorNumber,
-
-
-      displayId:
-        buildHouseholdDisplayId(
-          electorNumber,
-          elector.electorsInHousehold,
-          elector.pollingDistrict,
-          elector.pollingElectorNumber
-        )
-
+    const WELSH_LOWERCASE = new Set([
+      "a", "ac", "â", "i", "o", "y", "yr", "yn", "am", "ar", "at", "dan", "dros",
+      "drwy", "heb", "tan", "tros", "trwy", "wrth", "a'r", "i'r", "o'r", "y'r", "â'r"
+    ]);
+
+    const DEFAULT_SHEET_URL =
+      "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/edit?usp=sharing";
+
+    const STORAGE_KEYS = {
+      sheetUrl: "abersoch-sheet-url",
+      progress: "abersoch-elector-progress-v1"
     };
 
-  });
+    const state = {
+      electors: [],
+      progress: loadFromStorage(STORAGE_KEYS.progress, {}),
+      householdPageIndex: 0
+    };
 
-}
+    const sheetUrlInput = document.getElementById("sheet-url");
+    const wardEl = document.getElementById("ward");
+    const pollingDistrictEl = document.getElementById("polling-district");
+    const wardPreviewEl = document.getElementById("ward-preview");
+    const messageEl = document.getElementById("message");
+    const listEl = document.getElementById("elector-list");
+    const searchEl = document.getElementById("search");
+    const statLoadedEl = document.getElementById("stat-loaded");
+    const statHouseholdsEl = document.getElementById("stat-complete");
+    const displayLocalAuthorityEl = document.getElementById("display-local-authority");
+    const displaySeneddEl = document.getElementById("display-senedd");
+    const displayWestminsterEl = document.getElementById("display-westminster");
+    const displayCommunityEl = document.getElementById("display-community");
 
+    initControls();
 
+    function initControls() {
+      const savedUrl = localStorage.getItem(STORAGE_KEYS.sheetUrl) || DEFAULT_SHEET_URL;
+      sheetUrlInput.value = savedUrl;
 
+      if (savedUrl) {
+        loadElectorsFromSheet(savedUrl);
+      }
 
+      sheetUrlInput.addEventListener("change", () => {
+        const url = sheetUrlInput.value.trim();
+        if (!url) return;
+        localStorage.setItem(STORAGE_KEYS.sheetUrl, url);
+        loadElectorsFromSheet(url);
+      });
 
+      searchEl.addEventListener("input", () => {
+        state.householdPageIndex = 0;
+        renderElectorList();
+      });
 
+      wardEl.addEventListener("change", handleFilterChange);
+      pollingDistrictEl.addEventListener("change", handleFilterChange);
 
-function buildHouseholdDisplayId(
-  electorNumber,
-  totalElectors,
-  pollingDistrict,
-  pollingElectorNumber
-) {
+      updateStats([]);
+    }
 
+    function handleFilterChange() {
+      state.householdPageIndex = 0;
+      populateFilters();
+      updateSummaryFields();
+      renderElectorList();
+    }
 
-  const total =
-    totalElectors
-      ? " of " + totalElectors
-      : "";
+    async function loadElectorsFromSheet(inputUrl) {
+      setMessage("Loading electors...");
+      const csvUrl = toGoogleCsvUrl(inputUrl);
 
-
-  const district =
-    String(
-      pollingDistrict || ""
-    ).trim();
-
-
-  const electorNo =
-    String(
-      pollingElectorNumber || ""
-    ).trim();
-
-
-
-  const suffix =
-    district && electorNo
-      ? " - " + district + "-" + electorNo
-      : "";
-
-
-
-  return (
-    "Elector " +
-    electorNumber +
-    total +
-    suffix
-  );
-
-}
-
-
-
-
-
-
-
-function renderElectorList() {
-
-
-  const searchTerm =
-    searchEl.value
-      .trim()
-      .toLowerCase();
-
-
-
-  const filteredElectors =
-    getActiveElectors()
-      .filter(elector => {
-
-
-        if (!searchTerm) {
-          return true;
+      try {
+        const response = await fetch(csvUrl);
+        if (!response.ok) {
+          throw new Error("Could not fetch sheet data.");
         }
 
+        const csvText = await response.text();
+        const rows = parseCsv(csvText);
 
-        const text =
-          [
-            elector.displayId,
+        if (!rows.length) {
+          throw new Error("The sheet is empty.");
+        }
+
+        const headers = rows[0].map(h => normalizeHeader(h));
+        const electors = rows
+          .slice(1)
+          .map((row, index) => mapRowToElector(row, headers, index))
+          .filter(e => e.name || e.address || e.postcode);
+
+        state.electors = assignHouseholdLabels(electors);
+
+        populateFilters();
+        updateSummaryFields();
+        renderElectorList();
+        setMessage(`${electors.length} electors loaded.`);
+      } catch (error) {
+        state.electors = [];
+        populateFilters();
+        updateSummaryFields();
+        renderElectorList();
+        setMessage(`Unable to load sheet: ${error.message}`);
+      }
+    }
+
+    function populateFilters() {
+      const currentWard = wardEl.value;
+      const currentDistrict = pollingDistrictEl.value;
+
+      const wards = [...new Set(state.electors.map(e => e.ward).filter(Boolean))].sort();
+
+      wardEl.innerHTML = '<option value="">All wards</option>';
+      wards.forEach(ward => {
+        const option = document.createElement("option");
+        option.value = normalizeText(ward);
+        option.textContent = ward;
+        wardEl.appendChild(option);
+      });
+
+      if (currentWard && [...wardEl.options].some(option => option.value === currentWard)) {
+        wardEl.value = currentWard;
+      }
+
+      const selectedWard = normalizeText(wardEl.value);
+      const districts = [...new Set(
+        state.electors
+          .filter(e => !selectedWard || normalizeText(e.ward) === selectedWard)
+          .map(e => e.pollingDistrict)
+          .filter(Boolean)
+      )].sort();
+
+      pollingDistrictEl.innerHTML = '<option value="">All polling districts</option>';
+      districts.forEach(district => {
+        const option = document.createElement("option");
+        option.value = district;
+        option.textContent = district;
+        pollingDistrictEl.appendChild(option);
+      });
+
+      if (currentDistrict && districts.includes(currentDistrict)) {
+        pollingDistrictEl.value = currentDistrict;
+      } else {
+        pollingDistrictEl.value = "";
+      }
+    }
+
+    function updateSummaryFields() {
+      const active = getActiveElectors();
+      const first = active[0];
+
+      if (!first) {
+        displayLocalAuthorityEl.value = "";
+        displaySeneddEl.value = "";
+        displayWestminsterEl.value = "";
+        displayCommunityEl.value = "";
+        updateMapPreview(null);
+        return;
+      }
+
+      displayLocalAuthorityEl.value = first.localAuthority || "";
+      displaySeneddEl.value = first.senedd || "";
+      displayWestminsterEl.value = first.westminster || "";
+      displayCommunityEl.value = first.community || "";
+      updateMapPreview(first);
+    }
+
+    function mapRowToElector(row, headers, index) {
+      const data = {};
+      headers.forEach((header, idx) => {
+        data[header] = (row[idx] || "").trim();
+      });
+
+      const sourceRow = index + 2;
+      const id = data.electorid || data.id || data.reference || data.uprn || (`row-${sourceRow}`);
+      const name = toTitleCase(data.name || data.elector || data.electorname || "");
+      const address = [data.address, data.address1, data.address2, data.address3, data.household]
+        .filter(part => part && !/^\d+$/.test(part) && part.toLowerCase() !== "gwynedd")
+        .map(toAddressCase)
+        .join(", ");
+      const postcode = (data.postcode || "").toUpperCase();
+
+      return {
+        id: String(id),
+        name,
+        address,
+        postcode,
+        localAuthority: data.localauthority || data.localauthorityname || row[30] || "",
+        senedd: data.senedd || row[31] || "",
+        westminster: data.westminster || row[32] || "",
+        ward: data.ward || data.electoralward || row[33] || "",
+        pollingDistrict: data.pollingdistrict || data.pollingdist || data.district || data.pd || row[15] || "",
+        pollingElectorNumber: data.electornumber || data.electorno || data.electornum || row[16] || "",
+        community: data.community || data.communityname || row[34] || "",
+        uprn: data.uprn || row[19] || "",
+        lat: parseNumber(data.latitude || data.lat || row[20]),
+        lng: parseNumber(data.longitude || data.lng || data.lon || row[22]),
+        postalProxy: formatPostalProxy(data.postalproxy || data.postalorproxy || row[17] || ""),
+        sourceRow,
+        householdKey: data.householdkey || data.key || row[11] || "",
+        householdGroupKey: normalizeText(data.householdkey || data.key || row[11] || "") || `row-${sourceRow}`,
+        electorsInHousehold: parseInt(data.numberofelectors || data.electors || data.householdcount || row[14] || "", 10) || null,
+        householdNumber: null,
+        electorNumber: null,
+        displayId: String(id)
+      };
+    }
+
+    function assignHouseholdLabels(electors) {
+      const householdTracker = new Map();
+      let householdCounter = 0;
+
+      return electors.map(elector => {
+        const key = elector.householdGroupKey;
+
+        if (!householdTracker.has(key)) {
+          householdCounter += 1;
+          householdTracker.set(key, {
+            householdNumber: householdCounter,
+            nextElectorNumber: 1
+          });
+        }
+
+        const tracker = householdTracker.get(key);
+        const electorNumber = tracker.nextElectorNumber;
+        tracker.nextElectorNumber += 1;
+
+        return {
+          ...elector,
+          householdNumber: tracker.householdNumber,
+          electorNumber,
+          displayId: buildHouseholdDisplayId(
+            electorNumber,
+            elector.electorsInHousehold,
+            elector.pollingDistrict,
+            elector.pollingElectorNumber
+          )
+        };
+      });
+    }
+
+    function buildHouseholdDisplayId(electorNumber, totalElectors, pollingDistrict, pollingElectorNumber) {
+      const total = totalElectors ? ` of ${totalElectors}` : "";
+      const district = String(pollingDistrict || "").trim();
+      const electorNo = String(pollingElectorNumber || "").trim();
+      const suffix = district && electorNo ? ` - ${district}-${electorNo}` : "";
+      return `Elector ${electorNumber}${total}${suffix}`;
+    }
+
+    function renderElectorList() {
+      const active = getActiveElectors();
+      updateStats(active);
+
+      if (!active.length) {
+        listEl.innerHTML = '<p class="empty-state">No electors match the current filters.</p>';
+        return;
+      }
+
+      listEl.innerHTML = active.map(renderElectorCard).join("");
+    }
+
+    function renderElectorCard(elector) {
+      const locationLine = [elector.address, elector.postcode].filter(Boolean).join(" · ");
+      const meta = [
+        elector.displayId,
+        elector.postalProxy,
+        elector.uprn ? `UPRN ${elector.uprn}` : ""
+      ].filter(Boolean).join(" · ");
+
+      return `
+        <article class="elector-card">
+          <h3>${escapeHtml(elector.name || "Unnamed elector")}</h3>
+          <p>${escapeHtml(locationLine || "No address available")}</p>
+          <p>${escapeHtml(meta)}</p>
+        </article>
+      `;
+    }
+
+    function getActiveElectors() {
+      const selectedWard = normalizeText(wardEl.value);
+      const selectedDistrict = pollingDistrictEl.value.trim();
+      const query = normalizeText(searchEl.value);
+
+      return state.electors.filter(elector => {
+        if (selectedWard && normalizeText(elector.ward) !== selectedWard) return false;
+        if (selectedDistrict && elector.pollingDistrict !== selectedDistrict) return false;
+
+        if (query) {
+          const haystack = normalizeText([
             elector.name,
             elector.address,
             elector.postcode,
             elector.pollingDistrict,
-            elector.community,
-            elector.uprn
-          ]
-          .join(" ")
-          .toLowerCase();
+            elector.pollingElectorNumber
+          ].join(" "));
 
+          if (!haystack.includes(query)) return false;
+        }
 
-        return text.includes(searchTerm);
-
+        return true;
       });
-
-
-
-  const households =
-    buildVisibleHouseholds(
-      filteredElectors
-    );
-
-
-
-  listEl.innerHTML = "";
-
-
-
-  if (!households.length) {
-
-
-    listEl.innerHTML =
-      `
-      <p class="empty-state">
-        No households match your current filters.
-      </p>
-      `;
-
-
-    updateStats();
-
-    return;
-
-  }
-
-
-
-  state.householdPageIndex =
-    Math.min(
-      state.householdPageIndex,
-      households.length - 1
-    );
-
-
-
-  const household =
-    households[
-      state.householdPageIndex
-    ];
-
-
-
-  const firstElector =
-    household.electors[0];
-
-
-
-  updatePropertyMap(
-    firstElector
-  );
-
-
-
-  const panel =
-    document.createElement(
-      "section"
-    );
-
-
-  panel.className =
-    "household-panel";
-
-
-
-  panel.innerHTML =
-  `
-    <div class="household-nav">
-
-      <button
-        class="household-nav-btn"
-        data-action="prev"
-        ${state.householdPageIndex === 0 ? "disabled" : ""}>
-        Previous household
-      </button>
-
-
-      <p>
-        Household
-        ${state.householdPageIndex + 1}
-        of
-        ${households.length}
-      </p>
-
-
-      <button
-        class="household-nav-btn"
-        data-action="next"
-        ${state.householdPageIndex >= households.length - 1 ? "disabled" : ""}>
-        Next household
-      </button>
-
-    </div>
-
-
-    <div class="household-meta">
-
-      <p>
-        <strong>UPRN:</strong>
-        ${escapeHtml(firstElector.uprn || "—")}
-      </p>
-
-
-      <p>
-        <strong>Address:</strong>
-        ${escapeHtml(formatHouseholdAddress(firstElector))}
-      </p>
-
-
-      <p>
-        <strong>Polling:</strong>
-        ${escapeHtml(formatPollingDistrictSummary(firstElector))}
-      </p>
-
-    </div>
-  `;
-
-
-  listEl.appendChild(panel);
-
-
-
-
-  household.electors.forEach(
-    elector => {
-
-
-      const progress =
-        getElectorProgress(
-          elector.id
-        );
-
-
-      const item =
-        document.createElement(
-          "article"
-        );
-
-
-      item.className =
-        "elector-item";
-
-
-
-      item.innerHTML =
-      `
-      <div class="elector-main">
-
-        <p class="elector-id">
-          ${escapeHtml(
-            elector.displayId
-          )}
-        </p>
-
-
-        <h3>
-          ${escapeHtml(
-            elector.name ||
-            "Unnamed elector"
-          )}
-
-          ${
-            elector.postalProxy === "Postal"
-            ? " *"
-            : ""
-          }
-
-        </h3>
-
-      </div>
-
-
-      <div class="elector-edit">
-
-
-        <label>
-          Canvass ID
-
-          <select
-          class="canvass-select"
-          data-id="${escapeHtmlAttr(elector.id)}">
-
-          ${
-            canvassIdOptions.map(option =>
-              `
-              <option
-              ${option === progress.canvassId ? "selected" : ""}
-              >
-              ${option}
-              </option>
-              `
-            ).join("")
-          }
-
-          </select>
-
-        </label>
-
-
-        <label>
-          Support Independence?
-
-          <select
-          class="independence-select"
-          data-id="${escapeHtmlAttr(elector.id)}">
-
-          ${
-            independenceOptions.map(option =>
-              `
-              <option
-              ${option === progress.supportIndependence ? "selected" : ""}
-              >
-              ${option}
-              </option>
-              `
-            ).join("")
-          }
-
-          </select>
-
-        </label>
-
-
-        <label>
-          First language
-
-          <select
-          class="language-select"
-          data-id="${escapeHtmlAttr(elector.id)}">
-
-          ${
-            languageOptions.map(option =>
-              `
-              <option
-              ${option === progress.firstLanguage ? "selected" : ""}
-              >
-              ${option}
-              </option>
-              `
-            ).join("")
-          }
-
-          </select>
-
-        </label>
-
-
-      </div>
-      `;
-
-
-
-      listEl.appendChild(item);
-
-
     }
-  );
 
+    function updateStats(activeElectors) {
+      statLoadedEl.textContent = String(activeElectors.length);
+      const households = new Set(activeElectors.map(elector => elector.householdGroupKey)).size;
+      statHouseholdsEl.textContent = String(households);
+    }
 
-  bindHouseholdNavigation(
-    households.length
-  );
+    function updateMapPreview(elector) {
+      if (!elector || elector.lat == null || elector.lng == null) {
+        wardPreviewEl.removeAttribute("src");
+        return;
+      }
 
+      const bbox = [
+        elector.lng - 0.002,
+        elector.lat - 0.0015,
+        elector.lng + 0.002,
+        elector.lat + 0.0015
+      ].join(",");
 
-  bindProgressEditors();
+      wardPreviewEl.src = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${elector.lat},${elector.lng}`;
+    }
 
+    function setMessage(text) {
+      messageEl.textContent = text;
+    }
 
-  updateStats();
+    function normalizeHeader(value) {
+      return normalizeText(value).replace(/[^a-z0-9]/g, "");
+    }
 
-}
-    
+    function normalizeText(value) {
+      return String(value || "")
+        .normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, " ");
+    }
+
+    function parseNumber(value) {
+      const parsed = parseFloat(String(value || "").trim());
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    function formatPostalProxy(value) {
+      const normalized = normalizeText(value);
+      if (!normalized) return "";
+      if (normalized.includes("postal") && normalized.includes("proxy")) return "Postal & Proxy";
+      if (normalized.includes("postal")) return "Postal";
+      if (normalized.includes("proxy")) return "Proxy";
+      return toTitleCase(String(value));
+    }
+
+    function toTitleCase(value) {
+      return String(value || "")
+        .toLowerCase()
+        .split(/\s+/)
+        .filter(Boolean)
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+    }
+
+    function toAddressCase(value) {
+      return String(value || "")
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((word, index) => {
+          const lower = word.toLowerCase();
+          if (index > 0 && WELSH_LOWERCASE.has(lower)) {
+            return lower;
+          }
+          return lower.charAt(0).toUpperCase() + lower.slice(1);
+        })
+        .join(" ");
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function loadFromStorage(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch {
+        return fallback;
+      }
+    }
+
+    function toGoogleCsvUrl(url) {
+      const match = String(url).match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+      if (!match) {
+        throw new Error("Enter a valid Google Sheets URL.");
+      }
+
+      const gidMatch = String(url).match(/[?&#]gid=(\d+)/);
+      const gid = gidMatch ? gidMatch[1] : "0";
+      return `https://docs.google.com/spreadsheets/d/${match[1]}/export?format=csv&gid=${gid}`;
+    }
+
+    function parseCsv(text) {
+      const rows = [];
+      let row = [];
+      let value = "";
+      let inQuotes = false;
+
+      for (let index = 0; index < text.length; index += 1) {
+        const char = text[index];
+        const next = text[index + 1];
+
+        if (char === '"') {
+          if (inQuotes && next === '"') {
+            value += '"';
+            index += 1;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === ',' && !inQuotes) {
+          row.push(value);
+          value = "";
+        } else if ((char === '\n' || char === '\r') && !inQuotes) {
+          if (char === '\r' && next === '\n') {
+            index += 1;
+          }
+          row.push(value);
+          rows.push(row);
+          row = [];
+          value = "";
+        } else {
+          value += char;
+        }
+      }
+
+      if (value.length || row.length) {
+        row.push(value);
+        rows.push(row);
+      }
+
+      return rows.filter(columns => columns.some(cell => String(cell).trim() !== ""));
+    }
+  </script>
+</body>
+</html>
