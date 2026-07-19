@@ -759,6 +759,20 @@ function mapRowToElector(row, headers, index) {
   let householdCounter = 0;
 
 
+  const householdSizes = new Map();
+
+  electors.forEach(elector => {
+
+    const key = elector.householdGroupKey;
+
+    householdSizes.set(
+      key,
+      (householdSizes.get(key) || 0) + 1
+    );
+
+  });
+
+
   return electors.map(elector => {
 
     const key =
@@ -805,7 +819,7 @@ function mapRowToElector(row, headers, index) {
       displayId:
         buildHouseholdDisplayId(
           electorNumber,
-          elector.electorsInHousehold,
+          householdSizes.get(key),
           elector.pollingDistrict,
           elector.pollingElectorNumber
         )
