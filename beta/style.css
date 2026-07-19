@@ -184,6 +184,36 @@ body {
   color: var(--plaid-green-dark);
 }
 
+.panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.panel-heading h2 {
+  margin: 0 0 0.75rem;
+}
+
+.map-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--plaid-green-dark);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.map-panel--hidden .ward-preview-crop {
+  display: none;
+}
+
+.workspace:has(.map-panel--hidden) {
+  grid-template-columns: 1fr;
+}
+
 .ward-preview-crop {
   height: 65vh;
   min-height: 420px;
@@ -302,6 +332,12 @@ body {
   font-size: 0.75rem;
   color: var(--highlight-red);
   font-weight: 600;
+}
+
+.elector-column-id {
+  margin: -0.25rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
 }
 
 .elector-edit {

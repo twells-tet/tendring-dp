@@ -92,8 +92,17 @@
 
     <section class="workspace" aria-label="Elector boundaries and list">
 
-      <div class="panel map-panel">
-        <h2>Property Map</h2>
+      <div class="panel map-panel" id="map-panel">
+        <div class="panel-heading">
+          <h2>Property Map</h2>
+
+          <label class="map-toggle-label">
+            <input
+              id="toggle-map"
+              type="checkbox">
+            Hide map
+          </label>
+        </div>
 
         <div class="ward-preview-crop">
           <iframe
@@ -109,7 +118,7 @@
       <div class="panel list-panel">
 
         <div class="list-head">
-          <h2>Elector list</h2>
+          <h2>Household Details</h2>
 
           <input
             id="search"
@@ -168,7 +177,8 @@ const DEFAULT_SHEET_URL =
 
 const STORAGE_KEYS = {
   sheetUrl: "abersoch-sheet-url",
-  progress: "abersoch-elector-progress-v1"
+  progress: "abersoch-elector-progress-v1",
+  hideMap: "abersoch-hide-map"
 };
 
 
@@ -232,6 +242,12 @@ const pollingDistrictEl =
 
 const wardPreviewEl =
   document.getElementById("ward-preview");
+
+const mapPanelEl =
+  document.getElementById("map-panel");
+
+const toggleMapEl =
+  document.getElementById("toggle-map");
 
 const messageEl =
   document.getElementById("message");
@@ -358,8 +374,42 @@ function initControls() {
   );
 
 
+  const savedHideMap =
+    localStorage.getItem(
+      STORAGE_KEYS.hideMap
+    ) === "true";
+
+  toggleMapEl.checked = savedHideMap;
+
+  applyMapVisibility(savedHideMap);
+
+  toggleMapEl.addEventListener(
+    "change",
+    () => {
+
+      localStorage.setItem(
+        STORAGE_KEYS.hideMap,
+        String(toggleMapEl.checked)
+      );
+
+      applyMapVisibility(
+        toggleMapEl.checked
+      );
+
+    }
+  );
+
+
   updateStats();
 
+}
+
+
+function applyMapVisibility(hidden) {
+  mapPanelEl.classList.toggle(
+    "map-panel--hidden",
+    hidden
+  );
 }
 
 
@@ -618,6 +668,12 @@ function mapRowToElector(row, headers, index) {
     uprn:
       data.uprn ||
       row[19] ||
+      "",
+
+
+    electorIdValue:
+      data.electorid ||
+      row[20] ||
       "",
 
 
@@ -946,7 +1002,7 @@ function renderElectorList() {
     <div class="household-meta">
 
       <p>
-        <strong>UPRN:</strong>
+        <strong>Property ID:</strong>
         ${escapeHtml(firstElector.uprn || "—")}
       </p>
 
@@ -1018,6 +1074,12 @@ function renderElectorList() {
         </h3>
 
       </div>
+
+
+      <p class="elector-column-id">
+        <strong>Elector ID:</strong>
+        ${escapeHtml(elector.electorIdValue || "—")}
+      </p>
 
 
       <div class="elector-edit">
