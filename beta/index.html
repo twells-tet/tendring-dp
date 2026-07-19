@@ -90,6 +90,31 @@
     </section>
 
 
+    <section class="filter-section" aria-label="Elector filter">
+
+      <label for="filter-type">
+        Filter
+        <select id="filter-type">
+          <option value="">No filter</option>
+          <option value="postal-proxy">Postal/Proxy Voters</option>
+          <option value="address">Address</option>
+        </select>
+      </label>
+
+      <label
+        for="filter-address"
+        id="filter-address-label"
+        hidden>
+        Property address
+        <input
+          id="filter-address"
+          type="search"
+          placeholder="Type part of the property address">
+      </label>
+
+    </section>
+
+
     <section class="workspace" aria-label="Elector boundaries and list">
 
       <div class="panel map-panel" id="map-panel">
@@ -125,11 +150,6 @@
 
         <div class="list-head">
           <h2>Household Details</h2>
-
-          <input
-            id="search"
-            type="search"
-            placeholder="Search name, address, postcode">
         </div>
 
 
@@ -264,8 +284,14 @@ const messageEl =
 const listEl =
   document.getElementById("elector-list");
 
-const searchEl =
-  document.getElementById("search");
+const filterTypeEl =
+  document.getElementById("filter-type");
+
+const filterAddressEl =
+  document.getElementById("filter-address");
+
+const filterAddressLabelEl =
+  document.getElementById("filter-address-label");
 
 const statLoadedEl =
   document.getElementById("stat-loaded");
@@ -334,7 +360,22 @@ function initControls() {
 
 
 
-  searchEl.addEventListener(
+  filterTypeEl.addEventListener(
+    "change",
+    () => {
+
+      filterAddressLabelEl.hidden =
+        filterTypeEl.value !== "address";
+
+      state.householdPageIndex = 0;
+
+      renderElectorList();
+
+    }
+  );
+
+
+  filterAddressEl.addEventListener(
     "input",
     () => {
 
@@ -888,10 +929,13 @@ function buildHouseholdDisplayId(
 function renderElectorList() {
 
 
-  const searchTerm =
-    searchEl.value
-      .trim()
-      .toLowerCase();
+  const filterType =
+    filterTypeEl.value;
+
+  const addressTerm =
+    normalizeText(
+      filterAddressEl.value
+    );
 
 
 
@@ -900,26 +944,36 @@ function renderElectorList() {
       .filter(elector => {
 
 
-        if (!searchTerm) {
-          return true;
+        if (filterType === "postal-proxy") {
+
+          return (
+            elector.postalProxy === "Postal" ||
+            elector.postalProxy === "Proxy"
+          );
+
         }
 
 
-        const text =
-          [
-            elector.displayId,
-            elector.name,
-            elector.address,
-            elector.postcode,
-            elector.pollingDistrict,
-            elector.community,
-            elector.uprn
-          ]
-          .join(" ")
-          .toLowerCase();
+        if (filterType === "address") {
+
+          if (!addressTerm) {
+            return true;
+          }
+
+          const addressText =
+            normalizeText(
+              [
+                elector.address,
+                elector.postcode
+              ].join(" ")
+            );
+
+          return addressText.includes(addressTerm);
+
+        }
 
 
-        return text.includes(searchTerm);
+        return true;
 
       });
 
