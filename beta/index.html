@@ -112,6 +112,12 @@
           </iframe>
         </div>
 
+
+        <div class="ai-comments-box" aria-label="AI Comments">
+          <h3>AI Comments</h3>
+          <p id="ai-comments-text">—</p>
+        </div>
+
       </div>
 
 
@@ -248,6 +254,9 @@ const mapPanelEl =
 
 const toggleMapEl =
   document.getElementById("toggle-map");
+
+const aiCommentsEl =
+  document.getElementById("ai-comments-text");
 
 const messageEl =
   document.getElementById("message");
@@ -924,6 +933,12 @@ function renderElectorList() {
       `;
 
 
+    updatePropertyMap(null);
+
+
+    updateAiComments(null);
+
+
     updateStats();
 
     return;
@@ -954,6 +969,11 @@ function renderElectorList() {
 
   updatePropertyMap(
     firstElector
+  );
+
+
+  updateAiComments(
+    household
   );
 
 
@@ -1431,6 +1451,150 @@ function updatePropertyMap(elector) {
     "https://www.openstreetmap.org/export/embed.html?bbox=" + bbox +
     "&layer=mapnik&marker=" + lat + "," + lng;
 
+}
+
+
+function updateAiComments(household) {
+
+  if (!household || !household.electors.length) {
+    aiCommentsEl.textContent = "—";
+    return;
+  }
+
+  aiCommentsEl.textContent =
+    buildAiComments(household);
+
+}
+
+
+function buildAiComments(household) {
+
+  const electors = household.electors;
+
+  const names =
+    electors.map(
+      elector =>
+        elector.name || "Unnamed elector"
+    );
+
+  const sentences = [];
+
+
+  // Household size sentence
+  if (names.length === 1) {
+
+    sentences.push(
+      "There is one elector in this household: " +
+      names[0] +
+      "."
+    );
+
+  } else {
+
+    sentences.push(
+      "There are " +
+      numberToWords(names.length) +
+      " electors in this household: " +
+      joinNames(names) +
+      "."
+    );
+
+  }
+
+
+  // Canvass data sentence
+  sentences.push(
+    "We have no canvass data against them. " +
+    "We have no record of ever knocking on their door."
+  );
+
+
+  // Postal / proxy vote sentence
+  const postalProxyEntries =
+    electors.map(elector => ({
+      name: elector.name || "Unnamed elector",
+      status: elector.postalProxy || ""
+    }));
+
+  const anyPostalProxy =
+    postalProxyEntries.some(
+      entry =>
+        entry.status === "Postal" ||
+        entry.status === "Proxy"
+    );
+
+  if (!anyPostalProxy) {
+
+    if (names.length === 1) {
+
+      sentences.push(
+        names[0] +
+        " does not have a postal or proxy vote."
+      );
+
+    } else if (names.length === 2) {
+
+      sentences.push(
+        "Neither elector has a postal or proxy vote."
+      );
+
+    } else {
+
+      sentences.push(
+        "None of the electors have a postal or proxy vote."
+      );
+
+    }
+
+  } else {
+
+    const parts =
+      postalProxyEntries.map(entry => {
+
+        if (entry.status === "Postal") {
+          return entry.name + " has a postal vote";
+        }
+
+        if (entry.status === "Proxy") {
+          return entry.name + " has a proxy vote";
+        }
+
+        return entry.name + " does not have a postal or proxy vote";
+
+      });
+
+    sentences.push(parts.join(". ") + ".");
+
+  }
+
+
+  return sentences.join(" ");
+
+}
+
+
+function joinNames(names) {
+
+  if (names.length <= 1) {
+    return names[0] || "";
+  }
+
+  return (
+    names.slice(0, -1).join(", ") +
+    " and " +
+    names[names.length - 1]
+  );
+
+}
+
+
+const NUMBER_WORDS = [
+  "zero", "one", "two", "three", "four",
+  "five", "six", "seven", "eight", "nine", "ten"
+];
+
+function numberToWords(value) {
+  return NUMBER_WORDS[value] || String(value);
 }
 
 

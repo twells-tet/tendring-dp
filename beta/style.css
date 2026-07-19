@@ -214,6 +214,28 @@ body {
   grid-template-columns: 1fr;
 }
 
+.ai-comments-box {
+  margin-top: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 0.65rem;
+  background: var(--surface-soft);
+}
+
+.ai-comments-box h3 {
+  margin: 0 0 0.35rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--plaid-green-dark);
+}
+
+.ai-comments-box p {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--text-muted);
+}
+
 .ward-preview-crop {
   height: 65vh;
   min-height: 420px;
