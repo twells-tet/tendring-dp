@@ -97,19 +97,7 @@
         <select id="filter-type">
           <option value="">No filter</option>
           <option value="postal-proxy">Postal/Proxy Voters</option>
-          <option value="address">Address</option>
         </select>
-      </label>
-
-      <label
-        for="filter-address"
-        id="filter-address-label"
-        hidden>
-        Property address
-        <input
-          id="filter-address"
-          type="search"
-          placeholder="Type part of the property address">
       </label>
 
     </section>
@@ -287,12 +275,6 @@ const listEl =
 const filterTypeEl =
   document.getElementById("filter-type");
 
-const filterAddressEl =
-  document.getElementById("filter-address");
-
-const filterAddressLabelEl =
-  document.getElementById("filter-address-label");
-
 const statLoadedEl =
   document.getElementById("stat-loaded");
 
@@ -362,21 +344,6 @@ function initControls() {
 
   filterTypeEl.addEventListener(
     "change",
-    () => {
-
-      filterAddressLabelEl.hidden =
-        filterTypeEl.value !== "address";
-
-      state.householdPageIndex = 0;
-
-      renderElectorList();
-
-    }
-  );
-
-
-  filterAddressEl.addEventListener(
-    "input",
     () => {
 
       state.householdPageIndex = 0;
@@ -932,11 +899,6 @@ function renderElectorList() {
   const filterType =
     filterTypeEl.value;
 
-  const addressTerm =
-    normalizeText(
-      filterAddressEl.value
-    );
-
 
 
   const filteredElectors =
@@ -950,25 +912,6 @@ function renderElectorList() {
             elector.postalProxy === "Postal" ||
             elector.postalProxy === "Proxy"
           );
-
-        }
-
-
-        if (filterType === "address") {
-
-          if (!addressTerm) {
-            return true;
-          }
-
-          const addressText =
-            normalizeText(
-              [
-                elector.address,
-                elector.postcode
-              ].join(" ")
-            );
-
-          return addressText.includes(addressTerm);
 
         }
 
