@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Gwynedd 2027 | Electors</title>
+  <title>Vote 2027 | Electors</title>
   <meta name="description" content="Gwynedd council election canvassing tool — elector list by ward and polling district.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,7 +12,7 @@
 </head>
   <body>
   <header class="page-header">
-    <h1>Gwynedd 2027</h1>
+    <h1>Vote 2027</h1>
   </header>
 
   <main class="app-shell">
@@ -21,10 +21,42 @@
 
       <div class="filter-grid">
 
+        <label for="local-authority">
+          Local Authority
+          <select id="local-authority">
+            <option value="gwynedd">Gwynedd</option>
+          </select>
+        </label>
+
+
+        <label for="senedd">
+          Senedd Constituency
+          <select id="senedd">
+            <option value="gwynedd maldwyn">Gwynedd Maldwyn</option>
+          </select>
+        </label>
+
+
+        <label for="westminster">
+          Westminster Constituency
+          <select id="westminster">
+            <option value="dwyfor meirionnydd">Dwyfor Meirionnydd</option>
+          </select>
+        </label>
+
+
         <label for="ward">
           Ward
           <select id="ward">
-            <option value="">All wards</option>
+            <option value="abersoch gyda llanengan">Abersoch gyda Llanengan</option>
+          </select>
+        </label>
+
+
+        <label for="community">
+          Community
+          <select id="community">
+            <option value="llanengan">Llanengan</option>
           </select>
         </label>
 
@@ -33,47 +65,9 @@
           Polling District
           <select id="polling-district">
             <option value="">All polling districts</option>
+            <option value="ra1">RA1 (Abersoch)</option>
+            <option value="qb6">QB6 (Llanengan)</option>
           </select>
-        </label>
-
-
-        <label for="display-local-authority">
-          Local Authority
-          <input 
-            id="display-local-authority"
-            type="text"
-            readonly
-          >
-        </label>
-
-
-        <label for="display-senedd">
-          Senedd
-          <input 
-            id="display-senedd"
-            type="text"
-            readonly
-          >
-        </label>
-
-
-        <label for="display-westminster">
-          Westminster
-          <input 
-            id="display-westminster"
-            type="text"
-            readonly
-          >
-        </label>
-
-
-        <label for="display-community">
-          Community
-          <input 
-            id="display-community"
-            type="text"
-            readonly
-          >
         </label>
 
       </div>
@@ -222,6 +216,18 @@ const sheetUrlInput =
 const wardEl =
   document.getElementById("ward");
 
+const localAuthorityEl =
+  document.getElementById("local-authority");
+
+const seneddEl =
+  document.getElementById("senedd");
+
+const westminsterEl =
+  document.getElementById("westminster");
+
+const communityEl =
+  document.getElementById("community");
+
 const pollingDistrictEl =
   document.getElementById("polling-district");
 
@@ -244,24 +250,9 @@ const statCanvassEl =
   document.getElementById("stat-complete");
 
 
-const displayLocalAuthorityEl =
-  document.getElementById(
-    "display-local-authority"
-  );
-
-const displaySeneddEl =
-  document.getElementById(
-    "display-senedd"
-  );
-
-const displayWestminsterEl =
-  document.getElementById(
-    "display-westminster"
-  );
-
 const displayCommunityEl =
   document.getElementById(
-    "display-community"
+    "community"
   );
 
 
@@ -338,6 +329,30 @@ function initControls() {
   );
 
 
+  localAuthorityEl.addEventListener(
+    "change",
+    handleFilterChange
+  );
+
+
+  seneddEl.addEventListener(
+    "change",
+    handleFilterChange
+  );
+
+
+  westminsterEl.addEventListener(
+    "change",
+    handleFilterChange
+  );
+
+
+  communityEl.addEventListener(
+    "change",
+    handleFilterChange
+  );
+
+
   pollingDistrictEl.addEventListener(
     "change",
     handleFilterChange
@@ -354,12 +369,6 @@ function handleFilterChange() {
 
 
   state.householdPageIndex = 0;
-
-
-  populateFilters();
-
-
-  updateSummaryFields();
 
 
   renderElectorList();
@@ -449,12 +458,6 @@ async function loadElectorsFromSheet(inputUrl) {
 
 
 
-    populateFilters();
-
-
-    updateSummaryFields();
-
-
     renderElectorList();
 
 
@@ -483,200 +486,7 @@ async function loadElectorsFromSheet(inputUrl) {
 
 
 
-function populateFilters() {
 
-
-  const currentWard =
-    wardEl.value;
-
-
-  const currentDistrict =
-    pollingDistrictEl.value;
-
-
-
-
-  const wards =
-    [
-      ...new Set(
-        state.electors
-          .map(
-            e => e.ward
-          )
-          .filter(Boolean)
-      )
-    ]
-    .sort();
-
-
-
-  wardEl.innerHTML =
-    '<option value="">All wards</option>';
-
-
-
-  wards.forEach(
-    ward => {
-
-      const option =
-        document.createElement(
-          "option"
-        );
-
-
-      option.value =
-        normalizeText(
-          ward
-        );
-
-
-      option.textContent =
-        ward;
-
-
-      wardEl.appendChild(
-        option
-      );
-
-    }
-  );
-
-
-
-  if (currentWard) {
-
-    wardEl.value =
-      currentWard;
-
-  }
-
-
-
-
-
-  const selectedWard =
-    normalizeText(
-      wardEl.value
-    );
-
-
-
-  const districts =
-    [
-      ...new Set(
-
-        state.electors
-
-          .filter(
-            e =>
-              !selectedWard ||
-              normalizeText(e.ward)
-              === selectedWard
-          )
-
-          .map(
-            e =>
-              e.pollingDistrict
-          )
-
-          .filter(Boolean)
-
-      )
-    ]
-    .sort();
-
-
-
-  pollingDistrictEl.innerHTML =
-    '<option value="">All polling districts</option>';
-
-
-
-  districts.forEach(
-    district => {
-
-      const option =
-        document.createElement(
-          "option"
-        );
-
-
-      option.value =
-        district;
-
-
-      option.textContent =
-        district;
-
-
-      pollingDistrictEl.appendChild(
-        option
-      );
-
-    }
-  );
-
-
-
-  if (
-    districts.includes(
-      currentDistrict
-    )
-  ) {
-
-    pollingDistrictEl.value =
-      currentDistrict;
-
-  }
-
-}
-
-
-
-
-
-
-function updateSummaryFields() {
-
-
-  const active =
-    getActiveElectors();
-
-
-  const first =
-    active[0];
-
-
-
-  if (!first) {
-
-    displayLocalAuthorityEl.value = "";
-    displaySeneddEl.value = "";
-    displayWestminsterEl.value = "";
-    displayCommunityEl.value = "";
-
-    return;
-
-  }
-
-
-
-  displayLocalAuthorityEl.value =
-    first.localAuthority || "";
-
-
-  displaySeneddEl.value =
-    first.senedd || "";
-
-
-  displayWestminsterEl.value =
-    first.westminster || "";
-
-
-  displayCommunityEl.value =
-    first.community || "";
-
-}
 
 
 
@@ -1309,4 +1119,556 @@ function renderElectorList() {
   updateStats();
 
 }
+
+
+function buildVisibleHouseholds(electors) {
+
+  const groups = new Map();
+
+  electors.forEach(elector => {
+
+    const key = elector.householdGroupKey;
+
+    if (!groups.has(key)) {
+      groups.set(key, {
+        householdNumber:
+          elector.householdNumber ||
+          Number.MAX_SAFE_INTEGER,
+        electors: []
+      });
+    }
+
+    groups.get(key).electors.push(elector);
+
+  });
+
+  return Array.from(groups.values())
+    .sort(
+      (a, b) =>
+        a.householdNumber - b.householdNumber
+    );
+
+}
+
+
+function bindHouseholdNavigation(totalHouseholds) {
+
+  const buttons =
+    listEl.querySelectorAll(
+      ".household-nav-btn"
+    );
+
+  buttons.forEach(button => {
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        const action = button.dataset.action;
+
+        if (
+          action === "prev" &&
+          state.householdPageIndex > 0
+        ) {
+          state.householdPageIndex -= 1;
+          renderElectorList();
+        }
+
+        if (
+          action === "next" &&
+          state.householdPageIndex < totalHouseholds - 1
+        ) {
+          state.householdPageIndex += 1;
+          renderElectorList();
+        }
+
+      }
+    );
+
+  });
+
+}
+
+
+function welshProperCase(str) {
+
+  if (!str) return str;
+
+  return str
+    .toLowerCase()
+    .replace(/\S+/g, (word, offset) => {
+
+      const core =
+        word
+          .replace(/^[^a-zA-Z']+|[^a-zA-Z']+$/g, "")
+          .toLowerCase();
+
+      if (offset > 0 && WELSH_LOWERCASE.has(core)) return word;
+
+      return word.replace(/[a-zA-Z]/, ch => ch.toUpperCase());
+
+    });
+
+}
+
+
+function formatHouseholdAddress(elector) {
+
+  const segments = [];
+
+  if (elector.address) {
+
+    const normalised =
+      elector.address.replace(/,(?!\s)/g, ", ");
+
+    segments.push(welshProperCase(normalised));
+
+  }
+
+  if (elector.postcode) {
+    segments.push(elector.postcode.toUpperCase());
+  }
+
+  return segments.join(", ");
+
+}
+
+
+function formatPollingDistrictSummary(elector) {
+
+  const district =
+    String(elector.pollingDistrict || "").trim();
+
+  const community =
+    String(elector.community || "").trim();
+
+  const wardContext =
+    extractWardContext(elector.ward);
+
+  if (district || community || wardContext) {
+
+    let summary = district;
+
+    if (community) {
+      summary += (summary ? " " : "") + community;
+    }
+
+    if (wardContext) {
+      summary += (summary ? " " : "") + "(" + wardContext + ")";
+    }
+
+    return summary.trim();
+
+  }
+
+  return "—";
+
+}
+
+
+function extractWardContext(ward) {
+
+  const value = String(ward || "").trim();
+
+  if (!value) {
+    return "";
+  }
+
+  const marker = "gyda ";
+  const lowered = value.toLowerCase();
+  const idx = lowered.indexOf(marker);
+
+  if (idx >= 0) {
+    return value.slice(idx + marker.length).trim();
+  }
+
+  return value;
+
+}
+
+
+function bindProgressEditors() {
+
+  const canvassInputs =
+    listEl.querySelectorAll(".canvass-select");
+
+  const independenceInputs =
+    listEl.querySelectorAll(".independence-select");
+
+  const languageInputs =
+    listEl.querySelectorAll(".language-select");
+
+  canvassInputs.forEach(input => {
+
+    input.addEventListener("change", event => {
+
+      const id = event.target.dataset.id;
+      const existing = getElectorProgress(id);
+
+      state.progress[id] = {
+        ...existing,
+        canvassId: event.target.value.trim()
+      };
+
+      saveToStorage(STORAGE_KEYS.progress, state.progress);
+
+      updateStats();
+
+    });
+
+  });
+
+  independenceInputs.forEach(input => {
+
+    input.addEventListener("change", event => {
+
+      const id = event.target.dataset.id;
+      const existing = getElectorProgress(id);
+
+      state.progress[id] = {
+        ...existing,
+        supportIndependence: event.target.value.trim()
+      };
+
+      saveToStorage(STORAGE_KEYS.progress, state.progress);
+
+    });
+
+  });
+
+  languageInputs.forEach(input => {
+
+    input.addEventListener("change", event => {
+
+      const id = event.target.dataset.id;
+      const existing = getElectorProgress(id);
+
+      state.progress[id] = {
+        ...existing,
+        firstLanguage: event.target.value.trim()
+      };
+
+      saveToStorage(STORAGE_KEYS.progress, state.progress);
+
+    });
+
+  });
+
+}
+
+
+function updatePropertyMap(elector) {
+
+  if (
+    !elector ||
+    elector.lat === null ||
+    elector.lng === null
+  ) {
+    wardPreviewEl.removeAttribute("src");
+    return;
+  }
+
+  const lat = elector.lat;
+  const lng = elector.lng;
+  const delta = 0.004;
+
+  const bbox = [
+    lng - delta,
+    lat - delta * 0.6,
+    lng + delta,
+    lat + delta * 0.6
+  ].join(",");
+
+  wardPreviewEl.src =
+    "https://www.openstreetmap.org/export/embed.html?bbox=" + bbox +
+    "&layer=mapnik&marker=" + lat + "," + lng;
+
+}
+
+
+function updateStats() {
+
+  const active = getActiveElectors();
+
+  const householdCount =
+    new Set(
+      active.map(e => e.householdGroupKey)
+    ).size;
+
+  statLoadedEl.textContent = String(active.length);
+  statCanvassEl.textContent = String(householdCount);
+
+}
+
+
+function getElectorProgress(electorId) {
+
+  const existing = state.progress[electorId] || {};
+
+  const legacyCanvassId =
+    existing.canvassId ||
+    existing.status ||
+    "No Data";
+
+  const canvassId = normalizeCanvassId(legacyCanvassId);
+  const supportIndependence = existing.supportIndependence || "No Data";
+  const firstLanguage = existing.firstLanguage || "English";
+
+  return {
+    canvassId:
+      canvassIdOptions.includes(canvassId) ? canvassId : "No Data",
+    supportIndependence:
+      independenceOptions.includes(supportIndependence) ? supportIndependence : "No Data",
+    firstLanguage:
+      languageOptions.includes(firstLanguage) ? firstLanguage : "English"
+  };
+
+}
+
+
+function normalizeCanvassId(value) {
+
+  const cleaned = String(value || "").trim();
+
+  if (cleaned === "Tory") {
+    return "Conservative";
+  }
+
+  if (cleaned === "Plaid") {
+    return "Probable Plaid";
+  }
+
+  return cleaned || "No Data";
+
+}
+
+
+function getActiveElectors() {
+
+  const authority = normalizeText(localAuthorityEl.value);
+  const senedd = normalizeText(seneddEl.value);
+  const westminster = normalizeText(westminsterEl.value);
+  const ward = normalizeText(wardEl.value);
+  const community = normalizeText(communityEl.value);
+  const pollingDistrict = normalizeText(pollingDistrictEl.value);
+
+  return state.electors.filter(elector => {
+
+    const electorAuthority = normalizeText(elector.localAuthority);
+    const electorSenedd = normalizeText(elector.senedd);
+    const electorWestminster = normalizeText(elector.westminster);
+    const electorWard = normalizeText(elector.ward);
+    const electorCommunity = normalizeText(elector.community);
+    const electorPollingDistrict = normalizeText(elector.pollingDistrict);
+
+    if (authority && electorAuthority && electorAuthority !== authority) {
+      return false;
+    }
+
+    if (senedd && electorSenedd && electorSenedd !== senedd) {
+      return false;
+    }
+
+    if (westminster && electorWestminster && electorWestminster !== westminster) {
+      return false;
+    }
+
+    if (ward && electorWard && electorWard !== ward) {
+      return false;
+    }
+
+    if (community && electorCommunity && electorCommunity !== community) {
+      return false;
+    }
+
+    if (pollingDistrict && electorPollingDistrict && electorPollingDistrict !== pollingDistrict) {
+      return false;
+    }
+
+    return true;
+
+  });
+
+}
+
+
+function toGoogleCsvUrl(rawUrl) {
+
+  if (
+    rawUrl.includes("output=csv") ||
+    rawUrl.includes("/export?format=csv")
+  ) {
+    return rawUrl;
+  }
+
+  const match =
+    rawUrl.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+
+  if (!match) {
+    return rawUrl;
+  }
+
+  const sheetId = match[1];
+
+  const gidMatch =
+    rawUrl.match(/[?&#]gid=([0-9]+)/);
+
+  const gid = gidMatch ? gidMatch[1] : "0";
+
+  return (
+    "https://docs.google.com/spreadsheets/d/" +
+    sheetId +
+    "/export?format=csv&gid=" +
+    gid
+  );
+
+}
+
+
+function parseCsv(csvText) {
+
+  const rows = [];
+  let row = [];
+  let value = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < csvText.length; i += 1) {
+
+    const char = csvText[i];
+    const next = csvText[i + 1];
+
+    if (char === "\"" && inQuotes && next === "\"") {
+      value += "\"";
+      i += 1;
+      continue;
+    }
+
+    if (char === "\"") {
+      inQuotes = !inQuotes;
+      continue;
+    }
+
+    if (char === "," && !inQuotes) {
+      row.push(value);
+      value = "";
+      continue;
+    }
+
+    if ((char === "\n" || char === "\r") && !inQuotes) {
+
+      if (char === "\r" && next === "\n") {
+        i += 1;
+      }
+
+      row.push(value);
+      rows.push(row);
+      row = [];
+      value = "";
+      continue;
+
+    }
+
+    value += char;
+
+  }
+
+  if (value.length || row.length) {
+    row.push(value);
+    rows.push(row);
+  }
+
+  return rows;
+
+}
+
+
+function normalizeHeader(value) {
+
+  return (
+    (value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "")
+  );
+
+}
+
+
+function normalizeText(value) {
+
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+}
+
+
+function formatPostalProxy(value) {
+
+  const cleaned = String(value || "").trim();
+  const normalized = normalizeText(cleaned);
+
+  if (!normalized) {
+    return "";
+  }
+
+  if (normalized.includes("postal")) {
+    return "Postal";
+  }
+
+  if (normalized.includes("proxy")) {
+    return "Proxy";
+  }
+
+  return cleaned;
+
+}
+
+
+function setMessage(text) {
+  messageEl.textContent = text;
+}
+
+
+function loadFromStorage(key, fallback) {
+
+  try {
+
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+
+  } catch (_error) {
+
+    return fallback;
+
+  }
+
+}
+
+
+function saveToStorage(key, value) {
+  localStorage.setItem(key, JSON.stringify(value));
+}
+
+
+function escapeHtml(value) {
+
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
+}
+
+
+function escapeHtmlAttr(value) {
+  return escapeHtml(value).replace(/`/g, "&#096;");
+}
+  </script>
+</body>
+</html>
     
