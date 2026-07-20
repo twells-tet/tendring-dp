@@ -309,6 +309,11 @@
             <dt>Walk</dt>
             <dd id="delivery-walk">—</dd>
 
+            <dt>Delivery Area</dt>
+            <dd>
+              <input type="text" id="delivery-area-input" class="delivery-area-input">
+            </dd>
+
             <dt>Description</dt>
             <dd id="delivery-description">High Street and Harbour</dd>
 
@@ -511,6 +516,9 @@ const aiCommentsEl =
 
 const deliveryWalkEl =
   document.getElementById("delivery-walk");
+
+const deliveryAreaInputEl =
+  document.getElementById("delivery-area-input");
 
 const deliveryDescriptionEl =
   document.getElementById("delivery-description");
@@ -1368,20 +1376,6 @@ function renderElectorList() {
 
 
       <p>
-        <strong>Area:</strong>
-        <input
-        type="text"
-        class="area-input"
-        data-household-id="${escapeHtmlAttr(firstElector.householdGroupKey)}"
-        value="${escapeHtmlAttr(
-          state.areaOverrides[firstElector.householdGroupKey] !== undefined
-            ? state.areaOverrides[firstElector.householdGroupKey]
-            : formatHouseholdArea(firstElector)
-        )}">
-      </p>
-
-
-      <p>
         <strong>Address:</strong>
         ${escapeHtml(formatHouseholdAddress(firstElector))}
       </p>
@@ -1397,28 +1391,6 @@ function renderElectorList() {
 
 
   listEl.appendChild(panel);
-
-
-  const areaInput =
-    panel.querySelector(".area-input");
-
-  if (areaInput) {
-    areaInput.addEventListener(
-      "change",
-      event => {
-
-        state.areaOverrides[
-          event.target.dataset.householdId
-        ] = event.target.value.trim();
-
-        saveToStorage(
-          STORAGE_KEYS.areaOverrides,
-          state.areaOverrides
-        );
-
-      }
-    );
-  }
 
 
 
@@ -1769,6 +1741,10 @@ function welshProperCase(str) {
 
 function formatHouseholdArea(elector) {
 
+  if (!elector) {
+    return "—";
+  }
+
   const line1 = String(elector.addressLine1 || "").trim();
   const line2 = String(elector.addressLine2 || "").trim();
 
@@ -2107,6 +2083,17 @@ function updateDeliveryDetails(elector) {
   deliveryWalkEl.textContent =
     (elector && elector.deliveryWalk) || "—";
 
+  const householdId =
+    elector ? elector.householdGroupKey : null;
+
+  deliveryAreaInputEl.dataset.householdId =
+    householdId || "";
+
+  deliveryAreaInputEl.value =
+    householdId && state.areaOverrides[householdId] !== undefined
+      ? state.areaOverrides[householdId]
+      : formatHouseholdArea(elector);
+
   deliveryDescriptionEl.textContent =
     buildDeliveryDescription(elector);
 
@@ -2117,6 +2104,29 @@ function updateDeliveryDetails(elector) {
     (elector && elector.deliverer) || "—";
 
 }
+
+
+deliveryAreaInputEl.addEventListener(
+  "change",
+  event => {
+
+    const householdId =
+      event.target.dataset.householdId;
+
+    if (!householdId) {
+      return;
+    }
+
+    state.areaOverrides[householdId] =
+      event.target.value.trim();
+
+    saveToStorage(
+      STORAGE_KEYS.areaOverrides,
+      state.areaOverrides
+    );
+
+  }
+);
 
 
 function buildDeliveryDescription(elector) {
