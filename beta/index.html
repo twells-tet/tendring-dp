@@ -166,6 +166,12 @@
 
         <p id="ward-preview-coords" class="map-coords">—</p>
 
+        <p class="map-attribution">
+          Data from OpenStreetMap. &copy; OpenStreetMap contributors, available under the
+          <a href="https://opendatacommons.org/licenses/odbl/" target="_blank" rel="noopener">Open Database Licence</a>.
+          See <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">openstreetmap.org/copyright</a>.
+        </p>
+
 
         <div class="ai-comments-box" aria-label="AI Comments">
           <h3>AI Comments</h3>
@@ -1556,7 +1562,7 @@ function updatePropertyMap(elector) {
     elector.lng === null
   ) {
     wardPreviewEl.removeAttribute("src");
-    wardPreviewCoordsEl.textContent = "—";
+    wardPreviewCoordsEl.textContent = "Coordinates —";
     return;
   }
 
@@ -1576,7 +1582,7 @@ function updatePropertyMap(elector) {
     "&layer=mapnik&marker=" + lat + "," + lng;
 
   wardPreviewCoordsEl.textContent =
-    lat + ", " + lng;
+    "Coordinates " + lat + ", " + lng;
 
 }
 

@@ -271,10 +271,24 @@ body {
   display: none;
 }
 
+.map-panel--hidden .map-attribution {
+  display: none;
+}
+
 .map-coords {
   margin: 0.4rem 0 0;
   font-size: 0.75rem;
   color: var(--text-muted);
+}
+
+.map-attribution {
+  margin: 0.25rem 0 0;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.map-attribution a {
+  color: var(--plaid-green-dark);
 }
 
 .workspace:has(.map-panel--hidden) {
