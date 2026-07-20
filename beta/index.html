@@ -303,6 +303,23 @@ const languageOptions = [
 ];
 
 
+const partyMemberOptions = [
+  "No",
+  "Current",
+  "Former",
+  "Lapsed",
+  "Supporter",
+  "Ask to Join"
+];
+
+
+const posterOptions = [
+  "No Poster",
+  "Poster: Window",
+  "Poster: Garden"
+];
+
+
 const state = {
   electors: [],
   progress: loadFromStorage(
@@ -1333,6 +1350,54 @@ function renderElectorList() {
         </label>
 
 
+        <label>
+          Party Member
+
+          <select
+          class="party-member-select"
+          data-id="${escapeHtmlAttr(elector.id)}">
+
+          ${
+            partyMemberOptions.map(option =>
+              `
+              <option
+              ${option === progress.partyMember ? "selected" : ""}
+              >
+              ${option}
+              </option>
+              `
+            ).join("")
+          }
+
+          </select>
+
+        </label>
+
+
+        <label>
+          Poster
+
+          <select
+          class="poster-select"
+          data-id="${escapeHtmlAttr(elector.id)}">
+
+          ${
+            posterOptions.map(option =>
+              `
+              <option
+              ${option === progress.poster ? "selected" : ""}
+              >
+              ${option}
+              </option>
+              `
+            ).join("")
+          }
+
+          </select>
+
+        </label>
+
+
       </div>
       `;
 
@@ -1528,6 +1593,12 @@ function bindProgressEditors() {
   const emailInputs =
     listEl.querySelectorAll(".email-input");
 
+  const partyMemberInputs =
+    listEl.querySelectorAll(".party-member-select");
+
+  const posterInputs =
+    listEl.querySelectorAll(".poster-select");
+
   canvassInputs.forEach(input => {
 
     input.addEventListener("change", event => {
@@ -1612,6 +1683,42 @@ function bindProgressEditors() {
       state.progress[id] = {
         ...existing,
         email: event.target.value.trim()
+      };
+
+      saveToStorage(STORAGE_KEYS.progress, state.progress);
+
+    });
+
+  });
+
+  partyMemberInputs.forEach(input => {
+
+    input.addEventListener("change", event => {
+
+      const id = event.target.dataset.id;
+      const existing = getElectorProgress(id);
+
+      state.progress[id] = {
+        ...existing,
+        partyMember: event.target.value.trim()
+      };
+
+      saveToStorage(STORAGE_KEYS.progress, state.progress);
+
+    });
+
+  });
+
+  posterInputs.forEach(input => {
+
+    input.addEventListener("change", event => {
+
+      const id = event.target.dataset.id;
+      const existing = getElectorProgress(id);
+
+      state.progress[id] = {
+        ...existing,
+        poster: event.target.value.trim()
       };
 
       saveToStorage(STORAGE_KEYS.progress, state.progress);
@@ -1843,6 +1950,8 @@ function getElectorProgress(electorId) {
   const firstLanguage = existing.firstLanguage || "English";
   const phone = existing.phone || "";
   const email = existing.email || "";
+  const partyMember = existing.partyMember || "No";
+  const poster = existing.poster || "No Poster";
 
   return {
     canvassId:
@@ -1852,7 +1961,11 @@ function getElectorProgress(electorId) {
     firstLanguage:
       languageOptions.includes(firstLanguage) ? firstLanguage : "English",
     phone,
-    email
+    email,
+    partyMember:
+      partyMemberOptions.includes(partyMember) ? partyMember : "No",
+    poster:
+      posterOptions.includes(poster) ? poster : "No Poster"
   };
 
 }
