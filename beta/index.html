@@ -1415,7 +1415,8 @@ function renderElectorList() {
             type="checkbox"
             class="ask-volunteer-checkbox"
             data-id="${escapeHtmlAttr(elector.id)}"
-            ${progress.askToVolunteer ? "checked" : ""}>
+            ${progress.askToVolunteer ? "checked" : ""}
+            ${progress.volunteer ? "disabled" : ""}>
             Ask to Volunteer
           </label>
 
@@ -1787,13 +1788,30 @@ function bindProgressEditors() {
 
       const id = event.target.dataset.id;
       const existing = getElectorProgress(id);
+      const volunteer = event.target.checked;
 
       state.progress[id] = {
         ...existing,
-        volunteer: event.target.checked
+        volunteer,
+        askToVolunteer: volunteer ? false : existing.askToVolunteer
       };
 
       saveToStorage(STORAGE_KEYS.progress, state.progress);
+
+      const container =
+        event.target.closest(".volunteer-checkboxes");
+
+      const askInput =
+        container ?
+          container.querySelector(".ask-volunteer-checkbox") :
+          null;
+
+      if (askInput) {
+        askInput.disabled = volunteer;
+        if (volunteer) {
+          askInput.checked = false;
+        }
+      }
 
     });
 
@@ -2080,7 +2098,7 @@ function getElectorProgress(electorId) {
     poster:
       posterOptions.includes(poster) ? poster : "No Poster",
     volunteer,
-    askToVolunteer
+    askToVolunteer: volunteer ? false : askToVolunteer
   };
 
 }
