@@ -1748,8 +1748,10 @@ function formatHouseholdArea(elector) {
   const line1 = String(elector.addressLine1 || "").trim();
   const line2 = String(elector.addressLine2 || "").trim();
 
-  if (/^\d/.test(line1)) {
-    return "Bay View Terrace";
+  const numberMatch = line1.match(/^\d+[a-z]?\s+(.+)/i);
+
+  if (numberMatch) {
+    return welshProperCase(numberMatch[1].trim());
   }
 
   return line2 ? welshProperCase(line2) : "—";
