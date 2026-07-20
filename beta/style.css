@@ -812,3 +812,47 @@ body.mobile-mode .elector-list {
 
 }
 
+.exit-printer-friendly-link {
+  display: none;
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 10;
+  background: var(--surface);
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.35rem;
+  border: 1px solid var(--border-strong);
+  color: #1a56db;
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+
+body.printer-friendly-mode {
+  filter: grayscale(100%);
+  background: #fff;
+}
+
+body.printer-friendly-mode .no-print {
+  display: none !important;
+}
+
+body.printer-friendly-mode .label-card-done {
+  display: none !important;
+}
+
+body.printer-friendly-mode .label-sheet-wrap {
+  display: block;
+}
+
+body.printer-friendly-mode .label-page {
+  border: none;
+}
+
+body.printer-friendly-mode .label-card {
+  border: 1px solid #000;
+}
+
+body.printer-friendly-mode .exit-printer-friendly-link {
+  display: inline-block;
+}
+
