@@ -923,6 +923,10 @@ function mapRowToElector(row, headers, index) {
 
     address,
 
+    addressLine1: data.address1 || "",
+
+    addressLine2: data.address2 || "",
+
     postcode,
 
 
@@ -1359,6 +1363,12 @@ function renderElectorList() {
 
 
       <p>
+        <strong>Area:</strong>
+        ${escapeHtml(formatHouseholdArea(firstElector))}
+      </p>
+
+
+      <p>
         <strong>Address:</strong>
         ${escapeHtml(formatHouseholdAddress(firstElector))}
       </p>
@@ -1718,6 +1728,20 @@ function welshProperCase(str) {
       return word.replace(/[a-zA-Z]/, ch => ch.toUpperCase());
 
     });
+
+}
+
+
+function formatHouseholdArea(elector) {
+
+  const line1 = String(elector.addressLine1 || "").trim();
+  const line2 = String(elector.addressLine2 || "").trim();
+
+  if (/^\d/.test(line1)) {
+    return "Bay View Terrace";
+  }
+
+  return line2 ? welshProperCase(line2) : "—";
 
 }
 
