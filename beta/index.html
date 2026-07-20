@@ -169,11 +169,9 @@
         <p class="map-coords">
           <span id="ward-preview-coords">—</span>
           <a
-            href="#"
-            class="coords-edit-link"
-            aria-disabled="true"
-            tabindex="-1"
-            onclick="return false;">edit location of property</a>
+            href="#what3words-box"
+            id="edit-location-link"
+            class="coords-edit-link">edit location of property</a>
         </p>
 
         <p class="map-attribution">
@@ -255,6 +253,21 @@
   </main>
 
   <footer class="page-footer">
+
+    <section id="what3words-box" class="what3words-box">
+      <h3>what3words</h3>
+      <p class="what3words-hint">
+        Enter or edit the what3words address for the currently selected property.
+      </p>
+      <div class="what3words-row">
+        <input
+          type="text"
+          id="what3words-input"
+          placeholder="///example.words.here">
+        <button type="button" id="what3words-save" disabled>Save</button>
+      </div>
+    </section>
+
     <button type="button" id="mobile-toggle" class="mobile-toggle-button">Mobile Version</button>
 
     <p class="disclaimer">
@@ -1881,7 +1894,7 @@ function updatePropertyMap(elector) {
     elector.lng === null
   ) {
     wardPreviewEl.removeAttribute("src");
-    wardPreviewCoordsEl.textContent = "Coordinates —";
+    wardPreviewCoordsEl.textContent = "GPS coordinates —";
     return;
   }
 
@@ -1901,7 +1914,7 @@ function updatePropertyMap(elector) {
     "&layer=mapnik&marker=" + lat + "," + lng;
 
   wardPreviewCoordsEl.textContent =
-    "Coordinates " + lat + ", " + lng;
+    "GPS coordinates " + lat + ", " + lng;
 
 }
 
