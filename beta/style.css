@@ -442,9 +442,15 @@ body {
 }
 
 .elector-edit select,
-.elector-edit textarea {
+.elector-edit textarea,
+.elector-edit input {
   padding: 0.5rem;
   width: 100%;
+  border: 1px solid var(--border-strong);
+  border-radius: 0.5rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
 }
 
 .elector-edit textarea {
@@ -464,7 +470,8 @@ body {
 .control-row input:focus,
 .list-head input:focus,
 .elector-edit select:focus,
-.elector-edit textarea:focus {
+.elector-edit textarea:focus,
+.elector-edit input:focus {
   outline: 2px solid var(--highlight-red);
   outline-offset: 1px;
   border-color: var(--plaid-green);
