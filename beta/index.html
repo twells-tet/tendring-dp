@@ -263,6 +263,8 @@
           </button>
         </div>
 
+        <p id="property-full-address" class="property-full-address">—</p>
+
         <div class="ward-preview-crop">
           <iframe
             id="ward-preview"
@@ -499,6 +501,9 @@ const wardPreviewEl =
 
 const wardPreviewCoordsEl =
   document.getElementById("ward-preview-coords");
+
+const propertyFullAddressEl =
+  document.getElementById("property-full-address");
 
 const mapPanelEl =
   document.getElementById("map-panel");
@@ -2073,6 +2078,11 @@ function bindProgressEditors() {
 
 
 function updatePropertyMap(elector) {
+
+  propertyFullAddressEl.textContent =
+    elector
+      ? formatHouseholdAddress(elector).toUpperCase()
+      : "—";
 
   if (
     !elector ||

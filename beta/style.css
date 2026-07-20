@@ -640,6 +640,13 @@ body.mobile-mode .elector-list {
   text-decoration: underline;
 }
 
+.property-full-address {
+  margin: 0 0 0.75rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
 .map-panel--hidden .ward-preview-crop {
   display: none;
 }
