@@ -307,6 +307,21 @@ body.mobile-mode .elector-list {
   cursor: not-allowed;
 }
 
+.polling-day-button {
+  display: inline-block;
+  text-decoration: none;
+  text-align: center;
+  border-color: var(--plaid-green-dark);
+  background: var(--plaid-green-dark);
+  opacity: 1;
+  cursor: pointer;
+}
+
+.polling-day-button:hover {
+  background: var(--plaid-green);
+  border-color: var(--plaid-green);
+}
+
 .panel-heading {
   display: flex;
   align-items: center;
