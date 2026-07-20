@@ -208,6 +208,28 @@ body {
   grid-template-columns: minmax(360px, 1fr) minmax(380px, 1fr);
 }
 
+.list-column {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.delivery-details {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.4rem 0.75rem;
+  margin: 0;
+}
+
+.delivery-details dt {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.delivery-details dd {
+  margin: 0;
+}
+
 .panel {
   padding: 0.9rem;
 }

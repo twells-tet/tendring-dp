@@ -189,14 +189,36 @@
       </div>
 
 
-      <div class="panel list-panel">
+      <div class="list-column">
 
-        <div class="list-head">
-          <h2>Household Details</h2>
+        <div class="panel delivery-panel">
+
+          <h2>Delivery Details</h2>
+
+          <dl class="delivery-details">
+            <dt>Walk</dt>
+            <dd id="delivery-walk">—</dd>
+
+            <dt>Delivery Order</dt>
+            <dd id="delivery-order">—</dd>
+
+            <dt>Deliverer</dt>
+            <dd id="delivery-deliverer">—</dd>
+          </dl>
+
         </div>
 
 
-        <div id="elector-list" class="elector-list"></div>
+        <div class="panel list-panel">
+
+          <div class="list-head">
+            <h2>Household Details</h2>
+          </div>
+
+
+          <div id="elector-list" class="elector-list"></div>
+
+        </div>
 
       </div>
 
@@ -323,6 +345,15 @@ const toggleMapEl =
 
 const aiCommentsEl =
   document.getElementById("ai-comments-text");
+
+const deliveryWalkEl =
+  document.getElementById("delivery-walk");
+
+const deliveryOrderEl =
+  document.getElementById("delivery-order");
+
+const deliveryDelivererEl =
+  document.getElementById("delivery-deliverer");
 
 const messageEl =
   document.getElementById("message");
@@ -740,6 +771,24 @@ function mapRowToElector(row, headers, index) {
       "",
 
 
+    deliveryWalk:
+      data.walk ||
+      row[37] ||
+      "",
+
+
+    deliveryOrder:
+      data.deliveryorder ||
+      row[38] ||
+      "",
+
+
+    deliverer:
+      data.deliverer ||
+      row[39] ||
+      "",
+
+
     uprn:
       data.uprn ||
       row[19] ||
@@ -1008,6 +1057,9 @@ function renderElectorList() {
     updateAiComments(null);
 
 
+    updateDeliveryDetails(null);
+
+
     updateStats();
 
     return;
@@ -1043,6 +1095,11 @@ function renderElectorList() {
 
   updateAiComments(
     household
+  );
+
+
+  updateDeliveryDetails(
+    firstElector
   );
 
 
@@ -1604,6 +1661,20 @@ function updateAiComments(household) {
 
   aiCommentsEl.textContent =
     buildAiComments(household);
+
+}
+
+
+function updateDeliveryDetails(elector) {
+
+  deliveryWalkEl.textContent =
+    (elector && elector.deliveryWalk) || "—";
+
+  deliveryOrderEl.textContent =
+    (elector && elector.deliveryOrder) || "—";
+
+  deliveryDelivererEl.textContent =
+    (elector && elector.deliverer) || "—";
 
 }
 
