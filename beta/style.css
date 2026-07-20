@@ -527,6 +527,20 @@ body.mobile-mode .elector-list {
   color: var(--text-muted);
 }
 
+.placeholder-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  padding: 0;
+}
+
+.placeholder-input:focus {
+  outline: none;
+  color: var(--text);
+}
+
 .activist-options {
   list-style: none;
   margin: 0;
