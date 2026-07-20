@@ -1762,13 +1762,31 @@ function formatHouseholdArea(elector) {
   const numberMatch =
     segments[0] && segments[0].match(/^\d+[a-z]?\s+(.+)/i);
 
+  let area;
+
   if (numberMatch) {
-    return numberMatch[1].trim().toUpperCase();
+    area = numberMatch[1].trim().toUpperCase();
+  } else {
+    area = (segments[1] || segments[0] || "").toUpperCase();
   }
 
-  const area = segments[1] || segments[0] || "";
+  if (!area) {
+    return "—";
+  }
 
-  return area ? area.toUpperCase() : "—";
+  const unnamedRoadTowns = [
+    "ABERSOCH",
+    "MYNYTHO",
+    "LLANBEDROG",
+    "SARN",
+    "LLANENGAN"
+  ];
+
+  if (unnamedRoadTowns.includes(area)) {
+    area += " (UNNAMED ROAD)";
+  }
+
+  return area;
 
 }
 
