@@ -622,15 +622,22 @@ body.mobile-mode .elector-list {
   margin: 0 0 0.75rem;
 }
 
-.map-toggle-label {
+.map-toggle-button {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 0.85rem;
-  font-weight: 500;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 1.1rem;
+  font-weight: 600;
   color: var(--plaid-green-dark);
   cursor: pointer;
-  white-space: nowrap;
+  text-align: left;
+}
+
+.map-toggle-button:hover {
+  text-decoration: underline;
 }
 
 .map-panel--hidden .ward-preview-crop {

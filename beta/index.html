@@ -258,14 +258,9 @@
 
       <div class="panel map-panel" id="map-panel">
         <div class="panel-heading">
-          <h2>Property Map</h2>
-
-          <label class="map-toggle-label">
-            <input
-              id="toggle-map"
-              type="checkbox">
-            Hide map
-          </label>
+          <button type="button" id="toggle-map" class="map-toggle-button">
+            Property Map (hide map)
+          </button>
         </div>
 
         <div class="ward-preview-crop">
@@ -685,22 +680,25 @@ function initControls() {
       STORAGE_KEYS.hideMap
     ) === "true";
 
-  toggleMapEl.checked = savedHideMap;
-
   applyMapVisibility(savedHideMap);
+  updateMapToggleLabel(savedHideMap);
 
   toggleMapEl.addEventListener(
-    "change",
+    "click",
     () => {
+
+      const hidden =
+        !mapPanelEl.classList.contains(
+          "map-panel--hidden"
+        );
 
       localStorage.setItem(
         STORAGE_KEYS.hideMap,
-        String(toggleMapEl.checked)
+        String(hidden)
       );
 
-      applyMapVisibility(
-        toggleMapEl.checked
-      );
+      applyMapVisibility(hidden);
+      updateMapToggleLabel(hidden);
 
     }
   );
@@ -734,6 +732,14 @@ function applyMapVisibility(hidden) {
     "map-panel--hidden",
     hidden
   );
+}
+
+
+function updateMapToggleLabel(hidden) {
+  toggleMapEl.textContent =
+    hidden
+      ? "Property Map (show map)"
+      : "Property Map (hide map)";
 }
 
 
