@@ -482,6 +482,18 @@ body.mobile-mode .elector-list {
   opacity: 0.7;
 }
 
+.members-activists-button {
+  display: inline-block;
+  text-decoration: none;
+  text-align: center;
+  border-color: var(--plaid-red);
+  background: var(--plaid-red);
+}
+
+.members-activists-button:hover {
+  opacity: 0.85;
+}
+
 .telling-data-button {
   max-width: 320px;
   margin: 0.5rem auto 1rem;
