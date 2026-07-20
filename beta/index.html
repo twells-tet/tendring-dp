@@ -146,6 +146,8 @@
           </iframe>
         </div>
 
+        <p id="ward-preview-coords" class="map-coords">—</p>
+
 
         <div class="ai-comments-box" aria-label="AI Comments">
           <h3>AI Comments</h3>
@@ -277,6 +279,9 @@ const pollingDistrictEl =
 
 const wardPreviewEl =
   document.getElementById("ward-preview");
+
+const wardPreviewCoordsEl =
+  document.getElementById("ward-preview-coords");
 
 const mapPanelEl =
   document.getElementById("map-panel");
@@ -1465,6 +1470,7 @@ function updatePropertyMap(elector) {
     elector.lng === null
   ) {
     wardPreviewEl.removeAttribute("src");
+    wardPreviewCoordsEl.textContent = "—";
     return;
   }
 
@@ -1482,6 +1488,9 @@ function updatePropertyMap(elector) {
   wardPreviewEl.src =
     "https://www.openstreetmap.org/export/embed.html?bbox=" + bbox +
     "&layer=mapnik&marker=" + lat + "," + lng;
+
+  wardPreviewCoordsEl.textContent =
+    lat + ", " + lng;
 
 }
 

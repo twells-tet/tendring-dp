@@ -242,6 +242,16 @@ body {
   display: none;
 }
 
+.map-panel--hidden .map-coords {
+  display: none;
+}
+
+.map-coords {
+  margin: 0.4rem 0 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
 .workspace:has(.map-panel--hidden) {
   grid-template-columns: 1fr;
 }
