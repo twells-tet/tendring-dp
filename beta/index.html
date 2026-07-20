@@ -1399,6 +1399,29 @@ function renderElectorList() {
         </label>
 
 
+        <div class="volunteer-checkboxes">
+
+          <label class="checkbox-label">
+            <input
+            type="checkbox"
+            class="volunteer-checkbox"
+            data-id="${escapeHtmlAttr(elector.id)}"
+            ${progress.volunteer ? "checked" : ""}>
+            Active Volunteer
+          </label>
+
+          <label class="checkbox-label">
+            <input
+            type="checkbox"
+            class="ask-volunteer-checkbox"
+            data-id="${escapeHtmlAttr(elector.id)}"
+            ${progress.askToVolunteer ? "checked" : ""}>
+            Ask to Volunteer
+          </label>
+
+        </div>
+
+
         <label>
           Poster
 
@@ -1624,6 +1647,12 @@ function bindProgressEditors() {
   const posterInputs =
     listEl.querySelectorAll(".poster-select");
 
+  const volunteerInputs =
+    listEl.querySelectorAll(".volunteer-checkbox");
+
+  const askVolunteerInputs =
+    listEl.querySelectorAll(".ask-volunteer-checkbox");
+
   canvassInputs.forEach(input => {
 
     input.addEventListener("change", event => {
@@ -1744,6 +1773,42 @@ function bindProgressEditors() {
       state.progress[id] = {
         ...existing,
         poster: event.target.value.trim()
+      };
+
+      saveToStorage(STORAGE_KEYS.progress, state.progress);
+
+    });
+
+  });
+
+  volunteerInputs.forEach(input => {
+
+    input.addEventListener("change", event => {
+
+      const id = event.target.dataset.id;
+      const existing = getElectorProgress(id);
+
+      state.progress[id] = {
+        ...existing,
+        volunteer: event.target.checked
+      };
+
+      saveToStorage(STORAGE_KEYS.progress, state.progress);
+
+    });
+
+  });
+
+  askVolunteerInputs.forEach(input => {
+
+    input.addEventListener("change", event => {
+
+      const id = event.target.dataset.id;
+      const existing = getElectorProgress(id);
+
+      state.progress[id] = {
+        ...existing,
+        askToVolunteer: event.target.checked
       };
 
       saveToStorage(STORAGE_KEYS.progress, state.progress);
@@ -1998,6 +2063,8 @@ function getElectorProgress(electorId) {
   const email = existing.email || "";
   const partyMember = existing.partyMember || "No";
   const poster = existing.poster || "No Poster";
+  const volunteer = Boolean(existing.volunteer);
+  const askToVolunteer = Boolean(existing.askToVolunteer);
 
   return {
     canvassId:
@@ -2011,7 +2078,9 @@ function getElectorProgress(electorId) {
     partyMember:
       partyMemberOptions.includes(partyMember) ? partyMember : "No",
     poster:
-      posterOptions.includes(poster) ? poster : "No Poster"
+      posterOptions.includes(poster) ? poster : "No Poster",
+    volunteer,
+    askToVolunteer
   };
 
 }
