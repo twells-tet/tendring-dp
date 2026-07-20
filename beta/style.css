@@ -537,6 +537,27 @@ body.mobile-mode .elector-list {
   font-size: 0.9rem;
 }
 
+.ward-select-label {
+  display: block;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  max-width: 320px;
+  margin-bottom: 1rem;
+}
+
+.ward-select-label select {
+  display: block;
+  margin-top: 0.4rem;
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 0.5rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+}
+
 .telling-data-button {
   max-width: 320px;
   margin: 0.5rem auto 1rem;
