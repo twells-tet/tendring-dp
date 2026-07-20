@@ -116,7 +116,7 @@
     }
 
     function getLabelStatus(id) {
-      return labelStatus[id] || { returned: false, votedToday: false };
+      return labelStatus[id] || { returned: false, votedToday: false, refused: false };
     }
 
     let allElectors = [];
@@ -224,7 +224,9 @@
 
         html +=
           "<div class=\"label-page\">" +
-          pageElectors.map(elector => renderLabelCard(elector)).join("") +
+          pageElectors
+            .map((elector, pageIndex) => renderLabelCard(elector, i + pageIndex + 1))
+            .join("") +
           "</div>";
 
       }
@@ -242,19 +244,45 @@
 
     }
 
-    function renderLabelCard(elector) {
+    function electorNumberLabel(elector) {
 
-      const status = getLabelStatus(elector.id);
+      const prefix = savedDistrict.toUpperCase();
+      const number = elector.pollingElectorNumber || "—";
+
+      return prefix + "-" + number;
+
+    }
+
+    function truncateAddress(address) {
+
+      const text = String(address || "");
+
+      if (text.length <= 18) {
+        return text;
+      }
+
+      return text.slice(0, 18) + "…";
+
+    }
+
+    function renderLabelCard(elector, displayOrder) {
+
+      const status = getLabelStatus(elector.rowKey);
 
       return (
         "<div class=\"label-card\">" +
 
         "<p class=\"label-line label-walk-order\">" +
         "Walk " + escapeHtml(elector.deliveryWalk || "—") +
-        " &middot; Sort " + escapeHtml(elector.deliveryOrder || "—") +
+        " &middot; Order " + displayOrder +
         "</p>" +
 
-        "<p class=\"label-line label-address\">" + escapeHtml(elector.address || "") + "</p>" +
+        "<p class=\"label-line label-elector-number\">" + escapeHtml(electorNumberLabel(elector)) + "</p>" +
+
+        "<p class=\"label-line label-address\">" +
+        escapeHtml(truncateAddress(elector.address)) +
+        (elector.postcode ? ", " + escapeHtml(elector.postcode) : "") +
+        "</p>" +
 
         "<p class=\"label-line label-name\">" + escapeHtml(elector.name || "") + "</p>" +
 
@@ -263,25 +291,49 @@
         "<div class=\"label-checkboxes no-print-disable\">" +
 
         "<label class=\"checkbox-label\">" +
-        "<input type=\"checkbox\" class=\"returned-postal-checkbox\" data-id=\"" + escapeHtmlAttr(elector.id) + "\"" +
+        "<input type=\"checkbox\" class=\"returned-postal-checkbox\" data-id=\"" + escapeHtmlAttr(elector.rowKey) + "\"" +
         (status.returned ? " checked" : "") +
-        (status.votedToday ? " disabled" : "") +
+        (status.votedToday || status.refused ? " disabled" : "") +
         ">" +
         "Returned Postal Vote" +
         "</label>" +
 
         "<label class=\"checkbox-label\">" +
-        "<input type=\"checkbox\" class=\"voted-today-checkbox\" data-id=\"" + escapeHtmlAttr(elector.id) + "\"" +
+        "<input type=\"checkbox\" class=\"voted-today-checkbox\" data-id=\"" + escapeHtmlAttr(elector.rowKey) + "\"" +
         (status.votedToday ? " checked" : "") +
-        (status.returned ? " disabled" : "") +
+        (status.returned || status.refused ? " disabled" : "") +
         ">" +
-        "Voted Today" +
+        "Voted in Person Today" +
+        "</label>" +
+
+        "<label class=\"checkbox-label\">" +
+        "<input type=\"checkbox\" class=\"refused-checkbox\" data-id=\"" + escapeHtmlAttr(elector.rowKey) + "\"" +
+        (status.refused ? " checked" : "") +
+        (status.returned || status.votedToday ? " disabled" : "") +
+        ">" +
+        "Refused / Won't Say" +
         "</label>" +
 
         "</div>" +
 
         "</div>"
       );
+
+    }
+
+    function applyStatusToCard(card, status) {
+
+      const returnedInput = card.querySelector(".returned-postal-checkbox");
+      const votedTodayInput = card.querySelector(".voted-today-checkbox");
+      const refusedInput = card.querySelector(".refused-checkbox");
+
+      returnedInput.checked = status.returned;
+      votedTodayInput.checked = status.votedToday;
+      refusedInput.checked = status.refused;
+
+      returnedInput.disabled = status.votedToday || status.refused;
+      votedTodayInput.disabled = status.returned || status.refused;
+      refusedInput.disabled = status.returned || status.votedToday;
 
     }
 
@@ -298,19 +350,13 @@
 
           if (status.returned) {
             status.votedToday = false;
+            status.refused = false;
           }
 
           labelStatus[id] = status;
           saveLabelStatus();
 
-          const card = event.target.closest(".label-card");
-          const votedTodayInput = card.querySelector(".voted-today-checkbox");
-
-          votedTodayInput.disabled = status.returned;
-          if (status.returned) {
-            votedTodayInput.checked = false;
-          }
-
+          applyStatusToCard(event.target.closest(".label-card"), status);
           updateSupportersVotingCount();
 
         });
@@ -328,19 +374,37 @@
 
           if (status.votedToday) {
             status.returned = false;
+            status.refused = false;
           }
 
           labelStatus[id] = status;
           saveLabelStatus();
 
-          const card = event.target.closest(".label-card");
-          const returnedInput = card.querySelector(".returned-postal-checkbox");
+          applyStatusToCard(event.target.closest(".label-card"), status);
+          updateSupportersVotingCount();
 
-          returnedInput.disabled = status.votedToday;
-          if (status.votedToday) {
-            returnedInput.checked = false;
+        });
+
+      });
+
+      labelSheetEl.querySelectorAll(".refused-checkbox").forEach(input => {
+
+        input.addEventListener("change", event => {
+
+          const id = event.target.dataset.id;
+          const status = getLabelStatus(id);
+
+          status.refused = event.target.checked;
+
+          if (status.refused) {
+            status.returned = false;
+            status.votedToday = false;
           }
 
+          labelStatus[id] = status;
+          saveLabelStatus();
+
+          applyStatusToCard(event.target.closest(".label-card"), status);
           updateSupportersVotingCount();
 
         });
@@ -394,16 +458,27 @@
         .filter(part => part && !/^\d+$/.test(part) && part.toLowerCase() !== "gwynedd")
         .join(", ");
 
+      const postcode =
+        data.postcode || "";
+
       return {
         id: String(id),
+        rowKey: "row-" + sourceRow,
         name,
         address,
+        postcode,
         pollingDistrict:
           data.pollingdistrict ||
           data.pollingdist ||
           data.district ||
           data.pd ||
           row[15] ||
+          "",
+        pollingElectorNumber:
+          data.electornumber ||
+          data.electorno ||
+          data.electornum ||
+          row[16] ||
           "",
         deliveryWalk:
           data.walk ||

@@ -772,7 +772,10 @@ body.mobile-mode .elector-list {
 
 .label-canvass-id {
   color: var(--text-muted);
-  font-style: italic;
+}
+
+.label-elector-number {
+  font-weight: 600;
 }
 
 .label-checkboxes {
