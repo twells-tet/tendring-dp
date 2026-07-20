@@ -31,6 +31,21 @@ body {
   border-bottom: 1px solid var(--plaid-green-deeper);
   background: var(--plaid-green-dark);
   color: var(--surface);
+  position: relative;
+}
+
+.language-toggle {
+  position: absolute;
+  top: 0.9rem;
+  right: 1.25rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--surface);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 6px;
+  cursor: pointer;
 }
 
 .page-header h1 {
