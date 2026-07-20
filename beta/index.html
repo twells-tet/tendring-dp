@@ -1059,6 +1059,13 @@ function mapRowToElector(row, headers, index) {
         ""
       ),
 
+    pvStatusRaw:
+      String(
+        data.pvstatus ||
+        row[17] ||
+        ""
+      ).trim(),
+
 
     sourceRow,
 
@@ -1458,6 +1465,11 @@ function renderElectorList() {
       <p class="elector-column-id">
         <strong>Elector ID:</strong>
         ${escapeHtml(elector.electorIdValue || "—")}
+      </p>
+
+      <p class="elector-column-id">
+        <strong>Postal Vote Status:</strong>
+        ${escapeHtml(elector.pvStatusRaw || "—")}
       </p>
 
 
