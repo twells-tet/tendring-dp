@@ -290,8 +290,10 @@ body.mobile-mode .elector-list {
   border-radius: 0.75rem;
   padding: 1rem;
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-direction: column;
+  align-items: stretch;
+  max-width: 360px;
+  margin: 0 auto;
   gap: 0.6rem;
 }
 
@@ -305,11 +307,12 @@ body.mobile-mode .elector-list {
   font-weight: 600;
   opacity: 0.55;
   cursor: not-allowed;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .polling-day-button {
   display: inline-block;
-  flex-basis: 100%;
   text-decoration: none;
   text-align: center;
   border-color: var(--plaid-red);
