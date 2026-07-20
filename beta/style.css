@@ -309,17 +309,18 @@ body.mobile-mode .elector-list {
 
 .polling-day-button {
   display: inline-block;
+  flex-basis: 100%;
   text-decoration: none;
   text-align: center;
-  border-color: var(--plaid-green-dark);
-  background: var(--plaid-green-dark);
+  border-color: var(--plaid-red);
+  background: var(--plaid-red);
   opacity: 1;
   cursor: pointer;
 }
 
 .polling-day-button:hover {
-  background: var(--plaid-green);
-  border-color: var(--plaid-green);
+  background: var(--plaid-red);
+  opacity: 0.85;
 }
 
 .panel-heading {
