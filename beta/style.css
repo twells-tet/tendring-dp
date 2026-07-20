@@ -523,6 +523,11 @@ body.mobile-mode .elector-list {
   background: #e5e7e9;
 }
 
+.placeholder-text {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
 .activist-options {
   list-style: none;
   margin: 0;
