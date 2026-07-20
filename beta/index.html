@@ -253,6 +253,10 @@
 
   </main>
 
+  <footer class="page-footer">
+    <button type="button" id="mobile-toggle" class="mobile-toggle-button">Mobile Version</button>
+  </footer>
+
 
   <script>
     
@@ -531,6 +535,24 @@ function initControls() {
 
 
   updateStats();
+
+  const mobileToggleEl =
+    document.getElementById("mobile-toggle");
+
+  mobileToggleEl.addEventListener(
+    "click",
+    () => {
+
+      const isMobile =
+        document.body.classList.toggle(
+          "mobile-mode"
+        );
+
+      mobileToggleEl.textContent =
+        isMobile ? "Desktop Version" : "Mobile Version";
+
+    }
+  );
 
 }
 
