@@ -1748,13 +1748,27 @@ function formatHouseholdArea(elector) {
   const line1 = String(elector.addressLine1 || "").trim();
   const line2 = String(elector.addressLine2 || "").trim();
 
-  const numberMatch = line1.match(/^\d+[a-z]?\s+(.+)/i);
+  // Address 1 sometimes contains an embedded comma
+  // (e.g. "BODORWEL,BWLCH"), so re-split on every comma
+  // rather than trusting the raw column boundaries.
+  const segments =
+    [line1, line2]
+      .filter(Boolean)
+      .join(",")
+      .split(",")
+      .map(segment => segment.trim())
+      .filter(Boolean);
+
+  const numberMatch =
+    segments[0] && segments[0].match(/^\d+[a-z]?\s+(.+)/i);
 
   if (numberMatch) {
     return numberMatch[1].trim().toUpperCase();
   }
 
-  return line2 ? line2.toUpperCase() : "—";
+  const area = segments[1] || segments[0] || "";
+
+  return area ? area.toUpperCase() : "—";
 
 }
 
