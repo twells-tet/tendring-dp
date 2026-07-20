@@ -74,6 +74,18 @@ body {
   background: var(--surface-soft);
 }
 
+.disclaimer {
+  max-width: 640px;
+  margin: 0.75rem auto 0;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.disclaimer a {
+  color: inherit;
+}
+
 .back-link {
   color: var(--plaid-green-dark);
   font-weight: 600;
