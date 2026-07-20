@@ -1746,6 +1746,7 @@ function formatHouseholdArea(elector) {
   }
 
   const line1 = String(elector.addressLine1 || "").trim();
+  const line2 = String(elector.addressLine2 || "").trim();
 
   const numberMatch = line1.match(/^\d+[a-z]?\s+(.+)/i);
 
@@ -1753,9 +1754,7 @@ function formatHouseholdArea(elector) {
     return numberMatch[1].trim().toUpperCase();
   }
 
-  const firstWord = line1.split(/\s+/)[0] || "";
-
-  return firstWord ? firstWord.toUpperCase() : "—";
+  return line2 ? line2.toUpperCase() : "—";
 
 }
 
