@@ -88,6 +88,11 @@ body.mobile-mode .workspace {
   grid-template-columns: 1fr;
 }
 
+body.mobile-mode .elector-list {
+  max-height: none;
+  overflow: visible;
+}
+
 .controls,
 .panel,
 .stat-card {
