@@ -396,7 +396,10 @@ body.mobile-mode .elector-list {
 
 .telling-data-button {
   max-width: 320px;
-  margin: 0.5rem 0 1rem;
+  margin: 0.5rem auto 1rem;
+  display: block;
+  opacity: 1;
+  cursor: pointer;
 }
 
 .panel-heading {
