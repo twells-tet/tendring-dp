@@ -281,6 +281,15 @@ body {
   color: var(--text-muted);
 }
 
+.coords-edit-link {
+  margin-left: 0.4rem;
+  color: var(--text-muted);
+  text-decoration: underline;
+  pointer-events: none;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .map-attribution {
   margin: 0.25rem 0 0;
   font-size: 0.7rem;
