@@ -150,6 +150,16 @@ body {
   font-weight: 600;
 }
 
+.back-to-top {
+  margin: 0.5rem auto 0;
+  font-size: 0.72rem;
+}
+
+.back-to-top a {
+  color: var(--plaid-green-dark);
+  font-weight: 600;
+}
+
 .back-link {
   color: var(--plaid-green-dark);
   font-weight: 600;
