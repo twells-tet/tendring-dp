@@ -125,12 +125,24 @@
       ra1: "High Street and Harbour"
     };
 
-    walkDescriptionValueEl.textContent =
-      walkDescriptions[savedDistrict] || walkDescriptions.ra1;
+    function updateWalkDescription() {
+      walkDescriptionValueEl.textContent =
+        walkFilterEl.value === "all"
+          ? "N/A"
+          : walkDescriptions[savedDistrict] || walkDescriptions.ra1;
+    }
 
     walkFilterEl.addEventListener("change", () => {
+      updateWalkDescription();
       renderLabels();
     });
+
+    function extractWalkNumber(walkText) {
+      const match = String(walkText || "").match(/\d+/);
+      return match ? match[0] : "";
+    }
+
+    let walkFilterInitialized = false;
 
     function populateWalkFilterOptions(districtElectors) {
 
@@ -139,26 +151,31 @@
       const walks =
         [...new Set(
           districtElectors
-            .map(e => (e.deliveryWalk || "").trim())
+            .map(e => extractWalkNumber(e.deliveryWalk))
             .filter(Boolean)
-        )].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+        )].sort((a, b) => Number(a) - Number(b));
 
       walkFilterEl.innerHTML =
         "<option value=\"all\">All</option>" +
         walks
           .map(
             walk =>
-              "<option value=\"" + escapeHtmlAttr(walk) + "\">Walk " +
+              "<option value=\"" + escapeHtmlAttr(walk) + "\">" +
               escapeHtml(walk) +
               "</option>"
           )
           .join("");
 
-      if ([...walkFilterEl.options].some(option => option.value === previousValue)) {
+      if (!walkFilterInitialized) {
+        walkFilterEl.value = walks.length ? walks[0] : "all";
+        walkFilterInitialized = true;
+      } else if ([...walkFilterEl.options].some(option => option.value === previousValue)) {
         walkFilterEl.value = previousValue;
       } else {
         walkFilterEl.value = "all";
       }
+
+      updateWalkDescription();
 
     }
 
@@ -269,7 +286,7 @@
             }
           }
 
-          if (walkFilter !== "all" && (e.deliveryWalk || "").trim() !== walkFilter) {
+          if (walkFilter !== "all" && extractWalkNumber(e.deliveryWalk) !== walkFilter) {
             return false;
           }
 
