@@ -1770,13 +1770,23 @@ function formatHouseholdArea(elector) {
       .map(segment => segment.trim())
       .filter(Boolean);
 
-  const numberMatch =
-    segments[0] && segments[0].match(/^\d+[a-z]?\s+(.+)/i);
+  // The first "word" may be a plot/unit reference containing a
+  // number (e.g. "3", "K19"), even with a letter prefix. If so,
+  // the area is the text after that first word, up to the first comma.
+  const firstToken =
+    segments[0] ? segments[0].split(/\s+/)[0] : "";
+
+  const hasNumber = /\d/.test(firstToken);
 
   let area;
 
-  if (numberMatch) {
-    area = numberMatch[1].trim().toUpperCase();
+  if (hasNumber) {
+    area =
+      (
+        segments[0].slice(firstToken.length).trim() ||
+        segments[1] ||
+        ""
+      ).toUpperCase();
   } else {
     area = (segments[1] || segments[0] || "").toUpperCase();
   }
