@@ -174,8 +174,6 @@
           e => normalizeText(e.pollingDistrict) === savedDistrict
         );
 
-      electorsCountEl.textContent = districtElectors.length;
-
       const filter = voterFilterEl.value;
 
       const filteredElectors =
@@ -192,6 +190,8 @@
           return true;
 
         });
+
+      electorsCountEl.textContent = filteredElectors.length;
 
       const sortedElectors =
         filteredElectors.slice().sort((a, b) => {
