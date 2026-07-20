@@ -145,6 +145,11 @@ body {
   color: var(--text-muted);
 }
 
+.disclaimer a {
+  color: var(--plaid-green-dark);
+  font-weight: 600;
+}
+
 .back-link {
   color: var(--plaid-green-dark);
   font-weight: 600;
