@@ -8,14 +8,14 @@
 </head>
 <body>
 
-  <header class="page-header">
+  <header class="page-header no-print">
     <h1>Vote 2027</h1>
     <p class="page-subtitle">Polling Day Operation</p>
   </header>
 
   <main class="app-shell">
 
-    <section class="panel">
+    <section class="panel no-print">
       <h2>Polling Day</h2>
 
       <dl class="delivery-details">
@@ -33,45 +33,529 @@
         Voter Filter
         <select id="voter-filter">
           <option value="postal" selected>Postal Voters Only</option>
-          <option value="all">All Voters</option>
-          <option value="non-pv">Non-PV Voters Only</option>
+          <option value="all" disabled>All Voters</option>
+          <option value="non-pv" disabled>Non-PV Voters Only</option>
         </select>
       </label>
 
+      <div class="polling-day-counters">
+        <div class="polling-day-counter">
+          <span class="polling-day-counter-label">Electors</span>
+          <span class="polling-day-counter-value" id="electors-count">0</span>
+        </div>
+        <div class="polling-day-counter">
+          <span class="polling-day-counter-label">Supporters Voting</span>
+          <span class="polling-day-counter-value" id="supporters-voting-count">0</span>
+        </div>
+      </div>
+
+      <p id="polling-day-message" class="message" role="status" aria-live="polite"></p>
+
       <p><a href="index.html" class="back-link">&larr; back to main list</a></p>
+    </section>
+
+    <section class="label-sheet-wrap">
+      <div id="label-sheet" class="label-sheet"></div>
     </section>
 
   </main>
 
   <script>
+
+    const STORAGE_KEYS = {
+      sheetUrl: "abersoch-sheet-url",
+      pollingDistrict: "abersoch-polling-district",
+      voterFilter: "abersoch-polling-day-voter-filter",
+      labelStatus: "abersoch-polling-day-label-status"
+    };
+
     const districtLabels = {
       ra1: "RA1 (Abersoch)",
       qb6: "QB6 (Llanengan)"
     };
 
     const savedDistrict =
-      localStorage.getItem("abersoch-polling-district") || "ra1";
+      localStorage.getItem(STORAGE_KEYS.pollingDistrict) || "ra1";
 
     document.getElementById("polling-day-district").textContent =
       districtLabels[savedDistrict] || districtLabels.ra1;
 
-    const voterFilterKey = "abersoch-polling-day-voter-filter";
     const voterFilterEl = document.getElementById("voter-filter");
 
     const savedVoterFilter =
-      localStorage.getItem(voterFilterKey) || "postal";
+      localStorage.getItem(STORAGE_KEYS.voterFilter) || "postal";
 
     if (
       [...voterFilterEl.options].some(
-        option => option.value === savedVoterFilter
+        option => option.value === savedVoterFilter && !option.disabled
       )
     ) {
       voterFilterEl.value = savedVoterFilter;
+    } else {
+      voterFilterEl.value = "postal";
     }
 
     voterFilterEl.addEventListener("change", () => {
-      localStorage.setItem(voterFilterKey, voterFilterEl.value);
+      localStorage.setItem(STORAGE_KEYS.voterFilter, voterFilterEl.value);
+      renderLabels();
     });
+
+    const electorsCountEl = document.getElementById("electors-count");
+    const supportersVotingCountEl = document.getElementById("supporters-voting-count");
+    const labelSheetEl = document.getElementById("label-sheet");
+    const messageEl = document.getElementById("polling-day-message");
+
+    const labelStatus =
+      JSON.parse(localStorage.getItem(STORAGE_KEYS.labelStatus) || "{}");
+
+    function saveLabelStatus() {
+      localStorage.setItem(
+        STORAGE_KEYS.labelStatus,
+        JSON.stringify(labelStatus)
+      );
+    }
+
+    function getLabelStatus(id) {
+      return labelStatus[id] || { returned: false, votedToday: false };
+    }
+
+    let allElectors = [];
+
+    const DEFAULT_SHEET_URL =
+      "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/edit?usp=sharing";
+
+    async function init() {
+
+      const sheetUrl =
+        localStorage.getItem(STORAGE_KEYS.sheetUrl) ||
+        DEFAULT_SHEET_URL;
+
+      if (!sheetUrl) {
+        messageEl.textContent =
+          "No Google Sheet URL is set. Go to the main list and load a sheet first.";
+        return;
+      }
+
+      messageEl.textContent = "Loading electors...";
+
+      try {
+
+        const csvUrl = toGoogleCsvUrl(sheetUrl);
+        const response = await fetch(csvUrl);
+
+        if (!response.ok) {
+          throw new Error("Could not fetch sheet data.");
+        }
+
+        const csvText = await response.text();
+        const rows = parseCsv(csvText);
+        const headers = rows[0].map(h => normalizeHeader(h));
+
+        allElectors =
+          rows
+            .slice(1)
+            .map((row, index) => mapRowToElector(row, headers, index))
+            .filter(e => e.name || e.address);
+
+        messageEl.textContent = "";
+
+        renderLabels();
+
+      } catch (error) {
+        messageEl.textContent = "Unable to load sheet: " + error.message;
+      }
+
+    }
+
+    function renderLabels() {
+
+      const districtElectors =
+        allElectors.filter(
+          e => normalizeText(e.pollingDistrict) === savedDistrict
+        );
+
+      electorsCountEl.textContent = districtElectors.length;
+
+      const filter = voterFilterEl.value;
+
+      const filteredElectors =
+        districtElectors.filter(e => {
+
+          if (filter === "postal") {
+            return e.postalProxy === "Postal";
+          }
+
+          if (filter === "non-pv") {
+            return e.postalProxy !== "Postal" && e.postalProxy !== "Proxy";
+          }
+
+          return true;
+
+        });
+
+      const sortedElectors =
+        filteredElectors.slice().sort((a, b) => {
+
+          const orderA = parseFloat(a.deliveryOrder);
+          const orderB = parseFloat(b.deliveryOrder);
+
+          if (!isNaN(orderA) && !isNaN(orderB)) {
+            return orderA - orderB;
+          }
+
+          if (!isNaN(orderA)) {
+            return -1;
+          }
+
+          if (!isNaN(orderB)) {
+            return 1;
+          }
+
+          return 0;
+
+        });
+
+      const perPage = 21;
+      let html = "";
+
+      for (let i = 0; i < sortedElectors.length; i += perPage) {
+
+        const pageElectors = sortedElectors.slice(i, i + perPage);
+
+        html +=
+          "<div class=\"label-page\">" +
+          pageElectors.map(elector => renderLabelCard(elector)).join("") +
+          "</div>";
+
+      }
+
+      if (!sortedElectors.length) {
+        html =
+          "<p class=\"empty-state\">No electors match this filter for the selected polling district.</p>";
+      }
+
+      labelSheetEl.innerHTML = html;
+
+      bindLabelCheckboxes();
+
+      updateSupportersVotingCount();
+
+    }
+
+    function renderLabelCard(elector) {
+
+      const status = getLabelStatus(elector.id);
+
+      return (
+        "<div class=\"label-card\">" +
+
+        "<p class=\"label-line label-walk-order\">" +
+        "Walk " + escapeHtml(elector.deliveryWalk || "—") +
+        " &middot; Sort " + escapeHtml(elector.deliveryOrder || "—") +
+        "</p>" +
+
+        "<p class=\"label-line label-address\">" + escapeHtml(elector.address || "") + "</p>" +
+
+        "<p class=\"label-line label-name\">" + escapeHtml(elector.name || "") + "</p>" +
+
+        "<p class=\"label-line label-canvass-id\">Canvass ID: Plaid Cymru</p>" +
+
+        "<div class=\"label-checkboxes no-print-disable\">" +
+
+        "<label class=\"checkbox-label\">" +
+        "<input type=\"checkbox\" class=\"returned-postal-checkbox\" data-id=\"" + escapeHtmlAttr(elector.id) + "\"" +
+        (status.returned ? " checked" : "") +
+        (status.votedToday ? " disabled" : "") +
+        ">" +
+        "Returned Postal Vote" +
+        "</label>" +
+
+        "<label class=\"checkbox-label\">" +
+        "<input type=\"checkbox\" class=\"voted-today-checkbox\" data-id=\"" + escapeHtmlAttr(elector.id) + "\"" +
+        (status.votedToday ? " checked" : "") +
+        (status.returned ? " disabled" : "") +
+        ">" +
+        "Voted Today" +
+        "</label>" +
+
+        "</div>" +
+
+        "</div>"
+      );
+
+    }
+
+    function bindLabelCheckboxes() {
+
+      labelSheetEl.querySelectorAll(".returned-postal-checkbox").forEach(input => {
+
+        input.addEventListener("change", event => {
+
+          const id = event.target.dataset.id;
+          const status = getLabelStatus(id);
+
+          status.returned = event.target.checked;
+
+          if (status.returned) {
+            status.votedToday = false;
+          }
+
+          labelStatus[id] = status;
+          saveLabelStatus();
+
+          const card = event.target.closest(".label-card");
+          const votedTodayInput = card.querySelector(".voted-today-checkbox");
+
+          votedTodayInput.disabled = status.returned;
+          if (status.returned) {
+            votedTodayInput.checked = false;
+          }
+
+          updateSupportersVotingCount();
+
+        });
+
+      });
+
+      labelSheetEl.querySelectorAll(".voted-today-checkbox").forEach(input => {
+
+        input.addEventListener("change", event => {
+
+          const id = event.target.dataset.id;
+          const status = getLabelStatus(id);
+
+          status.votedToday = event.target.checked;
+
+          if (status.votedToday) {
+            status.returned = false;
+          }
+
+          labelStatus[id] = status;
+          saveLabelStatus();
+
+          const card = event.target.closest(".label-card");
+          const returnedInput = card.querySelector(".returned-postal-checkbox");
+
+          returnedInput.disabled = status.votedToday;
+          if (status.votedToday) {
+            returnedInput.checked = false;
+          }
+
+          updateSupportersVotingCount();
+
+        });
+
+      });
+
+    }
+
+    function updateSupportersVotingCount() {
+
+      const checkedCount =
+        labelSheetEl.querySelectorAll(
+          ".returned-postal-checkbox:checked, .voted-today-checkbox:checked"
+        ).length;
+
+      supportersVotingCountEl.textContent = checkedCount;
+
+    }
+
+    function mapRowToElector(row, headers, index) {
+
+      const data = {};
+
+      headers.forEach((header, idx) => {
+        data[header] = (row[idx] || "").trim();
+      });
+
+      const sourceRow = index + 2;
+
+      const id =
+        data.electorid ||
+        data.id ||
+        data.reference ||
+        data.uprn ||
+        ("row-" + sourceRow);
+
+      const name =
+        data.name ||
+        data.elector ||
+        data.electorname ||
+        "";
+
+      const address =
+        [
+          data.address,
+          data.address1,
+          data.address2,
+          data.address3,
+          data.household
+        ]
+        .filter(part => part && !/^\d+$/.test(part) && part.toLowerCase() !== "gwynedd")
+        .join(", ");
+
+      return {
+        id: String(id),
+        name,
+        address,
+        pollingDistrict:
+          data.pollingdistrict ||
+          data.pollingdist ||
+          data.district ||
+          data.pd ||
+          row[15] ||
+          "",
+        deliveryWalk:
+          data.walk ||
+          row[37] ||
+          "",
+        deliveryOrder:
+          data.deliveryorder ||
+          row[38] ||
+          "",
+        postalProxy:
+          formatPostalProxy(
+            data.postalproxy ||
+            data.postalorproxy ||
+            row[17] ||
+            ""
+          )
+      };
+
+    }
+
+    function toGoogleCsvUrl(rawUrl) {
+
+      if (
+        rawUrl.includes("output=csv") ||
+        rawUrl.includes("/export?format=csv")
+      ) {
+        return rawUrl;
+      }
+
+      const match = rawUrl.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+
+      if (!match) {
+        return rawUrl;
+      }
+
+      const sheetId = match[1];
+      const gidMatch = rawUrl.match(/[?&#]gid=([0-9]+)/);
+      const gid = gidMatch ? gidMatch[1] : "0";
+
+      return (
+        "https://docs.google.com/spreadsheets/d/" +
+        sheetId +
+        "/export?format=csv&gid=" +
+        gid
+      );
+
+    }
+
+    function parseCsv(csvText) {
+
+      const rows = [];
+      let row = [];
+      let value = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < csvText.length; i += 1) {
+
+        const char = csvText[i];
+        const next = csvText[i + 1];
+
+        if (char === "\"" && inQuotes && next === "\"") {
+          value += "\"";
+          i += 1;
+          continue;
+        }
+
+        if (char === "\"") {
+          inQuotes = !inQuotes;
+          continue;
+        }
+
+        if (char === "," && !inQuotes) {
+          row.push(value);
+          value = "";
+          continue;
+        }
+
+        if ((char === "\n" || char === "\r") && !inQuotes) {
+
+          if (char === "\r" && next === "\n") {
+            i += 1;
+          }
+
+          row.push(value);
+          rows.push(row);
+          row = [];
+          value = "";
+          continue;
+
+        }
+
+        value += char;
+
+      }
+
+      if (value.length || row.length) {
+        row.push(value);
+        rows.push(row);
+      }
+
+      return rows;
+
+    }
+
+    function normalizeHeader(value) {
+      return (value || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+    }
+
+    function normalizeText(value) {
+      return String(value || "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function formatPostalProxy(value) {
+
+      const cleaned = String(value || "").trim();
+      const normalized = normalizeText(cleaned);
+
+      if (!normalized) {
+        return "";
+      }
+
+      if (normalized.includes("postal")) {
+        return "Postal";
+      }
+
+      if (normalized.includes("proxy")) {
+        return "Proxy";
+      }
+
+      return cleaned;
+
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function escapeHtmlAttr(value) {
+      return escapeHtml(value).replace(/`/g, "&#096;");
+    }
+
+    init();
+
   </script>
 
 </body>

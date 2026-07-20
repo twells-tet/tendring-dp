@@ -697,3 +697,115 @@ body.mobile-mode .elector-list {
     width: 100%;
   }
 }
+
+/* Polling Day page */
+
+.polling-day-counters {
+  display: flex;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.polling-day-counter {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 0.65rem;
+  background: var(--surface);
+  text-align: center;
+}
+
+.polling-day-counter-label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.polling-day-counter-value {
+  display: block;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--plaid-green-dark);
+}
+
+.label-sheet-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.label-page {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(7, 1fr);
+  width: 190mm;
+  height: 277mm;
+  gap: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  margin-bottom: 1.5rem;
+}
+
+.label-card {
+  border: 1px dashed var(--border-strong);
+  padding: 0.35rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  overflow: hidden;
+}
+
+.label-line {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.label-walk-order {
+  font-weight: 700;
+  color: var(--plaid-green-dark);
+}
+
+.label-name {
+  font-weight: 600;
+}
+
+.label-canvass-id {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.label-checkboxes {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.label-checkboxes .checkbox-label {
+  font-size: 0.68rem;
+  white-space: normal;
+}
+
+@media print {
+
+  .no-print {
+    display: none !important;
+  }
+
+  .label-sheet-wrap {
+    display: block;
+  }
+
+  .label-page {
+    border: none;
+    margin: 0;
+    page-break-after: always;
+  }
+
+  .label-card {
+    border: 1px solid #000;
+  }
+
+}
+
