@@ -38,6 +38,20 @@
         </select>
       </label>
 
+      <div class="walk-filter-row">
+        <label for="walk-filter" class="voter-filter-label walk-filter-label">
+          Walk Filter
+          <select id="walk-filter">
+            <option value="all" selected>All</option>
+          </select>
+        </label>
+
+        <div class="walk-description">
+          <span class="walk-description-label">Description</span>
+          <span id="walk-description-value">—</span>
+        </div>
+      </div>
+
       <div class="polling-day-counters">
         <div class="polling-day-counter">
           <span class="polling-day-counter-label">Electors</span>
@@ -102,6 +116,51 @@
       localStorage.setItem(STORAGE_KEYS.voterFilter, voterFilterEl.value);
       renderLabels();
     });
+
+    const walkFilterEl = document.getElementById("walk-filter");
+    const walkDescriptionValueEl = document.getElementById("walk-description-value");
+
+    const walkDescriptions = {
+      qb6: "Farms and remote properties",
+      ra1: "High Street and Harbour"
+    };
+
+    walkDescriptionValueEl.textContent =
+      walkDescriptions[savedDistrict] || walkDescriptions.ra1;
+
+    walkFilterEl.addEventListener("change", () => {
+      renderLabels();
+    });
+
+    function populateWalkFilterOptions(districtElectors) {
+
+      const previousValue = walkFilterEl.value || "all";
+
+      const walks =
+        [...new Set(
+          districtElectors
+            .map(e => (e.deliveryWalk || "").trim())
+            .filter(Boolean)
+        )].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+
+      walkFilterEl.innerHTML =
+        "<option value=\"all\">All</option>" +
+        walks
+          .map(
+            walk =>
+              "<option value=\"" + escapeHtmlAttr(walk) + "\">Walk " +
+              escapeHtml(walk) +
+              "</option>"
+          )
+          .join("");
+
+      if ([...walkFilterEl.options].some(option => option.value === previousValue)) {
+        walkFilterEl.value = previousValue;
+      } else {
+        walkFilterEl.value = "all";
+      }
+
+    }
 
     const printerFriendlyLink = document.getElementById("printer-friendly-link");
     const exitPrinterFriendlyLink = document.getElementById("exit-printer-friendly-link");
@@ -190,17 +249,28 @@
           e => normalizeText(e.pollingDistrict) === savedDistrict
         );
 
+      populateWalkFilterOptions(districtElectors);
+
       const filter = voterFilterEl.value;
+      const walkFilter = walkFilterEl.value;
 
       const filteredElectors =
         districtElectors.filter(e => {
 
           if (filter === "postal") {
-            return e.postalProxy === "Postal";
+            if (e.postalProxy !== "Postal") {
+              return false;
+            }
           }
 
           if (filter === "non-pv") {
-            return e.postalProxy !== "Postal" && e.postalProxy !== "Proxy";
+            if (e.postalProxy === "Postal" || e.postalProxy === "Proxy") {
+              return false;
+            }
+          }
+
+          if (walkFilter !== "all" && (e.deliveryWalk || "").trim() !== walkFilter) {
+            return false;
           }
 
           return true;
@@ -299,7 +369,7 @@
 
         "<p class=\"label-line label-address\">" +
         escapeHtml(truncateAddress(elector.address)) +
-        (elector.postcode ? ", " + escapeHtml(elector.postcode) : "") +
+        (elector.postcode ? " " + escapeHtml(elector.postcode) : "") +
         "</p>" +
 
         "<p class=\"label-line label-name\">" + escapeHtml(elector.name || "") + "</p>" +

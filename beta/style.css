@@ -104,6 +104,36 @@ body {
   background: var(--surface);
 }
 
+.walk-filter-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.walk-filter-label {
+  max-width: 200px;
+  margin: 0 0 1rem 0;
+}
+
+.walk-description {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.walk-description-label {
+  font-size: 0.9rem;
+}
+
+#walk-description-value {
+  margin-top: 0.3rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
 body.mobile-mode .controls,
 body.mobile-mode .stats,
 body.mobile-mode .filter-section,
