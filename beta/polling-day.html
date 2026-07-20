@@ -26,7 +26,12 @@
         <dd>Abersoch gyda Llanengan</dd>
 
         <dt>Polling District</dt>
-        <dd id="polling-day-district">RA1 (Abersoch)</dd>
+        <dd>
+          <select id="polling-day-district-select" class="polling-district-select">
+            <option value="ra1">RA1 (Abersoch)</option>
+            <option value="qb6">QB6 (Llanengan)</option>
+          </select>
+        </dd>
       </dl>
 
       <label for="voter-filter" class="voter-filter-label">
@@ -86,16 +91,18 @@
       labelStatus: "abersoch-polling-day-label-status"
     };
 
-    const districtLabels = {
-      ra1: "RA1 (Abersoch)",
-      qb6: "QB6 (Llanengan)"
-    };
-
-    const savedDistrict =
+    let savedDistrict =
       localStorage.getItem(STORAGE_KEYS.pollingDistrict) || "ra1";
 
-    document.getElementById("polling-day-district").textContent =
-      districtLabels[savedDistrict] || districtLabels.ra1;
+    const districtSelectEl = document.getElementById("polling-day-district-select");
+    districtSelectEl.value = savedDistrict;
+
+    districtSelectEl.addEventListener("change", () => {
+      savedDistrict = districtSelectEl.value;
+      localStorage.setItem(STORAGE_KEYS.pollingDistrict, savedDistrict);
+      walkFilterInitialized = false;
+      renderLabels();
+    });
 
     const voterFilterEl = document.getElementById("voter-filter");
 
