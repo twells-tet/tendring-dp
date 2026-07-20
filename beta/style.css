@@ -362,7 +362,7 @@ body {
   height: calc(65vh + 430px);
   min-height: 850px;
   border: 0;
-  transform: translateY(-360px);
+  transform: translateY(-215px);
 }
 
 .list-head {
@@ -536,7 +536,7 @@ body {
   #ward-preview {
     height: calc(55vh + 380px);
     min-height: 720px;
-    transform: translateY(-320px);
+    transform: translateY(-190px);
   }
 }
 
