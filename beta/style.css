@@ -558,6 +558,22 @@ body.mobile-mode .elector-list {
   background: var(--surface);
 }
 
+.back-to-main-button {
+  display: inline-block;
+  margin-bottom: 1rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--plaid-green-dark);
+  border-radius: 0.5rem;
+  background: var(--plaid-green-dark);
+  color: var(--surface) !important;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.back-to-main-button:hover {
+  opacity: 0.85;
+}
+
 .telling-data-button {
   max-width: 320px;
   margin: 0.5rem auto 1rem;
