@@ -201,7 +201,7 @@
             <dd id="delivery-walk">—</dd>
 
             <dt>Description</dt>
-            <dd>High Street and Harbour</dd>
+            <dd id="delivery-description">High Street and Harbour</dd>
 
             <dt>Sort Order</dt>
             <dd id="delivery-order">—</dd>
@@ -369,6 +369,9 @@ const aiCommentsEl =
 
 const deliveryWalkEl =
   document.getElementById("delivery-walk");
+
+const deliveryDescriptionEl =
+  document.getElementById("delivery-description");
 
 const deliveryOrderEl =
   document.getElementById("delivery-order");
@@ -1781,11 +1784,32 @@ function updateDeliveryDetails(elector) {
   deliveryWalkEl.textContent =
     (elector && elector.deliveryWalk) || "—";
 
+  deliveryDescriptionEl.textContent =
+    buildDeliveryDescription(elector);
+
   deliveryOrderEl.textContent =
     (elector && elector.deliveryOrder) || "—";
 
   deliveryDelivererEl.textContent =
     (elector && elector.deliverer) || "—";
+
+}
+
+
+function buildDeliveryDescription(elector) {
+
+  if (!elector) {
+    return "—";
+  }
+
+  const district =
+    normalizeText(elector.pollingDistrict || "");
+
+  if (district === "qb6") {
+    return "Farms and remote properties";
+  }
+
+  return "High Street and Harbour";
 
 }
 
