@@ -410,7 +410,8 @@ const STORAGE_KEYS = {
   sheetUrl: "abersoch-sheet-url",
   progress: "abersoch-elector-progress-v1",
   hideMap: "abersoch-hide-map",
-  pollingDistrict: "abersoch-polling-district"
+  pollingDistrict: "abersoch-polling-district",
+  areaOverrides: "abersoch-area-overrides-v1"
 };
 
 
@@ -461,6 +462,10 @@ const state = {
   electors: [],
   progress: loadFromStorage(
     STORAGE_KEYS.progress,
+    {}
+  ),
+  areaOverrides: loadFromStorage(
+    STORAGE_KEYS.areaOverrides,
     {}
   ),
   householdPageIndex: 0
@@ -1364,7 +1369,15 @@ function renderElectorList() {
 
       <p>
         <strong>Area:</strong>
-        ${escapeHtml(formatHouseholdArea(firstElector))}
+        <input
+        type="text"
+        class="area-input"
+        data-household-id="${escapeHtmlAttr(firstElector.householdGroupKey)}"
+        value="${escapeHtmlAttr(
+          state.areaOverrides[firstElector.householdGroupKey] !== undefined
+            ? state.areaOverrides[firstElector.householdGroupKey]
+            : formatHouseholdArea(firstElector)
+        )}">
       </p>
 
 
@@ -1384,6 +1397,28 @@ function renderElectorList() {
 
 
   listEl.appendChild(panel);
+
+
+  const areaInput =
+    panel.querySelector(".area-input");
+
+  if (areaInput) {
+    areaInput.addEventListener(
+      "change",
+      event => {
+
+        state.areaOverrides[
+          event.target.dataset.householdId
+        ] = event.target.value.trim();
+
+        saveToStorage(
+          STORAGE_KEYS.areaOverrides,
+          state.areaOverrides
+        );
+
+      }
+    );
+  }
 
 
 
