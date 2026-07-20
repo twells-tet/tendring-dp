@@ -206,6 +206,7 @@ body.mobile-mode .filter-section,
 body.mobile-mode .export-buttons,
 body.mobile-mode .map-panel,
 body.mobile-mode .delivery-panel,
+body.mobile-mode .what3words-box,
 body.mobile-mode .sheet-url-section {
   display: none !important;
 }
