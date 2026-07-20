@@ -1746,15 +1746,16 @@ function formatHouseholdArea(elector) {
   }
 
   const line1 = String(elector.addressLine1 || "").trim();
-  const line2 = String(elector.addressLine2 || "").trim();
 
   const numberMatch = line1.match(/^\d+[a-z]?\s+(.+)/i);
 
   if (numberMatch) {
-    return welshProperCase(numberMatch[1].trim());
+    return numberMatch[1].trim().toUpperCase();
   }
 
-  return line2 ? welshProperCase(line2) : "—";
+  const firstWord = line1.split(/\s+/)[0] || "";
+
+  return firstWord ? firstWord.toUpperCase() : "—";
 
 }
 
@@ -2120,7 +2121,7 @@ deliveryAreaInputEl.addEventListener(
     }
 
     state.areaOverrides[householdId] =
-      event.target.value.trim();
+      event.target.value.trim().toUpperCase();
 
     saveToStorage(
       STORAGE_KEYS.areaOverrides,

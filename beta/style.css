@@ -439,6 +439,7 @@ body.mobile-mode .elector-list {
   font: inherit;
   color: var(--text);
   background: var(--surface);
+  text-transform: uppercase;
 }
 
 .panel {
