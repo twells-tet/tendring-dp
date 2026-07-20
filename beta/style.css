@@ -75,8 +75,9 @@ body {
 }
 
 .back-link {
-  color: #1a56db;
+  color: var(--plaid-green-dark);
   font-weight: 600;
+  font-size: 0.85rem;
   text-decoration: none;
 }
 
