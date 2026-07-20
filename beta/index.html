@@ -1232,6 +1232,32 @@ function renderElectorList() {
         </label>
 
 
+        <label>
+          Phone
+
+          <input
+          type="tel"
+          class="phone-input"
+          data-id="${escapeHtmlAttr(elector.id)}"
+          placeholder="07700 111222"
+          value="${escapeHtmlAttr(progress.phone)}">
+
+        </label>
+
+
+        <label>
+          Email
+
+          <input
+          type="email"
+          class="email-input"
+          data-id="${escapeHtmlAttr(elector.id)}"
+          placeholder="elector@email.com"
+          value="${escapeHtmlAttr(progress.email)}">
+
+        </label>
+
+
       </div>
       `;
 
@@ -1421,6 +1447,12 @@ function bindProgressEditors() {
   const languageInputs =
     listEl.querySelectorAll(".language-select");
 
+  const phoneInputs =
+    listEl.querySelectorAll(".phone-input");
+
+  const emailInputs =
+    listEl.querySelectorAll(".email-input");
+
   canvassInputs.forEach(input => {
 
     input.addEventListener("change", event => {
@@ -1469,6 +1501,42 @@ function bindProgressEditors() {
       state.progress[id] = {
         ...existing,
         firstLanguage: event.target.value.trim()
+      };
+
+      saveToStorage(STORAGE_KEYS.progress, state.progress);
+
+    });
+
+  });
+
+  phoneInputs.forEach(input => {
+
+    input.addEventListener("input", event => {
+
+      const id = event.target.dataset.id;
+      const existing = getElectorProgress(id);
+
+      state.progress[id] = {
+        ...existing,
+        phone: event.target.value.trim()
+      };
+
+      saveToStorage(STORAGE_KEYS.progress, state.progress);
+
+    });
+
+  });
+
+  emailInputs.forEach(input => {
+
+    input.addEventListener("input", event => {
+
+      const id = event.target.dataset.id;
+      const existing = getElectorProgress(id);
+
+      state.progress[id] = {
+        ...existing,
+        email: event.target.value.trim()
       };
 
       saveToStorage(STORAGE_KEYS.progress, state.progress);
@@ -1684,6 +1752,8 @@ function getElectorProgress(electorId) {
   const canvassId = normalizeCanvassId(legacyCanvassId);
   const supportIndependence = existing.supportIndependence || "No Data";
   const firstLanguage = existing.firstLanguage || "English";
+  const phone = existing.phone || "";
+  const email = existing.email || "";
 
   return {
     canvassId:
@@ -1691,7 +1761,9 @@ function getElectorProgress(electorId) {
     supportIndependence:
       independenceOptions.includes(supportIndependence) ? supportIndependence : "No Data",
     firstLanguage:
-      languageOptions.includes(firstLanguage) ? firstLanguage : "English"
+      languageOptions.includes(firstLanguage) ? firstLanguage : "English",
+    phone,
+    email
   };
 
 }
