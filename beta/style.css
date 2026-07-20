@@ -3,6 +3,8 @@
   --plaid-green: #0aa77d;
   --plaid-green-dark: #0a5e49;
   --plaid-green-deeper: #084b3a;
+  --plaid-red: #da291c;
+  --plaid-red-dark: #a31f16;
   --highlight-red: #e1573e;
   --surface: #ffffff;
   --surface-soft: #f8f7f8;
@@ -214,6 +216,25 @@ body {
   margin: 0 0 0.75rem;
   font-size: 1.1rem;
   color: var(--plaid-green-dark);
+}
+
+.export-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 0.85rem;
+}
+
+.export-button {
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--plaid-red);
+  border-radius: 0.5rem;
+  background: var(--plaid-red);
+  color: #ffffff;
+  font: inherit;
+  font-weight: 600;
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .panel-heading {
