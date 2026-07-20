@@ -17,11 +17,62 @@
 
     <section class="panel">
       <h2>Polling Day</h2>
-      <p>This is a placeholder for the Polling Day operation tools. Content coming soon.</p>
-      <p><a href="index.html">&larr; Back to the main list</a></p>
+
+      <dl class="delivery-details">
+        <dt>Local Authority</dt>
+        <dd>Gwynedd</dd>
+
+        <dt>Ward</dt>
+        <dd>Abersoch gyda Llanengan</dd>
+
+        <dt>Polling District</dt>
+        <dd id="polling-day-district">RA1 (Abersoch)</dd>
+      </dl>
+
+      <label for="voter-filter" class="voter-filter-label">
+        Voter Filter
+        <select id="voter-filter">
+          <option value="postal" selected>Postal Voters Only</option>
+          <option value="all">All Voters</option>
+          <option value="non-pv">Non-PV Voters Only</option>
+        </select>
+      </label>
+
+      <p><a href="index.html" class="back-link">&larr; back to main list</a></p>
     </section>
 
   </main>
+
+  <script>
+    const districtLabels = {
+      ra1: "RA1 (Abersoch)",
+      qb6: "QB6 (Llanengan)"
+    };
+
+    const savedDistrict =
+      localStorage.getItem("abersoch-polling-district") || "ra1";
+
+    document.getElementById("polling-day-district").textContent =
+      districtLabels[savedDistrict] || districtLabels.ra1;
+
+    const voterFilterKey = "abersoch-polling-day-voter-filter";
+    const voterFilterEl = document.getElementById("voter-filter");
+
+    const savedVoterFilter =
+      localStorage.getItem(voterFilterKey) || "postal";
+
+    if (
+      [...voterFilterEl.options].some(
+        option => option.value === savedVoterFilter
+      )
+    ) {
+      voterFilterEl.value = savedVoterFilter;
+    }
+
+    voterFilterEl.addEventListener("change", () => {
+      localStorage.setItem(voterFilterKey, voterFilterEl.value);
+    });
+  </script>
 
 </body>
 </html>

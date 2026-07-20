@@ -278,7 +278,8 @@ const DEFAULT_SHEET_URL =
 const STORAGE_KEYS = {
   sheetUrl: "abersoch-sheet-url",
   progress: "abersoch-elector-progress-v1",
-  hideMap: "abersoch-hide-map"
+  hideMap: "abersoch-hide-map",
+  pollingDistrict: "abersoch-polling-district"
 };
 
 
@@ -506,6 +507,32 @@ function initControls() {
   pollingDistrictEl.addEventListener(
     "change",
     handleFilterChange
+  );
+
+  const savedPollingDistrict =
+    localStorage.getItem(
+      STORAGE_KEYS.pollingDistrict
+    );
+
+  if (
+    savedPollingDistrict &&
+    [...pollingDistrictEl.options].some(
+      option => option.value === savedPollingDistrict
+    )
+  ) {
+    pollingDistrictEl.value = savedPollingDistrict;
+  }
+
+  pollingDistrictEl.addEventListener(
+    "change",
+    () => {
+
+      localStorage.setItem(
+        STORAGE_KEYS.pollingDistrict,
+        pollingDistrictEl.value
+      );
+
+    }
   );
 
 
