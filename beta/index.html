@@ -1842,8 +1842,9 @@ function renderElectorList() {
           Party Member
 
           <select
-          class="party-member-select"
-          data-id="${escapeHtmlAttr(elector.id)}">
+          class="party-member-select read-only-select"
+          data-id="${escapeHtmlAttr(elector.id)}"
+          title="Party membership is managed at the back end and cannot be amended here.">
 
           ${
             partyMemberOptions.map(option =>
@@ -2412,17 +2413,15 @@ function bindProgressEditors() {
 
   partyMemberInputs.forEach(input => {
 
+    // Party membership is set at the back end when the demo goes live.
+    // Users can still open the dropdown and browse the options, but any
+    // selection they make here is reverted rather than saved.
     input.addEventListener("change", event => {
 
       const id = event.target.dataset.id;
       const existing = getElectorProgress(id);
 
-      state.progress[id] = {
-        ...existing,
-        partyMember: event.target.value.trim()
-      };
-
-      saveToStorage(STORAGE_KEYS.progress, state.progress);
+      event.target.value = existing.partyMember;
 
     });
 

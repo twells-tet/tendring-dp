@@ -1348,6 +1348,11 @@ body.mobile-mode .elector-list {
   font-weight: 700;
 }
 
+.read-only-select {
+  color: #8a8a8a;
+  background-color: #eee;
+}
+
 .anti-plaid-warning {
   flex-basis: 100%;
   margin: 0.15rem 0 0;
