@@ -462,6 +462,25 @@ body.mobile-mode .elector-list {
   background: var(--surface);
 }
 
+.add-filter-button {
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 0.5rem;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.add-filter-button:hover {
+  background: var(--border);
+}
+
+.section-heading {
+  margin: 0 0 1rem;
+}
+
 .stat-card {
   padding: 0.8rem;
 }
