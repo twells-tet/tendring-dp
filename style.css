@@ -283,6 +283,15 @@ text-decoration:underline;
 }
 
 
+.beta-link {
+
+font-size:4pt;
+line-height:1;
+opacity:0.95;
+
+}
+
+
 /* Donation Form Styles */
 
 .donation-form {
