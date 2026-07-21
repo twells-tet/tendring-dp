@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <link rel="stylesheet" href="style.css">
 </head>
   <body class="pin-locked">
@@ -295,6 +297,7 @@
             title="Property location on OpenStreetMap"
             loading="lazy">
           </iframe>
+          <div id="ward-boundary-map" class="ward-boundary-map" hidden></div>
         </div>
 
         <p class="map-coords">
@@ -571,6 +574,9 @@ const pollingDistrictEl =
 
 const wardPreviewEl =
   document.getElementById("ward-preview");
+
+const wardBoundaryMapEl =
+  document.getElementById("ward-boundary-map");
 
 const wardPreviewCoordsEl =
   document.getElementById("ward-preview-coords");
@@ -2211,14 +2217,13 @@ function updatePropertyMap(elector) {
     mapAttributionOsmEl.hidden = true;
     mapAttributionWardEl.hidden = false;
 
-    wardPreviewEl.title =
-      "Ward boundary map";
-
-    wardPreviewEl.src =
-      "https://mapit.mysociety.org/area/166295.html";
+    wardPreviewEl.hidden = true;
+    wardBoundaryMapEl.hidden = false;
 
     wardPreviewCoordsEl.textContent =
       "Ward boundary: Abersoch gyda Llanengan (W05001509)";
+
+    showWardBoundaryMap();
 
     return;
 
@@ -2229,6 +2234,9 @@ function updatePropertyMap(elector) {
 
   mapAttributionOsmEl.hidden = false;
   mapAttributionWardEl.hidden = true;
+
+  wardPreviewEl.hidden = false;
+  wardBoundaryMapEl.hidden = true;
 
   wardPreviewEl.title =
     "Property location on OpenStreetMap";
@@ -2260,6 +2268,60 @@ function updatePropertyMap(elector) {
 
   wardPreviewCoordsEl.textContent =
     "GPS coordinates " + lat + ", " + lng;
+
+}
+
+
+let wardBoundaryLeafletMap = null;
+let wardBoundaryGeoJson = null;
+
+function showWardBoundaryMap() {
+
+  if (!wardBoundaryLeafletMap) {
+
+    wardBoundaryLeafletMap = L.map(wardBoundaryMapEl, {
+      attributionControl: false
+    });
+
+    L.tileLayer(
+      "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+      { maxZoom: 18 }
+    ).addTo(wardBoundaryLeafletMap);
+
+  }
+
+  setTimeout(
+    () => wardBoundaryLeafletMap.invalidateSize(),
+    0
+  );
+
+  if (wardBoundaryGeoJson) {
+    drawWardBoundary();
+    return;
+  }
+
+  fetch(
+    "https://mapit.mysociety.org/area/166295.geojson?simplify_tolerance=0.0001"
+  )
+    .then((response) => response.json())
+    .then((geojson) => {
+      wardBoundaryGeoJson = geojson;
+      drawWardBoundary();
+    })
+    .catch(() => {
+      wardBoundaryLeafletMap.setView([52.8168, -4.4855], 13);
+    });
+
+}
+
+
+function drawWardBoundary() {
+
+  const layer = L.geoJSON(wardBoundaryGeoJson, {
+    style: { color: "#38f", weight: 2, fillOpacity: 0.1 }
+  }).addTo(wardBoundaryLeafletMap);
+
+  wardBoundaryLeafletMap.fitBounds(layer.getBounds());
 
 }
 

@@ -801,6 +801,14 @@ body.mobile-mode .elector-list {
   transform: translateY(-215px);
 }
 
+.ward-boundary-map {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
 .list-head {
   display: flex;
   align-items: center;
