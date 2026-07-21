@@ -809,6 +809,12 @@ function initControls() {
 
       updatePropertyMap(state.currentMapElector);
 
+      updateMapToggleLabel(
+        mapPanelEl.classList.contains(
+          "map-panel--hidden"
+        )
+      );
+
     }
   );
 
@@ -845,10 +851,16 @@ function applyMapVisibility(hidden) {
 
 
 function updateMapToggleLabel(hidden) {
+
+  const label =
+    state.showingWardBoundary
+      ? "Ward Boundary"
+      : "Property Location";
+
   toggleMapEl.textContent =
     hidden
-      ? "Property Location (show map)"
-      : "Property Location (hide map)";
+      ? label + " (show map)"
+      : label + " (hide map)";
 }
 
 
