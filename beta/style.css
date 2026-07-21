@@ -1197,12 +1197,9 @@ body.mobile-mode .elector-list {
 }
 
 .household-nav {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 0.6rem;
-  margin-bottom: 0.75rem;
+  display: none;
 }
+
 
 .household-nav p {
   margin: 0;
