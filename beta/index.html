@@ -578,6 +578,9 @@ const wardPreviewEl =
 const wardBoundaryMapEl =
   document.getElementById("ward-boundary-map");
 
+const editLocationLinkEl =
+  document.getElementById("edit-location-link");
+
 const wardPreviewCoordsEl =
   document.getElementById("ward-preview-coords");
 
@@ -2219,6 +2222,7 @@ function updatePropertyMap(elector) {
 
     wardPreviewEl.hidden = true;
     wardBoundaryMapEl.hidden = false;
+    editLocationLinkEl.hidden = true;
 
     wardPreviewCoordsEl.textContent =
       "Ward boundary: Abersoch gyda Llanengan (W05001509)";
@@ -2237,6 +2241,7 @@ function updatePropertyMap(elector) {
 
   wardPreviewEl.hidden = false;
   wardBoundaryMapEl.hidden = true;
+  editLocationLinkEl.hidden = false;
 
   wardPreviewEl.title =
     "Property location on OpenStreetMap";
