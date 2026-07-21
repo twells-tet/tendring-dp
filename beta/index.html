@@ -2416,7 +2416,7 @@ function bindProgressEditors() {
     // Party membership is set at the back end when the demo goes live.
     // Users can still open the dropdown and browse the options, but their
     // selection is only kept when the elector is currently "No" and they
-    // choose "Supporter" - every other change is reverted.
+    // choose "Supporter" or "Ask to Join" - every other change is reverted.
     input.addEventListener("change", event => {
 
       const id = event.target.dataset.id;
@@ -2424,7 +2424,7 @@ function bindProgressEditors() {
       const currentValue = existing.partyMember || "No";
       const newValue = event.target.value.trim();
 
-      if (currentValue === "No" && newValue === "Supporter") {
+      if (currentValue === "No" && (newValue === "Supporter" || newValue === "Ask to Join")) {
 
         state.progress[id] = {
           ...existing,
