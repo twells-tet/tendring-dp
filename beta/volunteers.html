@@ -438,7 +438,50 @@
         electorIdInput.addEventListener("change", () => {
           applyLookup(row, true);
         });
+        electorIdInput.addEventListener("input", () => {
+          refreshDeleteButtonState(row);
+        });
       }
+
+      refreshDeleteButtonState(row);
+
+    }
+
+    // Party Members may only be deleted while they are not registered to
+    // vote (i.e. they have no Elector ID). Members with an Elector ID must
+    // remain on the register and cannot be removed from this page.
+    function isMemberRowDeletable(row) {
+
+      const table = row.closest("table");
+
+      if (!table || table.id !== "members-table") {
+        return true;
+      }
+
+      const electorIdInput = row.querySelector(".elector-id-input");
+
+      if (!electorIdInput) {
+        return true;
+      }
+
+      return !electorIdInput.value.trim();
+
+    }
+
+    function refreshDeleteButtonState(row) {
+
+      const button = row.querySelector(".delete-record-button");
+
+      if (!button) {
+        return;
+      }
+
+      const deletable = isMemberRowDeletable(row);
+
+      button.disabled = !deletable;
+      button.title = deletable
+        ? ""
+        : "Party members with an Elector ID cannot be deleted while they remain registered to vote.";
 
     }
 
@@ -489,6 +532,8 @@
       if (firstNameTd && !firstNameTd.querySelector(".delete-record-button")) {
         firstNameTd.appendChild(buildDeleteButton(row));
       }
+
+      refreshDeleteButtonState(row);
 
     }
 

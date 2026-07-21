@@ -826,6 +826,13 @@ body.mobile-mode .elector-list {
   background: #f8d7d5;
 }
 
+.delete-record-button:disabled {
+  border-color: #c9c9c9;
+  background: #f1f1f1;
+  color: #9a9a9a;
+  cursor: not-allowed;
+}
+
 .activist-category-row {
   display: flex;
   align-items: center;
