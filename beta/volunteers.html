@@ -121,6 +121,7 @@
             <td>
               <ul class="activist-options">
                 <li><label><input type="checkbox"> Regular deliverer</label></li>
+                <li><label><input type="checkbox"> Attend Action Days</label></li>
                 <li><label><input type="checkbox"> Clerical work</label></li>
                 <li><label><input type="checkbox"> Attend social events</label></li>
                 <li><label><input type="checkbox"> Knock on doors</label></li>
@@ -165,6 +166,7 @@
             <td>
               <ul class="activist-options">
                 <li><label><input type="checkbox" checked> Regular deliverer</label></li>
+                <li><label><input type="checkbox"> Attend Action Days</label></li>
                 <li><label><input type="checkbox"> Clerical work</label></li>
                 <li><label><input type="checkbox"> Attend social events</label></li>
                 <li><label><input type="checkbox"> Knock on doors</label></li>
@@ -186,6 +188,7 @@
             <td>
               <ul class="activist-options">
                 <li><label><input type="checkbox" checked> Regular deliverer</label></li>
+                <li><label><input type="checkbox"> Attend Action Days</label></li>
                 <li><label><input type="checkbox"> Clerical work</label></li>
                 <li><label><input type="checkbox"> Attend social events</label></li>
                 <li><label><input type="checkbox"> Knock on doors</label></li>
@@ -255,6 +258,14 @@
       );
     }
 
+    function toTitleCaseAddress(text) {
+
+      return text
+        .toLowerCase()
+        .replace(/\b[a-z]/g, ch => ch.toUpperCase());
+
+    }
+
     const electorsById = new Map();
 
     async function loadElectorsForLookup() {
@@ -277,6 +288,7 @@
         const address1Idx = headers.indexOf("address1");
         const address2Idx = headers.indexOf("address2");
         const address3Idx = headers.indexOf("address3");
+        const postcodeIdx = headers.indexOf("postcode");
 
         rows.slice(1).forEach(row => {
 
@@ -295,11 +307,23 @@
           const lastName =
             spaceIdx === -1 ? "" : fullName.slice(spaceIdx + 1);
 
-          const address =
+          const addressLine =
             [row[address1Idx], row[address2Idx], row[address3Idx]]
               .map(part => (part || "").trim())
+              // Address fields sometimes contain an embedded comma
+              // (e.g. "BODORWEL,BWLCH"), so re-split on every comma
+              // rather than trusting the raw column boundaries.
+              .join(",")
+              .split(",")
+              .map(part => part.trim())
               .filter(part => part && part.toLowerCase() !== "gwynedd")
+              .map(part => toTitleCaseAddress(part))
               .join(", ");
+
+          const postcode = (row[postcodeIdx] || "").trim().toUpperCase();
+
+          const address =
+            [addressLine, postcode].filter(Boolean).join(", ");
 
           electorsById.set(id, { firstName, lastName, address });
 
@@ -485,6 +509,7 @@
 
     const MEMBER_OPTIONS = [
       "Regular deliverer",
+      "Attend Action Days",
       "Clerical work",
       "Attend social events",
       "Knock on doors",
@@ -495,6 +520,7 @@
 
     const VOLUNTEER_OPTIONS = [
       "Regular deliverer",
+      "Attend Action Days",
       "Clerical work",
       "Attend social events",
       "Knock on doors",
