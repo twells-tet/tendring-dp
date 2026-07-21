@@ -1423,6 +1423,16 @@ body.mobile-mode .elector-list {
   color: #fff;
 }
 
+.household-elector-link.elector-lean-red {
+  border-color: var(--plaid-red);
+  color: var(--plaid-red);
+}
+
+.household-elector-link.elector-lean-red:hover {
+  background: var(--plaid-red);
+  color: #fff;
+}
+
 .household-elector-more {
   border-style: dashed;
 }
@@ -1477,6 +1487,15 @@ body.mobile-mode .elector-list {
   background: linear-gradient(
     to right,
     rgba(43, 108, 176, 0.08),
+    var(--surface-soft) 12%
+  );
+}
+
+.elector-item.elector-lean-red {
+  border-left: 5px solid var(--plaid-red);
+  background: linear-gradient(
+    to right,
+    rgba(218, 41, 28, 0.08),
     var(--surface-soft) 12%
   );
 }

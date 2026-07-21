@@ -3433,7 +3433,8 @@ const DEMO_PLAID_ELECTOR_NAMES = [
 ];
 
 const DEMO_CANVASS_ID_BY_ELECTOR_ID = {
-  "801071110": "Conservative"
+  "801071110": "Conservative",
+  "508891699": "Labour"
 };
 
 function getElectorProgress(electorId, electorName) {
@@ -3514,6 +3515,10 @@ function getPoliticalLeanClass(canvassId) {
 
   if (canvassId === "Conservative") {
     return "elector-lean-blue";
+  }
+
+  if (canvassId === "Labour") {
+    return "elector-lean-red";
   }
 
   return "elector-lean-grey";
