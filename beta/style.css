@@ -928,10 +928,13 @@ body.mobile-mode .elector-list {
 
 .address-search-input {
   width: 100%;
-  padding: 0.5rem 0.65rem;
+  padding: 0.4rem 0.6rem;
   border-radius: 0.4rem;
-  border: 1px solid var(--border-strong);
-  font-size: 0.95rem;
+  border: 1px solid var(--plaid-green);
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--surface);
 }
 
 .elector-list {
