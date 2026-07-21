@@ -492,7 +492,14 @@
         DEFAULT_SHEET_URL;
 
       const filterState =
-        loadFromStorage(STORAGE_KEYS.mappingFilter, {});
+        loadFromStorage(
+          STORAGE_KEYS.mappingFilter,
+          // Matches the main list's default selected Polling District
+          // ("RA1 (Abersoch)") so the map shows a sensible household
+          // count even if opened directly, without going through the
+          // "View Households on Map" button first.
+          { pollingDistrict: "ra1", filterType: "" }
+        );
 
       const progress =
         loadFromStorage(STORAGE_KEYS.progress, {});
