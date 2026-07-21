@@ -213,39 +213,21 @@
         </tbody>
       </table>
 
-      <h3 class="activist-category" id="poster-sites-heading">Poster Sites [2]</h3>
+      <h3 class="activist-category" id="poster-sites-heading">Poster Sites [0]</h3>
+      <p class="poster-sites-empty-note" id="poster-sites-empty-note">
+        No poster sites yet. Select "Poster: Window" or "Poster: Garden" for an elector
+        on the main page to add them here.
+      </p>
       <table class="activist-table" id="poster-sites-table">
         <thead>
           <tr>
             <th>First name</th>
             <th>Last name</th>
-            <th>Address Line 1</th>
+            <th>Address</th>
             <th>Poster Type</th>
           </tr>
         </thead>
         <tbody>
-          <tr data-row-key="poster-1">
-            <td>Joe</td>
-            <td>Bloggs</td>
-            <td>19 Maes Gwydryn, Abersoch</td>
-            <td>
-              <ul class="activist-options">
-                <li><label><input type="radio" name="poster-site-joe"> Garden</label></li>
-                <li><label><input type="radio" name="poster-site-joe" checked> Window</label></li>
-              </ul>
-            </td>
-          </tr>
-          <tr data-row-key="poster-2">
-            <td>Jane</td>
-            <td>Smith</td>
-            <td>Bwlch Farm, Lon Engan, Abersoch</td>
-            <td>
-              <ul class="activist-options">
-                <li><label><input type="radio" name="poster-site-jane" checked> Garden</label></li>
-                <li><label><input type="radio" name="poster-site-jane"> Window</label></li>
-              </ul>
-            </td>
-          </tr>
         </tbody>
       </table>
 
@@ -268,6 +250,34 @@
         VOLUNTEER_OVERRIDES_KEY,
         JSON.stringify(volunteerOverrides)
       );
+    }
+
+    // Same key the main page (index.html) uses to persist each elector's
+    // canvass progress, including their Poster selection. Poster Sites on
+    // this page are derived from that shared data, so adding a poster on
+    // the main page automatically lists them here, and deleting them here
+    // clears their Poster selection back to "No Poster" on the main page.
+    const PROGRESS_STORAGE_KEY = "abersoch-elector-progress-v1";
+
+    function loadElectorProgress() {
+      try {
+        return JSON.parse(localStorage.getItem(PROGRESS_STORAGE_KEY) || "{}");
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function saveElectorProgress(progress) {
+      localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(progress));
+    }
+
+    function escapeHtml(value) {
+      return String(value == null ? "" : value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
     }
 
     function toTitleCaseAddress(text) {
@@ -492,19 +502,227 @@
 
     }
 
-    function initPosterSiteRows() {
+    // Splits an elector's Poster progress value (e.g. "Poster: Window")
+    // down to just the type ("Window"), or "" if no poster is set.
+    function getPosterTypeFromProgress(posterValue) {
 
-      document
-        .querySelectorAll("#poster-sites-table tbody tr")
-        .forEach(row => {
+      const match = /^Poster:\s*(.+)$/i.exec(
+        String(posterValue || "").trim()
+      );
 
-          const firstTd = row.querySelector("td");
+      return match ? match[1].trim() : "";
 
-          if (firstTd && !firstTd.querySelector(".delete-record-button")) {
-            firstTd.appendChild(buildDeleteButton(row));
-          }
+    }
 
+    // Groups every elector with an active Poster selection (read from the
+    // main page's shared progress storage) by address, so a household
+    // with several posters appears as a single Poster Sites row.
+    function collectPosterSiteGroups() {
+
+      const progress = loadElectorProgress();
+      const groupsByAddress = new Map();
+
+      Object.keys(progress).forEach(electorId => {
+
+        const posterType =
+          getPosterTypeFromProgress(progress[electorId] && progress[electorId].poster);
+
+        if (!posterType) {
+          return;
+        }
+
+        const elector = electorsById.get(electorId);
+
+        if (!elector) {
+          return;
+        }
+
+        const addressKey =
+          (elector.address || "").trim().toLowerCase() || electorId;
+
+        if (!groupsByAddress.has(addressKey)) {
+          groupsByAddress.set(addressKey, {
+            address: elector.address || "—",
+            members: []
+          });
+        }
+
+        groupsByAddress.get(addressKey).members.push({
+          electorId,
+          firstName: elector.firstName,
+          lastName: elector.lastName,
+          posterType
         });
+
+      });
+
+      return Array.from(groupsByAddress.values());
+
+    }
+
+    function buildPosterTypeCell(group) {
+
+      const td = document.createElement("td");
+      const ul = document.createElement("ul");
+      ul.className = "activist-options";
+
+      const types = new Set(group.members.map(member => member.posterType));
+      const isMixed = types.has("Garden") && types.has("Window");
+
+      const options = ["Garden", "Window"];
+
+      if (isMixed) {
+        options.push("Both");
+      }
+
+      options.forEach(optionLabel => {
+
+        const li = document.createElement("li");
+        const label = document.createElement("label");
+        const radio = document.createElement("input");
+
+        radio.type = "radio";
+        radio.disabled = true;
+
+        // When both a Garden and a Window poster exist at the same
+        // address, only "Both" is selectable/checked and the individual
+        // Garden/Window options are greyed out (still shown for context).
+        if (isMixed) {
+          radio.checked = optionLabel === "Both";
+        } else {
+          radio.checked = types.has(optionLabel);
+        }
+
+        label.appendChild(radio);
+        label.appendChild(document.createTextNode(" " + optionLabel));
+        li.appendChild(label);
+        ul.appendChild(li);
+
+      });
+
+      td.appendChild(ul);
+      return td;
+
+    }
+
+    function buildPosterSiteDeleteButton(row, group) {
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "delete-record-button";
+      button.textContent = "Delete Record";
+
+      button.addEventListener("click", () => {
+
+        const confirmed =
+          window.confirm(
+            "This cannot be undone. Are you sure you want to delete this Poster Site?"
+          );
+
+        if (!confirmed) {
+          return;
+        }
+
+        // Clear the Poster selection back to "No Poster" for every
+        // elector bundled into this address group, so unchecking here
+        // also clears the dropdown on the main page.
+        const progress = loadElectorProgress();
+
+        group.members.forEach(member => {
+          if (progress[member.electorId]) {
+            progress[member.electorId] = {
+              ...progress[member.electorId],
+              poster: "No Poster"
+            };
+          }
+        });
+
+        saveElectorProgress(progress);
+
+        row.remove();
+
+        updateCategoryCount(
+          document.getElementById("poster-sites-heading"),
+          document.querySelector("#poster-sites-table tbody")
+        );
+
+        updatePosterSitesEmptyState();
+
+      });
+
+      return button;
+
+    }
+
+    function updatePosterSitesEmptyState() {
+
+      const tbody = document.querySelector("#poster-sites-table tbody");
+      const emptyNote = document.getElementById("poster-sites-empty-note");
+      const table = document.getElementById("poster-sites-table");
+
+      if (!tbody || !emptyNote || !table) {
+        return;
+      }
+
+      const hasRows = tbody.querySelectorAll("tr").length > 0;
+
+      table.style.display = hasRows ? "" : "none";
+      emptyNote.style.display = hasRows ? "none" : "";
+
+    }
+
+    function renderPosterSites() {
+
+      const tbody = document.querySelector("#poster-sites-table tbody");
+
+      if (!tbody) {
+        return;
+      }
+
+      tbody.innerHTML = "";
+
+      const groups = collectPosterSiteGroups();
+
+      groups.forEach(group => {
+
+        const tr = document.createElement("tr");
+
+        const firstNameTd = document.createElement("td");
+        firstNameTd.innerHTML =
+          group.members
+            .map(member => escapeHtml(member.firstName || "—"))
+            .join("<br>");
+
+        const lastNameTd = document.createElement("td");
+        lastNameTd.innerHTML =
+          group.members
+            .map(member => escapeHtml(member.lastName || "—"))
+            .join("<br>");
+
+        const addressTd = document.createElement("td");
+        addressTd.textContent = group.address;
+
+        const posterTypeTd = buildPosterTypeCell(group);
+
+        firstNameTd.appendChild(
+          buildPosterSiteDeleteButton(tr, group)
+        );
+
+        tr.appendChild(firstNameTd);
+        tr.appendChild(lastNameTd);
+        tr.appendChild(addressTd);
+        tr.appendChild(posterTypeTd);
+
+        tbody.appendChild(tr);
+
+      });
+
+      updateCategoryCount(
+        document.getElementById("poster-sites-heading"),
+        tbody
+      );
+
+      updatePosterSitesEmptyState();
 
     }
 
@@ -958,7 +1176,7 @@
     (async function init() {
       await loadElectorsForLookup();
       initVolunteerRows();
-      initPosterSiteRows();
+      renderPosterSites();
       initAddActivistControls();
     })();
 
