@@ -467,6 +467,12 @@ body.mobile-mode .elector-list {
   margin-bottom: 0.85rem;
 }
 
+.choose-district-heading {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+}
+
+
 .filter-grid label {
   margin-bottom: 0;
   color: var(--text-muted);
