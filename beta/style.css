@@ -26,6 +26,80 @@ body {
   color: var(--text);
 }
 
+body.pin-locked > *:not(#pin-gate) {
+  display: none;
+}
+
+.pin-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--plaid-green-dark);
+  padding: 1rem;
+}
+
+.pin-gate-box {
+  background: var(--surface);
+  border-radius: 0.75rem;
+  padding: 2rem;
+  max-width: 320px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.pin-gate-box h2 {
+  margin: 0 0 0.5rem;
+  color: var(--plaid-green-dark);
+}
+
+.pin-gate-box p {
+  margin: 0 0 1rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.pin-gate-input {
+  width: 100%;
+  padding: 0.6rem;
+  font-size: 1.4rem;
+  letter-spacing: 0.4rem;
+  text-align: center;
+  border: 1px solid var(--border-strong);
+  border-radius: 0.5rem;
+  margin-bottom: 0.75rem;
+  box-sizing: border-box;
+}
+
+.pin-gate-button {
+  width: 100%;
+  padding: 0.6rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: var(--plaid-green);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.pin-gate-button:hover {
+  opacity: 0.85;
+}
+
+.pin-gate-error {
+  margin: 0.75rem 0 0;
+  color: var(--plaid-red);
+  font-size: 0.85rem;
+}
+
+.pin-gate-form {
+  display: block;
+}
+
 .page-header {
   padding: 1.5rem 1.25rem 1rem;
   border-bottom: 1px solid var(--plaid-green-deeper);
