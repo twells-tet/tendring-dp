@@ -983,20 +983,22 @@ body.mobile-mode .elector-list {
 }
 
 .centre-map-button {
-  border: 1px solid var(--border-strong);
-  background: var(--surface);
-  color: var(--plaid-green-dark);
+  border: 1px solid var(--plaid-green);
+  background: var(--plaid-green);
+  color: #fff;
   border-radius: 0.4rem;
-  padding: 0.2rem 0.5rem;
+  padding: 0.3rem 0.65rem;
   font: inherit;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 600;
   text-transform: none;
   cursor: pointer;
   white-space: nowrap;
 }
 
 .centre-map-button:hover {
-  background: var(--plaid-green);
+  background: var(--plaid-green-dark);
+  border-color: var(--plaid-green-dark);
   color: #fff;
 }
 
