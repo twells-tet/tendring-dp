@@ -213,8 +213,8 @@
         </tbody>
       </table>
 
-      <h3 class="activist-category">Poster Sites [2]</h3>
-      <table class="activist-table">
+      <h3 class="activist-category" id="poster-sites-heading">Poster Sites [2]</h3>
+      <table class="activist-table" id="poster-sites-table">
         <thead>
           <tr>
             <th>First name</th>
@@ -224,7 +224,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr data-row-key="poster-1">
             <td>Joe</td>
             <td>Bloggs</td>
             <td>19 Maes Gwydryn, Abersoch</td>
@@ -235,7 +235,7 @@
               </ul>
             </td>
           </tr>
-          <tr>
+          <tr data-row-key="poster-2">
             <td>Jane</td>
             <td>Smith</td>
             <td>Bwlch Farm, Lon Engan, Abersoch</td>
@@ -474,13 +474,37 @@
         saveRowState(row);
       });
 
+      const firstNameTd = firstNameInput.closest("td");
+
+      if (firstNameTd && !firstNameTd.querySelector(".delete-record-button")) {
+        firstNameTd.appendChild(buildDeleteButton(row));
+      }
+
     }
 
     function initVolunteerRows() {
 
-      document.querySelectorAll("[data-row-key]").forEach(row => {
-        wireRow(row);
-      });
+      document
+        .querySelectorAll("#members-table [data-row-key], #volunteers-table [data-row-key]")
+        .forEach(row => {
+          wireRow(row);
+        });
+
+    }
+
+    function initPosterSiteRows() {
+
+      document
+        .querySelectorAll("#poster-sites-table tbody tr")
+        .forEach(row => {
+
+          const firstTd = row.querySelector("td");
+
+          if (firstTd && !firstTd.querySelector(".delete-record-button")) {
+            firstTd.appendChild(buildDeleteButton(row));
+          }
+
+        });
 
     }
 
@@ -494,6 +518,104 @@
 
       headingEl.textContent =
         headingEl.textContent.replace(/\[\d+\]/, "[" + count + "]");
+
+    }
+
+    // Maps a Members/Volunteers/Poster Sites table id to its category
+    // heading, so a deleted row's [count] badge can be refreshed
+    // regardless of whether the row was one of the original static rows
+    // or added dynamically.
+    function getCategoryHeadingForTable(table) {
+
+      if (!table) {
+        return null;
+      }
+
+      if (table.id === "members-table") {
+        return document.getElementById("members-heading");
+      }
+
+      if (table.id === "volunteers-table") {
+        return document.getElementById("volunteers-heading");
+      }
+
+      if (table.id === "poster-sites-table") {
+        return document.getElementById("poster-sites-heading");
+      }
+
+      return null;
+
+    }
+
+    // Maps a table id to the plain-English category name used in the
+    // delete confirmation message.
+    function getCategoryLabelForTable(table) {
+
+      if (!table) {
+        return "record";
+      }
+
+      if (table.id === "members-table") {
+        return "Member";
+      }
+
+      if (table.id === "volunteers-table") {
+        return "Volunteer";
+      }
+
+      if (table.id === "poster-sites-table") {
+        return "Poster Site";
+      }
+
+      return "record";
+
+    }
+
+    function deleteActivistRow(row) {
+
+      const table = row.closest("table");
+      const rowKey = row.dataset.rowKey;
+
+      if (rowKey && volunteerOverrides[rowKey]) {
+        delete volunteerOverrides[rowKey];
+        saveVolunteerOverrides();
+      }
+
+      row.remove();
+
+      const headingEl = getCategoryHeadingForTable(table);
+      const tbodyEl = table ? table.querySelector("tbody") : null;
+
+      updateCategoryCount(headingEl, tbodyEl);
+
+    }
+
+    function buildDeleteButton(row) {
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "delete-record-button";
+      button.textContent = "Delete Record";
+
+      button.addEventListener("click", () => {
+
+        const table = row.closest("table");
+        const category = getCategoryLabelForTable(table);
+
+        const confirmed =
+          window.confirm(
+            "This cannot be undone. Are you sure you want to delete this " +
+            category +
+            "?"
+          );
+
+        if (confirmed) {
+          deleteActivistRow(row);
+        }
+
+      });
+
+      return button;
 
     }
 
@@ -836,6 +958,7 @@
     (async function init() {
       await loadElectorsForLookup();
       initVolunteerRows();
+      initPosterSiteRows();
       initAddActivistControls();
     })();
 
