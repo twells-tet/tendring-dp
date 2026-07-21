@@ -938,6 +938,28 @@
 
       pollingDistrictLabel.appendChild(pollingDistrictSelect);
 
+      const addressLabel = document.createElement("label");
+      addressLabel.className = "not-registered-address-label";
+      addressLabel.textContent = "Address";
+
+      const addressInput = document.createElement("input");
+      addressInput.type = "text";
+      addressInput.className = "not-registered-address-input";
+      addressInput.placeholder = "Address";
+
+      addressLabel.appendChild(addressInput);
+
+      const postcodeLabel = document.createElement("label");
+      postcodeLabel.className = "not-registered-postcode-label";
+      postcodeLabel.textContent = "Postcode";
+
+      const postcodeInput = document.createElement("input");
+      postcodeInput.type = "text";
+      postcodeInput.className = "not-registered-postcode-input";
+      postcodeInput.placeholder = "Postcode";
+
+      postcodeLabel.appendChild(postcodeInput);
+
       const updateButton = document.createElement("button");
       updateButton.type = "button";
       updateButton.className = "not-registered-update-link";
@@ -954,6 +976,8 @@
 
       td.appendChild(span);
       td.appendChild(pollingDistrictLabel);
+      td.appendChild(addressLabel);
+      td.appendChild(postcodeLabel);
       td.appendChild(updateButton);
 
       return td;
