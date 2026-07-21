@@ -1342,6 +1342,10 @@ body.mobile-mode .elector-list {
 }
 
 .map-household-nav {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.6rem;
   margin-top: 0.75rem;
   margin-bottom: 0;
 }
