@@ -153,11 +153,9 @@ body.pin-locked > *:not(#pin-gate) {
 }
 
 .polling-day-date-box {
-  position: absolute;
-  top: 0.9rem;
-  right: 1.25rem;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  justify-self: end;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
   border-radius: 0.5rem;
   padding: 0.6rem 0.75rem;
   max-width: 220px;
@@ -168,7 +166,7 @@ body.pin-locked > *:not(#pin-gate) {
   display: block;
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--surface);
+  color: #000;
   margin-bottom: 0.3rem;
 }
 
@@ -183,7 +181,7 @@ body.pin-locked > *:not(#pin-gate) {
 .polling-day-reset-text {
   margin: 0.5rem 0 0 !important;
   font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.85) !important;
+  color: #000 !important;
   line-height: 1.3;
 }
 
