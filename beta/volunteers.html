@@ -115,6 +115,7 @@
             <td>
               <input type="text" class="elector-id-input" value="836408391" placeholder="Elector ID">
               <div class="elector-address-display"></div>
+              <div class="elector-polling-district-display"></div>
             </td>
             <td class="placeholder-cell"><input type="tel" class="placeholder-input" placeholder="07700 111222"></td>
             <td class="placeholder-cell"><input type="email" class="placeholder-input" placeholder="elector@email.com"></td>
@@ -160,6 +161,7 @@
             <td>
               <input type="text" class="elector-id-input" value="836408392" placeholder="Elector ID">
               <div class="elector-address-display"></div>
+              <div class="elector-polling-district-display"></div>
             </td>
             <td class="placeholder-cell"><input type="tel" class="placeholder-input" placeholder="07700 111222"></td>
             <td class="placeholder-cell"><input type="email" class="placeholder-input" placeholder="elector@email.com"></td>
@@ -182,6 +184,7 @@
             <td>
               <input type="text" class="elector-id-input" value="836408391" placeholder="Elector ID">
               <div class="elector-address-display"></div>
+              <div class="elector-polling-district-display"></div>
             </td>
             <td class="placeholder-cell"><input type="tel" class="placeholder-input" placeholder="07700 111222"></td>
             <td class="placeholder-cell"><input type="email" class="placeholder-input" placeholder="elector@email.com"></td>
@@ -289,6 +292,9 @@
         const address2Idx = headers.indexOf("address2");
         const address3Idx = headers.indexOf("address3");
         const postcodeIdx = headers.indexOf("postcode");
+        const pollingDistrictIdx = headers.indexOf("pollingdistrict");
+        const pollingDistrictDescIdx =
+          headers.indexOf("pollingdistrictdescription");
 
         rows.slice(1).forEach(row => {
 
@@ -325,7 +331,18 @@
           const address =
             [addressLine, postcode].filter(Boolean).join(", ");
 
-          electorsById.set(id, { firstName, lastName, address });
+          const pollingDistrictCode =
+            (row[pollingDistrictIdx] || "").trim();
+
+          const pollingDistrictDesc =
+            (row[pollingDistrictDescIdx] || "").trim();
+
+          const pollingDistrict =
+            pollingDistrictCode && pollingDistrictDesc
+              ? pollingDistrictCode + " (" + pollingDistrictDesc + ")"
+              : pollingDistrictCode || pollingDistrictDesc;
+
+          electorsById.set(id, { firstName, lastName, address, pollingDistrict });
 
         });
 
@@ -341,6 +358,8 @@
       const firstNameInput = row.querySelector(".first-name-input");
       const lastNameInput = row.querySelector(".last-name-input");
       const addressDisplay = row.querySelector(".elector-address-display");
+      const pollingDistrictDisplay =
+        row.querySelector(".elector-polling-district-display");
 
       if (!electorIdInput) {
         return;
@@ -356,6 +375,11 @@
 
       if (addressDisplay) {
         addressDisplay.textContent = match ? match.address : "";
+      }
+
+      if (pollingDistrictDisplay) {
+        pollingDistrictDisplay.textContent =
+          match ? match.pollingDistrict : "";
       }
 
       if (save) {
@@ -466,8 +490,12 @@
       const addressDisplay = document.createElement("div");
       addressDisplay.className = "elector-address-display";
 
+      const pollingDistrictDisplay = document.createElement("div");
+      pollingDistrictDisplay.className = "elector-polling-district-display";
+
       td.appendChild(input);
       td.appendChild(addressDisplay);
+      td.appendChild(pollingDistrictDisplay);
 
       return td;
 

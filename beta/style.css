@@ -733,6 +733,12 @@ body.mobile-mode .elector-list {
   color: var(--text-muted);
 }
 
+.elector-polling-district-display {
+  margin-top: 0.15rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
 .not-registered-label {
   font-size: 0.9rem;
   color: var(--text-muted);
