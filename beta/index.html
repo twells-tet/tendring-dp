@@ -2621,15 +2621,21 @@ function buildHouseholdElectorNav(electors) {
   const isExpanded =
     state.expandedHouseholdElectorNav.has(householdKey);
 
-  const buildLink = elector =>
-    `
+  const buildLink = elector => {
+
+    const progress = getElectorProgress(elector.id, elector.name);
+    const leanClass = getPoliticalLeanClass(progress.canvassId);
+
+    return `
     <button
     type="button"
-    class="household-elector-link"
+    class="household-elector-link ${leanClass}"
     data-target="elector-${escapeHtmlAttr(elector.id)}">
     ${escapeHtml(elector.name || "Unnamed elector")}
     </button>
     `;
+
+  };
 
   if (electors.length <= 4 || isExpanded) {
     return electors.map(buildLink).join("");
