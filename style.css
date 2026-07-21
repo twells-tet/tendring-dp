@@ -231,25 +231,34 @@ color:#e31b23;
 }
 
 
-.card-subaction {
-
-display:inline-block;
-margin-top:18px;
-padding:14px 16px;
-background:#0a1a3e;
-color:#fff;
-border:2px solid #0a1a3e;
-border-radius:8px;
-text-decoration:none;
-
-}
-
-
 .contact-link-row {
 
 text-align:center;
 margin:0 auto 60px;
 padding:0 20px;
+
+}
+
+
+.contact-link-row .card-subaction {
+
+display:inline-block;
+padding:14px 20px;
+background:#0a1a3e;
+color:#fff !important;
+border:2px solid #0a1a3e;
+border-radius:10px;
+text-decoration:none;
+font-weight:900;
+line-height:1;
+
+}
+
+
+.contact-link-row .card-subaction:hover {
+
+background:#1c3b7c;
+border-color:#1c3b7c;
 
 }
 
@@ -262,6 +271,23 @@ color:white;
 padding:25px;
 text-align:center;
 font-size:14px;
+
+}
+
+
+footer a {
+
+color:#fcf4ed;
+text-decoration:underline;
+
+}
+
+
+.beta-link {
+
+font-size:4pt;
+line-height:1;
+opacity:0.95;
 
 }
 
