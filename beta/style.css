@@ -677,6 +677,25 @@ body.mobile-mode .elector-list {
   color: var(--text-muted);
 }
 
+.sort-order-btn {
+  width: 1.6rem;
+  height: 1.6rem;
+  margin-left: 0.4rem;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 0.35rem;
+  background: var(--surface);
+  color: #8a8a8a;
+  font: inherit;
+  font-weight: 700;
+  line-height: 1;
+  cursor: not-allowed;
+}
+
+.sort-order-btn:disabled {
+  opacity: 0.5;
+}
+
 .panel {
   padding: 0.9rem;
 }
