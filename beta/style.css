@@ -1423,6 +1423,19 @@ body.mobile-mode .elector-list {
   background: var(--surface-soft);
 }
 
+.elector-item.elector-lean-green {
+  border-left: 5px solid var(--plaid-green);
+  background: linear-gradient(
+    to right,
+    rgba(10, 167, 125, 0.08),
+    var(--surface-soft) 12%
+  );
+}
+
+.elector-item.elector-lean-grey {
+  border-left: 5px solid var(--border-strong);
+}
+
 .elector-main h3 {
   margin: 0.15rem 0 0.4rem;
   font-size: 1rem;
