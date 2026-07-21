@@ -27,10 +27,11 @@
  clip-path="url(#shieldClip)"/>
 
  <!-- Black diagonal stripe -->
+ <g clip-path="url(#shieldClip)">
  <rect x="-100" y="230" width="700" height="60"
  fill="#000000"
- transform="rotate(-35 256 250)"
- clip-path="url(#shieldClip)"/>
+ transform="rotate(-35 256 250)"/>
+ </g>
 
  <!-- Black outline -->
  <path
