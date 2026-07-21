@@ -372,6 +372,14 @@
             <h2>Household Details</h2>
           </div>
 
+          <div class="address-search-row">
+            <label for="address-search-input">Search by address</label>
+            <input
+              type="text"
+              id="address-search-input"
+              class="address-search-input"
+              placeholder="Start typing an address...">
+          </div>
 
           <div id="elector-list" class="elector-list"></div>
 
@@ -636,6 +644,9 @@ const listEl =
 const filterTypeEl =
   document.getElementById("filter-type");
 
+const addressSearchInputEl =
+  document.getElementById("address-search-input");
+
 const statLoadedEl =
   document.getElementById("stat-loaded");
 
@@ -705,6 +716,19 @@ function initControls() {
 
   filterTypeEl.addEventListener(
     "change",
+    () => {
+
+      state.householdPageIndex = 0;
+
+      renderElectorList();
+
+    }
+  );
+
+
+
+  addressSearchInputEl.addEventListener(
+    "input",
     () => {
 
       state.householdPageIndex = 0;
@@ -2681,14 +2705,30 @@ function getFilteredActiveElectors() {
   const filterType =
     filterTypeEl.value;
 
+  const addressSearch =
+    normalizeText(addressSearchInputEl.value).trim();
+
   return getActiveElectors().filter(elector => {
 
     if (filterType === "postal-proxy") {
 
-      return (
-        elector.postalProxy === "Postal" ||
-        elector.postalProxy === "Proxy"
-      );
+      if (
+        elector.postalProxy !== "Postal" &&
+        elector.postalProxy !== "Proxy"
+      ) {
+        return false;
+      }
+
+    }
+
+    if (addressSearch) {
+
+      const electorAddress =
+        normalizeText(elector.address);
+
+      if (!electorAddress.includes(addressSearch)) {
+        return false;
+      }
 
     }
 
