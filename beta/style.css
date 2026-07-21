@@ -1354,6 +1354,14 @@ body.mobile-mode .elector-list {
   margin-bottom: 0;
 }
 
+.list-household-nav {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+}
+
 .map-household-nav-btn {
   text-transform: uppercase;
 }
