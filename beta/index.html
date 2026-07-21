@@ -281,10 +281,10 @@
 
 
     <section class="export-buttons" aria-label="Export options">
-      <button type="button" class="export-button" disabled>Export list in CSV format</button>
-      <button type="button" class="export-button" disabled>Export list for canvassing</button>
+      <button type="button" id="run-search-button" class="export-button run-search-button">Run Search</button>
       <a href="polling-day.html" target="_blank" rel="noopener" class="export-button polling-day-button">GOTV: Run Polling Day</a>
       <a href="volunteers.html" class="export-button members-activists-button">Members &amp; Activists</a>
+      <button type="button" class="export-button" disabled>Switch to Training Mode</button>
     </section>
 
 
@@ -578,7 +578,8 @@ const STORAGE_KEYS = {
   hideDeliveryDetails: "abersoch-hide-delivery-details",
   hideAiComments: "abersoch-hide-ai-comments",
   pollingDistrict: "abersoch-polling-district",
-  areaOverrides: "abersoch-area-overrides-v1"
+  areaOverrides: "abersoch-area-overrides-v1",
+  currentListFilter: "abersoch-current-list-filter"
 };
 
 
@@ -766,6 +767,9 @@ const listEl =
 const filterTypeEl =
   document.getElementById("filter-type");
 
+const runSearchButtonEl =
+  document.getElementById("run-search-button");
+
 const addressSearchInputEl =
   document.getElementById("address-search-input");
 
@@ -846,6 +850,27 @@ function initControls() {
       state.householdPageIndex = 0;
 
       renderElectorList();
+
+    }
+  );
+
+
+
+  runSearchButtonEl.addEventListener(
+    "click",
+    () => {
+
+      const filterState = {
+        pollingDistrict: pollingDistrictEl.value,
+        filterType: filterTypeEl.value
+      };
+
+      localStorage.setItem(
+        STORAGE_KEYS.currentListFilter,
+        JSON.stringify(filterState)
+      );
+
+      window.open("current-list.html", "_blank");
 
     }
   );

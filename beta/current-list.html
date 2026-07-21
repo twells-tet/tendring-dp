@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Current List | TARIAN</title>
+  <link rel="icon" type="image/svg+xml" href="tarian-shield.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="page-header">
+    <a href="index.html" class="page-header-logo-link" aria-label="TARIAN home">
+      <img src="tarian-shield.svg" alt="" class="page-header-logo">
+    </a>
+    <h1>TARIAN</h1>
+    <p class="page-subtitle">Current List</p>
+  </header>
+
+  <main class="app-shell">
+
+    <section class="panel">
+      <h2>Current List</h2>
+
+      <p><a href="index.html" class="back-link">&larr; back to main list</a></p>
+
+      <p id="current-list-message" class="message" role="status" aria-live="polite"></p>
+      <p id="current-list-summary" class="current-list-summary"></p>
+
+      <div class="current-list-wrapper">
+        <table class="current-list-table">
+          <thead>
+            <tr>
+              <th>Household ID</th>
+              <th>Elector ID</th>
+              <th>Name</th>
+              <th>Address Line 1</th>
+              <th>Address Line 2</th>
+              <th>Address Line 3</th>
+              <th>Post Town</th>
+              <th>Postcode</th>
+              <th>Postal Vote</th>
+              <th>Road/Area</th>
+              <th>Sort Order</th>
+              <th>Canvass ID</th>
+              <th>Support Independence</th>
+              <th>First Language</th>
+              <th>Phone</th>
+              <th>Email</th>
+              <th>Polling District</th>
+              <th>Polling Number</th>
+              <th>Ward</th>
+            </tr>
+          </thead>
+          <tbody id="current-list-body"></tbody>
+        </table>
+      </div>
+
+    </section>
+
+  </main>
+
+  <script>
+
+    const STORAGE_KEYS = {
+      sheetUrl: "abersoch-sheet-url",
+      progress: "abersoch-elector-progress-v1",
+      areaOverrides: "abersoch-area-overrides-v1",
+      currentListFilter: "abersoch-current-list-filter"
+    };
+
+    const DEFAULT_SHEET_URL =
+      "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/edit?usp=sharing";
+
+    // Hard cap on the number of records the Current List will ever
+    // render, regardless of how many electors match the active filters.
+    const MAX_RECORDS = 1999;
+
+    // Words that should never appear in address fields - these are the
+    // town/county names that are already covered by the dedicated Post
+    // Town field, so repeating them here is just noise/duplication.
+    const EXCLUDED_TOWN_WORDS = ["PWLLHELI", "GWYNEDD"];
+
+    const WELSH_LOWERCASE = new Set([
+      "a", "ac", "â", "i", "o", "y", "yr", "yn", "am", "ar", "at", "dan", "dros",
+      "drwy", "heb", "tan", "tros", "trwy", "wrth",
+      "a'r", "i'r", "o'r", "y'r", "yr", "â'r"
+    ]);
+
+    const messageEl =
+      document.getElementById("current-list-message");
+
+    const summaryEl =
+      document.getElementById("current-list-summary");
+
+    const bodyEl =
+      document.getElementById("current-list-body");
+
+    function loadFromStorage(key, fallback) {
+
+      try {
+
+        const raw = localStorage.getItem(key);
+
+        if (!raw) {
+          return fallback;
+        }
+
+        return JSON.parse(raw);
+
+      } catch (error) {
+        return fallback;
+      }
+
+    }
+
+    function toGoogleCsvUrl(rawUrl) {
+
+      if (
+        rawUrl.includes("output=csv") ||
+        rawUrl.includes("/export?format=csv")
+      ) {
+        return rawUrl;
+      }
+
+      const match = rawUrl.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+
+      if (!match) {
+        return rawUrl;
+      }
+
+      const sheetId = match[1];
+      const gidMatch = rawUrl.match(/[?&#]gid=([0-9]+)/);
+      const gid = gidMatch ? gidMatch[1] : "0";
+
+      return (
+        "https://docs.google.com/spreadsheets/d/" +
+        sheetId +
+        "/export?format=csv&gid=" +
+        gid
+      );
+
+    }
+
+    function parseCsv(csvText) {
+
+      const rows = [];
+      let row = [];
+      let value = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < csvText.length; i += 1) {
+
+        const char = csvText[i];
+        const next = csvText[i + 1];
+
+        if (char === "\"" && inQuotes && next === "\"") {
+          value += "\"";
+          i += 1;
+          continue;
+        }
+
+        if (char === "\"") {
+          inQuotes = !inQuotes;
+          continue;
+        }
+
+        if (char === "," && !inQuotes) {
+          row.push(value);
+          value = "";
+          continue;
+        }
+
+        if ((char === "\n" || char === "\r") && !inQuotes) {
+
+          if (char === "\r" && next === "\n") {
+            i += 1;
+          }
+
+          row.push(value);
+          rows.push(row);
+          row = [];
+          value = "";
+          continue;
+
+        }
+
+        value += char;
+
+      }
+
+      if (value.length || row.length) {
+        row.push(value);
+        rows.push(row);
+      }
+
+      return rows;
+
+    }
+
+    function normalizeHeader(value) {
+      return (value || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+    }
+
+    function normalizeText(value) {
+      return String(value || "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function formatPostalProxy(value) {
+
+      const cleaned = String(value || "").trim();
+      const normalized = normalizeText(cleaned);
+
+      if (!normalized) {
+        return "";
+      }
+
+      if (normalized.includes("postal")) {
+        return "Postal";
+      }
+
+      if (normalized.includes("proxy")) {
+        return "Proxy";
+      }
+
+      return cleaned;
+
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    // Splits a raw address value on commas (address columns sometimes
+    // contain an embedded comma, e.g. "BODORWEL,BWLCH"), drops any
+    // segment matching an excluded town/county word (already covered
+    // by the dedicated Post Town field), and rejoins the remainder.
+    function stripExcludedTownWords(value) {
+
+      return String(value || "")
+        .split(",")
+        .map(segment => segment.trim())
+        .filter(Boolean)
+        .filter(segment => !EXCLUDED_TOWN_WORDS.includes(segment.toUpperCase()))
+        .join(", ");
+
+    }
+
+    // Converts an ALL CAPS address string into Welsh-aware sentence
+    // case, leaving common short Welsh words (e.g. "gyda", "yn") in
+    // lower case when they are not the first word.
+    function welshProperCase(str) {
+
+      if (!str) {
+        return str;
+      }
+
+      return str
+        .toLowerCase()
+        .replace(/\S+/g, (word, offset) => {
+
+          const core =
+            word
+              .replace(/^[^a-zA-Z']+|[^a-zA-Z']+$/g, "")
+              .toLowerCase();
+
+          if (offset > 0 && WELSH_LOWERCASE.has(core)) {
+            return word;
+          }
+
+          return word.replace(/[a-zA-Z]/, ch => ch.toUpperCase());
+
+        });
+
+    }
+
+    // Address 3 through Address 9 (spreadsheet columns D-J) are combined
+    // into a single "Address Line 3" field, with the town/county words
+    // that duplicate the Post Town field stripped out.
+    function buildAddressLine3(data) {
+
+      const fields = [
+        "address3", "address4", "address5",
+        "address6", "address7", "address8", "address9"
+      ];
+
+      const segments =
+        fields
+          .map(field => stripExcludedTownWords(data[field]))
+          .filter(Boolean);
+
+      return welshProperCase(segments.join(", "));
+
+    }
+
+    function formatHouseholdArea(elector) {
+
+      if (!elector) {
+        return "";
+      }
+
+      const line1 = String(elector.addressLine1 || "").trim();
+      const line2 = String(elector.addressLine2 || "").trim();
+
+      const segments =
+        [line1, line2]
+          .filter(Boolean)
+          .join(",")
+          .split(",")
+          .map(segment => segment.trim())
+          .filter(Boolean);
+
+      const firstToken =
+        segments[0] ? segments[0].split(/\s+/)[0] : "";
+
+      const hasNumber = /\d/.test(firstToken);
+
+      function stripLeadingNumber(segment) {
+        if (!segment) {
+          return "";
+        }
+        const token = segment.split(/\s+/)[0];
+        if (/\d/.test(token)) {
+          return segment.slice(token.length).trim();
+        }
+        return segment;
+      }
+
+      let area;
+
+      if (hasNumber) {
+        area =
+          (
+            stripLeadingNumber(segments[0]) ||
+            stripLeadingNumber(segments[1] || "") ||
+            ""
+          ).toUpperCase();
+      } else {
+        area =
+          stripLeadingNumber(segments[1] || segments[0] || "")
+            .toUpperCase();
+      }
+
+      if (!area) {
+        return "";
+      }
+
+      const unnamedRoadTowns = [
+        "ABERSOCH",
+        "MYNYTHO",
+        "LLANBEDROG",
+        "SARN",
+        "LLANENGAN"
+      ];
+
+      if (unnamedRoadTowns.includes(area)) {
+        area += " (UNNAMED ROAD)";
+      }
+
+      return area;
+
+    }
+
+    function mapRowToElector(row, headers, index) {
+
+      const data = {};
+
+      headers.forEach((header, idx) => {
+        data[header] = (row[idx] || "").trim();
+      });
+
+      const sourceRow = index + 2;
+
+      const id =
+        data.electorid ||
+        row[20] ||
+        ("row-" + sourceRow);
+
+      const name =
+        data.electorname ||
+        data.name ||
+        data.elector ||
+        "";
+
+      return {
+
+        id: String(id),
+
+        name,
+
+        householdId:
+          data.householdid ||
+          row[19] ||
+          "",
+
+        addressLine1: welshProperCase(stripExcludedTownWords(data.address1)),
+
+        addressLine2: welshProperCase(stripExcludedTownWords(data.address2)),
+
+        addressLine3: buildAddressLine3(data),
+
+        postcode: data.postcode || "",
+
+        postalProxy:
+          formatPostalProxy(
+            data.postalproxy ||
+            data.postalorproxy ||
+            row[17] ||
+            ""
+          ),
+
+        ward:
+          data.ward ||
+          data.electoralward ||
+          row[33] ||
+          "",
+
+        pollingDistrict:
+          data.pollingdistrict ||
+          data.pollingdist ||
+          data.district ||
+          data.pd ||
+          row[15] ||
+          "",
+
+        pollingElectorNumber:
+          data.electornumber ||
+          data.electorno ||
+          data.electornum ||
+          row[16] ||
+          "",
+
+        deliveryOrder:
+          data.deliveryorder ||
+          row[38] ||
+          "",
+
+        householdGroupKey:
+          normalizeText(
+            data.householdkey ||
+            data.key ||
+            row[11] ||
+            ""
+          )
+
+      };
+
+    }
+
+    function getElectorProgress(electorId, progress) {
+
+      const existing = progress[electorId] || {};
+
+      return {
+        canvassId: existing.canvassId || existing.status || "No Data",
+        supportIndependence: existing.supportIndependence || "No Data",
+        firstLanguage: existing.firstLanguage || "English",
+        phone: existing.phone || "",
+        email: existing.email || "",
+        doNotDeliver: Boolean(existing.doNotDeliver),
+        doNotContact: Boolean(existing.doNotContact)
+      };
+
+    }
+
+    function hasAntiPlaidFlag(progress) {
+      return Boolean(progress && (progress.doNotDeliver || progress.doNotContact));
+    }
+
+    async function init() {
+
+      const sheetUrl =
+        localStorage.getItem(STORAGE_KEYS.sheetUrl) ||
+        DEFAULT_SHEET_URL;
+
+      const filterState =
+        loadFromStorage(STORAGE_KEYS.currentListFilter, {});
+
+      const progress =
+        loadFromStorage(STORAGE_KEYS.progress, {});
+
+      const areaOverrides =
+        loadFromStorage(STORAGE_KEYS.areaOverrides, {});
+
+      messageEl.textContent = "Loading electors...";
+
+      try {
+
+        const csvUrl = toGoogleCsvUrl(sheetUrl);
+        const response = await fetch(csvUrl);
+
+        if (!response.ok) {
+          throw new Error("Could not fetch sheet data.");
+        }
+
+        const csvText = await response.text();
+        const rows = parseCsv(csvText);
+        const headers = rows[0].map(h => normalizeHeader(h));
+
+        const electors =
+          rows
+            .slice(1)
+            .map((row, index) => mapRowToElector(row, headers, index))
+            .filter(e => e.name);
+
+        const wantedPollingDistrict =
+          normalizeText(filterState.pollingDistrict || "");
+
+        const wantedFilterType =
+          filterState.filterType || "";
+
+        const filtered =
+          electors.filter(elector => {
+
+            if (
+              wantedPollingDistrict &&
+              normalizeText(elector.pollingDistrict) !== wantedPollingDistrict
+            ) {
+              return false;
+            }
+
+            if (wantedFilterType === "postal-proxy") {
+              if (
+                elector.postalProxy !== "Postal" &&
+                elector.postalProxy !== "Proxy"
+              ) {
+                return false;
+              }
+            }
+
+            const electorProgress =
+              getElectorProgress(elector.id, progress);
+
+            if (hasAntiPlaidFlag(electorProgress)) {
+              return false;
+            }
+
+            return true;
+
+          });
+
+        filtered.sort((a, b) => {
+
+          const districtA = normalizeText(a.pollingDistrict);
+          const districtB = normalizeText(b.pollingDistrict);
+
+          if (districtA !== districtB) {
+            return districtA < districtB ? -1 : 1;
+          }
+
+          const enoA = parseFloat(a.pollingElectorNumber);
+          const enoB = parseFloat(b.pollingElectorNumber);
+
+          if (!isNaN(enoA) && !isNaN(enoB)) {
+            return enoA - enoB;
+          }
+
+          return String(a.pollingElectorNumber).localeCompare(
+            String(b.pollingElectorNumber)
+          );
+
+        });
+
+        const totalMatched = filtered.length;
+        const truncated = totalMatched > MAX_RECORDS;
+        const shownElectors = filtered.slice(0, MAX_RECORDS);
+
+        renderTable(shownElectors, progress, areaOverrides);
+
+        messageEl.textContent = "";
+
+        const householdCount =
+          new Set(
+            shownElectors.map(e => e.householdGroupKey)
+          ).size;
+
+        summaryEl.textContent =
+          shownElectors.length +
+          " elector" + (shownElectors.length === 1 ? "" : "s") +
+          " shown (" +
+          householdCount +
+          " household" + (householdCount === 1 ? "" : "s") +
+          ")." +
+          (
+            truncated
+              ? " Only the first " + MAX_RECORDS + " records are shown (" +
+                totalMatched + " matched)."
+              : ""
+          );
+
+      } catch (error) {
+        messageEl.textContent = "Unable to load sheet: " + error.message;
+      }
+
+    }
+
+    function renderTable(electors, progress, areaOverrides) {
+
+      bodyEl.innerHTML =
+        electors.map(elector => {
+
+          const electorProgress =
+            getElectorProgress(elector.id, progress);
+
+          const roadArea =
+            areaOverrides[elector.householdGroupKey] !== undefined
+              ? areaOverrides[elector.householdGroupKey]
+              : formatHouseholdArea(elector);
+
+          const cells = [
+            elector.householdId,
+            elector.id,
+            elector.name,
+            elector.addressLine1,
+            elector.addressLine2,
+            elector.addressLine3,
+            "PWLLHELI",
+            elector.postcode,
+            elector.postalProxy,
+            roadArea,
+            elector.deliveryOrder,
+            electorProgress.canvassId,
+            electorProgress.supportIndependence,
+            electorProgress.firstLanguage,
+            electorProgress.phone,
+            electorProgress.email,
+            elector.pollingDistrict,
+            elector.pollingElectorNumber,
+            elector.ward
+          ];
+
+          return (
+            "<tr>" +
+            cells.map(cell => "<td>" + escapeHtml(cell || "") + "</td>").join("") +
+            "</tr>"
+          );
+
+        }).join("");
+
+    }
+
+    init();
+
+  </script>
+
+</body>
+</html>
