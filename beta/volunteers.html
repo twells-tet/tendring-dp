@@ -379,7 +379,9 @@
 
       if (pollingDistrictDisplay) {
         pollingDistrictDisplay.textContent =
-          match ? match.pollingDistrict : "";
+          match && match.pollingDistrict
+            ? "Polling District: " + match.pollingDistrict
+            : "";
       }
 
       if (save) {
