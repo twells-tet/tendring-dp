@@ -574,6 +574,22 @@ const state = {
   currentMapElector: null
 };
 
+// Seed a demo poster scenario (Joe Bloggs wants a garden poster, Jane
+// Smith at the same address wants a window poster) so the Poster Sites
+// "Both" merge behaviour is always visible for display purposes on a
+// completely fresh browser/localStorage. This only runs once, on first
+// load with no saved progress, and never overwrites real user data.
+if (Object.keys(state.progress).length === 0) {
+
+  state.progress = {
+    "836408391": { poster: "Poster: Garden" },
+    "836408392": { poster: "Poster: Window" }
+  };
+
+  saveToStorage(STORAGE_KEYS.progress, state.progress);
+
+}
+
 
 
 const sheetUrlInput =
