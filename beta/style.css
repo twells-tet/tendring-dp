@@ -1277,6 +1277,32 @@ body.mobile-mode .elector-list {
   background: var(--surface);
 }
 
+.anti-plaid-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin: 0.15rem 0 0.15rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid #d33;
+  border-radius: 0.5rem;
+  background: #fff5f5;
+}
+
+.anti-plaid-heading {
+  margin: 0;
+  font-weight: 700;
+  color: #c00;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.03em;
+}
+
+.anti-plaid-mark {
+  color: #d33;
+  font-weight: 700;
+}
+
 .checkbox-label {
   display: flex !important;
   flex-direction: row !important;

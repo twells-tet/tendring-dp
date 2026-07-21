@@ -1566,6 +1566,12 @@ function renderElectorList() {
     "household-panel";
 
 
+  const householdHasAntiPlaid =
+    household.electors.some(
+      e => hasAntiPlaidFlag(getElectorProgress(e.id))
+    );
+
+
 
   panel.innerHTML =
   `
@@ -1607,7 +1613,17 @@ function renderElectorList() {
 
       <p>
         <strong>Address:</strong>
+        ${
+          householdHasAntiPlaid
+          ? '<span class="anti-plaid-mark">!</span> '
+          : ""
+        }
         ${escapeHtml(formatHouseholdAddress(firstElector))}
+        ${
+          householdHasAntiPlaid
+          ? ' <span class="anti-plaid-mark">!</span>'
+          : ""
+        }
       </p>
 
 
@@ -1658,6 +1674,12 @@ function renderElectorList() {
 
 
         <h3>
+          ${
+            hasAntiPlaidFlag(progress)
+            ? '<span class="anti-plaid-mark">!</span> '
+            : ""
+          }
+
           ${escapeHtml(
             elector.name ||
             "Unnamed elector"
@@ -1666,6 +1688,12 @@ function renderElectorList() {
           ${
             elector.postalProxy === "Postal"
             ? " *"
+            : ""
+          }
+
+          ${
+            hasAntiPlaidFlag(progress)
+            ? ' <span class="anti-plaid-mark">!</span>'
             : ""
           }
 
@@ -1856,6 +1884,31 @@ function renderElectorList() {
           </select>
 
         </label>
+
+
+        <div class="anti-plaid-checkboxes">
+
+          <p class="anti-plaid-heading">Anti-Plaid</p>
+
+          <label class="checkbox-label">
+            <input
+            type="checkbox"
+            class="do-not-deliver-checkbox"
+            data-id="${escapeHtmlAttr(elector.id)}"
+            ${progress.doNotDeliver ? "checked" : ""}>
+            DO NOT DELIVER
+          </label>
+
+          <label class="checkbox-label">
+            <input
+            type="checkbox"
+            class="do-not-contact-checkbox"
+            data-id="${escapeHtmlAttr(elector.id)}"
+            ${progress.doNotContact ? "checked" : ""}>
+            DO NOT CONTACT
+          </label>
+
+        </div>
 
 
       </div>
@@ -2231,6 +2284,12 @@ function bindProgressEditors() {
   const askVolunteerInputs =
     listEl.querySelectorAll(".ask-volunteer-checkbox");
 
+  const doNotDeliverInputs =
+    listEl.querySelectorAll(".do-not-deliver-checkbox");
+
+  const doNotContactInputs =
+    listEl.querySelectorAll(".do-not-contact-checkbox");
+
   canvassInputs.forEach(input => {
 
     input.addEventListener("change", event => {
@@ -2412,7 +2471,67 @@ function bindProgressEditors() {
 
   });
 
+  doNotDeliverInputs.forEach(input => {
+
+    input.addEventListener("change", event => {
+
+      const id = event.target.dataset.id;
+
+      propagateAntiPlaidFlag(id, "doNotDeliver", event.target.checked);
+
+      renderElectorList();
+
+    });
+
+  });
+
+  doNotContactInputs.forEach(input => {
+
+    input.addEventListener("change", event => {
+
+      const id = event.target.dataset.id;
+
+      propagateAntiPlaidFlag(id, "doNotContact", event.target.checked);
+
+      renderElectorList();
+
+    });
+
+  });
+
 }
+
+// Ticking DO NOT DELIVER / DO NOT CONTACT for one elector applies the same
+// flag to every other elector in the same household.
+function propagateAntiPlaidFlag(electorId, field, value) {
+
+  const source =
+    getActiveElectors().find(
+      elector => elector.id === electorId
+    );
+
+  if (!source) {
+    return;
+  }
+
+  const household =
+    getFullHousehold(source.householdGroupKey);
+
+  household.electors.forEach(elector => {
+
+    const existing = getElectorProgress(elector.id);
+
+    state.progress[elector.id] = {
+      ...existing,
+      [field]: value
+    };
+
+  });
+
+  saveToStorage(STORAGE_KEYS.progress, state.progress);
+
+}
+
 
 
 function updatePropertyMap(elector) {
@@ -2782,6 +2901,8 @@ function getElectorProgress(electorId) {
   const poster = existing.poster || "No Poster";
   const volunteer = Boolean(existing.volunteer);
   const askToVolunteer = Boolean(existing.askToVolunteer);
+  const doNotDeliver = Boolean(existing.doNotDeliver);
+  const doNotContact = Boolean(existing.doNotContact);
 
   return {
     canvassId:
@@ -2797,8 +2918,20 @@ function getElectorProgress(electorId) {
     poster:
       posterOptions.includes(poster) ? poster : "No Poster",
     volunteer,
-    askToVolunteer: volunteer ? false : askToVolunteer
+    askToVolunteer: volunteer ? false : askToVolunteer,
+    doNotDeliver,
+    doNotContact
   };
+
+}
+
+
+function hasAntiPlaidFlag(progress) {
+
+  return Boolean(
+    progress &&
+    (progress.doNotDeliver || progress.doNotContact)
+  );
 
 }
 
