@@ -395,9 +395,11 @@
       const perPage = 21;
       let html = "";
 
-      for (let i = 0; i < sortedElectors.length; i += perPage) {
+      const labelElectors = sortedElectors.slice(0, 336);
 
-        const pageElectors = sortedElectors.slice(i, i + perPage);
+      for (let i = 0; i < labelElectors.length; i += perPage) {
+
+        const pageElectors = labelElectors.slice(i, i + perPage);
 
         html +=
           "<div class=\"label-page\">" +
@@ -408,7 +410,7 @@
 
       }
 
-      if (!sortedElectors.length) {
+      if (!labelElectors.length) {
         html =
           "<p class=\"empty-state\">No electors match this filter for the selected polling district.</p>";
       }
