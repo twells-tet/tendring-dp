@@ -2207,12 +2207,10 @@ function updatePropertyMap(elector) {
 
   state.currentMapElector = elector || null;
 
-  propertyFullAddressEl.textContent =
-    elector
-      ? formatHouseholdAddress(elector).toUpperCase()
-      : "—";
-
   if (state.showingWardBoundary) {
+
+    propertyFullAddressEl.textContent =
+      "ABERSOCH GYDA LLANENGAN ELECTORAL DIVISION";
 
     toggleWardBoundaryEl.textContent =
       "View Property Location";
@@ -2235,6 +2233,11 @@ function updatePropertyMap(elector) {
 
   toggleWardBoundaryEl.textContent =
     "View Ward Boundary";
+
+  propertyFullAddressEl.textContent =
+    elector
+      ? formatHouseholdAddress(elector).toUpperCase()
+      : "—";
 
   mapAttributionOsmEl.hidden = false;
   mapAttributionWardEl.hidden = true;
