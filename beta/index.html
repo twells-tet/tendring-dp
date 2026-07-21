@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Tarian | Electors</title>
   <meta name="description" content="Gwynedd council election canvassing tool — elector list by ward and polling district.">
+  <link rel="icon" type="image/svg+xml" href="tarian-shield.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -16,6 +17,7 @@
 
   <div id="pin-gate" class="pin-gate">
     <div class="pin-gate-box">
+      <img src="tarian-shield.svg" alt="" class="pin-gate-logo">
       <h2>TARIAN</h2>
       <p>Enter the 6-digit PIN to continue.</p>
       <form id="pin-gate-form" autocomplete="off">
@@ -36,11 +38,14 @@
 
   <header class="page-header" id="top">
     <button type="button" class="language-toggle" id="language-toggle">Cymraeg</button>
+    <img src="tarian-shield.svg" alt="" class="page-header-logo">
     <h1>TARIAN</h1>
     <p class="page-subtitle">Prototype Voter Contact Database</p>
   </header>
 
   <main class="app-shell">
+
+    <h2 class="section-heading">Create a List of Electors</h2>
 
     <section class="controls" aria-label="Filters">
 
@@ -250,7 +255,7 @@
         Filter
         <select id="filter-type">
           <option value="">No filter</option>
-          <option value="postal-proxy">Postal/Proxy Voters</option>
+          <option value="postal-proxy">Postal Voters</option>
           <option value="supporters" disabled>Supporters</option>
           <option value="switch" disabled>Switch</option>
           <option value="squeeze" disabled>Squeeze</option>
@@ -265,6 +270,8 @@
           <option value="voted-leave-2016" disabled>Voted Leave 2016</option>
         </select>
       </label>
+
+      <button type="button" id="add-another-filter" class="add-filter-button">Add Another Filter</button>
 
     </section>
 
@@ -1359,29 +1366,8 @@ function buildHouseholdDisplayId(
 function renderElectorList() {
 
 
-  const filterType =
-    filterTypeEl.value;
-
-
-
   const filteredElectors =
-    getActiveElectors()
-      .filter(elector => {
-
-
-        if (filterType === "postal-proxy") {
-
-          return (
-            elector.postalProxy === "Postal" ||
-            elector.postalProxy === "Proxy"
-          );
-
-        }
-
-
-        return true;
-
-      });
+    getFilteredActiveElectors();
 
 
 
@@ -2505,19 +2491,19 @@ function buildAiComments(household) {
 
       sentences.push(
         names[0] +
-        " does not have a postal or proxy vote."
+        " does not have a postal vote."
       );
 
     } else if (names.length === 2) {
 
       sentences.push(
-        "Neither elector has a postal or proxy vote."
+        "Neither elector has a postal vote."
       );
 
     } else {
 
       sentences.push(
-        "None of the electors have a postal or proxy vote."
+        "None of the electors have a postal vote."
       );
 
     }
@@ -2527,15 +2513,11 @@ function buildAiComments(household) {
     const parts =
       postalProxyEntries.map(entry => {
 
-        if (entry.status === "Postal") {
+        if (entry.status === "Postal" || entry.status === "Proxy") {
           return entry.name + " has a postal vote";
         }
 
-        if (entry.status === "Proxy") {
-          return entry.name + " has a proxy vote";
-        }
-
-        return entry.name + " does not have a postal or proxy vote";
+        return entry.name + " does not have a postal vote";
 
       });
 
@@ -2576,7 +2558,7 @@ function numberToWords(value) {
 
 function updateStats() {
 
-  const active = getActiveElectors();
+  const active = getFilteredActiveElectors();
 
   const householdCount =
     new Set(
@@ -2685,6 +2667,29 @@ function getActiveElectors() {
 
     if (pollingDistrict && electorPollingDistrict && electorPollingDistrict !== pollingDistrict) {
       return false;
+    }
+
+    return true;
+
+  });
+
+}
+
+
+function getFilteredActiveElectors() {
+
+  const filterType =
+    filterTypeEl.value;
+
+  return getActiveElectors().filter(elector => {
+
+    if (filterType === "postal-proxy") {
+
+      return (
+        elector.postalProxy === "Postal" ||
+        elector.postalProxy === "Proxy"
+      );
+
     }
 
     return true;
