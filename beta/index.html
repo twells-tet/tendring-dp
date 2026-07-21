@@ -275,7 +275,7 @@
         </select>
       </label>
 
-      <button type="button" id="add-another-filter" class="add-filter-button">Add Another Filter</button>
+      <button type="button" id="add-another-filter" class="add-filter-button">Add Filter</button>
 
     </section>
 
@@ -638,7 +638,8 @@ const state = {
   ),
   householdPageIndex: 0,
   showingWardBoundary: false,
-  currentMapElector: null
+  currentMapElector: null,
+  expandedHouseholdElectorNav: new Set()
 };
 
 // Seed a demo poster scenario (Joe Bloggs wants a garden poster, Jane
@@ -1823,6 +1824,13 @@ function renderElectorList() {
         ${escapeHtml(formatPollingDistrictSummary(firstElector))}
       </p>
 
+      <p class="household-elector-nav-row">
+        <strong>Household:</strong>
+        <span class="household-elector-nav">
+          ${buildHouseholdElectorNav(household.electors)}
+        </span>
+      </p>
+
     </div>
   `;
 
@@ -1851,6 +1859,9 @@ function renderElectorList() {
       item.className =
         "elector-item";
 
+
+      item.id =
+        "elector-" + elector.id;
 
 
       item.innerHTML =
@@ -2124,6 +2135,9 @@ function renderElectorList() {
   );
 
 
+  bindHouseholdElectorNav();
+
+
   bindProgressEditors();
 
 
@@ -2211,6 +2225,65 @@ function bindHouseholdNavigation(totalHouseholds) {
 
       }
     );
+
+  });
+
+}
+
+
+// Wires up the horizontal household elector quick-jump list rendered
+// next to Property ID/Address/Polling District: name links scroll
+// straight to the matching elector card below, and the "N more" toggle
+// expands the list in place to reveal the rest of the household.
+function bindHouseholdElectorNav() {
+
+  const links =
+    listEl.querySelectorAll(
+      ".household-elector-link"
+    );
+
+  links.forEach(link => {
+
+    link.addEventListener("click", () => {
+
+      const targetId = link.dataset.target;
+      const targetEl = document.getElementById(targetId);
+
+      if (!targetEl) {
+        return;
+      }
+
+      targetEl.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+
+      targetEl.classList.add("elector-item-highlight");
+
+      window.setTimeout(() => {
+        targetEl.classList.remove("elector-item-highlight");
+      }, 1500);
+
+    });
+
+  });
+
+  const moreButtons =
+    listEl.querySelectorAll(
+      ".household-elector-more"
+    );
+
+  moreButtons.forEach(button => {
+
+    button.addEventListener("click", () => {
+
+      const householdKey = button.dataset.householdKey;
+
+      state.expandedHouseholdElectorNav.add(householdKey);
+
+      renderElectorList();
+
+    });
 
   });
 
@@ -2426,6 +2499,55 @@ function formatPollingDistrictSummary(elector) {
   }
 
   return String(elector.pollingDistrict || "").trim() || "—";
+
+}
+
+
+// Renders a horizontal list of hyperlinked elector names for the
+// current household so the user can jump straight to any elector's
+// record below. Shows at most 4 slots: if there are more than 4
+// electors, the first 3 are shown as named links and the 4th slot
+// becomes a "N more" toggle that expands to reveal the rest.
+function buildHouseholdElectorNav(electors) {
+
+  if (!electors || !electors.length) {
+    return "—";
+  }
+
+  const householdKey =
+    electors[0].householdGroupKey || "";
+
+  const isExpanded =
+    state.expandedHouseholdElectorNav.has(householdKey);
+
+  const buildLink = elector =>
+    `
+    <button
+    type="button"
+    class="household-elector-link"
+    data-target="elector-${escapeHtmlAttr(elector.id)}">
+    ${escapeHtml(elector.name || "Unnamed elector")}
+    </button>
+    `;
+
+  if (electors.length <= 4 || isExpanded) {
+    return electors.map(buildLink).join("");
+  }
+
+  const visible = electors.slice(0, 3);
+  const remaining = electors.length - visible.length;
+
+  return (
+    visible.map(buildLink).join("") +
+    `
+    <button
+    type="button"
+    class="household-elector-more"
+    data-household-key="${escapeHtmlAttr(householdKey)}">
+    ${remaining} more
+    </button>
+    `
+  );
 
 }
 

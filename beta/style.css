@@ -1355,6 +1355,55 @@ body.mobile-mode .elector-list {
   color: var(--text);
 }
 
+.household-elector-nav-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.household-elector-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.household-elector-link,
+.household-elector-more {
+  border: 1px solid var(--plaid-green);
+  background: var(--surface);
+  color: var(--plaid-green);
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.household-elector-link:hover,
+.household-elector-more:hover {
+  background: var(--plaid-green);
+  color: #fff;
+}
+
+.household-elector-more {
+  border-style: dashed;
+}
+
+.elector-item-highlight {
+  animation: elector-item-highlight-pulse 1.5s ease;
+}
+
+@keyframes elector-item-highlight-pulse {
+  0% {
+    box-shadow: 0 0 0 3px var(--plaid-green);
+  }
+  100% {
+    box-shadow: none;
+  }
+}
+
 .empty-state {
   margin: 0;
   padding: 0.75rem;
