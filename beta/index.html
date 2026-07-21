@@ -448,7 +448,7 @@
           type="text"
           id="what3words-input"
           placeholder="///example.words.here">
-        <button type="button" id="what3words-save" disabled>Save</button>
+        <button type="button" id="what3words-save" disabled>Search</button>
       </div>
 
       <div class="manual-coords-row">
@@ -627,7 +627,7 @@ const state = {
 if (Object.keys(state.progress).length === 0) {
 
   state.progress = {
-    "836408391": { poster: "Poster: Garden" },
+    "836408391": { poster: "Poster: Garden", partyMember: "Current" },
     "836408392": { poster: "Poster: Window" }
   };
 
@@ -1933,7 +1933,7 @@ function renderElectorList() {
           </label>
 
           <p class="anti-plaid-warning">
-            Warning: ticking one or both boxes will also apply this marker to every elector in the household
+            Ticking one or both boxes will also apply this marker to every elector in the household
           </p>
 
         </div>

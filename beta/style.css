@@ -1011,7 +1011,8 @@ body.mobile-mode .elector-list {
 
 .property-full-address {
   margin: 0 0 0.75rem;
-  font-size: 0.75rem;
+  font-size: 0.68rem;
+  font-style: normal;
   color: var(--text-muted);
   text-transform: uppercase;
   display: flex;
@@ -1345,8 +1346,7 @@ body.mobile-mode .elector-list {
 .anti-plaid-warning {
   flex-basis: 100%;
   margin: 0.15rem 0 0;
-  font-size: 0.7rem;
-  font-style: italic;
+  font-size: 0.65rem;
   color: #a00;
 }
 
