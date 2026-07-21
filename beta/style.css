@@ -299,6 +299,10 @@ body.pin-locked > *:not(#pin-gate) {
   color: var(--text-muted);
 }
 
+.mapping-attribution a {
+  color: var(--plaid-green-dark);
+}
+
 .back-to-top {
   margin: 0.5rem auto 0;
   font-size: 0.72rem;
@@ -971,6 +975,33 @@ body.mobile-mode .elector-list {
   font-size: 0.75rem;
   color: var(--text-muted);
   text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.centre-map-button {
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--plaid-green-dark);
+  border-radius: 0.4rem;
+  padding: 0.2rem 0.5rem;
+  font: inherit;
+  font-size: 0.7rem;
+  text-transform: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.centre-map-button:hover {
+  background: var(--plaid-green);
+  color: #fff;
+}
+
+.map-panel--hidden .centre-map-button {
+  display: none;
 }
 
 .map-panel--hidden .ward-preview-crop {
@@ -982,6 +1013,10 @@ body.mobile-mode .elector-list {
 }
 
 .map-panel--hidden .map-attribution {
+  display: none;
+}
+
+.map-panel--hidden .map-household-nav {
   display: none;
 }
 
@@ -1141,6 +1176,15 @@ body.mobile-mode .elector-list {
 .household-nav-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.map-household-nav {
+  margin-top: 0.75rem;
+  margin-bottom: 0;
+}
+
+.map-household-nav-btn {
+  text-transform: uppercase;
 }
 
 .household-meta p {

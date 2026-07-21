@@ -298,7 +298,10 @@
           </button>
         </div>
 
-        <p id="property-full-address" class="property-full-address">—</p>
+        <p id="property-full-address" class="property-full-address">
+          <span id="property-full-address-text">—</span>
+          <button type="button" id="centre-map-button" class="centre-map-button">Centre map</button>
+        </p>
 
         <div class="ward-preview-crop">
           <iframe
@@ -317,11 +320,27 @@
             class="coords-edit-link">edit location of property</a>
         </p>
 
-        <p id="map-attribution-osm" class="map-attribution">
-          Data from OpenStreetMap. &copy; OpenStreetMap contributors, available under the
-          Open Database Licence.
-          See openstreetmap.org/copyright.
-        </p>
+        <div class="household-nav map-household-nav" id="map-household-nav">
+
+          <button
+            type="button"
+            id="map-prev-household"
+            class="household-nav-btn map-household-nav-btn"
+            disabled>
+            &lt; Previous
+          </button>
+
+          <p id="map-household-count">Household —</p>
+
+          <button
+            type="button"
+            id="map-next-household"
+            class="household-nav-btn map-household-nav-btn"
+            disabled>
+            Next &gt;
+          </button>
+
+        </div>
 
 
         <div class="ai-comments-box" aria-label="AI Comments">
@@ -442,9 +461,17 @@
       All voting intention data and other records are fictitious.
     </p>
     <p class="mapping-attribution">
-      Mapping: Uses OS OpenData (see licence) and OpenStreetMap data. Map data &copy; OpenStreetMap
-      contributors, CC-BY-SA. Tiles courtesy of MapBox. Contains Ordnance
-      Survey data &copy; Crown copyright and database right 2026. Contains Royal Mail data
+      Mapping Data: Data from OpenStreetMap. &copy;
+      <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>,
+      available under the Open Database Licence.
+      See <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">openstreetmap.org/copyright</a> - as Uses
+      <a href="https://www.ordnancesurvey.co.uk/products/os-open-data" target="_blank" rel="noopener">OS OpenData (see licence)</a>
+      and OpenStreetMap data. Map data &copy;
+      <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>,
+      <a href="https://creativecommons.org/licenses/by-sa/2.0/" target="_blank" rel="noopener">CC-BY-SA</a>.
+      Tiles courtesy of MapBox
+      (<a href="https://www.openstreetmap.org/edit" target="_blank" rel="noopener">Improve this map</a>).
+      Contains Ordnance Survey data &copy; Crown copyright and database right 2026. Contains Royal Mail data
       &copy; Royal Mail copyright and database right 2026. Contains National Statistics data
       &copy; Crown copyright and database right 2026.
     </p>
@@ -626,7 +653,10 @@ const wardPreviewCoordsEl =
   document.getElementById("ward-preview-coords");
 
 const propertyFullAddressEl =
-  document.getElementById("property-full-address");
+  document.getElementById("property-full-address-text");
+
+const centreMapButtonEl =
+  document.getElementById("centre-map-button");
 
 const mapPanelEl =
   document.getElementById("map-panel");
@@ -637,8 +667,14 @@ const toggleMapEl =
 const toggleWardBoundaryEl =
   document.getElementById("toggle-ward-boundary");
 
-const mapAttributionOsmEl =
-  document.getElementById("map-attribution-osm");
+const mapPrevHouseholdEl =
+  document.getElementById("map-prev-household");
+
+const mapNextHouseholdEl =
+  document.getElementById("map-next-household");
+
+const mapHouseholdCountEl =
+  document.getElementById("map-household-count");
 
 const aiCommentsEl =
   document.getElementById("ai-comments-text");
@@ -888,6 +924,10 @@ function initControls() {
 
 
   updateStats();
+
+  bindMapHouseholdNavigation();
+
+  bindCentreMapButton();
 
   const mobileToggleEl =
     document.getElementById("mobile-toggle");
@@ -1463,6 +1503,9 @@ function renderElectorList() {
     updateDeliveryDetails(null);
 
 
+    updateMapHouseholdNav(0, 0);
+
+
     updateStats();
 
     return;
@@ -1503,6 +1546,12 @@ function renderElectorList() {
 
   updateDeliveryDetails(
     firstElector
+  );
+
+
+  updateMapHouseholdNav(
+    state.householdPageIndex,
+    households.length
   );
 
 
@@ -1919,6 +1968,79 @@ function bindHouseholdNavigation(totalHouseholds) {
 }
 
 
+// Resets the OpenStreetMap embed back to its default, property-centred
+// view — undoing any manual pan/zoom the user has done inside the iframe.
+function bindCentreMapButton() {
+
+  if (!centreMapButtonEl) {
+    return;
+  }
+
+  centreMapButtonEl.addEventListener("click", () => {
+    updatePropertyMap(state.currentMapElector);
+  });
+
+}
+
+
+// Wires the separate previous/next household controls that sit under the
+// map panel. Bound once at startup (the buttons are static markup, not
+// re-created on every render), and always reads the current filtered
+// household count at click time so it stays in sync with active filters.
+function bindMapHouseholdNavigation() {
+
+  if (!mapPrevHouseholdEl || !mapNextHouseholdEl) {
+    return;
+  }
+
+  mapPrevHouseholdEl.addEventListener("click", () => {
+
+    if (state.householdPageIndex > 0) {
+      state.householdPageIndex -= 1;
+      renderElectorList();
+    }
+
+  });
+
+  mapNextHouseholdEl.addEventListener("click", () => {
+
+    const totalHouseholds =
+      buildVisibleHouseholds(
+        getFilteredActiveElectors()
+      ).length;
+
+    if (state.householdPageIndex < totalHouseholds - 1) {
+      state.householdPageIndex += 1;
+      renderElectorList();
+    }
+
+  });
+
+}
+
+
+function updateMapHouseholdNav(currentIndex, totalHouseholds) {
+
+  if (!mapPrevHouseholdEl || !mapNextHouseholdEl || !mapHouseholdCountEl) {
+    return;
+  }
+
+  if (!totalHouseholds) {
+    mapHouseholdCountEl.textContent = "Household —";
+    mapPrevHouseholdEl.disabled = true;
+    mapNextHouseholdEl.disabled = true;
+    return;
+  }
+
+  mapHouseholdCountEl.textContent =
+    "Household " + (currentIndex + 1) + " of " + totalHouseholds;
+
+  mapPrevHouseholdEl.disabled = currentIndex === 0;
+  mapNextHouseholdEl.disabled = currentIndex >= totalHouseholds - 1;
+
+}
+
+
 function welshProperCase(str) {
 
   if (!str) return str;
@@ -2305,8 +2427,6 @@ function updatePropertyMap(elector) {
     toggleWardBoundaryEl.textContent =
       "View Property Location";
 
-    mapAttributionOsmEl.hidden = true;
-
     wardPreviewEl.hidden = true;
     wardBoundaryMapEl.hidden = false;
     editLocationLinkEl.hidden = true;
@@ -2327,8 +2447,6 @@ function updatePropertyMap(elector) {
     elector
       ? formatHouseholdAddress(elector).toUpperCase()
       : "—";
-
-  mapAttributionOsmEl.hidden = false;
 
   wardPreviewEl.hidden = false;
   wardBoundaryMapEl.hidden = true;
