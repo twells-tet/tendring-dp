@@ -312,6 +312,9 @@
             loading="lazy">
           </iframe>
           <div id="ward-boundary-map" class="ward-boundary-map" hidden></div>
+          <p id="ward-boundary-error" class="ward-boundary-error" hidden>
+            Ward boundary could not be loaded from MapIt right now (the shared boundary service may be temporarily rate-limited). Please try again shortly.
+          </p>
         </div>
 
         <p class="map-coords">
@@ -681,6 +684,9 @@ const wardPreviewEl =
 
 const wardBoundaryMapEl =
   document.getElementById("ward-boundary-map");
+
+const wardBoundaryErrorEl =
+  document.getElementById("ward-boundary-error");
 
 const editLocationLinkEl =
   document.getElementById("edit-location-link");
@@ -2739,6 +2745,7 @@ function updatePropertyMap(elector) {
     wardPreviewEl.hidden = true;
     wardBoundaryMapEl.hidden = false;
     editLocationLinkEl.hidden = true;
+    wardBoundaryErrorEl.hidden = true;
 
     wardPreviewCoordsEl.textContent =
       "Ward boundary: Abersoch gyda Llanengan (W05001509)";
@@ -2760,6 +2767,7 @@ function updatePropertyMap(elector) {
   wardPreviewEl.hidden = false;
   wardBoundaryMapEl.hidden = true;
   editLocationLinkEl.hidden = false;
+  wardBoundaryErrorEl.hidden = true;
 
   wardPreviewEl.title =
     "Property location on OpenStreetMap";
@@ -2826,12 +2834,19 @@ function showWardBoundaryMap() {
   fetch(
     "https://mapit.mysociety.org/area/166295.geojson?simplify_tolerance=0.0001"
   )
-    .then((response) => response.json())
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("MapIt request failed: " + response.status);
+      }
+      return response.json();
+    })
     .then((geojson) => {
       wardBoundaryGeoJson = geojson;
+      wardBoundaryErrorEl.hidden = true;
       drawWardBoundary();
     })
     .catch(() => {
+      wardBoundaryErrorEl.hidden = false;
       wardBoundaryLeafletMap.setView([52.8168, -4.4855], 13);
     });
 

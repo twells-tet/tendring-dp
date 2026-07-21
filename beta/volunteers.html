@@ -115,7 +115,7 @@
             <td><input type="text" class="name-input first-name-input" value="Meirion"></td>
             <td><input type="text" class="name-input last-name-input" value="Member"></td>
             <td>
-              <input type="text" class="elector-id-input" value="836408391" placeholder="Elector ID">
+              <input type="text" class="elector-id-input read-only-input" value="836408391" placeholder="Elector ID" readonly title="Elector ID cannot be changed">
               <div class="elector-address-display"></div>
               <div class="elector-polling-district-display"></div>
               <div class="elector-local-authority-display">Gwynedd</div>
@@ -130,6 +130,7 @@
                 <li><label><input type="checkbox"> Councillor/Candidate</label></li>
                 <li><label><input type="checkbox" checked> Donate money</label></li>
                 <li><label><input type="checkbox"> Knock on doors</label></li>
+                <li><label><input type="checkbox"> Local Party Officer</label></li>
                 <li><label><input type="checkbox"> Make telephone calls</label></li>
                 <li><label><input type="checkbox"> Regular deliverer</label></li>
                 <li><label><input type="checkbox"> Stand for election</label></li>
@@ -882,7 +883,7 @@
 
     }
 
-    function buildElectorIdCell(rowKey) {
+    function buildElectorIdCell(rowKey, readOnly) {
 
       const td = document.createElement("td");
 
@@ -890,6 +891,12 @@
       input.type = "text";
       input.className = "elector-id-input";
       input.placeholder = "Elector ID";
+
+      if (readOnly) {
+        input.readOnly = true;
+        input.classList.add("read-only-input");
+        input.title = "Elector ID cannot be changed";
+      }
 
       const addressDisplay = document.createElement("div");
       addressDisplay.className = "elector-address-display";
@@ -967,7 +974,9 @@
 
       updateButton.addEventListener("click", () => {
 
-        const newTd = buildElectorIdCell(tr.dataset.rowKey);
+        const table = tr.closest("table");
+        const readOnly = !!(table && table.id === "members-table");
+        const newTd = buildElectorIdCell(tr.dataset.rowKey, readOnly);
         td.replaceWith(newTd);
         wireElectorIdInput(tr);
         newTd.querySelector(".elector-id-input").focus();
@@ -1013,6 +1022,7 @@
       "Councillor/Candidate",
       "Donate money",
       "Knock on doors",
+      "Local Party Officer",
       "Make telephone calls",
       "Regular deliverer",
       "Stand for election",
@@ -1059,7 +1069,7 @@
 
       const electorIdTd =
         mode === "elector-id"
-          ? buildElectorIdCell(rowKey)
+          ? buildElectorIdCell(rowKey, tableId === "members-table")
           : buildNotRegisteredCell(tr);
 
       const phoneTd = document.createElement("td");
