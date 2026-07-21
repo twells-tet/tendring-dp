@@ -1906,17 +1906,32 @@ function formatHouseholdArea(elector) {
 
   const hasNumber = /\d/.test(firstToken);
 
+  // Strips a leading plot/house-number token (e.g. "6", "K19")
+  // from a segment, leaving just the road/area name.
+  function stripLeadingNumber(segment) {
+    if (!segment) {
+      return "";
+    }
+    const token = segment.split(/\s+/)[0];
+    if (/\d/.test(token)) {
+      return segment.slice(token.length).trim();
+    }
+    return segment;
+  }
+
   let area;
 
   if (hasNumber) {
     area =
       (
-        segments[0].slice(firstToken.length).trim() ||
-        segments[1] ||
+        stripLeadingNumber(segments[0]) ||
+        stripLeadingNumber(segments[1] || "") ||
         ""
       ).toUpperCase();
   } else {
-    area = (segments[1] || segments[0] || "").toUpperCase();
+    area =
+      stripLeadingNumber(segments[1] || segments[0] || "")
+        .toUpperCase();
   }
 
   if (!area) {
