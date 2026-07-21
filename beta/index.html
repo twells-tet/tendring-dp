@@ -282,6 +282,7 @@
 
     <section class="export-buttons" aria-label="Export options">
       <button type="button" id="run-search-button" class="export-button run-search-button">Run Search</button>
+      <button type="button" id="display-map-button" class="export-button display-map-button">Display All Households on Map</button>
       <a href="polling-day.html" target="_blank" rel="noopener" class="export-button polling-day-button">GOTV: Run Polling Day</a>
       <a href="volunteers.html" class="export-button members-activists-button">Members &amp; Activists</a>
       <button type="button" class="export-button" disabled>Switch to Training Mode</button>
@@ -601,7 +602,8 @@ const STORAGE_KEYS = {
   hideAiComments: "abersoch-hide-ai-comments",
   pollingDistrict: "abersoch-polling-district",
   areaOverrides: "abersoch-area-overrides-v1",
-  currentListFilter: "abersoch-current-list-filter"
+  currentListFilter: "abersoch-current-list-filter",
+  mappingFilter: "abersoch-mapping-filter"
 };
 
 
@@ -802,6 +804,9 @@ const filterTypeEl =
 const runSearchButtonEl =
   document.getElementById("run-search-button");
 
+const displayMapButtonEl =
+  document.getElementById("display-map-button");
+
 const addressSearchInputEl =
   document.getElementById("address-search-input");
 
@@ -903,6 +908,27 @@ function initControls() {
       );
 
       window.open("current-list.html", "_blank");
+
+    }
+  );
+
+
+
+  displayMapButtonEl.addEventListener(
+    "click",
+    () => {
+
+      const filterState = {
+        pollingDistrict: pollingDistrictEl.value,
+        filterType: filterTypeEl.value
+      };
+
+      localStorage.setItem(
+        STORAGE_KEYS.mappingFilter,
+        JSON.stringify(filterState)
+      );
+
+      window.open("mapping.html", "_blank");
 
     }
   );
