@@ -164,7 +164,7 @@
             <option value="canol tref caernarfon" disabled>Canol Tref Caernarfon</option>
             <option value="clynnog fawr" disabled>Clynnog Fawr</option>
             <option value="corris a mawddwy" disabled>Corris a Mawddwy</option>
-            <option value="cricieth" disabled>Cricieth</option>
+            <option value="criccieth" disabled>Criccieth</option>
             <option value="cwm y glo" disabled>Cwm y Glo</option>
             <option value="de dolgellau" disabled>De Dolgellau</option>
             <option value="de pwllheli" disabled>De Pwllheli</option>
@@ -227,8 +227,8 @@
         <label for="polling-district">
           Polling District
           <select id="polling-district">
-            <option value="ra1" selected>RA1 (Abersoch)</option>
             <option value="qb6">QB6 (Llanengan)</option>
+            <option value="ra1" selected>RA1 (Abersoch)</option>
           </select>
         </label>
 
@@ -281,10 +281,10 @@
 
 
     <section class="export-buttons" aria-label="Export options">
-      <button type="button" class="export-button" disabled>Export list in CSV format</button>
-      <button type="button" class="export-button" disabled>Export list for canvassing</button>
+      <button type="button" id="run-search-button" class="export-button run-search-button">Run Search</button>
       <a href="polling-day.html" target="_blank" rel="noopener" class="export-button polling-day-button">GOTV: Run Polling Day</a>
       <a href="volunteers.html" class="export-button members-activists-button">Members &amp; Activists</a>
+      <button type="button" class="export-button" disabled>Switch to Training Mode</button>
     </section>
 
 
@@ -312,6 +312,9 @@
             loading="lazy">
           </iframe>
           <div id="ward-boundary-map" class="ward-boundary-map" hidden></div>
+          <p id="ward-boundary-error" class="ward-boundary-error" hidden>
+            Ward boundary could not be loaded from MapIt right now (the shared boundary service may be temporarily rate-limited). Please try again shortly.
+          </p>
         </div>
 
         <p class="map-coords">
@@ -575,7 +578,8 @@ const STORAGE_KEYS = {
   hideDeliveryDetails: "abersoch-hide-delivery-details",
   hideAiComments: "abersoch-hide-ai-comments",
   pollingDistrict: "abersoch-polling-district",
-  areaOverrides: "abersoch-area-overrides-v1"
+  areaOverrides: "abersoch-area-overrides-v1",
+  currentListFilter: "abersoch-current-list-filter"
 };
 
 
@@ -682,6 +686,9 @@ const wardPreviewEl =
 const wardBoundaryMapEl =
   document.getElementById("ward-boundary-map");
 
+const wardBoundaryErrorEl =
+  document.getElementById("ward-boundary-error");
+
 const editLocationLinkEl =
   document.getElementById("edit-location-link");
 
@@ -759,6 +766,9 @@ const listEl =
 
 const filterTypeEl =
   document.getElementById("filter-type");
+
+const runSearchButtonEl =
+  document.getElementById("run-search-button");
 
 const addressSearchInputEl =
   document.getElementById("address-search-input");
@@ -840,6 +850,27 @@ function initControls() {
       state.householdPageIndex = 0;
 
       renderElectorList();
+
+    }
+  );
+
+
+
+  runSearchButtonEl.addEventListener(
+    "click",
+    () => {
+
+      const filterState = {
+        pollingDistrict: pollingDistrictEl.value,
+        filterType: filterTypeEl.value
+      };
+
+      localStorage.setItem(
+        STORAGE_KEYS.currentListFilter,
+        JSON.stringify(filterState)
+      );
+
+      window.open("current-list.html", "_blank");
 
     }
   );
@@ -2739,6 +2770,7 @@ function updatePropertyMap(elector) {
     wardPreviewEl.hidden = true;
     wardBoundaryMapEl.hidden = false;
     editLocationLinkEl.hidden = true;
+    wardBoundaryErrorEl.hidden = true;
 
     wardPreviewCoordsEl.textContent =
       "Ward boundary: Abersoch gyda Llanengan (W05001509)";
@@ -2760,6 +2792,7 @@ function updatePropertyMap(elector) {
   wardPreviewEl.hidden = false;
   wardBoundaryMapEl.hidden = true;
   editLocationLinkEl.hidden = false;
+  wardBoundaryErrorEl.hidden = true;
 
   wardPreviewEl.title =
     "Property location on OpenStreetMap";
@@ -2826,13 +2859,24 @@ function showWardBoundaryMap() {
   fetch(
     "https://mapit.mysociety.org/area/166295.geojson?simplify_tolerance=0.0001"
   )
-    .then((response) => response.json())
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("MapIt request failed: " + response.status);
+      }
+      return response.json();
+    })
     .then((geojson) => {
       wardBoundaryGeoJson = geojson;
-      drawWardBoundary();
+      if (state.showingWardBoundary) {
+        wardBoundaryErrorEl.hidden = true;
+        drawWardBoundary();
+      }
     })
     .catch(() => {
-      wardBoundaryLeafletMap.setView([52.8168, -4.4855], 13);
+      if (state.showingWardBoundary) {
+        wardBoundaryErrorEl.hidden = false;
+        wardBoundaryLeafletMap.setView([52.8168, -4.4855], 13);
+      }
     });
 
 }
