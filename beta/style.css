@@ -1164,6 +1164,10 @@ body.mobile-mode .elector-list {
   display: none;
 }
 
+.map-panel--hidden #toggle-ward-boundary {
+  display: none;
+}
+
 .map-coords {
   margin: 0.4rem 0 0;
   font-size: 0.75rem;

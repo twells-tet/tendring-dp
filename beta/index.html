@@ -422,6 +422,28 @@
               placeholder="Start typing a name...">
           </div>
 
+          <div class="household-nav list-household-nav" id="list-household-nav">
+
+            <button
+              type="button"
+              id="list-prev-household"
+              class="household-nav-btn list-household-nav-btn"
+              disabled>
+              &lt; Previous
+            </button>
+
+            <p id="list-household-count">Household —</p>
+
+            <button
+              type="button"
+              id="list-next-household"
+              class="household-nav-btn list-household-nav-btn"
+              disabled>
+              Next &gt;
+            </button>
+
+          </div>
+
           <div id="elector-list" class="elector-list"></div>
 
         </div>
@@ -460,7 +482,7 @@
     <section id="what3words-box" class="what3words-box">
       <h3>what3words</h3>
       <p class="what3words-hint">
-        Marker displaying incorrectly? Enter the what3words that relates to the front door or letterbox of this address to update the coordinates.
+        Marker displaying incorrectly? Enter the what3words that relates to the front door or letterbox of this address to lookup new coordinates. Alternatively, manually update the coordinates. In either case, press save to commit these changes.
       </p>
       <div class="what3words-row">
         <input
@@ -725,6 +747,15 @@ const mapNextHouseholdEl =
 
 const mapHouseholdCountEl =
   document.getElementById("map-household-count");
+
+const listPrevHouseholdEl =
+  document.getElementById("list-prev-household");
+
+const listNextHouseholdEl =
+  document.getElementById("list-next-household");
+
+const listHouseholdCountEl =
+  document.getElementById("list-household-count");
 
 const aiCommentsEl =
   document.getElementById("ai-comments-text");
@@ -1098,6 +1129,8 @@ function initControls() {
   updateStats();
 
   bindMapHouseholdNavigation();
+
+  bindListHouseholdNavigation();
 
   bindCentreMapButton();
 
@@ -1697,6 +1730,8 @@ function renderElectorList() {
 
     updateMapHouseholdNav(0, 0);
 
+    updateListHouseholdNav(0, 0);
+
 
     updateStats();
 
@@ -1742,6 +1777,12 @@ function renderElectorList() {
 
 
   updateMapHouseholdNav(
+    state.householdPageIndex,
+    households.length
+  );
+
+
+  updateListHouseholdNav(
     state.householdPageIndex,
     households.length
   );
@@ -2361,6 +2402,64 @@ function updateMapHouseholdNav(currentIndex, totalHouseholds) {
 
   mapPrevHouseholdEl.disabled = currentIndex === 0;
   mapNextHouseholdEl.disabled = currentIndex >= totalHouseholds - 1;
+
+}
+
+
+// Wires the previous/next household controls under the Household
+// Details search boxes. Bound once at startup like the map-panel
+// equivalent, and stays in sync with the current filtered household
+// count at click time.
+function bindListHouseholdNavigation() {
+
+  if (!listPrevHouseholdEl || !listNextHouseholdEl) {
+    return;
+  }
+
+  listPrevHouseholdEl.addEventListener("click", () => {
+
+    if (state.householdPageIndex > 0) {
+      state.householdPageIndex -= 1;
+      renderElectorList();
+    }
+
+  });
+
+  listNextHouseholdEl.addEventListener("click", () => {
+
+    const totalHouseholds =
+      buildVisibleHouseholds(
+        getFilteredActiveElectors()
+      ).length;
+
+    if (state.householdPageIndex < totalHouseholds - 1) {
+      state.householdPageIndex += 1;
+      renderElectorList();
+    }
+
+  });
+
+}
+
+
+function updateListHouseholdNav(currentIndex, totalHouseholds) {
+
+  if (!listPrevHouseholdEl || !listNextHouseholdEl || !listHouseholdCountEl) {
+    return;
+  }
+
+  if (!totalHouseholds) {
+    listHouseholdCountEl.textContent = "Household —";
+    listPrevHouseholdEl.disabled = true;
+    listNextHouseholdEl.disabled = true;
+    return;
+  }
+
+  listHouseholdCountEl.textContent =
+    "Household " + (currentIndex + 1) + " of " + totalHouseholds;
+
+  listPrevHouseholdEl.disabled = currentIndex === 0;
+  listNextHouseholdEl.disabled = currentIndex >= totalHouseholds - 1;
 
 }
 
