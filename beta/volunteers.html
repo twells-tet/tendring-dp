@@ -118,19 +118,22 @@
               <input type="text" class="elector-id-input" value="836408391" placeholder="Elector ID">
               <div class="elector-address-display"></div>
               <div class="elector-polling-district-display"></div>
+              <div class="elector-local-authority-display">Gwynedd</div>
             </td>
             <td class="placeholder-cell"><input type="tel" class="placeholder-input" placeholder="07700 111222"></td>
             <td class="placeholder-cell"><input type="email" class="placeholder-input" placeholder="elector@email.com"></td>
             <td>
               <ul class="activist-options">
-                <li><label><input type="checkbox"> Regular deliverer</label></li>
                 <li><label><input type="checkbox"> Attend Action Days</label></li>
-                <li><label><input type="checkbox"> Clerical work</label></li>
                 <li><label><input type="checkbox"> Attend social events</label></li>
-                <li><label><input type="checkbox"> Knock on doors</label></li>
-                <li><label><input type="checkbox"> Stand for election</label></li>
-                <li><label><input type="checkbox"> Make telephone calls</label></li>
+                <li><label><input type="checkbox"> Clerical work</label></li>
+                <li><label><input type="checkbox"> Councillor/Candidate</label></li>
                 <li><label><input type="checkbox" checked> Donate money</label></li>
+                <li><label><input type="checkbox"> Knock on doors</label></li>
+                <li><label><input type="checkbox"> Make telephone calls</label></li>
+                <li><label><input type="checkbox"> Regular deliverer</label></li>
+                <li><label><input type="checkbox"> Stand for election</label></li>
+                <li><label><input type="checkbox"> Take leaflets to deliverers</label></li>
               </ul>
             </td>
           </tr>
@@ -164,19 +167,21 @@
               <input type="text" class="elector-id-input" value="836408392" placeholder="Elector ID">
               <div class="elector-address-display"></div>
               <div class="elector-polling-district-display"></div>
+              <div class="elector-local-authority-display">Gwynedd</div>
             </td>
             <td class="placeholder-cell"><input type="tel" class="placeholder-input" placeholder="07700 111222"></td>
             <td class="placeholder-cell"><input type="email" class="placeholder-input" placeholder="elector@email.com"></td>
             <td>
               <ul class="activist-options">
-                <li><label><input type="checkbox" checked> Regular deliverer</label></li>
-                <li><label><input type="checkbox"> Attend Action Days</label></li>
-                <li><label><input type="checkbox"> Clerical work</label></li>
-                <li><label><input type="checkbox"> Attend social events</label></li>
-                <li><label><input type="checkbox"> Knock on doors</label></li>
                 <li><label><input type="checkbox" checked> Ask to join the Party</label></li>
-                <li><label><input type="checkbox"> Make telephone calls</label></li>
+                <li><label><input type="checkbox"> Attend Action Days</label></li>
+                <li><label><input type="checkbox"> Attend social events</label></li>
+                <li><label><input type="checkbox"> Clerical work</label></li>
                 <li><label><input type="checkbox"> Donate money</label></li>
+                <li><label><input type="checkbox"> Knock on doors</label></li>
+                <li><label><input type="checkbox"> Make telephone calls</label></li>
+                <li><label><input type="checkbox" checked> Regular deliverer</label></li>
+                <li><label><input type="checkbox"> Take leaflets to deliverers</label></li>
               </ul>
             </td>
           </tr>
@@ -187,19 +192,21 @@
               <input type="text" class="elector-id-input" value="836408391" placeholder="Elector ID">
               <div class="elector-address-display"></div>
               <div class="elector-polling-district-display"></div>
+              <div class="elector-local-authority-display">Gwynedd</div>
             </td>
             <td class="placeholder-cell"><input type="tel" class="placeholder-input" placeholder="07700 111222"></td>
             <td class="placeholder-cell"><input type="email" class="placeholder-input" placeholder="elector@email.com"></td>
             <td>
               <ul class="activist-options">
-                <li><label><input type="checkbox" checked> Regular deliverer</label></li>
-                <li><label><input type="checkbox"> Attend Action Days</label></li>
-                <li><label><input type="checkbox"> Clerical work</label></li>
-                <li><label><input type="checkbox"> Attend social events</label></li>
-                <li><label><input type="checkbox"> Knock on doors</label></li>
                 <li><label><input type="checkbox" checked> Ask to join the Party</label></li>
-                <li><label><input type="checkbox"> Make telephone calls</label></li>
+                <li><label><input type="checkbox"> Attend Action Days</label></li>
+                <li><label><input type="checkbox"> Attend social events</label></li>
+                <li><label><input type="checkbox"> Clerical work</label></li>
                 <li><label><input type="checkbox"> Donate money</label></li>
+                <li><label><input type="checkbox"> Knock on doors</label></li>
+                <li><label><input type="checkbox"> Make telephone calls</label></li>
+                <li><label><input type="checkbox" checked> Regular deliverer</label></li>
+                <li><label><input type="checkbox"> Take leaflets to deliverers</label></li>
               </ul>
             </td>
           </tr>
@@ -497,9 +504,14 @@
       const pollingDistrictDisplay = document.createElement("div");
       pollingDistrictDisplay.className = "elector-polling-district-display";
 
+      const localAuthorityDisplay = document.createElement("div");
+      localAuthorityDisplay.className = "elector-local-authority-display";
+      localAuthorityDisplay.textContent = "Gwynedd";
+
       td.appendChild(input);
       td.appendChild(addressDisplay);
       td.appendChild(pollingDistrictDisplay);
+      td.appendChild(localAuthorityDisplay);
 
       return td;
 
@@ -540,25 +552,28 @@
     }
 
     const MEMBER_OPTIONS = [
-      "Regular deliverer",
       "Attend Action Days",
-      "Clerical work",
       "Attend social events",
+      "Clerical work",
+      "Councillor/Candidate",
+      "Donate money",
       "Knock on doors",
-      "Stand for election",
       "Make telephone calls",
-      "Donate money"
+      "Regular deliverer",
+      "Stand for election",
+      "Take leaflets to deliverers"
     ];
 
     const VOLUNTEER_OPTIONS = [
-      "Regular deliverer",
-      "Attend Action Days",
-      "Clerical work",
-      "Attend social events",
-      "Knock on doors",
       "Ask to join the Party",
+      "Attend Action Days",
+      "Attend social events",
+      "Clerical work",
+      "Donate money",
+      "Knock on doors",
       "Make telephone calls",
-      "Donate money"
+      "Regular deliverer",
+      "Take leaflets to deliverers"
     ];
 
     let newRowCounter = 0;
