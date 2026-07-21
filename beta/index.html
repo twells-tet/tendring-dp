@@ -375,6 +375,15 @@
               placeholder="Start typing an address...">
           </div>
 
+          <div class="address-search-row">
+            <label for="name-search-input">Search by name</label>
+            <input
+              type="text"
+              id="name-search-input"
+              class="address-search-input"
+              placeholder="Start typing a name...">
+          </div>
+
           <div id="elector-list" class="elector-list"></div>
 
         </div>
@@ -645,6 +654,9 @@ const filterTypeEl =
 const addressSearchInputEl =
   document.getElementById("address-search-input");
 
+const nameSearchInputEl =
+  document.getElementById("name-search-input");
+
 const statLoadedEl =
   document.getElementById("stat-loaded");
 
@@ -726,6 +738,17 @@ function initControls() {
 
 
   addressSearchInputEl.addEventListener(
+    "input",
+    () => {
+
+      state.householdPageIndex = 0;
+
+      renderElectorList();
+
+    }
+  );
+
+  nameSearchInputEl.addEventListener(
     "input",
     () => {
 
@@ -1458,7 +1481,7 @@ function renderElectorList() {
 
 
   updateAiComments(
-    household
+    getFullHousehold(household.electors[0].householdGroupKey)
   );
 
 
@@ -1821,6 +1844,22 @@ function buildVisibleHouseholds(electors) {
       (a, b) =>
         a.householdNumber - b.householdNumber
     );
+
+}
+
+
+// Returns the full, unfiltered household (all electors sharing the
+// given householdGroupKey) so AI Comments always reflect the whole
+// household even when the visible list is narrowed by search/filters.
+function getFullHousehold(householdGroupKey) {
+
+  const electors =
+    getActiveElectors().filter(
+      elector =>
+        elector.householdGroupKey === householdGroupKey
+    );
+
+  return { electors };
 
 }
 
@@ -2704,6 +2743,9 @@ function getFilteredActiveElectors() {
   const addressSearch =
     normalizeText(addressSearchInputEl.value).trim();
 
+  const nameSearch =
+    normalizeText(nameSearchInputEl.value).trim();
+
   return getActiveElectors().filter(elector => {
 
     if (filterType === "postal-proxy") {
@@ -2723,6 +2765,17 @@ function getFilteredActiveElectors() {
         normalizeText(elector.address);
 
       if (!electorAddress.includes(addressSearch)) {
+        return false;
+      }
+
+    }
+
+    if (nameSearch) {
+
+      const electorName =
+        normalizeText(elector.name);
+
+      if (!electorName.includes(nameSearch)) {
         return false;
       }
 
