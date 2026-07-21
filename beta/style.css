@@ -639,6 +639,10 @@ body.mobile-mode .elector-list {
   margin: 0;
 }
 
+.delivery-details[hidden] {
+  display: none;
+}
+
 .delivery-details dt {
   color: var(--text-muted);
   font-weight: 600;
