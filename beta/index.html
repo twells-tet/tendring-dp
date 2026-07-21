@@ -345,8 +345,11 @@
         </div>
 
 
-        <div class="ai-comments-box" aria-label="AI Comments">
-          <h3>AI Comments</h3>
+        <div class="ai-comments-box" id="ai-comments-box" aria-label="AI Comments">
+          <div class="panel-heading">
+            <h3>AI Comments</h3>
+            <button type="button" id="toggle-ai-comments" class="map-toggle-button">Hide</button>
+          </div>
           <p id="ai-comments-text">—</p>
         </div>
 
@@ -355,11 +358,14 @@
 
       <div class="list-column">
 
-        <div class="panel delivery-panel">
+        <div class="panel delivery-panel" id="delivery-panel">
 
-          <h2>Delivery Details</h2>
+          <div class="panel-heading">
+            <h2>Delivery Details</h2>
+            <button type="button" id="toggle-delivery-details" class="map-toggle-button">Hide</button>
+          </div>
 
-          <dl class="delivery-details">
+          <dl class="delivery-details" id="delivery-details-body">
             <dt>Walk</dt>
             <dd id="delivery-walk">—</dd>
 
@@ -369,6 +375,8 @@
             <dt>Road/Area</dt>
             <dd>
               <input type="text" id="delivery-area-input" class="delivery-area-input">
+              <button type="button" id="road-area-help-toggle" class="road-area-help-toggle">What does this mean?</button>
+              <p id="road-area-help-text" class="road-area-help-text" hidden>This should be the smallest unit of individual properties: the road, lane, subroad, cul-de-sac, hamlet or block or flats. Deliveries will be organised by this unit, so it is important to be accurate.</p>
             </dd>
 
             <dt>Sort Order</dt>
@@ -558,6 +566,8 @@ const STORAGE_KEYS = {
   sheetUrl: "abersoch-sheet-url",
   progress: "abersoch-elector-progress-v1",
   hideMap: "abersoch-hide-map",
+  hideDeliveryDetails: "abersoch-hide-delivery-details",
+  hideAiComments: "abersoch-hide-ai-comments",
   pollingDistrict: "abersoch-polling-district",
   areaOverrides: "abersoch-area-overrides-v1"
 };
@@ -704,6 +714,21 @@ const mapHouseholdCountEl =
 
 const aiCommentsEl =
   document.getElementById("ai-comments-text");
+
+const aiCommentsBoxEl =
+  document.getElementById("ai-comments-box");
+
+const toggleAiCommentsEl =
+  document.getElementById("toggle-ai-comments");
+
+const deliveryPanelEl =
+  document.getElementById("delivery-panel");
+
+const deliveryDetailsBodyEl =
+  document.getElementById("delivery-details-body");
+
+const toggleDeliveryDetailsEl =
+  document.getElementById("toggle-delivery-details");
 
 const deliveryWalkEl =
   document.getElementById("delivery-walk");
@@ -945,6 +970,74 @@ function initControls() {
         )
       );
 
+      centreMapButtonEl.hidden =
+        state.showingWardBoundary;
+
+    }
+  );
+
+
+  const savedHideDeliveryDetails =
+    localStorage.getItem(
+      STORAGE_KEYS.hideDeliveryDetails
+    ) === "true";
+
+  applyDeliveryDetailsVisibility(savedHideDeliveryDetails);
+
+  toggleDeliveryDetailsEl.addEventListener(
+    "click",
+    () => {
+
+      const hidden =
+        !deliveryDetailsBodyEl.hidden;
+
+      localStorage.setItem(
+        STORAGE_KEYS.hideDeliveryDetails,
+        String(hidden)
+      );
+
+      applyDeliveryDetailsVisibility(hidden);
+
+    }
+  );
+
+
+  const savedHideAiComments =
+    localStorage.getItem(
+      STORAGE_KEYS.hideAiComments
+    ) === "true";
+
+  applyAiCommentsVisibility(savedHideAiComments);
+
+  toggleAiCommentsEl.addEventListener(
+    "click",
+    () => {
+
+      const hidden =
+        !aiCommentsEl.hidden;
+
+      localStorage.setItem(
+        STORAGE_KEYS.hideAiComments,
+        String(hidden)
+      );
+
+      applyAiCommentsVisibility(hidden);
+
+    }
+  );
+
+
+  const roadAreaHelpToggleEl =
+    document.getElementById("road-area-help-toggle");
+
+  const roadAreaHelpTextEl =
+    document.getElementById("road-area-help-text");
+
+  roadAreaHelpToggleEl.addEventListener(
+    "click",
+    () => {
+      roadAreaHelpTextEl.hidden =
+        !roadAreaHelpTextEl.hidden;
     }
   );
 
@@ -981,6 +1074,26 @@ function applyMapVisibility(hidden) {
     "map-panel--hidden",
     hidden
   );
+}
+
+
+function applyDeliveryDetailsVisibility(hidden) {
+
+  deliveryDetailsBodyEl.hidden = hidden;
+
+  toggleDeliveryDetailsEl.textContent =
+    hidden ? "Show" : "Hide";
+
+}
+
+
+function applyAiCommentsVisibility(hidden) {
+
+  aiCommentsEl.hidden = hidden;
+
+  toggleAiCommentsEl.textContent =
+    hidden ? "Show" : "Hide";
+
 }
 
 
@@ -2722,7 +2835,7 @@ function updateAiComments(household) {
     return;
   }
 
-  aiCommentsEl.textContent =
+  aiCommentsEl.innerHTML =
     buildAiComments(household);
 
 }
@@ -2801,13 +2914,64 @@ function buildAiComments(household) {
 
   const electors = household.electors;
 
+  // Demo display names override the real elector name for these sentences
+  // only, so the app-facing demo scenario reads naturally.
+  const DEMO_PARTY_MEMBER_NAMES = {
+    "836408391": "Pat Postie"
+  };
+
+  const getDisplayName = elector =>
+    DEMO_PARTY_MEMBER_NAMES[elector.id] ||
+    elector.name ||
+    "Unnamed elector";
+
   const names =
-    electors.map(
-      elector =>
-        elector.name || "Unnamed elector"
-    );
+    electors.map(getDisplayName);
 
   const sentences = [];
+
+
+  // Anti-Plaid sentence(s) - always shown first, flanked by a red
+  // exclamation mark either side, when any elector is flagged
+  // "Do not deliver" and/or "Do not contact".
+  const antiPlaidParts = [];
+
+  electors.forEach(elector => {
+
+    const progress = getElectorProgress(elector.id);
+
+    if (!hasAntiPlaidFlag(progress)) {
+      return;
+    }
+
+    const flags = [];
+
+    if (progress.doNotDeliver) {
+      flags.push("do not deliver");
+    }
+
+    if (progress.doNotContact) {
+      flags.push("do not contact");
+    }
+
+    antiPlaidParts.push(
+      escapeHtml(getDisplayName(elector)) +
+      ": " +
+      flags.join(", ") +
+      "."
+    );
+
+  });
+
+  if (antiPlaidParts.length) {
+
+    sentences.push(
+      '<span class="anti-plaid-mark">!</span> ' +
+      antiPlaidParts.join(" ") +
+      ' <span class="anti-plaid-mark">!</span>'
+    );
+
+  }
 
 
   // Household size sentence
@@ -2815,7 +2979,7 @@ function buildAiComments(household) {
 
     sentences.push(
       "There is one elector in this household: " +
-      names[0] +
+      escapeHtml(names[0]) +
       "."
     );
 
@@ -2825,7 +2989,7 @@ function buildAiComments(household) {
       "There are " +
       numberToWords(names.length) +
       " electors in this household: " +
-      joinNames(names) +
+      escapeHtml(joinNames(names)) +
       "."
     );
 
@@ -2842,7 +3006,7 @@ function buildAiComments(household) {
   // Postal / proxy vote sentence
   const postalProxyEntries =
     electors.map(elector => ({
-      name: elector.name || "Unnamed elector",
+      name: getDisplayName(elector),
       status: elector.postalProxy || ""
     }));
 
@@ -2858,7 +3022,7 @@ function buildAiComments(household) {
     if (names.length === 1) {
 
       sentences.push(
-        names[0] +
+        escapeHtml(names[0]) +
         " does not have a postal vote."
       );
 
@@ -2882,10 +3046,10 @@ function buildAiComments(household) {
       postalProxyEntries.map(entry => {
 
         if (entry.status === "Postal" || entry.status === "Proxy") {
-          return entry.name + " has a postal vote";
+          return escapeHtml(entry.name) + " has a postal vote";
         }
 
-        return entry.name + " does not have a postal vote";
+        return escapeHtml(entry.name) + " does not have a postal vote";
 
       });
 
@@ -2894,27 +3058,27 @@ function buildAiComments(household) {
   }
 
 
-  // Party membership sentence (demo display names override the real
-  // elector name for this sentence only, so the app-facing demo scenario
-  // reads naturally).
-  const DEMO_PARTY_MEMBER_NAMES = {
-    "836408391": "Pat Postie"
+  // Party membership / support status sentence
+  const PARTY_MEMBER_SENTENCES = {
+    "Current": "is a current party member",
+    "Former": "is a former party member",
+    "Lapsed": "was a party member, but has lapsed",
+    "Supporter": "is a supporter",
+    "Ask to Join": "has been asked to join the party"
   };
 
   electors.forEach(elector => {
 
     const progress = getElectorProgress(elector.id);
+    const status = PARTY_MEMBER_SENTENCES[progress.partyMember];
 
-    if (progress.partyMember === "Current") {
-
-      const displayName =
-        DEMO_PARTY_MEMBER_NAMES[elector.id] ||
-        elector.name ||
-        "This elector";
+    if (status) {
 
       sentences.push(
-        displayName +
-        " is a current party member."
+        escapeHtml(getDisplayName(elector)) +
+        " " +
+        status +
+        "."
       );
 
     }

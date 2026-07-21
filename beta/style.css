@@ -659,6 +659,24 @@ body.mobile-mode .elector-list {
   text-transform: uppercase;
 }
 
+.road-area-help-toggle {
+  display: block;
+  margin-top: 0.35rem;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 0.75rem;
+  color: var(--plaid-green-dark);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.road-area-help-text {
+  margin: 0.35rem 0 0;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
 .panel {
   padding: 0.9rem;
 }
@@ -999,6 +1017,10 @@ body.mobile-mode .elector-list {
 }
 
 .panel-heading h2 {
+  margin: 0 0 0.75rem;
+}
+
+.panel-heading h3 {
   margin: 0 0 0.75rem;
 }
 
