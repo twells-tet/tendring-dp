@@ -2842,12 +2842,16 @@ function showWardBoundaryMap() {
     })
     .then((geojson) => {
       wardBoundaryGeoJson = geojson;
-      wardBoundaryErrorEl.hidden = true;
-      drawWardBoundary();
+      if (state.showingWardBoundary) {
+        wardBoundaryErrorEl.hidden = true;
+        drawWardBoundary();
+      }
     })
     .catch(() => {
-      wardBoundaryErrorEl.hidden = false;
-      wardBoundaryLeafletMap.setView([52.8168, -4.4855], 13);
+      if (state.showingWardBoundary) {
+        wardBoundaryErrorEl.hidden = false;
+        wardBoundaryLeafletMap.setView([52.8168, -4.4855], 13);
+      }
     });
 
 }
