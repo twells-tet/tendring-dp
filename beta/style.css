@@ -152,6 +152,41 @@ body.pin-locked > *:not(#pin-gate) {
   color: #b8ddd8;
 }
 
+.polling-day-date-box {
+  position: absolute;
+  top: 0.9rem;
+  right: 1.25rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  max-width: 220px;
+  text-align: left;
+}
+
+.polling-day-date-box label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--surface);
+  margin-bottom: 0.3rem;
+}
+
+.polling-day-date-box input[type="date"] {
+  width: 100%;
+  padding: 0.25rem 0.4rem;
+  border-radius: 0.35rem;
+  border: 1px solid var(--border-strong);
+  font-size: 0.85rem;
+}
+
+.polling-day-reset-text {
+  margin: 0.5rem 0 0 !important;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.85) !important;
+  line-height: 1.3;
+}
+
 .app-shell {
   padding: 1rem 1.25rem 1.5rem;
   display: grid;
@@ -1126,17 +1161,25 @@ body.mobile-mode .elector-list {
   height: 277mm;
   gap: 0;
   background: var(--surface);
-  border: 1px solid var(--border);
   margin-bottom: 1.5rem;
 }
 
 .label-card {
-  border: 1px dashed var(--border-strong);
+  border-right: 1px dashed var(--border-strong);
+  border-bottom: 1px dashed var(--border-strong);
   padding: 0.35rem 0.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
   overflow: hidden;
+}
+
+.label-page .label-card:nth-child(3n) {
+  border-right: none;
+}
+
+.label-page .label-card:nth-last-child(-n+3) {
+  border-bottom: none;
 }
 
 .label-line {
@@ -1192,7 +1235,16 @@ body.mobile-mode .elector-list {
   }
 
   .label-card {
-    border: 1px solid #000;
+    border-right: 1px solid #000;
+    border-bottom: 1px solid #000;
+  }
+
+  .label-page .label-card:nth-child(3n) {
+    border-right: none;
+  }
+
+  .label-page .label-card:nth-last-child(-n+3) {
+    border-bottom: none;
   }
 
 }
@@ -1234,7 +1286,16 @@ body.printer-friendly-mode .label-page {
 }
 
 body.printer-friendly-mode .label-card {
-  border: 1px solid #000;
+  border-right: 1px solid #000;
+  border-bottom: 1px solid #000;
+}
+
+body.printer-friendly-mode .label-page .label-card:nth-child(3n) {
+  border-right: none;
+}
+
+body.printer-friendly-mode .label-page .label-card:nth-last-child(-n+3) {
+  border-bottom: none;
 }
 
 body.printer-friendly-mode .exit-printer-friendly-link {
