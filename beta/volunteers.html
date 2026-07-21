@@ -89,8 +89,15 @@
         </select>
       </label>
 
-      <h3 class="activist-category">Members [1]</h3>
-      <table class="activist-table">
+      <div class="activist-category-row">
+        <h3 class="activist-category" id="members-heading">Members [1]</h3>
+        <select class="add-activist-select" id="add-member-select" data-table="members-table" data-key-prefix="member">
+          <option value="" selected disabled>+ Add a member</option>
+          <option value="elector-id">Add using Elector ID</option>
+          <option value="not-registered">Not on electoral register</option>
+        </select>
+      </div>
+      <table class="activist-table" id="members-table">
         <thead>
           <tr>
             <th>First name</th>
@@ -105,7 +112,10 @@
           <tr data-row-key="member-1">
             <td><input type="text" class="name-input first-name-input" value="Meirion"></td>
             <td><input type="text" class="name-input last-name-input" value="Member"></td>
-            <td><input type="text" class="elector-id-input" value="836408391" placeholder="Elector ID"></td>
+            <td>
+              <input type="text" class="elector-id-input" value="836408391" placeholder="Elector ID">
+              <div class="elector-address-display"></div>
+            </td>
             <td class="placeholder-cell"><input type="tel" class="placeholder-input" placeholder="07700 111222"></td>
             <td class="placeholder-cell"><input type="email" class="placeholder-input" placeholder="elector@email.com"></td>
             <td>
@@ -123,8 +133,15 @@
         </tbody>
       </table>
 
-      <h3 class="activist-category">Non-Member Volunteers [2]</h3>
-      <table class="activist-table">
+      <div class="activist-category-row">
+        <h3 class="activist-category" id="volunteers-heading">Non-Member Volunteers [2]</h3>
+        <select class="add-activist-select" id="add-volunteer-select" data-table="volunteers-table" data-key-prefix="nonmember">
+          <option value="" selected disabled>+ Add a volunteer</option>
+          <option value="elector-id">Add using Elector ID</option>
+          <option value="not-registered">Not on electoral register</option>
+        </select>
+      </div>
+      <table class="activist-table" id="volunteers-table">
         <thead>
           <tr>
             <th>First name</th>
@@ -139,7 +156,10 @@
           <tr data-row-key="nonmember-1">
             <td><input type="text" class="name-input first-name-input" value="Pat"></td>
             <td><input type="text" class="name-input last-name-input" value="Postie"></td>
-            <td><input type="text" class="elector-id-input" value="836408392" placeholder="Elector ID"></td>
+            <td>
+              <input type="text" class="elector-id-input" value="836408392" placeholder="Elector ID">
+              <div class="elector-address-display"></div>
+            </td>
             <td class="placeholder-cell"><input type="tel" class="placeholder-input" placeholder="07700 111222"></td>
             <td class="placeholder-cell"><input type="email" class="placeholder-input" placeholder="elector@email.com"></td>
             <td>
@@ -157,7 +177,10 @@
           <tr data-row-key="nonmember-2">
             <td><input type="text" class="name-input first-name-input" value="Sam"></td>
             <td><input type="text" class="name-input last-name-input" value="Sorefeet"></td>
-            <td><input type="text" class="elector-id-input" value="836408391" placeholder="Elector ID"></td>
+            <td>
+              <input type="text" class="elector-id-input" value="836408391" placeholder="Elector ID">
+              <div class="elector-address-display"></div>
+            </td>
             <td class="placeholder-cell"><input type="tel" class="placeholder-input" placeholder="07700 111222"></td>
             <td class="placeholder-cell"><input type="email" class="placeholder-input" placeholder="elector@email.com"></td>
             <td>
@@ -251,6 +274,9 @@
 
         const idIdx = headers.indexOf("electorid");
         const nameIdx = headers.indexOf("electorname");
+        const address1Idx = headers.indexOf("address1");
+        const address2Idx = headers.indexOf("address2");
+        const address3Idx = headers.indexOf("address3");
 
         rows.slice(1).forEach(row => {
 
@@ -269,7 +295,13 @@
           const lastName =
             spaceIdx === -1 ? "" : fullName.slice(spaceIdx + 1);
 
-          electorsById.set(id, { firstName, lastName });
+          const address =
+            [row[address1Idx], row[address2Idx], row[address3Idx]]
+              .map(part => (part || "").trim())
+              .filter(part => part && part.toLowerCase() !== "gwynedd")
+              .join(", ");
+
+          electorsById.set(id, { firstName, lastName, address });
 
         });
 
@@ -284,6 +316,11 @@
       const electorIdInput = row.querySelector(".elector-id-input");
       const firstNameInput = row.querySelector(".first-name-input");
       const lastNameInput = row.querySelector(".last-name-input");
+      const addressDisplay = row.querySelector(".elector-address-display");
+
+      if (!electorIdInput) {
+        return;
+      }
 
       const id = electorIdInput.value.trim();
       const match = electorsById.get(id);
@@ -291,6 +328,10 @@
       if (match) {
         firstNameInput.value = match.firstName;
         lastNameInput.value = match.lastName;
+      }
+
+      if (addressDisplay) {
+        addressDisplay.textContent = match ? match.address : "";
       }
 
       if (save) {
@@ -311,7 +352,7 @@
       const lastNameInput = row.querySelector(".last-name-input");
 
       volunteerOverrides[row.dataset.rowKey] = {
-        electorId: electorIdInput.value,
+        electorId: electorIdInput ? electorIdInput.value : "",
         firstName: firstNameInput.value,
         lastName: lastNameInput.value
       };
@@ -320,47 +361,255 @@
 
     }
 
-    function initVolunteerRows() {
+    function wireRow(row) {
 
-      document.querySelectorAll("[data-row-key]").forEach(row => {
+      const electorIdInput = row.querySelector(".elector-id-input");
+      const firstNameInput = row.querySelector(".first-name-input");
+      const lastNameInput = row.querySelector(".last-name-input");
 
-        const electorIdInput = row.querySelector(".elector-id-input");
-        const firstNameInput = row.querySelector(".first-name-input");
-        const lastNameInput = row.querySelector(".last-name-input");
+      const saved = volunteerOverrides[row.dataset.rowKey];
 
-        const saved = volunteerOverrides[row.dataset.rowKey];
+      if (saved) {
 
-        if (saved) {
-
-          if (saved.electorId !== undefined) {
-            electorIdInput.value = saved.electorId;
-          }
-
-          if (saved.firstName !== undefined) {
-            firstNameInput.value = saved.firstName;
-          }
-
-          if (saved.lastName !== undefined) {
-            lastNameInput.value = saved.lastName;
-          }
-
-        } else {
-
-          applyLookup(row, true);
-
+        if (electorIdInput && saved.electorId !== undefined) {
+          electorIdInput.value = saved.electorId;
         }
 
+        if (saved.firstName !== undefined) {
+          firstNameInput.value = saved.firstName;
+        }
+
+        if (saved.lastName !== undefined) {
+          lastNameInput.value = saved.lastName;
+        }
+
+        if (electorIdInput) {
+          applyLookup(row, false);
+        }
+
+      } else if (electorIdInput && electorIdInput.value.trim()) {
+
+        applyLookup(row, true);
+
+      }
+
+      if (electorIdInput) {
         electorIdInput.addEventListener("change", () => {
           applyLookup(row, true);
         });
+      }
 
-        firstNameInput.addEventListener("input", () => {
-          saveRowState(row);
-        });
+      firstNameInput.addEventListener("input", () => {
+        saveRowState(row);
+      });
 
-        lastNameInput.addEventListener("input", () => {
-          saveRowState(row);
-        });
+      lastNameInput.addEventListener("input", () => {
+        saveRowState(row);
+      });
+
+    }
+
+    function initVolunteerRows() {
+
+      document.querySelectorAll("[data-row-key]").forEach(row => {
+        wireRow(row);
+      });
+
+    }
+
+    function updateCategoryCount(headingEl, tbodyEl) {
+
+      if (!headingEl || !tbodyEl) {
+        return;
+      }
+
+      const count = tbodyEl.querySelectorAll("tr").length;
+
+      headingEl.textContent =
+        headingEl.textContent.replace(/\[\d+\]/, "[" + count + "]");
+
+    }
+
+    function buildElectorIdCell(rowKey) {
+
+      const td = document.createElement("td");
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.className = "elector-id-input";
+      input.placeholder = "Elector ID";
+
+      const addressDisplay = document.createElement("div");
+      addressDisplay.className = "elector-address-display";
+
+      td.appendChild(input);
+      td.appendChild(addressDisplay);
+
+      return td;
+
+    }
+
+    function buildNotRegisteredCell() {
+
+      const td = document.createElement("td");
+      const span = document.createElement("span");
+      span.className = "not-registered-label";
+      span.textContent = "Not on electoral register";
+      td.appendChild(span);
+
+      return td;
+
+    }
+
+    function buildProfileCell(options) {
+
+      const td = document.createElement("td");
+      const ul = document.createElement("ul");
+      ul.className = "activist-options";
+
+      options.forEach(optionText => {
+        const li = document.createElement("li");
+        const label = document.createElement("label");
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(" " + optionText));
+        li.appendChild(label);
+        ul.appendChild(li);
+      });
+
+      td.appendChild(ul);
+      return td;
+
+    }
+
+    const MEMBER_OPTIONS = [
+      "Regular deliverer",
+      "Clerical work",
+      "Attend social events",
+      "Knock on doors",
+      "Stand for election",
+      "Make telephone calls",
+      "Donate money"
+    ];
+
+    const VOLUNTEER_OPTIONS = [
+      "Regular deliverer",
+      "Clerical work",
+      "Attend social events",
+      "Knock on doors",
+      "Ask to join the Party",
+      "Make telephone calls",
+      "Donate money"
+    ];
+
+    let newRowCounter = 0;
+
+    function addActivistRow(tableId, keyPrefix, mode, profileOptions) {
+
+      newRowCounter += 1;
+
+      const rowKey = keyPrefix + "-new-" + newRowCounter;
+
+      const table = document.getElementById(tableId);
+      const tbody = table.querySelector("tbody");
+
+      const tr = document.createElement("tr");
+      tr.dataset.rowKey = rowKey;
+
+      const firstNameTd = document.createElement("td");
+      const firstNameInput = document.createElement("input");
+      firstNameInput.type = "text";
+      firstNameInput.className = "name-input first-name-input";
+      firstNameTd.appendChild(firstNameInput);
+
+      const lastNameTd = document.createElement("td");
+      const lastNameInput = document.createElement("input");
+      lastNameInput.type = "text";
+      lastNameInput.className = "name-input last-name-input";
+      lastNameTd.appendChild(lastNameInput);
+
+      const electorIdTd =
+        mode === "elector-id"
+          ? buildElectorIdCell(rowKey)
+          : buildNotRegisteredCell();
+
+      const phoneTd = document.createElement("td");
+      phoneTd.className = "placeholder-cell";
+      const phoneInput = document.createElement("input");
+      phoneInput.type = "tel";
+      phoneInput.className = "placeholder-input";
+      phoneInput.placeholder = "07700 111222";
+      phoneTd.appendChild(phoneInput);
+
+      const emailTd = document.createElement("td");
+      emailTd.className = "placeholder-cell";
+      const emailInput = document.createElement("input");
+      emailInput.type = "email";
+      emailInput.className = "placeholder-input";
+      emailInput.placeholder = "elector@email.com";
+      emailTd.appendChild(emailInput);
+
+      const profileTd = buildProfileCell(profileOptions);
+
+      tr.appendChild(firstNameTd);
+      tr.appendChild(lastNameTd);
+      tr.appendChild(electorIdTd);
+      tr.appendChild(phoneTd);
+      tr.appendChild(emailTd);
+      tr.appendChild(profileTd);
+
+      tbody.appendChild(tr);
+
+      wireRow(tr);
+
+      const focusTarget =
+        mode === "elector-id"
+          ? tr.querySelector(".elector-id-input")
+          : firstNameInput;
+
+      focusTarget.focus();
+
+      return tr;
+
+    }
+
+    function initAddActivistControls() {
+
+      const membersHeading = document.getElementById("members-heading");
+      const membersTbody =
+        document.querySelector("#members-table tbody");
+
+      const volunteersHeading = document.getElementById("volunteers-heading");
+      const volunteersTbody =
+        document.querySelector("#volunteers-table tbody");
+
+      const addMemberSelect = document.getElementById("add-member-select");
+      const addVolunteerSelect = document.getElementById("add-volunteer-select");
+
+      addMemberSelect.addEventListener("change", () => {
+
+        const mode = addMemberSelect.value;
+
+        if (mode) {
+          addActivistRow("members-table", "member", mode, MEMBER_OPTIONS);
+          updateCategoryCount(membersHeading, membersTbody);
+        }
+
+        addMemberSelect.value = "";
+
+      });
+
+      addVolunteerSelect.addEventListener("change", () => {
+
+        const mode = addVolunteerSelect.value;
+
+        if (mode) {
+          addActivistRow("volunteers-table", "nonmember", mode, VOLUNTEER_OPTIONS);
+          updateCategoryCount(volunteersHeading, volunteersTbody);
+        }
+
+        addVolunteerSelect.value = "";
 
       });
 
@@ -468,6 +717,7 @@
     (async function init() {
       await loadElectorsForLookup();
       initVolunteerRows();
+      initAddActivistControls();
     })();
 
   </script>

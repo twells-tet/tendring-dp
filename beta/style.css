@@ -727,6 +727,40 @@ body.mobile-mode .elector-list {
   background: var(--surface);
 }
 
+.elector-address-display {
+  margin-top: 0.3rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.not-registered-label {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.activist-category-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1.5rem 0 0.5rem;
+}
+
+.activist-category-row .activist-category {
+  margin: 0;
+}
+
+.add-activist-select {
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--plaid-green);
+  border-radius: 0.4rem;
+  font: inherit;
+  color: var(--plaid-green-dark);
+  background: var(--surface);
+  cursor: pointer;
+}
+
 .activist-options {
   list-style: none;
   margin: 0;
