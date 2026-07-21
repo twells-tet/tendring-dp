@@ -2892,6 +2892,34 @@ function buildAiComments(household) {
   }
 
 
+  // Party membership sentence (demo display names override the real
+  // elector name for this sentence only, so the app-facing demo scenario
+  // reads naturally).
+  const DEMO_PARTY_MEMBER_NAMES = {
+    "836408391": "Pat Postie"
+  };
+
+  electors.forEach(elector => {
+
+    const progress = getElectorProgress(elector.id);
+
+    if (progress.partyMember === "Current") {
+
+      const displayName =
+        DEMO_PARTY_MEMBER_NAMES[elector.id] ||
+        elector.name ||
+        "This elector";
+
+      sentences.push(
+        displayName +
+        " is a current party member."
+      );
+
+    }
+
+  });
+
+
   return sentences.join(" ");
 
 }
