@@ -1413,6 +1413,16 @@ body.mobile-mode .elector-list {
   color: #fff;
 }
 
+.household-elector-link.elector-lean-blue {
+  border-color: #2b6cb0;
+  color: #2b6cb0;
+}
+
+.household-elector-link.elector-lean-blue:hover {
+  background: #2b6cb0;
+  color: #fff;
+}
+
 .household-elector-more {
   border-style: dashed;
 }
@@ -1460,6 +1470,15 @@ body.mobile-mode .elector-list {
 
 .elector-item.elector-lean-grey {
   border-left: 5px solid #4a4a4a;
+}
+
+.elector-item.elector-lean-blue {
+  border-left: 5px solid #2b6cb0;
+  background: linear-gradient(
+    to right,
+    rgba(43, 108, 176, 0.08),
+    var(--surface-soft) 12%
+  );
 }
 
 .elector-main h3 {

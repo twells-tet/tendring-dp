@@ -3425,13 +3425,16 @@ function updateStats() {
 }
 
 
-// Demo household used to showcase political-leaning colour coding:
-// these two fictitious electors default to "Definite Plaid" until a
-// user overrides the Canvass ID for them.
+// Demo electors used to showcase political-leaning colour coding:
+// these default to a specific Canvass ID until a user overrides it.
 const DEMO_PLAID_ELECTOR_NAMES = [
   "pat postie",
   "sam sorefeet"
 ];
+
+const DEMO_CANVASS_ID_BY_ELECTOR_ID = {
+  "801071110": "Conservative"
+};
 
 function getElectorProgress(electorId, electorName) {
 
@@ -3442,9 +3445,13 @@ function getElectorProgress(electorId, electorName) {
       String(electorName || "").trim().toLowerCase()
     );
 
+  const demoCanvassId =
+    DEMO_CANVASS_ID_BY_ELECTOR_ID[String(electorId)];
+
   const legacyCanvassId =
     existing.canvassId ||
     existing.status ||
+    demoCanvassId ||
     (isDemoPlaidElector ? "Definite Plaid" : "No Data");
 
   const canvassId = normalizeCanvassId(legacyCanvassId);
@@ -3492,8 +3499,8 @@ function hasAntiPlaidFlag(progress) {
 
 
 // Colour-codes an elector card by political leaning based on Canvass ID.
-// For now this is a simple two-tier scheme: confirmed/likely Plaid
-// supporters are highlighted green, everyone else stays neutral grey.
+// Confirmed/likely Plaid supporters are green, Conservative is blue,
+// and everyone else stays neutral dark grey.
 function getPoliticalLeanClass(canvassId) {
 
   const PLAID_LEAN_IDS = [
@@ -3503,6 +3510,10 @@ function getPoliticalLeanClass(canvassId) {
 
   if (PLAID_LEAN_IDS.includes(canvassId)) {
     return "elector-lean-green";
+  }
+
+  if (canvassId === "Conservative") {
+    return "elector-lean-blue";
   }
 
   return "elector-lean-grey";
