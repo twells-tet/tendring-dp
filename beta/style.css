@@ -730,6 +730,11 @@ body.mobile-mode .elector-list {
   font-style: italic;
 }
 
+.poster-name-and {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
 .activist-options input[type="radio"]:disabled + label,
 .activist-options label:has(input[type="radio"]:disabled) {
   color: var(--text);

@@ -189,7 +189,7 @@
             <td><input type="text" class="name-input first-name-input" value="Sam"></td>
             <td><input type="text" class="name-input last-name-input" value="Sorefeet"></td>
             <td>
-              <input type="text" class="elector-id-input" value="836408391" placeholder="Elector ID">
+              <input type="text" class="elector-id-input" value="934314542" placeholder="Elector ID">
               <div class="elector-address-display"></div>
               <div class="elector-polling-district-display"></div>
               <div class="elector-local-authority-display">Gwynedd</div>
@@ -736,13 +736,13 @@
         firstNameTd.innerHTML =
           group.members
             .map(member => escapeHtml(member.firstName || "—"))
-            .join("<br>");
+            .join('<br><span class="poster-name-and">and</span><br>');
 
         const lastNameTd = document.createElement("td");
         lastNameTd.innerHTML =
           group.members
             .map(member => escapeHtml(member.lastName || "—"))
-            .join("<br>");
+            .join('<br><span class="poster-name-and">and</span><br>');
 
         const addressTd = document.createElement("td");
         addressTd.textContent = group.address;
