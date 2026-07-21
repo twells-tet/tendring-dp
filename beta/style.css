@@ -1210,6 +1210,10 @@ body.mobile-mode .elector-list {
   font-size: 0.8rem;
 }
 
+.ward-boundary-error[hidden] {
+  display: none;
+}
+
 .list-head {
   display: flex;
   align-items: center;
