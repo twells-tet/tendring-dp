@@ -30,7 +30,7 @@
  <g clip-path="url(#shieldClip)">
  <rect x="-100" y="230" width="700" height="60"
  fill="#000000"
- transform="rotate(-35 256 250)"/>
+ transform="rotate(-45 256 250)"/>
  </g>
 
  <!-- Black outline -->
