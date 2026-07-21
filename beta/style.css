@@ -63,6 +63,20 @@ body.pin-locked > *:not(#pin-gate) {
   margin: 0 auto 0.75rem;
 }
 
+@media (max-width: 480px) {
+
+  .pin-gate-box {
+    padding: 1.5rem;
+  }
+
+  .pin-gate-logo {
+    width: 44px;
+    height: 44px;
+    margin: 0 auto 0.5rem;
+  }
+
+}
+
 .pin-gate-box p {
   margin: 0 0 1rem;
   color: var(--text-muted);
@@ -115,11 +129,17 @@ body.pin-locked > *:not(#pin-gate) {
   position: relative;
 }
 
+.page-header-logo-link {
+  display: block;
+  width: 40px;
+  margin-bottom: 0.5rem;
+}
+
 .page-header-logo {
   display: block;
   width: 40px;
   height: 40px;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0;
 }
 
 .language-toggle {
@@ -660,6 +680,19 @@ body.mobile-mode .elector-list {
   color: var(--plaid-green-dark);
 }
 
+.poster-sites-empty-note {
+  margin: 0 0 1rem;
+  color: var(--text);
+  opacity: 0.7;
+  font-style: italic;
+}
+
+.activist-options input[type="radio"]:disabled + label,
+.activist-options label:has(input[type="radio"]:disabled) {
+  color: var(--text);
+  opacity: 0.5;
+}
+
 .activist-table {
   width: 100%;
   border-collapse: collapse;
@@ -700,6 +733,149 @@ body.mobile-mode .elector-list {
 .placeholder-input:focus {
   outline: none;
   color: var(--text);
+}
+
+.name-input,
+.elector-id-input {
+  width: 100%;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--plaid-green);
+  border-radius: 0.4rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+}
+
+.elector-address-display {
+  margin-top: 0.3rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.elector-polling-district-display {
+  margin-top: 0.15rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.elector-local-authority-display {
+  margin-top: 0.15rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.not-registered-label {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-style: italic;
+  display: block;
+}
+
+.not-registered-polling-district-label {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-style: normal;
+}
+
+.not-registered-polling-district-select {
+  display: block;
+  margin-top: 0.2rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--plaid-green);
+  border-radius: 0.4rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+}
+
+.not-registered-address-label,
+.not-registered-postcode-label {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-style: normal;
+}
+
+.not-registered-address-input,
+.not-registered-postcode-input {
+  display: block;
+  width: 100%;
+  margin-top: 0.2rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--plaid-green);
+  border-radius: 0.4rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  box-sizing: border-box;
+}
+
+.not-registered-update-link {
+  display: block;
+  margin-top: 0.3rem;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--plaid-green-dark);
+  text-decoration: underline;
+  cursor: pointer;
+  text-align: left;
+}
+
+.not-registered-update-link:hover {
+  color: var(--plaid-green);
+}
+
+.delete-record-button {
+  display: block;
+  width: 100%;
+  margin-top: 0.6rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid #d9534f;
+  border-radius: 4px;
+  background: #fdf1f0;
+  color: #b3261e;
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.delete-record-button:hover {
+  background: #f8d7d5;
+}
+
+.delete-record-button:disabled {
+  border-color: #c9c9c9;
+  background: #f1f1f1;
+  color: #9a9a9a;
+  cursor: not-allowed;
+}
+
+.activist-category-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1.5rem 0 0.5rem;
+}
+
+.activist-category-row .activist-category {
+  margin: 0;
+}
+
+.add-activist-select {
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--plaid-green);
+  border-radius: 0.4rem;
+  font: inherit;
+  color: var(--plaid-green-dark);
+  background: var(--surface);
+  cursor: pointer;
 }
 
 .activist-options {
@@ -914,10 +1090,13 @@ body.mobile-mode .elector-list {
 
 .address-search-input {
   width: 100%;
-  padding: 0.5rem 0.65rem;
+  padding: 0.4rem 0.6rem;
   border-radius: 0.4rem;
-  border: 1px solid var(--border-strong);
-  font-size: 0.95rem;
+  border: 1px solid var(--plaid-green);
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--surface);
 }
 
 .elector-list {

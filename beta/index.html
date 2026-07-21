@@ -38,7 +38,9 @@
 
   <header class="page-header" id="top">
     <button type="button" class="language-toggle" id="language-toggle">Cymraeg</button>
-    <img src="tarian-shield.svg" alt="" class="page-header-logo">
+    <a href="index.html" class="page-header-logo-link" aria-label="TARIAN home">
+      <img src="tarian-shield.svg" alt="" class="page-header-logo">
+    </a>
     <h1>TARIAN</h1>
     <p class="page-subtitle">Prototype Voter Contact Database</p>
   </header>
@@ -373,6 +375,15 @@
               placeholder="Start typing an address...">
           </div>
 
+          <div class="address-search-row">
+            <label for="name-search-input">Search by name</label>
+            <input
+              type="text"
+              id="name-search-input"
+              class="address-search-input"
+              placeholder="Start typing a name...">
+          </div>
+
           <div id="elector-list" class="elector-list"></div>
 
         </div>
@@ -563,6 +574,22 @@ const state = {
   currentMapElector: null
 };
 
+// Seed a demo poster scenario (Joe Bloggs wants a garden poster, Jane
+// Smith at the same address wants a window poster) so the Poster Sites
+// "Both" merge behaviour is always visible for display purposes on a
+// completely fresh browser/localStorage. This only runs once, on first
+// load with no saved progress, and never overwrites real user data.
+if (Object.keys(state.progress).length === 0) {
+
+  state.progress = {
+    "836408391": { poster: "Poster: Garden" },
+    "836408392": { poster: "Poster: Window" }
+  };
+
+  saveToStorage(STORAGE_KEYS.progress, state.progress);
+
+}
+
 
 
 const sheetUrlInput =
@@ -642,6 +669,9 @@ const filterTypeEl =
 
 const addressSearchInputEl =
   document.getElementById("address-search-input");
+
+const nameSearchInputEl =
+  document.getElementById("name-search-input");
 
 const statLoadedEl =
   document.getElementById("stat-loaded");
@@ -724,6 +754,17 @@ function initControls() {
 
 
   addressSearchInputEl.addEventListener(
+    "input",
+    () => {
+
+      state.householdPageIndex = 0;
+
+      renderElectorList();
+
+    }
+  );
+
+  nameSearchInputEl.addEventListener(
     "input",
     () => {
 
@@ -1456,7 +1497,7 @@ function renderElectorList() {
 
 
   updateAiComments(
-    household
+    getFullHousehold(household.electors[0].householdGroupKey)
   );
 
 
@@ -1819,6 +1860,22 @@ function buildVisibleHouseholds(electors) {
       (a, b) =>
         a.householdNumber - b.householdNumber
     );
+
+}
+
+
+// Returns the full, unfiltered household (all electors sharing the
+// given householdGroupKey) so AI Comments always reflect the whole
+// household even when the visible list is narrowed by search/filters.
+function getFullHousehold(householdGroupKey) {
+
+  const electors =
+    getActiveElectors().filter(
+      elector =>
+        elector.householdGroupKey === householdGroupKey
+    );
+
+  return { electors };
 
 }
 
@@ -2702,6 +2759,9 @@ function getFilteredActiveElectors() {
   const addressSearch =
     normalizeText(addressSearchInputEl.value).trim();
 
+  const nameSearch =
+    normalizeText(nameSearchInputEl.value).trim();
+
   return getActiveElectors().filter(elector => {
 
     if (filterType === "postal-proxy") {
@@ -2721,6 +2781,17 @@ function getFilteredActiveElectors() {
         normalizeText(elector.address);
 
       if (!electorAddress.includes(addressSearch)) {
+        return false;
+      }
+
+    }
+
+    if (nameSearch) {
+
+      const electorName =
+        normalizeText(elector.name);
+
+      if (!electorName.includes(nameSearch)) {
         return false;
       }
 
