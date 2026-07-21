@@ -281,7 +281,7 @@
     <section class="export-buttons" aria-label="Export options">
       <button type="button" class="export-button" disabled>Export list in CSV format</button>
       <button type="button" class="export-button" disabled>Export list for canvassing</button>
-      <a href="polling-day.html" target="_blank" rel="noopener" class="export-button polling-day-button">Run Polling Day Operation</a>
+      <a href="polling-day.html" target="_blank" rel="noopener" class="export-button polling-day-button">GOTV: Run Polling Day</a>
       <a href="volunteers.html" class="export-button members-activists-button">Members &amp; Activists</a>
     </section>
 
@@ -300,7 +300,7 @@
 
         <p id="property-full-address" class="property-full-address">
           <span id="property-full-address-text">—</span>
-          <button type="button" id="centre-map-button" class="centre-map-button">Centre map</button>
+          <button type="button" id="centre-map-button" class="centre-map-button">Zoom to Property</button>
         </p>
 
         <div class="ward-preview-crop">
@@ -449,6 +449,24 @@
           id="what3words-input"
           placeholder="///example.words.here">
         <button type="button" id="what3words-save" disabled>Save</button>
+      </div>
+
+      <div class="manual-coords-row">
+        <label for="manual-lat-input">
+          Latitude
+          <input
+            type="text"
+            id="manual-lat-input"
+            placeholder="52.815036">
+        </label>
+        <label for="manual-lng-input">
+          Longitude
+          <input
+            type="text"
+            id="manual-lng-input"
+            placeholder="-4.5233969">
+        </label>
+        <button type="button" id="manual-coords-save" disabled>Save</button>
       </div>
     </section>
 
@@ -657,6 +675,12 @@ const propertyFullAddressEl =
 
 const centreMapButtonEl =
   document.getElementById("centre-map-button");
+
+const manualLatInputEl =
+  document.getElementById("manual-lat-input");
+
+const manualLngInputEl =
+  document.getElementById("manual-lng-input");
 
 const mapPanelEl =
   document.getElementById("map-panel");
@@ -1262,7 +1286,7 @@ function mapRowToElector(row, headers, index) {
       parseFloat(
         data.latitude ||
         data.lat ||
-        row[20]
+        row[21]
       ) || null,
 
 
@@ -2541,6 +2565,17 @@ function propagateAntiPlaidFlag(electorId, field, value) {
 function updatePropertyMap(elector) {
 
   state.currentMapElector = elector || null;
+
+  if (manualLatInputEl && manualLngInputEl) {
+    manualLatInputEl.value =
+      elector && elector.lat !== null && elector.lat !== undefined
+        ? elector.lat
+        : "";
+    manualLngInputEl.value =
+      elector && elector.lng !== null && elector.lng !== undefined
+        ? elector.lng
+        : "";
+  }
 
   if (state.showingWardBoundary) {
 
