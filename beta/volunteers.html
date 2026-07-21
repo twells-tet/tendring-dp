@@ -420,6 +420,18 @@
 
     }
 
+    function wireElectorIdInput(row) {
+
+      const electorIdInput = row.querySelector(".elector-id-input");
+
+      if (electorIdInput) {
+        electorIdInput.addEventListener("change", () => {
+          applyLookup(row, true);
+        });
+      }
+
+    }
+
     function wireRow(row) {
 
       const electorIdInput = row.querySelector(".elector-id-input");
@@ -452,11 +464,7 @@
 
       }
 
-      if (electorIdInput) {
-        electorIdInput.addEventListener("change", () => {
-          applyLookup(row, true);
-        });
-      }
+      wireElectorIdInput(row);
 
       firstNameInput.addEventListener("input", () => {
         saveRowState(row);
@@ -517,13 +525,51 @@
 
     }
 
-    function buildNotRegisteredCell() {
+    function buildNotRegisteredCell(tr) {
 
       const td = document.createElement("td");
+
       const span = document.createElement("span");
       span.className = "not-registered-label";
       span.textContent = "Not on electoral register";
+
+      const pollingDistrictLabel = document.createElement("label");
+      pollingDistrictLabel.className = "not-registered-polling-district-label";
+      pollingDistrictLabel.textContent = "Polling District";
+
+      const pollingDistrictSelect = document.createElement("select");
+      pollingDistrictSelect.className = "not-registered-polling-district-select";
+
+      [
+        { value: "", label: "Select..." },
+        { value: "RA1 (Abersoch)", label: "RA1 (Abersoch)" },
+        { value: "QB6 (Llanengan)", label: "QB6 (Llanengan)" }
+      ].forEach(optionData => {
+        const option = document.createElement("option");
+        option.value = optionData.value;
+        option.textContent = optionData.label;
+        pollingDistrictSelect.appendChild(option);
+      });
+
+      pollingDistrictLabel.appendChild(pollingDistrictSelect);
+
+      const updateButton = document.createElement("button");
+      updateButton.type = "button";
+      updateButton.className = "not-registered-update-link";
+      updateButton.textContent = "Is this still accurate? Click here to update";
+
+      updateButton.addEventListener("click", () => {
+
+        const newTd = buildElectorIdCell(tr.dataset.rowKey);
+        td.replaceWith(newTd);
+        wireElectorIdInput(tr);
+        newTd.querySelector(".elector-id-input").focus();
+
+      });
+
       td.appendChild(span);
+      td.appendChild(pollingDistrictLabel);
+      td.appendChild(updateButton);
 
       return td;
 
@@ -605,7 +651,7 @@
       const electorIdTd =
         mode === "elector-id"
           ? buildElectorIdCell(rowKey)
-          : buildNotRegisteredCell();
+          : buildNotRegisteredCell(tr);
 
       const phoneTd = document.createElement("td");
       phoneTd.className = "placeholder-cell";

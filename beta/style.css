@@ -755,6 +755,44 @@ body.mobile-mode .elector-list {
   font-size: 0.9rem;
   color: var(--text-muted);
   font-style: italic;
+  display: block;
+}
+
+.not-registered-polling-district-label {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-style: normal;
+}
+
+.not-registered-polling-district-select {
+  display: block;
+  margin-top: 0.2rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--plaid-green);
+  border-radius: 0.4rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+}
+
+.not-registered-update-link {
+  display: block;
+  margin-top: 0.3rem;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--plaid-green-dark);
+  text-decoration: underline;
+  cursor: pointer;
+  text-align: left;
+}
+
+.not-registered-update-link:hover {
+  color: var(--plaid-green);
 }
 
 .activist-category-row {
