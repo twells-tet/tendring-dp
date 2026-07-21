@@ -1303,6 +1303,14 @@ body.mobile-mode .elector-list {
   font-weight: 700;
 }
 
+.anti-plaid-warning {
+  flex-basis: 100%;
+  margin: 0.15rem 0 0;
+  font-size: 0.7rem;
+  font-style: italic;
+  color: #a00;
+}
+
 .checkbox-label {
   display: flex !important;
   flex-direction: row !important;
