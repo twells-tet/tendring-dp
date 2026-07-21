@@ -51,6 +51,8 @@
 
     <section class="controls" aria-label="Filters">
 
+      <h3 class="choose-district-heading">Choose District</h3>
+
       <div class="filter-grid">
 
         <label for="local-authority">
@@ -281,7 +283,7 @@
     <section class="export-buttons" aria-label="Export options">
       <button type="button" class="export-button" disabled>Export list in CSV format</button>
       <button type="button" class="export-button" disabled>Export list for canvassing</button>
-      <a href="polling-day.html" target="_blank" rel="noopener" class="export-button polling-day-button">Run Polling Day Operation</a>
+      <a href="polling-day.html" target="_blank" rel="noopener" class="export-button polling-day-button">GOTV: Run Polling Day</a>
       <a href="volunteers.html" class="export-button members-activists-button">Members &amp; Activists</a>
     </section>
 
@@ -298,7 +300,10 @@
           </button>
         </div>
 
-        <p id="property-full-address" class="property-full-address">—</p>
+        <p id="property-full-address" class="property-full-address">
+          <span id="property-full-address-text">—</span>
+          <button type="button" id="centre-map-button" class="centre-map-button">Zoom to Property</button>
+        </p>
 
         <div class="ward-preview-crop">
           <iframe
@@ -317,11 +322,27 @@
             class="coords-edit-link">edit location of property</a>
         </p>
 
-        <p id="map-attribution-osm" class="map-attribution">
-          Data from OpenStreetMap. &copy; OpenStreetMap contributors, available under the
-          Open Database Licence.
-          See openstreetmap.org/copyright.
-        </p>
+        <div class="household-nav map-household-nav" id="map-household-nav">
+
+          <button
+            type="button"
+            id="map-prev-household"
+            class="household-nav-btn map-household-nav-btn"
+            disabled>
+            &lt; Previous
+          </button>
+
+          <p id="map-household-count">Household —</p>
+
+          <button
+            type="button"
+            id="map-next-household"
+            class="household-nav-btn map-household-nav-btn"
+            disabled>
+            Next &gt;
+          </button>
+
+        </div>
 
 
         <div class="ai-comments-box" aria-label="AI Comments">
@@ -429,7 +450,25 @@
           type="text"
           id="what3words-input"
           placeholder="///example.words.here">
-        <button type="button" id="what3words-save" disabled>Save</button>
+        <button type="button" id="what3words-save" disabled>Search</button>
+      </div>
+
+      <div class="manual-coords-row">
+        <label for="manual-lat-input">
+          Latitude
+          <input
+            type="text"
+            id="manual-lat-input"
+            placeholder="52.815036">
+        </label>
+        <label for="manual-lng-input">
+          Longitude
+          <input
+            type="text"
+            id="manual-lng-input"
+            placeholder="-4.5233969">
+        </label>
+        <button type="button" id="manual-coords-save" disabled>Save</button>
       </div>
     </section>
 
@@ -442,9 +481,17 @@
       All voting intention data and other records are fictitious.
     </p>
     <p class="mapping-attribution">
-      Mapping: Uses OS OpenData (see licence) and OpenStreetMap data. Map data &copy; OpenStreetMap
-      contributors, CC-BY-SA. Tiles courtesy of MapBox. Contains Ordnance
-      Survey data &copy; Crown copyright and database right 2026. Contains Royal Mail data
+      Mapping Data: Data from OpenStreetMap. &copy;
+      <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>,
+      available under the Open Database Licence.
+      See <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">openstreetmap.org/copyright</a> - as Uses
+      <a href="https://www.ordnancesurvey.co.uk/products/os-open-data" target="_blank" rel="noopener">OS OpenData (see licence)</a>
+      and OpenStreetMap data. Map data &copy;
+      <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>,
+      <a href="https://creativecommons.org/licenses/by-sa/2.0/" target="_blank" rel="noopener">CC-BY-SA</a>.
+      Tiles courtesy of MapBox
+      (<a href="https://www.openstreetmap.org/edit" target="_blank" rel="noopener">Improve this map</a>).
+      Contains Ordnance Survey data &copy; Crown copyright and database right 2026. Contains Royal Mail data
       &copy; Royal Mail copyright and database right 2026. Contains National Statistics data
       &copy; Crown copyright and database right 2026.
     </p>
@@ -582,7 +629,7 @@ const state = {
 if (Object.keys(state.progress).length === 0) {
 
   state.progress = {
-    "836408391": { poster: "Poster: Garden" },
+    "836408391": { poster: "Poster: Garden", partyMember: "Current" },
     "836408392": { poster: "Poster: Window" }
   };
 
@@ -626,7 +673,16 @@ const wardPreviewCoordsEl =
   document.getElementById("ward-preview-coords");
 
 const propertyFullAddressEl =
-  document.getElementById("property-full-address");
+  document.getElementById("property-full-address-text");
+
+const centreMapButtonEl =
+  document.getElementById("centre-map-button");
+
+const manualLatInputEl =
+  document.getElementById("manual-lat-input");
+
+const manualLngInputEl =
+  document.getElementById("manual-lng-input");
 
 const mapPanelEl =
   document.getElementById("map-panel");
@@ -637,8 +693,14 @@ const toggleMapEl =
 const toggleWardBoundaryEl =
   document.getElementById("toggle-ward-boundary");
 
-const mapAttributionOsmEl =
-  document.getElementById("map-attribution-osm");
+const mapPrevHouseholdEl =
+  document.getElementById("map-prev-household");
+
+const mapNextHouseholdEl =
+  document.getElementById("map-next-household");
+
+const mapHouseholdCountEl =
+  document.getElementById("map-household-count");
 
 const aiCommentsEl =
   document.getElementById("ai-comments-text");
@@ -888,6 +950,10 @@ function initControls() {
 
 
   updateStats();
+
+  bindMapHouseholdNavigation();
+
+  bindCentreMapButton();
 
   const mobileToggleEl =
     document.getElementById("mobile-toggle");
@@ -1222,7 +1288,7 @@ function mapRowToElector(row, headers, index) {
       parseFloat(
         data.latitude ||
         data.lat ||
-        row[20]
+        row[21]
       ) || null,
 
 
@@ -1463,6 +1529,9 @@ function renderElectorList() {
     updateDeliveryDetails(null);
 
 
+    updateMapHouseholdNav(0, 0);
+
+
     updateStats();
 
     return;
@@ -1506,6 +1575,12 @@ function renderElectorList() {
   );
 
 
+  updateMapHouseholdNav(
+    state.householdPageIndex,
+    households.length
+  );
+
+
 
   const panel =
     document.createElement(
@@ -1515,6 +1590,12 @@ function renderElectorList() {
 
   panel.className =
     "household-panel";
+
+
+  const householdHasAntiPlaid =
+    household.electors.some(
+      e => hasAntiPlaidFlag(getElectorProgress(e.id))
+    );
 
 
 
@@ -1558,7 +1639,17 @@ function renderElectorList() {
 
       <p>
         <strong>Address:</strong>
+        ${
+          householdHasAntiPlaid
+          ? '<span class="anti-plaid-mark">!</span> '
+          : ""
+        }
         ${escapeHtml(formatHouseholdAddress(firstElector))}
+        ${
+          householdHasAntiPlaid
+          ? ' <span class="anti-plaid-mark">!</span>'
+          : ""
+        }
       </p>
 
 
@@ -1609,6 +1700,12 @@ function renderElectorList() {
 
 
         <h3>
+          ${
+            hasAntiPlaidFlag(progress)
+            ? '<span class="anti-plaid-mark">!</span> '
+            : ""
+          }
+
           ${escapeHtml(
             elector.name ||
             "Unnamed elector"
@@ -1617,6 +1714,12 @@ function renderElectorList() {
           ${
             elector.postalProxy === "Postal"
             ? " *"
+            : ""
+          }
+
+          ${
+            hasAntiPlaidFlag(progress)
+            ? ' <span class="anti-plaid-mark">!</span>'
             : ""
           }
 
@@ -1741,8 +1844,9 @@ function renderElectorList() {
           Party Member
 
           <select
-          class="party-member-select"
-          data-id="${escapeHtmlAttr(elector.id)}">
+          class="party-member-select read-only-select"
+          data-id="${escapeHtmlAttr(elector.id)}"
+          title="Party membership is managed at the back end and cannot be amended here.">
 
           ${
             partyMemberOptions.map(option =>
@@ -1807,6 +1911,35 @@ function renderElectorList() {
           </select>
 
         </label>
+
+
+        <div class="anti-plaid-checkboxes">
+
+          <p class="anti-plaid-heading">Anti-Plaid?</p>
+
+          <label class="checkbox-label">
+            <input
+            type="checkbox"
+            class="do-not-deliver-checkbox"
+            data-id="${escapeHtmlAttr(elector.id)}"
+            ${progress.doNotDeliver ? "checked" : ""}>
+            DO NOT DELIVER
+          </label>
+
+          <label class="checkbox-label">
+            <input
+            type="checkbox"
+            class="do-not-contact-checkbox"
+            data-id="${escapeHtmlAttr(elector.id)}"
+            ${progress.doNotContact ? "checked" : ""}>
+            DO NOT CONTACT
+          </label>
+
+          <p class="anti-plaid-warning">
+            Ticking one or both boxes will also apply this marker to every elector in the household
+          </p>
+
+        </div>
 
 
       </div>
@@ -1915,6 +2048,79 @@ function bindHouseholdNavigation(totalHouseholds) {
     );
 
   });
+
+}
+
+
+// Resets the OpenStreetMap embed back to its default, property-centred
+// view — undoing any manual pan/zoom the user has done inside the iframe.
+function bindCentreMapButton() {
+
+  if (!centreMapButtonEl) {
+    return;
+  }
+
+  centreMapButtonEl.addEventListener("click", () => {
+    updatePropertyMap(state.currentMapElector);
+  });
+
+}
+
+
+// Wires the separate previous/next household controls that sit under the
+// map panel. Bound once at startup (the buttons are static markup, not
+// re-created on every render), and always reads the current filtered
+// household count at click time so it stays in sync with active filters.
+function bindMapHouseholdNavigation() {
+
+  if (!mapPrevHouseholdEl || !mapNextHouseholdEl) {
+    return;
+  }
+
+  mapPrevHouseholdEl.addEventListener("click", () => {
+
+    if (state.householdPageIndex > 0) {
+      state.householdPageIndex -= 1;
+      renderElectorList();
+    }
+
+  });
+
+  mapNextHouseholdEl.addEventListener("click", () => {
+
+    const totalHouseholds =
+      buildVisibleHouseholds(
+        getFilteredActiveElectors()
+      ).length;
+
+    if (state.householdPageIndex < totalHouseholds - 1) {
+      state.householdPageIndex += 1;
+      renderElectorList();
+    }
+
+  });
+
+}
+
+
+function updateMapHouseholdNav(currentIndex, totalHouseholds) {
+
+  if (!mapPrevHouseholdEl || !mapNextHouseholdEl || !mapHouseholdCountEl) {
+    return;
+  }
+
+  if (!totalHouseholds) {
+    mapHouseholdCountEl.textContent = "Household —";
+    mapPrevHouseholdEl.disabled = true;
+    mapNextHouseholdEl.disabled = true;
+    return;
+  }
+
+  mapHouseholdCountEl.textContent =
+    "Household " + (currentIndex + 1) + " of " + totalHouseholds;
+
+  mapPrevHouseholdEl.disabled = currentIndex === 0;
+  mapNextHouseholdEl.disabled = currentIndex >= totalHouseholds - 1;
 
 }
 
@@ -2109,6 +2315,12 @@ function bindProgressEditors() {
   const askVolunteerInputs =
     listEl.querySelectorAll(".ask-volunteer-checkbox");
 
+  const doNotDeliverInputs =
+    listEl.querySelectorAll(".do-not-deliver-checkbox");
+
+  const doNotContactInputs =
+    listEl.querySelectorAll(".do-not-contact-checkbox");
+
   canvassInputs.forEach(input => {
 
     input.addEventListener("change", event => {
@@ -2203,17 +2415,31 @@ function bindProgressEditors() {
 
   partyMemberInputs.forEach(input => {
 
+    // Party membership is set at the back end when the demo goes live.
+    // Users can still open the dropdown and browse the options, but their
+    // selection is only kept when the elector is currently "No" and they
+    // choose "Supporter" or "Ask to Join" - every other change is reverted.
     input.addEventListener("change", event => {
 
       const id = event.target.dataset.id;
       const existing = getElectorProgress(id);
+      const currentValue = existing.partyMember || "No";
+      const newValue = event.target.value.trim();
 
-      state.progress[id] = {
-        ...existing,
-        partyMember: event.target.value.trim()
-      };
+      if (currentValue === "No" && (newValue === "Supporter" || newValue === "Ask to Join")) {
 
-      saveToStorage(STORAGE_KEYS.progress, state.progress);
+        state.progress[id] = {
+          ...existing,
+          partyMember: newValue
+        };
+
+        saveToStorage(STORAGE_KEYS.progress, state.progress);
+
+        return;
+
+      }
+
+      event.target.value = currentValue;
 
     });
 
@@ -2290,12 +2516,83 @@ function bindProgressEditors() {
 
   });
 
+  doNotDeliverInputs.forEach(input => {
+
+    input.addEventListener("change", event => {
+
+      const id = event.target.dataset.id;
+
+      propagateAntiPlaidFlag(id, "doNotDeliver", event.target.checked);
+
+      renderElectorList();
+
+    });
+
+  });
+
+  doNotContactInputs.forEach(input => {
+
+    input.addEventListener("change", event => {
+
+      const id = event.target.dataset.id;
+
+      propagateAntiPlaidFlag(id, "doNotContact", event.target.checked);
+
+      renderElectorList();
+
+    });
+
+  });
+
 }
+
+// Ticking DO NOT DELIVER / DO NOT CONTACT for one elector applies the same
+// flag to every other elector in the same household.
+function propagateAntiPlaidFlag(electorId, field, value) {
+
+  const source =
+    getActiveElectors().find(
+      elector => elector.id === electorId
+    );
+
+  if (!source) {
+    return;
+  }
+
+  const household =
+    getFullHousehold(source.householdGroupKey);
+
+  household.electors.forEach(elector => {
+
+    const existing = getElectorProgress(elector.id);
+
+    state.progress[elector.id] = {
+      ...existing,
+      [field]: value
+    };
+
+  });
+
+  saveToStorage(STORAGE_KEYS.progress, state.progress);
+
+}
+
 
 
 function updatePropertyMap(elector) {
 
   state.currentMapElector = elector || null;
+
+  if (manualLatInputEl && manualLngInputEl) {
+    manualLatInputEl.value =
+      elector && elector.lat !== null && elector.lat !== undefined
+        ? elector.lat
+        : "";
+    manualLngInputEl.value =
+      elector && elector.lng !== null && elector.lng !== undefined
+        ? elector.lng
+        : "";
+  }
 
   if (state.showingWardBoundary) {
 
@@ -2304,8 +2601,6 @@ function updatePropertyMap(elector) {
 
     toggleWardBoundaryEl.textContent =
       "View Property Location";
-
-    mapAttributionOsmEl.hidden = true;
 
     wardPreviewEl.hidden = true;
     wardBoundaryMapEl.hidden = false;
@@ -2327,8 +2622,6 @@ function updatePropertyMap(elector) {
     elector
       ? formatHouseholdAddress(elector).toUpperCase()
       : "—";
-
-  mapAttributionOsmEl.hidden = false;
 
   wardPreviewEl.hidden = false;
   wardBoundaryMapEl.hidden = true;
@@ -2601,6 +2894,34 @@ function buildAiComments(household) {
   }
 
 
+  // Party membership sentence (demo display names override the real
+  // elector name for this sentence only, so the app-facing demo scenario
+  // reads naturally).
+  const DEMO_PARTY_MEMBER_NAMES = {
+    "836408391": "Pat Postie"
+  };
+
+  electors.forEach(elector => {
+
+    const progress = getElectorProgress(elector.id);
+
+    if (progress.partyMember === "Current") {
+
+      const displayName =
+        DEMO_PARTY_MEMBER_NAMES[elector.id] ||
+        elector.name ||
+        "This elector";
+
+      sentences.push(
+        displayName +
+        " is a current party member."
+      );
+
+    }
+
+  });
+
+
   return sentences.join(" ");
 
 }
@@ -2664,6 +2985,8 @@ function getElectorProgress(electorId) {
   const poster = existing.poster || "No Poster";
   const volunteer = Boolean(existing.volunteer);
   const askToVolunteer = Boolean(existing.askToVolunteer);
+  const doNotDeliver = Boolean(existing.doNotDeliver);
+  const doNotContact = Boolean(existing.doNotContact);
 
   return {
     canvassId:
@@ -2679,8 +3002,20 @@ function getElectorProgress(electorId) {
     poster:
       posterOptions.includes(poster) ? poster : "No Poster",
     volunteer,
-    askToVolunteer: volunteer ? false : askToVolunteer
+    askToVolunteer: volunteer ? false : askToVolunteer,
+    doNotDeliver,
+    doNotContact
   };
+
+}
+
+
+function hasAntiPlaidFlag(progress) {
+
+  return Boolean(
+    progress &&
+    (progress.doNotDeliver || progress.doNotContact)
+  );
 
 }
 
