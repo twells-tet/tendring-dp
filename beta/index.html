@@ -2414,14 +2414,30 @@ function bindProgressEditors() {
   partyMemberInputs.forEach(input => {
 
     // Party membership is set at the back end when the demo goes live.
-    // Users can still open the dropdown and browse the options, but any
-    // selection they make here is reverted rather than saved.
+    // Users can still open the dropdown and browse the options, but their
+    // selection is only kept when the elector is currently "No" and they
+    // choose "Supporter" - every other change is reverted.
     input.addEventListener("change", event => {
 
       const id = event.target.dataset.id;
       const existing = getElectorProgress(id);
+      const currentValue = existing.partyMember || "No";
+      const newValue = event.target.value.trim();
 
-      event.target.value = existing.partyMember;
+      if (currentValue === "No" && newValue === "Supporter") {
+
+        state.progress[id] = {
+          ...existing,
+          partyMember: newValue
+        };
+
+        saveToStorage(STORAGE_KEYS.progress, state.progress);
+
+        return;
+
+      }
+
+      event.target.value = currentValue;
 
     });
 
