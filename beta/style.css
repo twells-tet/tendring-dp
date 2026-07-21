@@ -129,11 +129,17 @@ body.pin-locked > *:not(#pin-gate) {
   position: relative;
 }
 
+.page-header-logo-link {
+  display: block;
+  width: 40px;
+  margin-bottom: 0.5rem;
+}
+
 .page-header-logo {
   display: block;
   width: 40px;
   height: 40px;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0;
 }
 
 .language-toggle {
