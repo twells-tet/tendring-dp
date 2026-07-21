@@ -271,6 +271,14 @@ body.pin-locked > *:not(#pin-gate) {
   font-weight: 600;
 }
 
+.mapping-attribution {
+  max-width: 640px;
+  margin: 0.5rem auto 0;
+  font-size: 0.68rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
 .back-to-top {
   margin: 0.5rem auto 0;
   font-size: 0.72rem;
