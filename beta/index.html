@@ -321,14 +321,6 @@
           See openstreetmap.org/copyright.
         </p>
 
-        <p id="map-attribution-ward" class="map-attribution" hidden>
-          Uses OS OpenData (see licence) and OpenStreetMap data. Map data &copy; OpenStreetMap
-          contributors, CC-BY-SA. Tiles courtesy of MapBox. Contains Ordnance
-          Survey data &copy; Crown copyright and database right 2026. Contains Royal Mail data
-          &copy; Royal Mail copyright and database right 2026. Contains National Statistics data
-          &copy; Crown copyright and database right 2026.
-        </p>
-
 
         <div class="ai-comments-box" aria-label="AI Comments">
           <h3>AI Comments</h3>
@@ -372,6 +364,14 @@
             <h2>Household Details</h2>
           </div>
 
+          <div class="address-search-row">
+            <label for="address-search-input">Search by address</label>
+            <input
+              type="text"
+              id="address-search-input"
+              class="address-search-input"
+              placeholder="Start typing an address...">
+          </div>
 
           <div id="elector-list" class="elector-list"></div>
 
@@ -429,6 +429,13 @@
       Electoral data has been anonymised. Address data from Council Tax records
       www.mycounciltax.org.uk.
       All voting intention data and other records are fictitious.
+    </p>
+    <p class="mapping-attribution">
+      Mapping: Uses OS OpenData (see licence) and OpenStreetMap data. Map data &copy; OpenStreetMap
+      contributors, CC-BY-SA. Tiles courtesy of MapBox. Contains Ordnance
+      Survey data &copy; Crown copyright and database right 2026. Contains Royal Mail data
+      &copy; Royal Mail copyright and database right 2026. Contains National Statistics data
+      &copy; Crown copyright and database right 2026.
     </p>
     <p class="back-to-top"><a href="#top">Back to top of page</a></p>
   </footer>
@@ -606,9 +613,6 @@ const toggleWardBoundaryEl =
 const mapAttributionOsmEl =
   document.getElementById("map-attribution-osm");
 
-const mapAttributionWardEl =
-  document.getElementById("map-attribution-ward");
-
 const aiCommentsEl =
   document.getElementById("ai-comments-text");
 
@@ -635,6 +639,9 @@ const listEl =
 
 const filterTypeEl =
   document.getElementById("filter-type");
+
+const addressSearchInputEl =
+  document.getElementById("address-search-input");
 
 const statLoadedEl =
   document.getElementById("stat-loaded");
@@ -705,6 +712,19 @@ function initControls() {
 
   filterTypeEl.addEventListener(
     "change",
+    () => {
+
+      state.householdPageIndex = 0;
+
+      renderElectorList();
+
+    }
+  );
+
+
+
+  addressSearchInputEl.addEventListener(
+    "input",
     () => {
 
       state.householdPageIndex = 0;
@@ -2223,13 +2243,12 @@ function updatePropertyMap(elector) {
   if (state.showingWardBoundary) {
 
     propertyFullAddressEl.textContent =
-      "ABERSOCH GYDA LLANENGAN ELECTORAL DIVISION";
+      "ABERSOCH GYDA LLANENGAN ELECTORAL DIVISION, GWYNEDD";
 
     toggleWardBoundaryEl.textContent =
       "View Property Location";
 
     mapAttributionOsmEl.hidden = true;
-    mapAttributionWardEl.hidden = false;
 
     wardPreviewEl.hidden = true;
     wardBoundaryMapEl.hidden = false;
@@ -2253,7 +2272,6 @@ function updatePropertyMap(elector) {
       : "—";
 
   mapAttributionOsmEl.hidden = false;
-  mapAttributionWardEl.hidden = true;
 
   wardPreviewEl.hidden = false;
   wardBoundaryMapEl.hidden = true;
@@ -2681,14 +2699,30 @@ function getFilteredActiveElectors() {
   const filterType =
     filterTypeEl.value;
 
+  const addressSearch =
+    normalizeText(addressSearchInputEl.value).trim();
+
   return getActiveElectors().filter(elector => {
 
     if (filterType === "postal-proxy") {
 
-      return (
-        elector.postalProxy === "Postal" ||
-        elector.postalProxy === "Proxy"
-      );
+      if (
+        elector.postalProxy !== "Postal" &&
+        elector.postalProxy !== "Proxy"
+      ) {
+        return false;
+      }
+
+    }
+
+    if (addressSearch) {
+
+      const electorAddress =
+        normalizeText(elector.address);
+
+      if (!electorAddress.includes(addressSearch)) {
+        return false;
+      }
 
     }
 

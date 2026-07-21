@@ -3,17 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Polling Day | Vote 2027</title>
+  <title>Polling Day | TARIAN</title>
+  <link rel="icon" type="image/svg+xml" href="tarian-shield.svg">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
   <header class="page-header no-print">
-    <h1>Vote 2027</h1>
+    <img src="tarian-shield.svg" alt="" class="page-header-logo">
+    <h1>TARIAN</h1>
     <p class="page-subtitle">Polling Day Operation</p>
   </header>
 
   <main class="app-shell">
+
+    <div class="polling-day-date-box no-print">
+      <label for="polling-day-date">Enter Polling Day</label>
+      <input type="date" id="polling-day-date">
+      <p id="polling-day-reset-text" class="polling-day-reset-text"></p>
+    </div>
 
     <section class="panel no-print">
       <h2>GOTV</h2>
@@ -187,6 +195,61 @@
       updateWalkDescription();
 
     }
+
+    const pollingDateEl = document.getElementById("polling-day-date");
+    const pollingDateResetTextEl = document.getElementById("polling-day-reset-text");
+
+    function firstThursdayOfMay(year) {
+      const date = new Date(year, 4, 1);
+      const day = date.getDay();
+      const offset = (4 - day + 7) % 7;
+      date.setDate(1 + offset);
+      return date;
+    }
+
+    function formatPollingDateForInput(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return year + "-" + month + "-" + day;
+    }
+
+    const WEEKDAY_ABBREVIATIONS = [
+      "Sun", "Mon", "Tues", "Wed", "Thurs", "Fri", "Sat"
+    ];
+
+    function formatPollingDateForDisplay(dateString) {
+      if (!dateString) {
+        return "";
+      }
+      const [year, month, day] = dateString.split("-").map(Number);
+      const date = new Date(year, month - 1, day);
+      const weekday = WEEKDAY_ABBREVIATIONS[date.getDay()];
+      const rest = date.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+      });
+      return weekday + " " + rest;
+    }
+
+    function updatePollingDateResetText() {
+      pollingDateResetTextEl.textContent =
+        "Polling Day data will automatically reset at 23:00 on " +
+        formatPollingDateForDisplay(pollingDateEl.value);
+    }
+
+    const today = new Date();
+    const twoYearsFromNow = new Date(today);
+    twoYearsFromNow.setFullYear(today.getFullYear() + 2);
+
+    pollingDateEl.min = formatPollingDateForInput(today);
+    pollingDateEl.max = formatPollingDateForInput(twoYearsFromNow);
+    pollingDateEl.value = formatPollingDateForInput(firstThursdayOfMay(2027));
+
+    updatePollingDateResetText();
+
+    pollingDateEl.addEventListener("change", updatePollingDateResetText);
 
     const printerFriendlyLink = document.getElementById("printer-friendly-link");
     const exitPrinterFriendlyLink = document.getElementById("exit-printer-friendly-link");
