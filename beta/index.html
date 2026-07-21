@@ -1,0 +1,2915 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tarian | Electors</title>
+  <meta name="description" content="Gwynedd council election canvassing tool — elector list by ward and polling district.">
+  <link rel="icon" type="image/svg+xml" href="tarian-shield.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+  <body class="pin-locked">
+
+  <div id="pin-gate" class="pin-gate">
+    <div class="pin-gate-box">
+      <img src="tarian-shield.svg" alt="" class="pin-gate-logo">
+      <h2>TARIAN</h2>
+      <p>Enter the 6-digit PIN to continue.</p>
+      <form id="pin-gate-form" autocomplete="off">
+        <input
+          type="password"
+          id="pin-gate-input"
+          class="pin-gate-input"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          maxlength="6"
+          autocomplete="off"
+          aria-label="6-digit PIN">
+        <button type="submit" class="pin-gate-button">Unlock</button>
+      </form>
+      <p id="pin-gate-error" class="pin-gate-error" hidden>Incorrect PIN. Please try again.</p>
+    </div>
+  </div>
+
+  <header class="page-header" id="top">
+    <button type="button" class="language-toggle" id="language-toggle">Cymraeg</button>
+    <img src="tarian-shield.svg" alt="" class="page-header-logo">
+    <h1>TARIAN</h1>
+    <p class="page-subtitle">Prototype Voter Contact Database</p>
+  </header>
+
+  <main class="app-shell">
+
+    <h2 class="section-heading">Create a List of Electors</h2>
+
+    <section class="controls" aria-label="Filters">
+
+      <div class="filter-grid">
+
+        <label for="local-authority">
+          Local Authority
+          <select id="local-authority">
+            <option value="anglesey" disabled>Anglesey / Ynys Môn</option>
+            <option value="blaenau-gwent" disabled>Blaenau Gwent</option>
+            <option value="bridgend" disabled>Bridgend / Pen-y-bont ar Ogwr</option>
+            <option value="caerphilly" disabled>Caerphilly / Caerffili</option>
+            <option value="cardiff" disabled>Cardiff / Caerdydd</option>
+            <option value="carmarthenshire" disabled>Carmarthenshire / Sir Gaerfyrddin</option>
+            <option value="ceredigion" disabled>Ceredigion</option>
+            <option value="conwy" disabled>Conwy</option>
+            <option value="denbighshire" disabled>Denbighshire / Sir Ddinbych</option>
+            <option value="flintshire" disabled>Flintshire / Sir y Fflint</option>
+            <option value="gwynedd" selected>Gwynedd</option>
+            <option value="merthyr-tydfil" disabled>Merthyr Tydfil / Merthyr Tudful</option>
+            <option value="monmouthshire" disabled>Monmouthshire / Sir Fynwy</option>
+            <option value="neath-port-talbot" disabled>Neath Port Talbot / Castell-nedd Port Talbot</option>
+            <option value="newport" disabled>Newport / Casnewydd</option>
+            <option value="pembrokeshire" disabled>Pembrokeshire / Sir Benfro</option>
+            <option value="powys" disabled>Powys</option>
+            <option value="rhondda-cynon-taf" disabled>Rhondda Cynon Taf</option>
+            <option value="swansea" disabled>Swansea / Abertawe</option>
+            <option value="torfaen" disabled>Torfaen</option>
+            <option value="vale-of-glamorgan" disabled>Vale of Glamorgan / Bro Morgannwg</option>
+            <option value="wrexham" disabled>Wrexham / Wrecsam</option>
+          </select>
+        </label>
+
+
+        <label for="senedd">
+          Senedd Constituency
+          <select id="senedd">
+            <option value="afan ogwr rhondda" disabled>Afan Ogwr Rhondda</option>
+            <option value="bangor conwy mon" disabled>Bangor Conwy Môn</option>
+            <option value="blaenau gwent caerffili rhymni" disabled>Blaenau Gwent Caerffili Rhymni</option>
+            <option value="brycheiniog tawe nedd" disabled>Brycheiniog Tawe Nedd</option>
+            <option value="caerdydd ffynnon taf" disabled>Caerdydd Ffynnon Taf</option>
+            <option value="caerdydd penarth" disabled>Caerdydd Penarth</option>
+            <option value="casnewydd islwyn" disabled>Casnewydd Islwyn</option>
+            <option value="ceredigion penfro" disabled>Ceredigion Penfro</option>
+            <option value="clwyd" disabled>Clwyd</option>
+            <option value="fflint wrecsam" disabled>Fflint Wrecsam</option>
+            <option value="gwynedd maldwyn" selected>Gwynedd Maldwyn</option>
+            <option value="gwyr abertawe" disabled>Gŵyr Abertawe</option>
+            <option value="pen-y-bont bro morgannwg" disabled>Pen-y-bont Bro Morgannwg</option>
+            <option value="pontypridd cynon merthyr" disabled>Pontypridd Cynon Merthyr</option>
+            <option value="sir fynwy torfaen" disabled>Sir Fynwy Torfaen</option>
+            <option value="sir gaerfyrddin" disabled>Sir Gaerfyrddin</option>
+          </select>
+        </label>
+
+
+        <label for="westminster">
+          Westminster Constituency
+          <select id="westminster">
+            <option value="aberafan maesteg" disabled>Aberafan Maesteg</option>
+            <option value="alyn and deeside" disabled>Alyn and Deeside</option>
+            <option value="bangor aberconwy" disabled>Bangor Aberconwy</option>
+            <option value="blaenau gwent and rhymney" disabled>Blaenau Gwent and Rhymney</option>
+            <option value="brecon, radnor and cwm tawe" disabled>Brecon, Radnor and Cwm Tawe</option>
+            <option value="bridgend" disabled>Bridgend</option>
+            <option value="caerfyrddin" disabled>Caerfyrddin</option>
+            <option value="caerphilly" disabled>Caerphilly</option>
+            <option value="cardiff east" disabled>Cardiff East</option>
+            <option value="cardiff north" disabled>Cardiff North</option>
+            <option value="cardiff south and penarth" disabled>Cardiff South and Penarth</option>
+            <option value="cardiff west" disabled>Cardiff West</option>
+            <option value="ceredigion preseli" disabled>Ceredigion Preseli</option>
+            <option value="clwyd east" disabled>Clwyd East</option>
+            <option value="clwyd north" disabled>Clwyd North</option>
+            <option value="dwyfor meirionnydd" selected>Dwyfor Meirionnydd</option>
+            <option value="gower" disabled>Gower</option>
+            <option value="llanelli" disabled>Llanelli</option>
+            <option value="merthyr tydfil and aberdare" disabled>Merthyr Tydfil and Aberdare</option>
+            <option value="mid and south pembrokeshire" disabled>Mid and South Pembrokeshire</option>
+            <option value="monmouthshire" disabled>Monmouthshire</option>
+            <option value="montgomeryshire and glyndwr" disabled>Montgomeryshire and Glyndŵr</option>
+            <option value="neath and swansea east" disabled>Neath and Swansea East</option>
+            <option value="newport east" disabled>Newport East</option>
+            <option value="newport west and islwyn" disabled>Newport West and Islwyn</option>
+            <option value="pontypridd" disabled>Pontypridd</option>
+            <option value="rhondda and ogmore" disabled>Rhondda and Ogmore</option>
+            <option value="swansea west" disabled>Swansea West</option>
+            <option value="torfaen" disabled>Torfaen</option>
+            <option value="vale of glamorgan" disabled>Vale of Glamorgan</option>
+            <option value="wrexham" disabled>Wrexham</option>
+            <option value="ynys mon" disabled>Ynys Môn</option>
+          </select>
+        </label>
+
+
+        <label for="ward">
+          Ward
+          <select id="ward">
+            <option value="aberdyfi" disabled>Aberdyfi</option>
+            <option value="abererch" disabled>Abererch</option>
+            <option value="abermaw" disabled>Abermaw</option>
+            <option value="abersoch gyda llanengan" selected>Abersoch gyda Llanengan</option>
+            <option value="arllechwedd" disabled>Arllechwedd</option>
+            <option value="bethel a'r felinheli" disabled>Bethel a'r Felinheli</option>
+            <option value="bowydd a'r rhiw" disabled>Bowydd a'r Rhiw</option>
+            <option value="brithdir and llanfachreth/y ganllwyd/llanelltyd" disabled>Brithdir and Llanfachreth/Y Ganllwyd/Llanelltyd</option>
+            <option value="bro dysynni" disabled>Bro Dysynni</option>
+            <option value="cadnant" disabled>Cadnant</option>
+            <option value="canol bangor" disabled>Canol Bangor</option>
+            <option value="canol bethesda" disabled>Canol Bethesda</option>
+            <option value="canol tref caernarfon" disabled>Canol Tref Caernarfon</option>
+            <option value="clynnog fawr" disabled>Clynnog Fawr</option>
+            <option value="corris a mawddwy" disabled>Corris a Mawddwy</option>
+            <option value="cricieth" disabled>Cricieth</option>
+            <option value="cwm y glo" disabled>Cwm y Glo</option>
+            <option value="de dolgellau" disabled>De Dolgellau</option>
+            <option value="de pwllheli" disabled>De Pwllheli</option>
+            <option value="deiniolen" disabled>Deiniolen</option>
+            <option value="dewi" disabled>Dewi</option>
+            <option value="diffwys and maenofferen" disabled>Diffwys and Maenofferen</option>
+            <option value="dolbenmaen" disabled>Dolbenmaen</option>
+            <option value="dwyrain bangor" disabled>Dwyrain Bangor</option>
+            <option value="dwyrain porthmadog" disabled>Dwyrain Porthmadog</option>
+            <option value="dyffryn ardudwy" disabled>Dyffryn Ardudwy</option>
+            <option value="efailnewydd a buan" disabled>Efailnewydd a Buan</option>
+            <option value="gerlan" disabled>Gerlan</option>
+            <option value="glaslyn" disabled>Glaslyn</option>
+            <option value="glyder" disabled>Glyder</option>
+            <option value="gogledd dolgellau" disabled>Gogledd Dolgellau</option>
+            <option value="gogledd pwllheli" disabled>Gogledd Pwllheli</option>
+            <option value="gorllewin porthmadog" disabled>Gorllewin Porthmadog</option>
+            <option value="gorllewin tywyn" disabled>Gorllewin Tywyn</option>
+            <option value="harlech a llanbedr" disabled>Harlech a Llanbedr</option>
+            <option value="llanbedrog gyda mynytho" disabled>Llanbedrog gyda Mynytho</option>
+            <option value="llanberis" disabled>Llanberis</option>
+            <option value="llandderfel" disabled>Llandderfel</option>
+            <option value="llangelynin" disabled>Llangelynin</option>
+            <option value="llanllyfni" disabled>Llanllyfni</option>
+            <option value="llanrug" disabled>Llanrug</option>
+            <option value="llanwchllyn" disabled>Llanwchllyn</option>
+            <option value="llanwnda" disabled>Llanwnda</option>
+            <option value="llanystumdwy" disabled>Llanystumdwy</option>
+            <option value="menai (caernarfon)" disabled>Menai (Caernarfon)</option>
+            <option value="morfa nefyn a thudweiliog" disabled>Morfa Nefyn a Thudweiliog</option>
+            <option value="morfa tywyn" disabled>Morfa Tywyn</option>
+            <option value="nefyn" disabled>Nefyn</option>
+            <option value="peblig" disabled>Peblig</option>
+            <option value="pen draw llŷn" disabled>Pen draw Llŷn</option>
+            <option value="penisa'r-waun" disabled>Penisa'r-waun</option>
+            <option value="penrhyndeudraeth" disabled>Penrhyndeudraeth</option>
+            <option value="pen-y-groes" disabled>Pen-y-groes</option>
+            <option value="teigl" disabled>Teigl</option>
+            <option value="trawsfynydd" disabled>Trawsfynydd</option>
+            <option value="tre-garth a mynydd llandygai" disabled>Tre-garth a Mynydd Llandygái</option>
+            <option value="tryfan" disabled>Tryfan</option>
+            <option value="waunfawr" disabled>Waunfawr</option>
+            <option value="y bala" disabled>Y Bala</option>
+            <option value="y bontnewydd" disabled>Y Bontnewydd</option>
+            <option value="y faenol" disabled>Y Faenol</option>
+            <option value="y groeslon" disabled>Y Groeslon</option>
+            <option value="yr eifl" disabled>Yr Eifl</option>
+          </select>
+        </label>
+
+
+        <label for="community">
+          Community / Town
+          <select id="community">
+            <option value="llanengan">Llanengan</option>
+          </select>
+        </label>
+
+
+        <label for="polling-district">
+          Polling District
+          <select id="polling-district">
+            <option value="ra1" selected>RA1 (Abersoch)</option>
+            <option value="qb6">QB6 (Llanengan)</option>
+          </select>
+        </label>
+
+      </div>
+
+    </section>
+
+
+    <section class="stats" aria-label="Elector statistics">
+
+      <div class="stat-card">
+        <span class="stat-label">Households</span>
+        <strong id="stat-complete">0</strong>
+      </div>
+
+
+      <div class="stat-card">
+        <span class="stat-label">Electors</span>
+        <strong id="stat-loaded">0</strong>
+      </div>
+
+    </section>
+
+
+    <section class="filter-section" aria-label="Elector filter">
+
+      <label for="filter-type">
+        Filter
+        <select id="filter-type">
+          <option value="">No filter</option>
+          <option value="postal-proxy">Postal Voters</option>
+          <option value="supporters" disabled>Supporters</option>
+          <option value="switch" disabled>Switch</option>
+          <option value="squeeze" disabled>Squeeze</option>
+          <option value="stay-at-home" disabled>Stay At Home</option>
+          <option value="likely-conservative" disabled>Likely Conservative</option>
+          <option value="likely-labour" disabled>Likely Labour</option>
+          <option value="likely-reform" disabled>Likely Reform</option>
+          <option value="no-canvass-since-2020" disabled>No canvass data since 1 January 2020</option>
+          <option value="never-voted" disabled>No record of ever voting</option>
+          <option value="voted-since-2021" disabled>Voted at least once since 1 January 2021</option>
+          <option value="voted-remain-2016" disabled>Voted Remain 2016</option>
+          <option value="voted-leave-2016" disabled>Voted Leave 2016</option>
+        </select>
+      </label>
+
+      <button type="button" id="add-another-filter" class="add-filter-button">Add Another Filter</button>
+
+    </section>
+
+
+    <section class="export-buttons" aria-label="Export options">
+      <button type="button" class="export-button" disabled>Export list in CSV format</button>
+      <button type="button" class="export-button" disabled>Export list for canvassing</button>
+      <a href="polling-day.html" target="_blank" rel="noopener" class="export-button polling-day-button">Run Polling Day Operation</a>
+      <a href="volunteers.html" class="export-button members-activists-button">Members &amp; Activists</a>
+    </section>
+
+
+    <section class="workspace" aria-label="Elector boundaries and list">
+
+      <div class="panel map-panel" id="map-panel">
+        <div class="panel-heading">
+          <button type="button" id="toggle-map" class="map-toggle-button">
+            Property Location (hide map)
+          </button>
+          <button type="button" id="toggle-ward-boundary" class="map-toggle-button">
+            View Ward Boundary
+          </button>
+        </div>
+
+        <p id="property-full-address" class="property-full-address">—</p>
+
+        <div class="ward-preview-crop">
+          <iframe
+            id="ward-preview"
+            title="Property location on OpenStreetMap"
+            loading="lazy">
+          </iframe>
+          <div id="ward-boundary-map" class="ward-boundary-map" hidden></div>
+        </div>
+
+        <p class="map-coords">
+          <span id="ward-preview-coords">—</span>
+          <a
+            href="#what3words-box"
+            id="edit-location-link"
+            class="coords-edit-link">edit location of property</a>
+        </p>
+
+        <p id="map-attribution-osm" class="map-attribution">
+          Data from OpenStreetMap. &copy; OpenStreetMap contributors, available under the
+          Open Database Licence.
+          See openstreetmap.org/copyright.
+        </p>
+
+
+        <div class="ai-comments-box" aria-label="AI Comments">
+          <h3>AI Comments</h3>
+          <p id="ai-comments-text">—</p>
+        </div>
+
+      </div>
+
+
+      <div class="list-column">
+
+        <div class="panel delivery-panel">
+
+          <h2>Delivery Details</h2>
+
+          <dl class="delivery-details">
+            <dt>Walk</dt>
+            <dd id="delivery-walk">—</dd>
+
+            <dt>Walk Name</dt>
+            <dd id="delivery-description">High Street and Harbour</dd>
+
+            <dt>Road/Area</dt>
+            <dd>
+              <input type="text" id="delivery-area-input" class="delivery-area-input">
+            </dd>
+
+            <dt>Sort Order</dt>
+            <dd id="delivery-order">—</dd>
+
+            <dt>Deliverer</dt>
+            <dd id="delivery-deliverer">—</dd>
+          </dl>
+
+        </div>
+
+
+        <div class="panel list-panel">
+
+          <div class="list-head">
+            <h2>Household Details</h2>
+          </div>
+
+          <div class="address-search-row">
+            <label for="address-search-input">Search by address</label>
+            <input
+              type="text"
+              id="address-search-input"
+              class="address-search-input"
+              placeholder="Start typing an address...">
+          </div>
+
+          <div id="elector-list" class="elector-list"></div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <section class="sheet-url-section" aria-label="Data source" hidden>
+
+      <label for="sheet-url">
+        Google Sheet URL
+      </label>
+
+      <input
+        id="sheet-url"
+        type="url"
+        placeholder="https://docs.google.com/spreadsheets/d/.../edit#gid=0">
+
+
+      <p
+        id="message"
+        class="message"
+        role="status"
+        aria-live="polite">
+      </p>
+
+    </section>
+
+
+  </main>
+
+  <footer class="page-footer">
+
+    <section id="what3words-box" class="what3words-box">
+      <h3>what3words</h3>
+      <p class="what3words-hint">
+        Marker displaying incorrectly? Enter the what3words that relates to the front door or letterbox of this address to update the coordinates.
+      </p>
+      <div class="what3words-row">
+        <input
+          type="text"
+          id="what3words-input"
+          placeholder="///example.words.here">
+        <button type="button" id="what3words-save" disabled>Save</button>
+      </div>
+    </section>
+
+    <button type="button" id="mobile-toggle" class="mobile-toggle-button">Mobile Version</button>
+
+    <p class="disclaimer">
+      For demonstrative purposes. No part of this data may be copied, shared, downloaded, etc.
+      Electoral data has been anonymised. Address data from Council Tax records
+      www.mycounciltax.org.uk.
+      All voting intention data and other records are fictitious.
+    </p>
+    <p class="mapping-attribution">
+      Mapping: Uses OS OpenData (see licence) and OpenStreetMap data. Map data &copy; OpenStreetMap
+      contributors, CC-BY-SA. Tiles courtesy of MapBox. Contains Ordnance
+      Survey data &copy; Crown copyright and database right 2026. Contains Royal Mail data
+      &copy; Royal Mail copyright and database right 2026. Contains National Statistics data
+      &copy; Crown copyright and database right 2026.
+    </p>
+    <p class="back-to-top"><a href="#top">Back to top of page</a></p>
+  </footer>
+
+
+  <script>
+
+    const PIN_GATE_CODE = "168800";
+    const PIN_GATE_SESSION_KEY = "vote2027PinUnlocked";
+
+    (function initPinGate() {
+
+      const gateEl = document.getElementById("pin-gate");
+      const formEl = document.getElementById("pin-gate-form");
+      const inputEl = document.getElementById("pin-gate-input");
+      const errorEl = document.getElementById("pin-gate-error");
+
+      function unlock() {
+        document.body.classList.remove("pin-locked");
+        gateEl.style.display = "none";
+        sessionStorage.setItem(PIN_GATE_SESSION_KEY, "true");
+      }
+
+      if (sessionStorage.getItem(PIN_GATE_SESSION_KEY) === "true") {
+        unlock();
+        return;
+      }
+
+      formEl.addEventListener("submit", event => {
+
+        event.preventDefault();
+
+        if (inputEl.value.trim() === PIN_GATE_CODE) {
+          unlock();
+        } else {
+          errorEl.hidden = false;
+          inputEl.value = "";
+          inputEl.focus();
+        }
+
+      });
+
+      inputEl.focus();
+
+    })();
+
+    const EXPECTED_ELECTORS = 500;
+
+// Welsh connectives/prepositions that should stay lowercase mid-address.
+const WELSH_LOWERCASE = new Set([
+  "a", "ac", "â", "i", "o", "y", "yr", "yn", "am", "ar", "at", "dan", "dros",
+  "drwy", "heb", "tan", "tros", "trwy", "wrth",
+  "a'r", "i'r", "o'r", "y'r", "yr", "â'r"
+]);
+
+
+const DEFAULT_SHEET_URL =
+  "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/edit?usp=sharing";
+
+
+const STORAGE_KEYS = {
+  sheetUrl: "abersoch-sheet-url",
+  progress: "abersoch-elector-progress-v1",
+  hideMap: "abersoch-hide-map",
+  pollingDistrict: "abersoch-polling-district",
+  areaOverrides: "abersoch-area-overrides-v1"
+};
+
+
+const canvassIdOptions = [
+  "No Data",
+  "Definite Plaid",
+  "Probable Plaid",
+  "Conservative",
+  "Green",
+  "Independent",
+  "Labour",
+  "Lib Dem",
+  "Reform"
+];
+
+
+const independenceOptions = [
+  "No Data",
+  "Yes",
+  "No"
+];
+
+
+const languageOptions = [
+  "English",
+  "Cymraeg"
+];
+
+
+const partyMemberOptions = [
+  "No",
+  "Current",
+  "Former",
+  "Lapsed",
+  "Supporter",
+  "Ask to Join"
+];
+
+
+const posterOptions = [
+  "No Poster",
+  "Poster: Window",
+  "Poster: Garden"
+];
+
+
+const state = {
+  electors: [],
+  progress: loadFromStorage(
+    STORAGE_KEYS.progress,
+    {}
+  ),
+  areaOverrides: loadFromStorage(
+    STORAGE_KEYS.areaOverrides,
+    {}
+  ),
+  householdPageIndex: 0,
+  showingWardBoundary: false,
+  currentMapElector: null
+};
+
+
+
+const sheetUrlInput =
+  document.getElementById("sheet-url");
+
+const wardEl =
+  document.getElementById("ward");
+
+const localAuthorityEl =
+  document.getElementById("local-authority");
+
+const seneddEl =
+  document.getElementById("senedd");
+
+const westminsterEl =
+  document.getElementById("westminster");
+
+const communityEl =
+  document.getElementById("community");
+
+const pollingDistrictEl =
+  document.getElementById("polling-district");
+
+const wardPreviewEl =
+  document.getElementById("ward-preview");
+
+const wardBoundaryMapEl =
+  document.getElementById("ward-boundary-map");
+
+const editLocationLinkEl =
+  document.getElementById("edit-location-link");
+
+const wardPreviewCoordsEl =
+  document.getElementById("ward-preview-coords");
+
+const propertyFullAddressEl =
+  document.getElementById("property-full-address");
+
+const mapPanelEl =
+  document.getElementById("map-panel");
+
+const toggleMapEl =
+  document.getElementById("toggle-map");
+
+const toggleWardBoundaryEl =
+  document.getElementById("toggle-ward-boundary");
+
+const mapAttributionOsmEl =
+  document.getElementById("map-attribution-osm");
+
+const aiCommentsEl =
+  document.getElementById("ai-comments-text");
+
+const deliveryWalkEl =
+  document.getElementById("delivery-walk");
+
+const deliveryAreaInputEl =
+  document.getElementById("delivery-area-input");
+
+const deliveryDescriptionEl =
+  document.getElementById("delivery-description");
+
+const deliveryOrderEl =
+  document.getElementById("delivery-order");
+
+const deliveryDelivererEl =
+  document.getElementById("delivery-deliverer");
+
+const messageEl =
+  document.getElementById("message");
+
+const listEl =
+  document.getElementById("elector-list");
+
+const filterTypeEl =
+  document.getElementById("filter-type");
+
+const addressSearchInputEl =
+  document.getElementById("address-search-input");
+
+const statLoadedEl =
+  document.getElementById("stat-loaded");
+
+const statCanvassEl =
+  document.getElementById("stat-complete");
+
+
+const displayCommunityEl =
+  document.getElementById(
+    "community"
+  );
+
+
+
+initControls();
+
+
+
+function initControls() {
+
+
+  const savedUrl =
+    localStorage.getItem(
+      STORAGE_KEYS.sheetUrl
+    ) ||
+    DEFAULT_SHEET_URL;
+
+
+  sheetUrlInput.value = savedUrl;
+
+
+  if (savedUrl) {
+
+    loadElectorsFromSheet(
+      savedUrl
+    );
+
+  }
+
+
+
+  sheetUrlInput.addEventListener(
+    "change",
+    () => {
+
+      const url =
+        sheetUrlInput.value.trim();
+
+
+      if (!url) return;
+
+
+      localStorage.setItem(
+        STORAGE_KEYS.sheetUrl,
+        url
+      );
+
+
+      loadElectorsFromSheet(
+        url
+      );
+
+    }
+  );
+
+
+
+  filterTypeEl.addEventListener(
+    "change",
+    () => {
+
+      state.householdPageIndex = 0;
+
+      renderElectorList();
+
+    }
+  );
+
+
+
+  addressSearchInputEl.addEventListener(
+    "input",
+    () => {
+
+      state.householdPageIndex = 0;
+
+      renderElectorList();
+
+    }
+  );
+
+
+
+  wardEl.addEventListener(
+    "change",
+    handleFilterChange
+  );
+
+
+  localAuthorityEl.addEventListener(
+    "change",
+    handleFilterChange
+  );
+
+
+  seneddEl.addEventListener(
+    "change",
+    handleFilterChange
+  );
+
+
+  westminsterEl.addEventListener(
+    "change",
+    handleFilterChange
+  );
+
+
+  communityEl.addEventListener(
+    "change",
+    handleFilterChange
+  );
+
+
+  pollingDistrictEl.addEventListener(
+    "change",
+    handleFilterChange
+  );
+
+  const savedPollingDistrict =
+    localStorage.getItem(
+      STORAGE_KEYS.pollingDistrict
+    );
+
+  if (
+    savedPollingDistrict &&
+    [...pollingDistrictEl.options].some(
+      option => option.value === savedPollingDistrict
+    )
+  ) {
+    pollingDistrictEl.value = savedPollingDistrict;
+  }
+
+  pollingDistrictEl.addEventListener(
+    "change",
+    () => {
+
+      localStorage.setItem(
+        STORAGE_KEYS.pollingDistrict,
+        pollingDistrictEl.value
+      );
+
+    }
+  );
+
+
+  const savedHideMap =
+    localStorage.getItem(
+      STORAGE_KEYS.hideMap
+    ) === "true";
+
+  applyMapVisibility(savedHideMap);
+  updateMapToggleLabel(savedHideMap);
+
+  toggleMapEl.addEventListener(
+    "click",
+    () => {
+
+      const hidden =
+        !mapPanelEl.classList.contains(
+          "map-panel--hidden"
+        );
+
+      localStorage.setItem(
+        STORAGE_KEYS.hideMap,
+        String(hidden)
+      );
+
+      applyMapVisibility(hidden);
+      updateMapToggleLabel(hidden);
+
+    }
+  );
+
+
+  toggleWardBoundaryEl.addEventListener(
+    "click",
+    () => {
+
+      state.showingWardBoundary =
+        !state.showingWardBoundary;
+
+      updatePropertyMap(state.currentMapElector);
+
+      updateMapToggleLabel(
+        mapPanelEl.classList.contains(
+          "map-panel--hidden"
+        )
+      );
+
+    }
+  );
+
+
+  updateStats();
+
+  const mobileToggleEl =
+    document.getElementById("mobile-toggle");
+
+  mobileToggleEl.addEventListener(
+    "click",
+    () => {
+
+      const isMobile =
+        document.body.classList.toggle(
+          "mobile-mode"
+        );
+
+      mobileToggleEl.textContent =
+        isMobile ? "Desktop Version" : "Mobile Version";
+
+    }
+  );
+
+}
+
+
+function applyMapVisibility(hidden) {
+  mapPanelEl.classList.toggle(
+    "map-panel--hidden",
+    hidden
+  );
+}
+
+
+function updateMapToggleLabel(hidden) {
+
+  const label =
+    state.showingWardBoundary
+      ? "Ward Boundary"
+      : "Property Location";
+
+  toggleMapEl.textContent =
+    hidden
+      ? label + " (show map)"
+      : label + " (hide map)";
+}
+
+
+
+function handleFilterChange() {
+
+
+  state.householdPageIndex = 0;
+
+
+  renderElectorList();
+
+}
+
+
+
+
+
+async function loadElectorsFromSheet(inputUrl) {
+
+
+  setMessage(
+    "Loading electors..."
+  );
+
+
+  const csvUrl =
+    toGoogleCsvUrl(
+      inputUrl
+    );
+
+
+  try {
+
+
+    const response =
+      await fetch(
+        csvUrl
+      );
+
+
+    if (!response.ok) {
+
+      throw new Error(
+        "Could not fetch sheet data."
+      );
+
+    }
+
+
+
+    const csvText =
+      await response.text();
+
+
+
+    const rows =
+      parseCsv(
+        csvText
+      );
+
+
+
+    const headers =
+      rows[0].map(
+        h => normalizeHeader(h)
+      );
+
+
+
+    const electors =
+      rows
+        .slice(1)
+        .map(
+          (row,index) =>
+            mapRowToElector(
+              row,
+              headers,
+              index
+            )
+        )
+        .filter(
+          e =>
+            e.name ||
+            e.address ||
+            e.postcode
+        );
+
+
+
+    state.electors =
+      assignHouseholdLabels(
+        electors
+      );
+
+
+
+    renderElectorList();
+
+
+
+    setMessage(
+      electors.length +
+      " Electors"
+    );
+
+
+  } catch(error) {
+
+
+    setMessage(
+      "Unable to load sheet: " +
+      error.message
+    );
+
+
+  }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+function mapRowToElector(row, headers, index) {
+
+
+  const data = {};
+
+
+  headers.forEach(
+    (header, idx) => {
+
+      data[header] =
+        (row[idx] || "").trim();
+
+    }
+  );
+
+
+
+  const sourceRow =
+    index + 2;
+
+
+
+  const id =
+    data.electorid ||
+    data.id ||
+    data.reference ||
+    data.uprn ||
+    ("row-" + sourceRow);
+
+
+
+  const name =
+    data.name ||
+    data.elector ||
+    data.electorname ||
+    "";
+
+
+
+  const address =
+    [
+      data.address,
+      data.address1,
+      data.address2,
+      data.address3,
+      data.household
+    ]
+    .filter(
+      part =>
+        part &&
+        !/^\d+$/.test(part) &&
+        part.toLowerCase() !== "gwynedd"
+    )
+    .join(", ");
+
+
+
+  const postcode =
+    data.postcode || "";
+
+
+
+  return {
+
+    id: String(id),
+
+    name,
+
+    address,
+
+    addressLine1: data.address1 || "",
+
+    addressLine2: data.address2 || "",
+
+    postcode,
+
+
+    localAuthority:
+      data.localauthority ||
+      data.localauthorityname ||
+      row[30] ||
+      "",
+
+
+    senedd:
+      data.senedd ||
+      row[31] ||
+      "",
+
+
+    westminster:
+      data.westminster ||
+      row[32] ||
+      "",
+
+
+    ward:
+      data.ward ||
+      data.electoralward ||
+      row[33] ||
+      "",
+
+
+    pollingDistrict:
+      data.pollingdistrict ||
+      data.pollingdist ||
+      data.district ||
+      data.pd ||
+      row[15] ||
+      "",
+
+
+    pollingElectorNumber:
+      data.electornumber ||
+      data.electorno ||
+      data.electornum ||
+      row[16] ||
+      "",
+
+
+    community:
+      data.community ||
+      data.communityname ||
+      row[34] ||
+      "",
+
+
+    deliveryWalk:
+      data.walk ||
+      row[37] ||
+      "",
+
+
+    deliveryOrder:
+      data.deliveryorder ||
+      row[38] ||
+      "",
+
+
+    deliverer:
+      data.deliverer ||
+      row[39] ||
+      "",
+
+
+    uprn:
+      data.uprn ||
+      row[19] ||
+      "",
+
+
+    electorIdValue:
+      data.electorid ||
+      row[20] ||
+      "",
+
+
+    lat:
+      parseFloat(
+        data.latitude ||
+        data.lat ||
+        row[20]
+      ) || null,
+
+
+    lng:
+      parseFloat(
+        data.longitude ||
+        data.lng ||
+        data.lon ||
+        row[22]
+      ) || null,
+
+
+    postalProxy:
+      formatPostalProxy(
+        data.postalproxy ||
+        data.postalorproxy ||
+        row[17] ||
+        ""
+      ),
+
+    pvStatusRaw:
+      String(
+        data.pvstatus ||
+        row[17] ||
+        ""
+      ).trim(),
+
+
+    sourceRow,
+
+
+    householdKey:
+      data.householdkey ||
+      data.key ||
+      row[11] ||
+      "",
+
+
+    householdGroupKey:
+      normalizeText(
+        data.householdkey ||
+        data.key ||
+        row[11] ||
+        ""
+      ) ||
+      ("row-" + sourceRow),
+
+
+    electorsInHousehold:
+      parseInt(
+        data.numberofelectors ||
+        data.electors ||
+        data.householdcount ||
+        row[14] ||
+        "",
+        10
+      ) || null,
+
+
+    householdNumber:null,
+
+    electorNumber:null,
+
+    displayId:String(id)
+
+  };
+
+}
+    function assignHouseholdLabels(electors) {
+
+  const householdTracker = new Map();
+
+  let householdCounter = 0;
+
+
+  const householdSizes = new Map();
+
+  electors.forEach(elector => {
+
+    const key = elector.householdGroupKey;
+
+    householdSizes.set(
+      key,
+      (householdSizes.get(key) || 0) + 1
+    );
+
+  });
+
+
+  return electors.map(elector => {
+
+    const key =
+      elector.householdGroupKey;
+
+
+    if (!householdTracker.has(key)) {
+
+      householdCounter += 1;
+
+      householdTracker.set(
+        key,
+        {
+          householdNumber: householdCounter,
+          nextElectorNumber: 1
+        }
+      );
+
+    }
+
+
+    const tracker =
+      householdTracker.get(key);
+
+
+    const electorNumber =
+      tracker.nextElectorNumber;
+
+
+    tracker.nextElectorNumber += 1;
+
+
+    return {
+
+      ...elector,
+
+      householdNumber:
+        tracker.householdNumber,
+
+
+      electorNumber,
+
+
+      displayId:
+        buildHouseholdDisplayId(
+          electorNumber,
+          householdSizes.get(key),
+          elector.pollingDistrict,
+          elector.pollingElectorNumber
+        )
+
+    };
+
+  });
+
+}
+
+
+
+
+
+
+
+function buildHouseholdDisplayId(
+  electorNumber,
+  totalElectors,
+  pollingDistrict,
+  pollingElectorNumber
+) {
+
+
+  const total =
+    totalElectors
+      ? " of " + totalElectors
+      : "";
+
+
+  const district =
+    String(
+      pollingDistrict || ""
+    ).trim();
+
+
+  const electorNo =
+    String(
+      pollingElectorNumber || ""
+    ).trim();
+
+
+
+  const suffix =
+    district && electorNo
+      ? " - " + district + "-" + electorNo
+      : "";
+
+
+
+  return (
+    "Elector " +
+    electorNumber +
+    total +
+    suffix
+  );
+
+}
+
+
+
+
+
+
+
+function renderElectorList() {
+
+
+  const filteredElectors =
+    getFilteredActiveElectors();
+
+
+
+  const households =
+    buildVisibleHouseholds(
+      filteredElectors
+    );
+
+
+
+  listEl.innerHTML = "";
+
+
+
+  if (!households.length) {
+
+
+    listEl.innerHTML =
+      `
+      <p class="empty-state">
+        No households match your current filters.
+      </p>
+      `;
+
+
+    updatePropertyMap(null);
+
+
+    updateAiComments(null);
+
+
+    updateDeliveryDetails(null);
+
+
+    updateStats();
+
+    return;
+
+  }
+
+
+
+  state.householdPageIndex =
+    Math.min(
+      state.householdPageIndex,
+      households.length - 1
+    );
+
+
+
+  const household =
+    households[
+      state.householdPageIndex
+    ];
+
+
+
+  const firstElector =
+    household.electors[0];
+
+
+
+  updatePropertyMap(
+    firstElector
+  );
+
+
+  updateAiComments(
+    household
+  );
+
+
+  updateDeliveryDetails(
+    firstElector
+  );
+
+
+
+  const panel =
+    document.createElement(
+      "section"
+    );
+
+
+  panel.className =
+    "household-panel";
+
+
+
+  panel.innerHTML =
+  `
+    <div class="household-nav">
+
+      <button
+        class="household-nav-btn"
+        data-action="prev"
+        ${state.householdPageIndex === 0 ? "disabled" : ""}>
+        Previous household
+      </button>
+
+
+      <p>
+        Household
+        ${state.householdPageIndex + 1}
+        of
+        ${households.length}
+      </p>
+
+
+      <button
+        class="household-nav-btn"
+        data-action="next"
+        ${state.householdPageIndex >= households.length - 1 ? "disabled" : ""}>
+        Next household
+      </button>
+
+    </div>
+
+
+    <div class="household-meta">
+
+      <p>
+        <strong>Property ID:</strong>
+        ${escapeHtml(firstElector.uprn || "—")}
+      </p>
+
+
+      <p>
+        <strong>Address:</strong>
+        ${escapeHtml(formatHouseholdAddress(firstElector))}
+      </p>
+
+
+      <p>
+        <strong>Polling District:</strong>
+        ${escapeHtml(formatPollingDistrictSummary(firstElector))}
+      </p>
+
+    </div>
+  `;
+
+
+  listEl.appendChild(panel);
+
+
+
+
+  household.electors.forEach(
+    elector => {
+
+
+      const progress =
+        getElectorProgress(
+          elector.id
+        );
+
+
+      const item =
+        document.createElement(
+          "article"
+        );
+
+
+      item.className =
+        "elector-item";
+
+
+
+      item.innerHTML =
+      `
+      <div class="elector-main">
+
+        <p class="elector-id">
+          ${escapeHtml(
+            elector.displayId
+          )}
+        </p>
+
+
+        <h3>
+          ${escapeHtml(
+            elector.name ||
+            "Unnamed elector"
+          )}
+
+          ${
+            elector.postalProxy === "Postal"
+            ? " *"
+            : ""
+          }
+
+        </h3>
+
+      </div>
+
+
+      <p class="elector-column-id">
+        <strong>Elector ID:</strong>
+        ${escapeHtml(elector.electorIdValue || "—")}
+      </p>
+
+      <p class="elector-column-id">
+        <strong>Postal Vote Status:</strong>
+        ${escapeHtml(elector.pvStatusRaw || "None")}
+      </p>
+
+
+      <div class="elector-edit">
+
+
+        <label>
+          Canvass ID
+
+          <select
+          class="canvass-select"
+          data-id="${escapeHtmlAttr(elector.id)}">
+
+          ${
+            canvassIdOptions.map(option =>
+              `
+              <option
+              ${option === progress.canvassId ? "selected" : ""}
+              >
+              ${option}
+              </option>
+              `
+            ).join("")
+          }
+
+          </select>
+
+        </label>
+
+
+        <label>
+          Support Independence?
+
+          <select
+          class="independence-select"
+          data-id="${escapeHtmlAttr(elector.id)}">
+
+          ${
+            independenceOptions.map(option =>
+              `
+              <option
+              ${option === progress.supportIndependence ? "selected" : ""}
+              >
+              ${option}
+              </option>
+              `
+            ).join("")
+          }
+
+          </select>
+
+        </label>
+
+
+        <label>
+          First language
+
+          <select
+          class="language-select"
+          data-id="${escapeHtmlAttr(elector.id)}">
+
+          ${
+            languageOptions.map(option =>
+              `
+              <option
+              ${option === progress.firstLanguage ? "selected" : ""}
+              >
+              ${option}
+              </option>
+              `
+            ).join("")
+          }
+
+          </select>
+
+        </label>
+
+
+        <label>
+          Phone
+
+          <input
+          type="tel"
+          class="phone-input"
+          data-id="${escapeHtmlAttr(elector.id)}"
+          placeholder="07700 111222"
+          value="${escapeHtmlAttr(progress.phone)}">
+
+        </label>
+
+
+        <label>
+          Email
+
+          <input
+          type="email"
+          class="email-input"
+          data-id="${escapeHtmlAttr(elector.id)}"
+          placeholder="elector@email.com"
+          value="${escapeHtmlAttr(progress.email)}">
+
+        </label>
+
+
+        <label>
+          Party Member
+
+          <select
+          class="party-member-select"
+          data-id="${escapeHtmlAttr(elector.id)}">
+
+          ${
+            partyMemberOptions.map(option =>
+              `
+              <option
+              ${option === progress.partyMember ? "selected" : ""}
+              >
+              ${option}
+              </option>
+              `
+            ).join("")
+          }
+
+          </select>
+
+        </label>
+
+
+        <div class="volunteer-checkboxes">
+
+          <label class="checkbox-label">
+            <input
+            type="checkbox"
+            class="volunteer-checkbox"
+            data-id="${escapeHtmlAttr(elector.id)}"
+            ${progress.volunteer ? "checked" : ""}>
+            Active Volunteer
+          </label>
+
+          <label class="checkbox-label">
+            <input
+            type="checkbox"
+            class="ask-volunteer-checkbox"
+            data-id="${escapeHtmlAttr(elector.id)}"
+            ${progress.askToVolunteer ? "checked" : ""}
+            ${progress.volunteer ? "disabled" : ""}>
+            Ask to Volunteer
+          </label>
+
+        </div>
+
+
+        <label>
+          Poster
+
+          <select
+          class="poster-select"
+          data-id="${escapeHtmlAttr(elector.id)}">
+
+          ${
+            posterOptions.map(option =>
+              `
+              <option
+              ${option === progress.poster ? "selected" : ""}
+              >
+              ${option}
+              </option>
+              `
+            ).join("")
+          }
+
+          </select>
+
+        </label>
+
+
+      </div>
+      `;
+
+
+
+      listEl.appendChild(item);
+
+
+    }
+  );
+
+
+  bindHouseholdNavigation(
+    households.length
+  );
+
+
+  bindProgressEditors();
+
+
+  updateStats();
+
+}
+
+
+function buildVisibleHouseholds(electors) {
+
+  const groups = new Map();
+
+  electors.forEach(elector => {
+
+    const key = elector.householdGroupKey;
+
+    if (!groups.has(key)) {
+      groups.set(key, {
+        householdNumber:
+          elector.householdNumber ||
+          Number.MAX_SAFE_INTEGER,
+        electors: []
+      });
+    }
+
+    groups.get(key).electors.push(elector);
+
+  });
+
+  return Array.from(groups.values())
+    .sort(
+      (a, b) =>
+        a.householdNumber - b.householdNumber
+    );
+
+}
+
+
+function bindHouseholdNavigation(totalHouseholds) {
+
+  const buttons =
+    listEl.querySelectorAll(
+      ".household-nav-btn"
+    );
+
+  buttons.forEach(button => {
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        const action = button.dataset.action;
+
+        if (
+          action === "prev" &&
+          state.householdPageIndex > 0
+        ) {
+          state.householdPageIndex -= 1;
+          renderElectorList();
+        }
+
+        if (
+          action === "next" &&
+          state.householdPageIndex < totalHouseholds - 1
+        ) {
+          state.householdPageIndex += 1;
+          renderElectorList();
+        }
+
+      }
+    );
+
+  });
+
+}
+
+
+function welshProperCase(str) {
+
+  if (!str) return str;
+
+  return str
+    .toLowerCase()
+    .replace(/\S+/g, (word, offset) => {
+
+      const core =
+        word
+          .replace(/^[^a-zA-Z']+|[^a-zA-Z']+$/g, "")
+          .toLowerCase();
+
+      if (offset > 0 && WELSH_LOWERCASE.has(core)) return word;
+
+      return word.replace(/[a-zA-Z]/, ch => ch.toUpperCase());
+
+    });
+
+}
+
+
+function formatHouseholdArea(elector) {
+
+  if (!elector) {
+    return "—";
+  }
+
+  const line1 = String(elector.addressLine1 || "").trim();
+  const line2 = String(elector.addressLine2 || "").trim();
+
+  // Address 1 sometimes contains an embedded comma
+  // (e.g. "BODORWEL,BWLCH"), so re-split on every comma
+  // rather than trusting the raw column boundaries.
+  const segments =
+    [line1, line2]
+      .filter(Boolean)
+      .join(",")
+      .split(",")
+      .map(segment => segment.trim())
+      .filter(Boolean);
+
+  // The first "word" may be a plot/unit reference containing a
+  // number (e.g. "3", "K19"), even with a letter prefix. If so,
+  // the area is the text after that first word, up to the first comma.
+  const firstToken =
+    segments[0] ? segments[0].split(/\s+/)[0] : "";
+
+  const hasNumber = /\d/.test(firstToken);
+
+  // Strips a leading plot/house-number token (e.g. "6", "K19")
+  // from a segment, leaving just the road/area name.
+  function stripLeadingNumber(segment) {
+    if (!segment) {
+      return "";
+    }
+    const token = segment.split(/\s+/)[0];
+    if (/\d/.test(token)) {
+      return segment.slice(token.length).trim();
+    }
+    return segment;
+  }
+
+  let area;
+
+  if (hasNumber) {
+    area =
+      (
+        stripLeadingNumber(segments[0]) ||
+        stripLeadingNumber(segments[1] || "") ||
+        ""
+      ).toUpperCase();
+  } else {
+    area =
+      stripLeadingNumber(segments[1] || segments[0] || "")
+        .toUpperCase();
+  }
+
+  if (!area) {
+    return "—";
+  }
+
+  const unnamedRoadTowns = [
+    "ABERSOCH",
+    "MYNYTHO",
+    "LLANBEDROG",
+    "SARN",
+    "LLANENGAN"
+  ];
+
+  if (unnamedRoadTowns.includes(area)) {
+    area += " (UNNAMED ROAD)";
+  }
+
+  return area;
+
+}
+
+
+function formatHouseholdAddress(elector) {
+
+  const segments = [];
+
+  if (elector.address) {
+
+    const normalised =
+      elector.address.replace(/,(?!\s)/g, ", ");
+
+    segments.push(welshProperCase(normalised));
+
+  }
+
+  if (elector.postcode) {
+    segments.push(elector.postcode.toUpperCase());
+  }
+
+  return segments.join(", ");
+
+}
+
+
+function formatPollingDistrictSummary(elector) {
+
+  const district =
+    normalizeText(elector.pollingDistrict || "");
+
+  const POLLING_DISTRICT_LABELS = {
+    ra1: "RA1 (Abersoch)",
+    qb6: "QB6 (Llanengan)"
+  };
+
+  if (POLLING_DISTRICT_LABELS[district]) {
+    return POLLING_DISTRICT_LABELS[district];
+  }
+
+  return String(elector.pollingDistrict || "").trim() || "—";
+
+}
+
+
+function extractWardContext(ward) {
+
+  const value = String(ward || "").trim();
+
+  if (!value) {
+    return "";
+  }
+
+  const marker = "gyda ";
+  const lowered = value.toLowerCase();
+  const idx = lowered.indexOf(marker);
+
+  if (idx >= 0) {
+    return value.slice(idx + marker.length).trim();
+  }
+
+  return value;
+
+}
+
+
+function bindProgressEditors() {
+
+  const canvassInputs =
+    listEl.querySelectorAll(".canvass-select");
+
+  const independenceInputs =
+    listEl.querySelectorAll(".independence-select");
+
+  const languageInputs =
+    listEl.querySelectorAll(".language-select");
+
+  const phoneInputs =
+    listEl.querySelectorAll(".phone-input");
+
+  const emailInputs =
+    listEl.querySelectorAll(".email-input");
+
+  const partyMemberInputs =
+    listEl.querySelectorAll(".party-member-select");
+
+  const posterInputs =
+    listEl.querySelectorAll(".poster-select");
+
+  const volunteerInputs =
+    listEl.querySelectorAll(".volunteer-checkbox");
+
+  const askVolunteerInputs =
+    listEl.querySelectorAll(".ask-volunteer-checkbox");
+
+  canvassInputs.forEach(input => {
+
+    input.addEventListener("change", event => {
+
+      const id = event.target.dataset.id;
+      const existing = getElectorProgress(id);
+
+      state.progress[id] = {
+        ...existing,
+        canvassId: event.target.value.trim()
+      };
+
+      saveToStorage(STORAGE_KEYS.progress, state.progress);
+
+      updateStats();
+
+    });
+
+  });
+
+  independenceInputs.forEach(input => {
+
+    input.addEventListener("change", event => {
+
+      const id = event.target.dataset.id;
+      const existing = getElectorProgress(id);
+
+      state.progress[id] = {
+        ...existing,
+        supportIndependence: event.target.value.trim()
+      };
+
+      saveToStorage(STORAGE_KEYS.progress, state.progress);
+
+    });
+
+  });
+
+  languageInputs.forEach(input => {
+
+    input.addEventListener("change", event => {
+
+      const id = event.target.dataset.id;
+      const existing = getElectorProgress(id);
+
+      state.progress[id] = {
+        ...existing,
+        firstLanguage: event.target.value.trim()
+      };
+
+      saveToStorage(STORAGE_KEYS.progress, state.progress);
+
+    });
+
+  });
+
+  phoneInputs.forEach(input => {
+
+    input.addEventListener("input", event => {
+
+      const id = event.target.dataset.id;
+      const existing = getElectorProgress(id);
+
+      state.progress[id] = {
+        ...existing,
+        phone: event.target.value.trim()
+      };
+
+      saveToStorage(STORAGE_KEYS.progress, state.progress);
+
+    });
+
+  });
+
+  emailInputs.forEach(input => {
+
+    input.addEventListener("input", event => {
+
+      const id = event.target.dataset.id;
+      const existing = getElectorProgress(id);
+
+      state.progress[id] = {
+        ...existing,
+        email: event.target.value.trim()
+      };
+
+      saveToStorage(STORAGE_KEYS.progress, state.progress);
+
+    });
+
+  });
+
+  partyMemberInputs.forEach(input => {
+
+    input.addEventListener("change", event => {
+
+      const id = event.target.dataset.id;
+      const existing = getElectorProgress(id);
+
+      state.progress[id] = {
+        ...existing,
+        partyMember: event.target.value.trim()
+      };
+
+      saveToStorage(STORAGE_KEYS.progress, state.progress);
+
+    });
+
+  });
+
+  posterInputs.forEach(input => {
+
+    input.addEventListener("change", event => {
+
+      const id = event.target.dataset.id;
+      const existing = getElectorProgress(id);
+
+      state.progress[id] = {
+        ...existing,
+        poster: event.target.value.trim()
+      };
+
+      saveToStorage(STORAGE_KEYS.progress, state.progress);
+
+    });
+
+  });
+
+  volunteerInputs.forEach(input => {
+
+    input.addEventListener("change", event => {
+
+      const id = event.target.dataset.id;
+      const existing = getElectorProgress(id);
+      const volunteer = event.target.checked;
+
+      state.progress[id] = {
+        ...existing,
+        volunteer,
+        askToVolunteer: volunteer ? false : existing.askToVolunteer
+      };
+
+      saveToStorage(STORAGE_KEYS.progress, state.progress);
+
+      const container =
+        event.target.closest(".volunteer-checkboxes");
+
+      const askInput =
+        container ?
+          container.querySelector(".ask-volunteer-checkbox") :
+          null;
+
+      if (askInput) {
+        askInput.disabled = volunteer;
+        if (volunteer) {
+          askInput.checked = false;
+        }
+      }
+
+    });
+
+  });
+
+  askVolunteerInputs.forEach(input => {
+
+    input.addEventListener("change", event => {
+
+      const id = event.target.dataset.id;
+      const existing = getElectorProgress(id);
+
+      state.progress[id] = {
+        ...existing,
+        askToVolunteer: event.target.checked
+      };
+
+      saveToStorage(STORAGE_KEYS.progress, state.progress);
+
+    });
+
+  });
+
+}
+
+
+function updatePropertyMap(elector) {
+
+  state.currentMapElector = elector || null;
+
+  if (state.showingWardBoundary) {
+
+    propertyFullAddressEl.textContent =
+      "ABERSOCH GYDA LLANENGAN ELECTORAL DIVISION, GWYNEDD";
+
+    toggleWardBoundaryEl.textContent =
+      "View Property Location";
+
+    mapAttributionOsmEl.hidden = true;
+
+    wardPreviewEl.hidden = true;
+    wardBoundaryMapEl.hidden = false;
+    editLocationLinkEl.hidden = true;
+
+    wardPreviewCoordsEl.textContent =
+      "Ward boundary: Abersoch gyda Llanengan (W05001509)";
+
+    showWardBoundaryMap();
+
+    return;
+
+  }
+
+  toggleWardBoundaryEl.textContent =
+    "View Ward Boundary";
+
+  propertyFullAddressEl.textContent =
+    elector
+      ? formatHouseholdAddress(elector).toUpperCase()
+      : "—";
+
+  mapAttributionOsmEl.hidden = false;
+
+  wardPreviewEl.hidden = false;
+  wardBoundaryMapEl.hidden = true;
+  editLocationLinkEl.hidden = false;
+
+  wardPreviewEl.title =
+    "Property location on OpenStreetMap";
+
+  if (
+    !elector ||
+    elector.lat === null ||
+    elector.lng === null
+  ) {
+    wardPreviewEl.removeAttribute("src");
+    wardPreviewCoordsEl.textContent = "GPS coordinates —";
+    return;
+  }
+
+  const lat = elector.lat;
+  const lng = elector.lng;
+  const delta = 0.004;
+
+  const bbox = [
+    lng - delta,
+    lat - delta * 0.6,
+    lng + delta,
+    lat + delta * 0.6
+  ].join(",");
+
+  wardPreviewEl.src =
+    "https://www.openstreetmap.org/export/embed.html?bbox=" + bbox +
+    "&layer=mapnik&marker=" + lat + "," + lng;
+
+  wardPreviewCoordsEl.textContent =
+    "GPS coordinates " + lat + ", " + lng;
+
+}
+
+
+let wardBoundaryLeafletMap = null;
+let wardBoundaryGeoJson = null;
+
+function showWardBoundaryMap() {
+
+  if (!wardBoundaryLeafletMap) {
+
+    wardBoundaryLeafletMap = L.map(wardBoundaryMapEl, {
+      attributionControl: false
+    });
+
+    L.tileLayer(
+      "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+      { maxZoom: 18 }
+    ).addTo(wardBoundaryLeafletMap);
+
+  }
+
+  setTimeout(
+    () => wardBoundaryLeafletMap.invalidateSize(),
+    0
+  );
+
+  if (wardBoundaryGeoJson) {
+    drawWardBoundary();
+    return;
+  }
+
+  fetch(
+    "https://mapit.mysociety.org/area/166295.geojson?simplify_tolerance=0.0001"
+  )
+    .then((response) => response.json())
+    .then((geojson) => {
+      wardBoundaryGeoJson = geojson;
+      drawWardBoundary();
+    })
+    .catch(() => {
+      wardBoundaryLeafletMap.setView([52.8168, -4.4855], 13);
+    });
+
+}
+
+
+function drawWardBoundary() {
+
+  const layer = L.geoJSON(wardBoundaryGeoJson, {
+    style: { color: "#38f", weight: 2, fillOpacity: 0.1 }
+  }).addTo(wardBoundaryLeafletMap);
+
+  wardBoundaryLeafletMap.fitBounds(layer.getBounds());
+
+}
+
+
+function updateAiComments(household) {
+
+  if (!household || !household.electors.length) {
+    aiCommentsEl.textContent = "—";
+    return;
+  }
+
+  aiCommentsEl.textContent =
+    buildAiComments(household);
+
+}
+
+
+function updateDeliveryDetails(elector) {
+
+  deliveryWalkEl.textContent =
+    (elector && elector.deliveryWalk) || "—";
+
+  const householdId =
+    elector ? elector.householdGroupKey : null;
+
+  deliveryAreaInputEl.dataset.householdId =
+    householdId || "";
+
+  deliveryAreaInputEl.value =
+    householdId && state.areaOverrides[householdId] !== undefined
+      ? state.areaOverrides[householdId]
+      : formatHouseholdArea(elector);
+
+  deliveryDescriptionEl.textContent =
+    buildDeliveryDescription(elector);
+
+  deliveryOrderEl.textContent =
+    (elector && elector.deliveryOrder) || "—";
+
+  deliveryDelivererEl.textContent =
+    (elector && elector.deliverer) || "—";
+
+}
+
+
+deliveryAreaInputEl.addEventListener(
+  "change",
+  event => {
+
+    const householdId =
+      event.target.dataset.householdId;
+
+    if (!householdId) {
+      return;
+    }
+
+    state.areaOverrides[householdId] =
+      event.target.value.trim().toUpperCase();
+
+    saveToStorage(
+      STORAGE_KEYS.areaOverrides,
+      state.areaOverrides
+    );
+
+  }
+);
+
+
+function buildDeliveryDescription(elector) {
+
+  if (!elector) {
+    return "—";
+  }
+
+  const district =
+    normalizeText(elector.pollingDistrict || "");
+
+  if (district === "qb6") {
+    return "Farms and remote properties";
+  }
+
+  return "High Street and Harbour";
+
+}
+
+
+function buildAiComments(household) {
+
+  const electors = household.electors;
+
+  const names =
+    electors.map(
+      elector =>
+        elector.name || "Unnamed elector"
+    );
+
+  const sentences = [];
+
+
+  // Household size sentence
+  if (names.length === 1) {
+
+    sentences.push(
+      "There is one elector in this household: " +
+      names[0] +
+      "."
+    );
+
+  } else {
+
+    sentences.push(
+      "There are " +
+      numberToWords(names.length) +
+      " electors in this household: " +
+      joinNames(names) +
+      "."
+    );
+
+  }
+
+
+  // Canvass data sentence
+  sentences.push(
+    "We have no canvass data against them. " +
+    "We have no record of ever knocking on their door."
+  );
+
+
+  // Postal / proxy vote sentence
+  const postalProxyEntries =
+    electors.map(elector => ({
+      name: elector.name || "Unnamed elector",
+      status: elector.postalProxy || ""
+    }));
+
+  const anyPostalProxy =
+    postalProxyEntries.some(
+      entry =>
+        entry.status === "Postal" ||
+        entry.status === "Proxy"
+    );
+
+  if (!anyPostalProxy) {
+
+    if (names.length === 1) {
+
+      sentences.push(
+        names[0] +
+        " does not have a postal vote."
+      );
+
+    } else if (names.length === 2) {
+
+      sentences.push(
+        "Neither elector has a postal vote."
+      );
+
+    } else {
+
+      sentences.push(
+        "None of the electors have a postal vote."
+      );
+
+    }
+
+  } else {
+
+    const parts =
+      postalProxyEntries.map(entry => {
+
+        if (entry.status === "Postal" || entry.status === "Proxy") {
+          return entry.name + " has a postal vote";
+        }
+
+        return entry.name + " does not have a postal vote";
+
+      });
+
+    sentences.push(parts.join(". ") + ".");
+
+  }
+
+
+  return sentences.join(" ");
+
+}
+
+
+function joinNames(names) {
+
+  if (names.length <= 1) {
+    return names[0] || "";
+  }
+
+  return (
+    names.slice(0, -1).join(", ") +
+    " and " +
+    names[names.length - 1]
+  );
+
+}
+
+
+const NUMBER_WORDS = [
+  "zero", "one", "two", "three", "four",
+  "five", "six", "seven", "eight", "nine", "ten"
+];
+
+function numberToWords(value) {
+  return NUMBER_WORDS[value] || String(value);
+}
+
+
+function updateStats() {
+
+  const active = getFilteredActiveElectors();
+
+  const householdCount =
+    new Set(
+      active.map(e => e.householdGroupKey)
+    ).size;
+
+  statLoadedEl.textContent = String(active.length);
+  statCanvassEl.textContent = String(householdCount);
+
+}
+
+
+function getElectorProgress(electorId) {
+
+  const existing = state.progress[electorId] || {};
+
+  const legacyCanvassId =
+    existing.canvassId ||
+    existing.status ||
+    "No Data";
+
+  const canvassId = normalizeCanvassId(legacyCanvassId);
+  const supportIndependence = existing.supportIndependence || "No Data";
+  const firstLanguage = existing.firstLanguage || "English";
+  const phone = existing.phone || "";
+  const email = existing.email || "";
+  const partyMember = existing.partyMember || "No";
+  const poster = existing.poster || "No Poster";
+  const volunteer = Boolean(existing.volunteer);
+  const askToVolunteer = Boolean(existing.askToVolunteer);
+
+  return {
+    canvassId:
+      canvassIdOptions.includes(canvassId) ? canvassId : "No Data",
+    supportIndependence:
+      independenceOptions.includes(supportIndependence) ? supportIndependence : "No Data",
+    firstLanguage:
+      languageOptions.includes(firstLanguage) ? firstLanguage : "English",
+    phone,
+    email,
+    partyMember:
+      partyMemberOptions.includes(partyMember) ? partyMember : "No",
+    poster:
+      posterOptions.includes(poster) ? poster : "No Poster",
+    volunteer,
+    askToVolunteer: volunteer ? false : askToVolunteer
+  };
+
+}
+
+
+function normalizeCanvassId(value) {
+
+  const cleaned = String(value || "").trim();
+
+  if (cleaned === "Tory") {
+    return "Conservative";
+  }
+
+  if (cleaned === "Plaid") {
+    return "Probable Plaid";
+  }
+
+  return cleaned || "No Data";
+
+}
+
+
+function getActiveElectors() {
+
+  const authority = normalizeText(localAuthorityEl.value);
+  const senedd = normalizeText(seneddEl.value);
+  const westminster = normalizeText(westminsterEl.value);
+  const ward = normalizeText(wardEl.value);
+  const community = normalizeText(communityEl.value);
+  const pollingDistrict = normalizeText(pollingDistrictEl.value);
+
+  return state.electors.filter(elector => {
+
+    const electorAuthority = normalizeText(elector.localAuthority);
+    const electorSenedd = normalizeText(elector.senedd);
+    const electorWestminster = normalizeText(elector.westminster);
+    const electorWard = normalizeText(elector.ward);
+    const electorCommunity = normalizeText(elector.community);
+    const electorPollingDistrict = normalizeText(elector.pollingDistrict);
+
+    if (authority && electorAuthority && electorAuthority !== authority) {
+      return false;
+    }
+
+    if (senedd && electorSenedd && electorSenedd !== senedd) {
+      return false;
+    }
+
+    if (westminster && electorWestminster && electorWestminster !== westminster) {
+      return false;
+    }
+
+    if (ward && electorWard && electorWard !== ward) {
+      return false;
+    }
+
+    if (community && electorCommunity && electorCommunity !== community) {
+      return false;
+    }
+
+    if (pollingDistrict && electorPollingDistrict && electorPollingDistrict !== pollingDistrict) {
+      return false;
+    }
+
+    return true;
+
+  });
+
+}
+
+
+function getFilteredActiveElectors() {
+
+  const filterType =
+    filterTypeEl.value;
+
+  const addressSearch =
+    normalizeText(addressSearchInputEl.value).trim();
+
+  return getActiveElectors().filter(elector => {
+
+    if (filterType === "postal-proxy") {
+
+      if (
+        elector.postalProxy !== "Postal" &&
+        elector.postalProxy !== "Proxy"
+      ) {
+        return false;
+      }
+
+    }
+
+    if (addressSearch) {
+
+      const electorAddress =
+        normalizeText(elector.address);
+
+      if (!electorAddress.includes(addressSearch)) {
+        return false;
+      }
+
+    }
+
+    return true;
+
+  });
+
+}
+
+
+function toGoogleCsvUrl(rawUrl) {
+
+  if (
+    rawUrl.includes("output=csv") ||
+    rawUrl.includes("/export?format=csv")
+  ) {
+    return rawUrl;
+  }
+
+  const match =
+    rawUrl.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+
+  if (!match) {
+    return rawUrl;
+  }
+
+  const sheetId = match[1];
+
+  const gidMatch =
+    rawUrl.match(/[?&#]gid=([0-9]+)/);
+
+  const gid = gidMatch ? gidMatch[1] : "0";
+
+  return (
+    "https://docs.google.com/spreadsheets/d/" +
+    sheetId +
+    "/export?format=csv&gid=" +
+    gid
+  );
+
+}
+
+
+function parseCsv(csvText) {
+
+  const rows = [];
+  let row = [];
+  let value = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < csvText.length; i += 1) {
+
+    const char = csvText[i];
+    const next = csvText[i + 1];
+
+    if (char === "\"" && inQuotes && next === "\"") {
+      value += "\"";
+      i += 1;
+      continue;
+    }
+
+    if (char === "\"") {
+      inQuotes = !inQuotes;
+      continue;
+    }
+
+    if (char === "," && !inQuotes) {
+      row.push(value);
+      value = "";
+      continue;
+    }
+
+    if ((char === "\n" || char === "\r") && !inQuotes) {
+
+      if (char === "\r" && next === "\n") {
+        i += 1;
+      }
+
+      row.push(value);
+      rows.push(row);
+      row = [];
+      value = "";
+      continue;
+
+    }
+
+    value += char;
+
+  }
+
+  if (value.length || row.length) {
+    row.push(value);
+    rows.push(row);
+  }
+
+  return rows;
+
+}
+
+
+function normalizeHeader(value) {
+
+  return (
+    (value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "")
+  );
+
+}
+
+
+function normalizeText(value) {
+
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+}
+
+
+function formatPostalProxy(value) {
+
+  const cleaned = String(value || "").trim();
+  const normalized = normalizeText(cleaned);
+
+  if (!normalized) {
+    return "";
+  }
+
+  if (normalized.includes("postal")) {
+    return "Postal";
+  }
+
+  if (normalized.includes("proxy")) {
+    return "Proxy";
+  }
+
+  return cleaned;
+
+}
+
+
+function setMessage(text) {
+  messageEl.textContent = text;
+}
+
+
+function loadFromStorage(key, fallback) {
+
+  try {
+
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+
+  } catch (_error) {
+
+    return fallback;
+
+  }
+
+}
+
+
+function saveToStorage(key, value) {
+  localStorage.setItem(key, JSON.stringify(value));
+}
+
+
+function escapeHtml(value) {
+
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
+}
+
+
+function escapeHtmlAttr(value) {
+  return escapeHtml(value).replace(/`/g, "&#096;");
+}
+  </script>
+</body>
+</html>
+    

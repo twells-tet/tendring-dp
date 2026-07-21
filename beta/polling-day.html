@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Polling Day | TARIAN</title>
+  <link rel="icon" type="image/svg+xml" href="tarian-shield.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="page-header no-print">
+    <img src="tarian-shield.svg" alt="" class="page-header-logo">
+    <h1>TARIAN</h1>
+    <p class="page-subtitle">Polling Day Operation</p>
+  </header>
+
+  <main class="app-shell">
+
+    <div class="polling-day-date-box no-print">
+      <label for="polling-day-date">Enter Polling Day</label>
+      <input type="date" id="polling-day-date">
+      <p id="polling-day-reset-text" class="polling-day-reset-text"></p>
+    </div>
+
+    <section class="panel no-print">
+      <h2>GOTV</h2>
+
+      <dl class="delivery-details">
+        <dt>Local Authority</dt>
+        <dd>Gwynedd</dd>
+
+        <dt>Ward</dt>
+        <dd>Abersoch gyda Llanengan</dd>
+
+        <dt>Polling District</dt>
+        <dd>
+          <select id="polling-day-district-select" class="polling-district-select">
+            <option value="ra1">RA1 (Abersoch)</option>
+            <option value="qb6">QB6 (Llanengan)</option>
+          </select>
+        </dd>
+      </dl>
+
+      <label for="voter-filter" class="voter-filter-label">
+        Voter Filter
+        <select id="voter-filter">
+          <option value="postal" selected>Postal Voters Only</option>
+          <option value="all" disabled>All Voters</option>
+          <option value="non-pv" disabled>Non-PV Voters Only</option>
+        </select>
+      </label>
+
+      <div class="walk-filter-row">
+        <label for="walk-filter" class="voter-filter-label walk-filter-label">
+          Walk Filter
+          <select id="walk-filter">
+            <option value="all" selected>All</option>
+          </select>
+        </label>
+
+        <div class="walk-description">
+          <span class="walk-description-label">Description</span>
+          <span id="walk-description-value">—</span>
+        </div>
+      </div>
+
+      <div class="polling-day-counters">
+        <div class="polling-day-counter">
+          <span class="polling-day-counter-label">Electors</span>
+          <span class="polling-day-counter-value" id="electors-count">0</span>
+        </div>
+        <div class="polling-day-counter">
+          <span class="polling-day-counter-label">Supporters Voting</span>
+          <span class="polling-day-counter-value" id="supporters-voting-count">0</span>
+        </div>
+      </div>
+
+      <p id="polling-day-message" class="message" role="status" aria-live="polite"></p>
+
+      <button type="button" class="export-button telling-data-button">Enter Telling Data</button>
+
+      <p><a href="index.html" class="back-link">&larr; back to main list</a></p>
+      <p><a href="#" id="printer-friendly-link" class="back-link">Printer friendly (suitable for 21 per page label printing)</a></p>
+    </section>
+
+    <section class="label-sheet-wrap">
+      <div id="label-sheet" class="label-sheet"></div>
+    </section>
+
+  </main>
+
+  <a href="#" id="exit-printer-friendly-link" class="exit-printer-friendly-link">&larr; Exit printer friendly page</a>
+
+  <script>
+
+    const STORAGE_KEYS = {
+      sheetUrl: "abersoch-sheet-url",
+      pollingDistrict: "abersoch-polling-district",
+      voterFilter: "abersoch-polling-day-voter-filter",
+      labelStatus: "abersoch-polling-day-label-status"
+    };
+
+    let savedDistrict =
+      localStorage.getItem(STORAGE_KEYS.pollingDistrict) || "ra1";
+
+    const districtSelectEl = document.getElementById("polling-day-district-select");
+    districtSelectEl.value = savedDistrict;
+
+    districtSelectEl.addEventListener("change", () => {
+      savedDistrict = districtSelectEl.value;
+      localStorage.setItem(STORAGE_KEYS.pollingDistrict, savedDistrict);
+      walkFilterInitialized = false;
+      renderLabels();
+    });
+
+    const voterFilterEl = document.getElementById("voter-filter");
+
+    const savedVoterFilter =
+      localStorage.getItem(STORAGE_KEYS.voterFilter) || "postal";
+
+    if (
+      [...voterFilterEl.options].some(
+        option => option.value === savedVoterFilter && !option.disabled
+      )
+    ) {
+      voterFilterEl.value = savedVoterFilter;
+    } else {
+      voterFilterEl.value = "postal";
+    }
+
+    voterFilterEl.addEventListener("change", () => {
+      localStorage.setItem(STORAGE_KEYS.voterFilter, voterFilterEl.value);
+      renderLabels();
+    });
+
+    const walkFilterEl = document.getElementById("walk-filter");
+    const walkDescriptionValueEl = document.getElementById("walk-description-value");
+
+    const walkDescriptions = {
+      qb6: "Farms and remote properties",
+      ra1: "High Street and Harbour"
+    };
+
+    function updateWalkDescription() {
+      walkDescriptionValueEl.textContent =
+        walkFilterEl.value === "all"
+          ? "N/A"
+          : walkDescriptions[savedDistrict] || walkDescriptions.ra1;
+    }
+
+    walkFilterEl.addEventListener("change", () => {
+      updateWalkDescription();
+      renderLabels();
+    });
+
+    function extractWalkNumber(walkText) {
+      const match = String(walkText || "").match(/\d+/);
+      return match ? match[0] : "";
+    }
+
+    let walkFilterInitialized = false;
+
+    function populateWalkFilterOptions(districtElectors) {
+
+      const previousValue = walkFilterEl.value || "all";
+
+      const walks =
+        [...new Set(
+          districtElectors
+            .map(e => extractWalkNumber(e.deliveryWalk))
+            .filter(Boolean)
+        )].sort((a, b) => Number(a) - Number(b));
+
+      walkFilterEl.innerHTML =
+        "<option value=\"all\">All</option>" +
+        walks
+          .map(
+            walk =>
+              "<option value=\"" + escapeHtmlAttr(walk) + "\">" +
+              escapeHtml(walk) +
+              "</option>"
+          )
+          .join("");
+
+      if (!walkFilterInitialized) {
+        walkFilterEl.value = walks.length ? walks[0] : "all";
+        walkFilterInitialized = true;
+      } else if ([...walkFilterEl.options].some(option => option.value === previousValue)) {
+        walkFilterEl.value = previousValue;
+      } else {
+        walkFilterEl.value = "all";
+      }
+
+      updateWalkDescription();
+
+    }
+
+    const pollingDateEl = document.getElementById("polling-day-date");
+    const pollingDateResetTextEl = document.getElementById("polling-day-reset-text");
+
+    function firstThursdayOfMay(year) {
+      const date = new Date(year, 4, 1);
+      const day = date.getDay();
+      const offset = (4 - day + 7) % 7;
+      date.setDate(1 + offset);
+      return date;
+    }
+
+    function formatPollingDateForInput(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return year + "-" + month + "-" + day;
+    }
+
+    const WEEKDAY_ABBREVIATIONS = [
+      "Sun", "Mon", "Tues", "Wed", "Thurs", "Fri", "Sat"
+    ];
+
+    function formatPollingDateForDisplay(dateString) {
+      if (!dateString) {
+        return "";
+      }
+      const [year, month, day] = dateString.split("-").map(Number);
+      const date = new Date(year, month - 1, day);
+      const weekday = WEEKDAY_ABBREVIATIONS[date.getDay()];
+      const rest = date.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+      });
+      return weekday + " " + rest;
+    }
+
+    function updatePollingDateResetText() {
+      pollingDateResetTextEl.textContent =
+        "Polling Day data will automatically reset at 23:00 on " +
+        formatPollingDateForDisplay(pollingDateEl.value);
+    }
+
+    const today = new Date();
+    const twoYearsFromNow = new Date(today);
+    twoYearsFromNow.setFullYear(today.getFullYear() + 2);
+
+    pollingDateEl.min = formatPollingDateForInput(today);
+    pollingDateEl.max = formatPollingDateForInput(twoYearsFromNow);
+    pollingDateEl.value = formatPollingDateForInput(firstThursdayOfMay(2027));
+
+    updatePollingDateResetText();
+
+    pollingDateEl.addEventListener("change", updatePollingDateResetText);
+
+    const printerFriendlyLink = document.getElementById("printer-friendly-link");
+    const exitPrinterFriendlyLink = document.getElementById("exit-printer-friendly-link");
+
+    printerFriendlyLink.addEventListener("click", event => {
+      event.preventDefault();
+      document.body.classList.add("printer-friendly-mode");
+    });
+
+    exitPrinterFriendlyLink.addEventListener("click", event => {
+      event.preventDefault();
+      document.body.classList.remove("printer-friendly-mode");
+    });
+
+    const electorsCountEl = document.getElementById("electors-count");
+    const supportersVotingCountEl = document.getElementById("supporters-voting-count");
+    const labelSheetEl = document.getElementById("label-sheet");
+    const messageEl = document.getElementById("polling-day-message");
+
+    const labelStatus =
+      JSON.parse(localStorage.getItem(STORAGE_KEYS.labelStatus) || "{}");
+
+    function saveLabelStatus() {
+      localStorage.setItem(
+        STORAGE_KEYS.labelStatus,
+        JSON.stringify(labelStatus)
+      );
+    }
+
+    function getLabelStatus(id) {
+      return labelStatus[id] || { returned: false, votedToday: false, refused: false };
+    }
+
+    let allElectors = [];
+
+    const DEFAULT_SHEET_URL =
+      "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/edit?usp=sharing";
+
+    async function init() {
+
+      const sheetUrl =
+        localStorage.getItem(STORAGE_KEYS.sheetUrl) ||
+        DEFAULT_SHEET_URL;
+
+      if (!sheetUrl) {
+        messageEl.textContent =
+          "No Google Sheet URL is set. Go to the main list and load a sheet first.";
+        return;
+      }
+
+      messageEl.textContent = "Loading electors...";
+
+      try {
+
+        const csvUrl = toGoogleCsvUrl(sheetUrl);
+        const response = await fetch(csvUrl);
+
+        if (!response.ok) {
+          throw new Error("Could not fetch sheet data.");
+        }
+
+        const csvText = await response.text();
+        const rows = parseCsv(csvText);
+        const headers = rows[0].map(h => normalizeHeader(h));
+
+        allElectors =
+          rows
+            .slice(1)
+            .map((row, index) => mapRowToElector(row, headers, index))
+            .filter(e => e.name || e.address);
+
+        messageEl.textContent = "";
+
+        renderLabels();
+
+      } catch (error) {
+        messageEl.textContent = "Unable to load sheet: " + error.message;
+      }
+
+    }
+
+    function renderLabels() {
+
+      const districtElectors =
+        allElectors.filter(
+          e => normalizeText(e.pollingDistrict) === savedDistrict
+        );
+
+      populateWalkFilterOptions(districtElectors);
+
+      const filter = voterFilterEl.value;
+      const walkFilter = walkFilterEl.value;
+
+      const filteredElectors =
+        districtElectors.filter(e => {
+
+          if (filter === "postal") {
+            if (e.postalProxy !== "Postal") {
+              return false;
+            }
+          }
+
+          if (filter === "non-pv") {
+            if (e.postalProxy === "Postal" || e.postalProxy === "Proxy") {
+              return false;
+            }
+          }
+
+          if (walkFilter !== "all" && extractWalkNumber(e.deliveryWalk) !== walkFilter) {
+            return false;
+          }
+
+          return true;
+
+        });
+
+      electorsCountEl.textContent = filteredElectors.length;
+
+      const sortedElectors =
+        filteredElectors.slice().sort((a, b) => {
+
+          const orderA = parseFloat(a.deliveryOrder);
+          const orderB = parseFloat(b.deliveryOrder);
+
+          if (!isNaN(orderA) && !isNaN(orderB)) {
+            return orderA - orderB;
+          }
+
+          if (!isNaN(orderA)) {
+            return -1;
+          }
+
+          if (!isNaN(orderB)) {
+            return 1;
+          }
+
+          return 0;
+
+        });
+
+      const perPage = 21;
+      let html = "";
+
+      for (let i = 0; i < sortedElectors.length; i += perPage) {
+
+        const pageElectors = sortedElectors.slice(i, i + perPage);
+
+        html +=
+          "<div class=\"label-page\">" +
+          pageElectors
+            .map((elector, pageIndex) => renderLabelCard(elector, i + pageIndex + 1))
+            .join("") +
+          "</div>";
+
+      }
+
+      if (!sortedElectors.length) {
+        html =
+          "<p class=\"empty-state\">No electors match this filter for the selected polling district.</p>";
+      }
+
+      labelSheetEl.innerHTML = html;
+
+      bindLabelCheckboxes();
+
+      updateSupportersVotingCount();
+
+    }
+
+    function electorNumberLabel(elector) {
+
+      const prefix = savedDistrict.toUpperCase();
+      const number = elector.pollingElectorNumber || "—";
+
+      return prefix + "-" + number;
+
+    }
+
+    function truncateAddress(address) {
+
+      const text = String(address || "");
+
+      if (text.length <= 18) {
+        return text;
+      }
+
+      return text.slice(0, 18) + "…";
+
+    }
+
+    function renderLabelCard(elector, displayOrder) {
+
+      const status = getLabelStatus(elector.rowKey);
+
+      const isDone = Boolean(status.returned || status.votedToday || status.refused);
+
+      return (
+        "<div class=\"label-card" + (isDone ? " label-card-done" : "") + "\">" +
+
+        "<p class=\"label-line label-walk-order\">" +
+        "Walk " + escapeHtml(elector.deliveryWalk || "—") +
+        " &middot; Order " + displayOrder +
+        "</p>" +
+
+        "<p class=\"label-line label-elector-number\">" + escapeHtml(electorNumberLabel(elector)) + "</p>" +
+
+        "<p class=\"label-line label-address\">" +
+        escapeHtml(truncateAddress(elector.address)) +
+        (elector.postcode ? " " + escapeHtml(elector.postcode) : "") +
+        "</p>" +
+
+        "<p class=\"label-line label-name\">" + escapeHtml(elector.name || "") + "</p>" +
+
+        "<p class=\"label-line label-canvass-id\">Canvass ID: Plaid Cymru</p>" +
+
+        "<div class=\"label-checkboxes no-print-disable\">" +
+
+        "<label class=\"checkbox-label\">" +
+        "<input type=\"checkbox\" class=\"returned-postal-checkbox\" data-id=\"" + escapeHtmlAttr(elector.rowKey) + "\"" +
+        (status.returned ? " checked" : "") +
+        (status.votedToday || status.refused ? " disabled" : "") +
+        ">" +
+        "Returned Postal Vote" +
+        "</label>" +
+
+        "<label class=\"checkbox-label\">" +
+        "<input type=\"checkbox\" class=\"voted-today-checkbox\" data-id=\"" + escapeHtmlAttr(elector.rowKey) + "\"" +
+        (status.votedToday ? " checked" : "") +
+        (status.returned || status.refused ? " disabled" : "") +
+        ">" +
+        "Voted in Person Today" +
+        "</label>" +
+
+        "<label class=\"checkbox-label\">" +
+        "<input type=\"checkbox\" class=\"refused-checkbox\" data-id=\"" + escapeHtmlAttr(elector.rowKey) + "\"" +
+        (status.refused ? " checked" : "") +
+        (status.returned || status.votedToday ? " disabled" : "") +
+        ">" +
+        "Refused / Won't Say" +
+        "</label>" +
+
+        "</div>" +
+
+        "</div>"
+      );
+
+    }
+
+    function applyStatusToCard(card, status) {
+
+      const returnedInput = card.querySelector(".returned-postal-checkbox");
+      const votedTodayInput = card.querySelector(".voted-today-checkbox");
+      const refusedInput = card.querySelector(".refused-checkbox");
+
+      returnedInput.checked = status.returned;
+      votedTodayInput.checked = status.votedToday;
+      refusedInput.checked = status.refused;
+
+      returnedInput.disabled = status.votedToday || status.refused;
+      votedTodayInput.disabled = status.returned || status.refused;
+      refusedInput.disabled = status.returned || status.votedToday;
+
+      card.classList.toggle(
+        "label-card-done",
+        Boolean(status.returned || status.votedToday || status.refused)
+      );
+
+    }
+
+    function bindLabelCheckboxes() {
+
+      labelSheetEl.querySelectorAll(".returned-postal-checkbox").forEach(input => {
+
+        input.addEventListener("change", event => {
+
+          const id = event.target.dataset.id;
+          const status = getLabelStatus(id);
+
+          status.returned = event.target.checked;
+
+          if (status.returned) {
+            status.votedToday = false;
+            status.refused = false;
+          }
+
+          labelStatus[id] = status;
+          saveLabelStatus();
+
+          applyStatusToCard(event.target.closest(".label-card"), status);
+          updateSupportersVotingCount();
+
+        });
+
+      });
+
+      labelSheetEl.querySelectorAll(".voted-today-checkbox").forEach(input => {
+
+        input.addEventListener("change", event => {
+
+          const id = event.target.dataset.id;
+          const status = getLabelStatus(id);
+
+          status.votedToday = event.target.checked;
+
+          if (status.votedToday) {
+            status.returned = false;
+            status.refused = false;
+          }
+
+          labelStatus[id] = status;
+          saveLabelStatus();
+
+          applyStatusToCard(event.target.closest(".label-card"), status);
+          updateSupportersVotingCount();
+
+        });
+
+      });
+
+      labelSheetEl.querySelectorAll(".refused-checkbox").forEach(input => {
+
+        input.addEventListener("change", event => {
+
+          const id = event.target.dataset.id;
+          const status = getLabelStatus(id);
+
+          status.refused = event.target.checked;
+
+          if (status.refused) {
+            status.returned = false;
+            status.votedToday = false;
+          }
+
+          labelStatus[id] = status;
+          saveLabelStatus();
+
+          applyStatusToCard(event.target.closest(".label-card"), status);
+          updateSupportersVotingCount();
+
+        });
+
+      });
+
+    }
+
+    function updateSupportersVotingCount() {
+
+      const checkedCount =
+        labelSheetEl.querySelectorAll(
+          ".returned-postal-checkbox:checked, .voted-today-checkbox:checked"
+        ).length;
+
+      supportersVotingCountEl.textContent = checkedCount;
+
+    }
+
+    function mapRowToElector(row, headers, index) {
+
+      const data = {};
+
+      headers.forEach((header, idx) => {
+        data[header] = (row[idx] || "").trim();
+      });
+
+      const sourceRow = index + 2;
+
+      const id =
+        data.electorid ||
+        data.id ||
+        data.reference ||
+        data.uprn ||
+        ("row-" + sourceRow);
+
+      const name =
+        data.name ||
+        data.elector ||
+        data.electorname ||
+        "";
+
+      const address =
+        [
+          data.address,
+          data.address1,
+          data.address2,
+          data.address3,
+          data.household
+        ]
+        .filter(part => part && !/^\d+$/.test(part) && part.toLowerCase() !== "gwynedd")
+        .join(", ");
+
+      const postcode =
+        data.postcode || "";
+
+      return {
+        id: String(id),
+        rowKey: "row-" + sourceRow,
+        name,
+        address,
+        postcode,
+        pollingDistrict:
+          data.pollingdistrict ||
+          data.pollingdist ||
+          data.district ||
+          data.pd ||
+          row[15] ||
+          "",
+        pollingElectorNumber:
+          data.electornumber ||
+          data.electorno ||
+          data.electornum ||
+          row[16] ||
+          "",
+        deliveryWalk:
+          data.walk ||
+          row[37] ||
+          "",
+        deliveryOrder:
+          data.deliveryorder ||
+          row[38] ||
+          "",
+        postalProxy:
+          formatPostalProxy(
+            data.postalproxy ||
+            data.postalorproxy ||
+            row[17] ||
+            ""
+          )
+      };
+
+    }
+
+    function toGoogleCsvUrl(rawUrl) {
+
+      if (
+        rawUrl.includes("output=csv") ||
+        rawUrl.includes("/export?format=csv")
+      ) {
+        return rawUrl;
+      }
+
+      const match = rawUrl.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+
+      if (!match) {
+        return rawUrl;
+      }
+
+      const sheetId = match[1];
+      const gidMatch = rawUrl.match(/[?&#]gid=([0-9]+)/);
+      const gid = gidMatch ? gidMatch[1] : "0";
+
+      return (
+        "https://docs.google.com/spreadsheets/d/" +
+        sheetId +
+        "/export?format=csv&gid=" +
+        gid
+      );
+
+    }
+
+    function parseCsv(csvText) {
+
+      const rows = [];
+      let row = [];
+      let value = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < csvText.length; i += 1) {
+
+        const char = csvText[i];
+        const next = csvText[i + 1];
+
+        if (char === "\"" && inQuotes && next === "\"") {
+          value += "\"";
+          i += 1;
+          continue;
+        }
+
+        if (char === "\"") {
+          inQuotes = !inQuotes;
+          continue;
+        }
+
+        if (char === "," && !inQuotes) {
+          row.push(value);
+          value = "";
+          continue;
+        }
+
+        if ((char === "\n" || char === "\r") && !inQuotes) {
+
+          if (char === "\r" && next === "\n") {
+            i += 1;
+          }
+
+          row.push(value);
+          rows.push(row);
+          row = [];
+          value = "";
+          continue;
+
+        }
+
+        value += char;
+
+      }
+
+      if (value.length || row.length) {
+        row.push(value);
+        rows.push(row);
+      }
+
+      return rows;
+
+    }
+
+    function normalizeHeader(value) {
+      return (value || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+    }
+
+    function normalizeText(value) {
+      return String(value || "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function formatPostalProxy(value) {
+
+      const cleaned = String(value || "").trim();
+      const normalized = normalizeText(cleaned);
+
+      if (!normalized) {
+        return "";
+      }
+
+      if (normalized.includes("postal")) {
+        return "Postal";
+      }
+
+      if (normalized.includes("proxy")) {
+        return "Proxy";
+      }
+
+      return cleaned;
+
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function escapeHtmlAttr(value) {
+      return escapeHtml(value).replace(/`/g, "&#096;");
+    }
+
+    init();
+
+  </script>
+
+</body>
+</html>
