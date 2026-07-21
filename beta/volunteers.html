@@ -112,8 +112,8 @@
         </thead>
         <tbody>
           <tr data-row-key="member-1">
-            <td><input type="text" class="name-input first-name-input" value="Meirion"></td>
-            <td><input type="text" class="name-input last-name-input" value="Member"></td>
+            <td><input type="text" class="name-input first-name-input read-only-input" value="Meirion" readonly title="Member name cannot be changed"></td>
+            <td><input type="text" class="name-input last-name-input read-only-input" value="Member" readonly title="Member name cannot be changed"></td>
             <td>
               <input type="text" class="elector-id-input read-only-input" value="836408391" placeholder="Elector ID" readonly title="Elector ID cannot be changed">
               <div class="elector-address-display"></div>
@@ -1059,12 +1059,22 @@
       const firstNameInput = document.createElement("input");
       firstNameInput.type = "text";
       firstNameInput.className = "name-input first-name-input";
+      if (tableId === "members-table") {
+        firstNameInput.readOnly = true;
+        firstNameInput.classList.add("read-only-input");
+        firstNameInput.title = "Member name cannot be changed";
+      }
       firstNameTd.appendChild(firstNameInput);
 
       const lastNameTd = document.createElement("td");
       const lastNameInput = document.createElement("input");
       lastNameInput.type = "text";
       lastNameInput.className = "name-input last-name-input";
+      if (tableId === "members-table") {
+        lastNameInput.readOnly = true;
+        lastNameInput.classList.add("read-only-input");
+        lastNameInput.title = "Member name cannot be changed";
+      }
       lastNameTd.appendChild(lastNameInput);
 
       const electorIdTd =
