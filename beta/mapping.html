@@ -51,6 +51,11 @@
     // regardless of how many households match the active filters.
     const MAX_HOUSEHOLDS = 1999;
 
+    // Safety limit: if plotting the filtered households would generate
+    // more markers than this, the map is not loaded at all (to avoid
+    // freezing the browser). The user should apply a narrower filter.
+    const MAX_MARKERS = 999;
+
     // Words that should never appear in address fields - these are the
     // town/county names that are already covered by the dedicated Post
     // Town field, so repeating them here is just noise/duplication.
@@ -358,10 +363,12 @@
       return Boolean(progress && (progress.doNotDeliver || progress.doNotContact));
     }
 
-    // Groups a flat elector list into one entry per household, keeping
+    // Groups a flat elector list into one entry per Household ID, keeping
     // the first elector's address/coordinates as representative of the
-    // whole household (all electors sharing a householdGroupKey live at
-    // the same property).
+    // whole household (all electors sharing a Household ID live at the
+    // same property). This guarantees exactly one marker per Household ID
+    // even if multiple electors at that address have differing KEY 1
+    // values.
     function buildHouseholds(electors) {
 
       const order = [];
@@ -369,7 +376,7 @@
 
       electors.forEach(elector => {
 
-        const key = elector.householdGroupKey || elector.householdId;
+        const key = elector.householdId || elector.householdGroupKey;
 
         if (!byKey.has(key)) {
           byKey.set(key, {
@@ -560,6 +567,25 @@
 
         const missingCoords =
           shownHouseholds.length - plottable.length;
+
+        if (plottable.length > MAX_MARKERS) {
+
+          mapEl.hidden = true;
+
+          messageEl.textContent =
+            "Map not loaded: this filter would generate " +
+            plottable.length +
+            " markers, which exceeds the safety limit of " +
+            MAX_MARKERS +
+            ". Please apply a narrower filter (e.g. a specific Polling District) before displaying the map.";
+
+          summaryEl.textContent = "";
+
+          return;
+
+        }
+
+        mapEl.hidden = false;
 
         renderMap(shownHouseholds);
 
