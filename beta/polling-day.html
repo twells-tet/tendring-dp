@@ -3,13 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Polling Day | Vote 2027</title>
+  <title>Polling Day | TARIAN</title>
+  <link rel="icon" type="image/svg+xml" href="tarian-shield.svg">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
   <header class="page-header no-print">
-    <h1>Vote 2027</h1>
+    <img src="tarian-shield.svg" alt="" class="page-header-logo">
+    <h1>TARIAN</h1>
     <p class="page-subtitle">Polling Day Operation</p>
   </header>
 
@@ -212,18 +214,23 @@
       return year + "-" + month + "-" + day;
     }
 
+    const WEEKDAY_ABBREVIATIONS = [
+      "Sun", "Mon", "Tues", "Wed", "Thurs", "Fri", "Sat"
+    ];
+
     function formatPollingDateForDisplay(dateString) {
       if (!dateString) {
         return "";
       }
       const [year, month, day] = dateString.split("-").map(Number);
       const date = new Date(year, month - 1, day);
-      return date.toLocaleDateString("en-GB", {
-        weekday: "long",
+      const weekday = WEEKDAY_ABBREVIATIONS[date.getDay()];
+      const rest = date.toLocaleDateString("en-GB", {
         day: "numeric",
         month: "long",
         year: "numeric"
       });
+      return weekday + " " + rest;
     }
 
     function updatePollingDateResetText() {

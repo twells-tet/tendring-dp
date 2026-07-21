@@ -153,13 +153,13 @@ body.pin-locked > *:not(#pin-gate) {
 }
 
 .polling-day-date-box {
-  justify-self: end;
+  justify-self: center;
   background: var(--surface);
   border: 1px solid var(--border-strong);
   border-radius: 0.5rem;
   padding: 0.6rem 0.75rem;
   max-width: 220px;
-  text-align: left;
+  text-align: center;
 }
 
 .polling-day-date-box label {
