@@ -711,7 +711,8 @@
           });
 
           walkKeyEl.innerHTML =
-            "<span class=\"walk-key-title\">Walk key:</span>" +
+            "<div class=\"walk-key-title\">Walk key</div>" +
+            "<div class=\"walk-key-grid\">" +
             Object.keys(WALK_COLORS).map(walkNumber =>
               "<span class=\"walk-key-item\">" +
               "<span class=\"walk-key-swatch\" style=\"background:" +
@@ -719,7 +720,8 @@
               "Walk " + walkNumber +
               " (" + counts[walkNumber].plotted + "/" + counts[walkNumber].total + ")" +
               "</span>"
-            ).join("");
+            ).join("") +
+            "</div>";
 
         }
 

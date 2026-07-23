@@ -855,13 +855,15 @@ body.mobile-mode .elector-list {
 }
 
 .walk-key {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.75rem;
+  display: block;
+  width: fit-content;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 0.6rem 0.9rem;
   margin-bottom: 0.75rem;
   font-size: 0.85rem;
   color: var(--text-muted);
+  background: var(--surface);
 }
 
 .walk-key[hidden] {
@@ -871,12 +873,20 @@ body.mobile-mode .elector-list {
 .walk-key-title {
   font-weight: 600;
   color: var(--text);
+  margin-bottom: 0.4rem;
+}
+
+.walk-key-grid {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  gap: 0.4rem 1.25rem;
 }
 
 .walk-key-item {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+  white-space: nowrap;
 }
 
 .walk-key-swatch {
