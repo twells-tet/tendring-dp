@@ -384,7 +384,7 @@
               <p id="road-area-help-text" class="road-area-help-text" hidden>This should be the smallest unit of individual properties: the road, lane, subroad, cul-de-sac, hamlet or block of flats. Deliveries will be organised by this unit, so it is important to be accurate and consistent.</p>
             </dd>
 
-            <dt>Sort Order</dt>
+            <dt><a href="manage-walks.html" id="sort-order-link" target="_blank" rel="noopener">Sort Order</a></dt>
             <dd>
               <span id="delivery-order">—</span>
               <button type="button" id="sort-order-up" class="sort-order-btn" disabled aria-label="Move up in sort order">+</button>
@@ -789,6 +789,9 @@ const deliveryDescriptionEl =
 
 const deliveryOrderEl =
   document.getElementById("delivery-order");
+
+const sortOrderLinkEl =
+  document.getElementById("sort-order-link");
 
 const deliveryDelivererEl =
   document.getElementById("delivery-deliverer");
@@ -3185,16 +3188,29 @@ function updateDeliveryDetails(elector) {
   deliveryAreaInputEl.dataset.householdId =
     householdId || "";
 
-  deliveryAreaInputEl.value =
+  const currentSubRoad =
     householdId && state.areaOverrides[householdId] !== undefined
       ? state.areaOverrides[householdId]
       : (elector && elector.subRoad) || formatHouseholdArea(elector);
+
+  deliveryAreaInputEl.value =
+    currentSubRoad;
 
   deliveryDescriptionEl.textContent =
     buildDeliveryDescription(elector);
 
   deliveryOrderEl.textContent =
     (elector && elector.deliveryOrder) || "—";
+
+  const subRoadForLink =
+    currentSubRoad && currentSubRoad !== "—"
+      ? currentSubRoad
+      : "";
+
+  sortOrderLinkEl.href =
+    subRoadForLink
+      ? "manage-walks.html?subroad=" + encodeURIComponent(subRoadForLink)
+      : "manage-walks.html";
 
   deliveryDelivererEl.textContent =
     (elector && elector.deliverer) || "—";
