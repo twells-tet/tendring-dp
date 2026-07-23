@@ -1933,9 +1933,9 @@ body.printer-friendly-mode .exit-printer-friendly-link {
 .tarian-homepage-card .eyebrow {
   margin: 0 0 0.5rem;
   color: var(--plaid-green);
-  font-size: 0.8rem;
+  font-size: 1.6rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 

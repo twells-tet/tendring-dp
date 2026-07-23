@@ -21,7 +21,7 @@
 
             <div class="hero">
                 <h2>Delivery areas</h2>
-                <p class="areas">Abersoch • Mynytho • Llanbedrog • Pwllheli</p>
+                <p class="areas">Abersoch • Llanbedrog • Llanengan • Mynytho • Penrhos • Pwllheli</p>
             </div>
 
             <div class="intro">
@@ -29,7 +29,7 @@
                 <p>No need to miss your favourite newspaper while you’re away — simply choose the delivery days that suit you best online.</p>
             </div>
 
-            <a class="cta" href="https://www.tarian146.co.uk">Sign up online</a>
+            <p class="scroll-hint">Scroll down to start your order</p>
 
             <ul>
                 <li>Only 75p per day plus cover price</li>
@@ -44,7 +44,7 @@
             </div>
         </div>
 
-        <div id="signup-form" class="signup-form tarian-homepage-card" hidden>
+        <div id="signup-form" class="signup-form tarian-homepage-card">
             <h2>Start your delivery</h2>
             <p class="signup-intro">Deliveries start <strong>Saturday 1 August 2026</strong>. Tell us what you'd like and we'll email your request to Chris to set it up.</p>
 
@@ -52,18 +52,18 @@
                 Newspaper
                 <select id="signup-newspaper">
                     <option value="">Choose a newspaper</option>
-                    <option>Express</option>
+                    <option>Express / Sunday Express</option>
                     <option>FT (Financial Times)</option>
                     <option>Guardian / Observer</option>
                     <option>The i</option>
-                    <option>Daily Mail</option>
-                    <option>Mirror</option>
+                    <option>Daily Mail / The Mail on Sunday</option>
+                    <option>Mirror / Sunday Mirror</option>
                     <option>Racing Post</option>
-                    <option>Star</option>
-                    <option>The Telegraph</option>
+                    <option>Star / Daily Star Sunday</option>
+                    <option>The Telegraph / The Sunday Telegraph</option>
                     <option>Sunday People</option>
-                    <option>The Sun</option>
-                    <option>The Times</option>
+                    <option>The Sun / The Sun on Sunday</option>
+                    <option>The Times / The Sunday Times</option>
                 </select>
             </label>
 
@@ -92,12 +92,22 @@
 
             <label class="signup-field" for="signup-address">
                 Delivery address
-                <input type="text" id="signup-address" autocomplete="street-address">
+                <input type="text" id="signup-address" autocomplete="off">
+            </label>
+
+            <label class="signup-field" for="signup-postcode">
+                Postcode
+                <input type="text" id="signup-postcode" autocomplete="off">
             </label>
 
             <label class="signup-field" for="signup-phone">
                 Phone number
                 <input type="tel" id="signup-phone" autocomplete="tel">
+            </label>
+
+            <label class="signup-field" for="signup-email">
+                Email address
+                <input type="email" id="signup-email" autocomplete="off">
             </label>
 
             <p id="signup-error" class="signup-error" hidden>Please choose a newspaper and at least one delivery day.</p>
@@ -107,21 +117,8 @@
     </main>
 
     <script>
-        const signupToggleEl = document.querySelector(".hero + .intro + .cta, .intro + .cta");
-        const ctaLinkEl = document.querySelector("a.cta[href='https://www.tarian146.co.uk']");
-        const signupFormEl = document.getElementById("signup-form");
         const signupErrorEl = document.getElementById("signup-error");
         const dayCheckboxes = Array.from(document.querySelectorAll(".signup-day"));
-
-        if (ctaLinkEl) {
-            ctaLinkEl.addEventListener("click", event => {
-                event.preventDefault();
-                signupFormEl.hidden = !signupFormEl.hidden;
-                if (!signupFormEl.hidden) {
-                    signupFormEl.scrollIntoView({ behavior: "smooth", block: "start" });
-                }
-            });
-        }
 
         document.querySelectorAll(".signup-shortcut-btn").forEach(button => {
             button.addEventListener("click", () => {
@@ -150,7 +147,9 @@
 
             const name = document.getElementById("signup-name").value.trim();
             const address = document.getElementById("signup-address").value.trim();
+            const postcode = document.getElementById("signup-postcode").value.trim();
             const phone = document.getElementById("signup-phone").value.trim();
+            const email = document.getElementById("signup-email").value.trim();
 
             const subject = "Tarian Newspaper delivery sign-up";
             const bodyLines = [
@@ -159,7 +158,9 @@
                 "Start date: Saturday 1 August 2026",
                 "Name: " + (name || "-"),
                 "Delivery address: " + (address || "-"),
-                "Phone: " + (phone || "-")
+                "Postcode: " + (postcode || "-"),
+                "Phone: " + (phone || "-"),
+                "Email: " + (email || "-")
             ];
             const mailtoUrl =
                 "mailto:chris@trinitystreetcomms.co.uk?subject=" +
