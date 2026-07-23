@@ -56,7 +56,15 @@
       progress: "abersoch-elector-progress-v1",
       areaOverrides: "abersoch-area-overrides-v1",
       mappingFilter: "abersoch-mapping-filter",
-      walkOverrides: "abersoch-walk-overrides-v1"
+      walkOverrides: "abersoch-walk-overrides-v1",
+      walkDescriptions: "abersoch-walk-descriptions-v1"
+    };
+
+    // Kept in sync with the Manage Walks page's seed values, so both
+    // pages agree on Walk 1's name before anyone edits it there.
+    const DEFAULT_WALK_DESCRIPTIONS = {
+      "ra1|1": "High Street and Harbour",
+      "qb6|1": "Farms and remote properties"
     };
 
     const DEFAULT_SHEET_URL =
@@ -440,21 +448,27 @@
 
     }
 
-    // Every Subroad/Polling District combination is assigned to a Walk
-    // (defaulting to Walk 1 if no override has been saved yet on the
-    // Manage Walks page). A walk can never cross Polling Districts.
-    function walkOverrideKey(subRoad, pollingDistrict) {
+    // Each household's Walk can be reassigned individually on the Manage
+    // Walks page (defaulting to Walk 1 if no override has been saved yet).
+    // A walk can never cross Polling Districts.
+    function getWalkForHousehold(household, walkOverrides) {
       return (
-        normalizeText(subRoad) + "|" + normalizeText(pollingDistrict)
+        walkOverrides[household.key] || "1"
       );
     }
 
-    function getWalkForHousehold(household, walkOverrides) {
+    function walkDescriptionKey(pollingDistrict, walkNumber) {
       return (
-        walkOverrides[
-          walkOverrideKey(household.subRoad, household.pollingDistrict)
-        ] || "1"
+        normalizeText(pollingDistrict) + "|" + walkNumber
       );
+    }
+
+    function getWalkDescription(pollingDistrict, walkNumber, walkDescriptions) {
+      const key = walkDescriptionKey(pollingDistrict, walkNumber);
+      if (walkDescriptions[key] !== undefined) {
+        return walkDescriptions[key];
+      }
+      return DEFAULT_WALK_DESCRIPTIONS[key] || "";
     }
 
     // Groups a flat elector list into one entry per Household ID, keeping
@@ -634,6 +648,9 @@
       const walkOverrides =
         loadFromStorage(STORAGE_KEYS.walkOverrides, {});
 
+      const walkDescriptions =
+        loadFromStorage(STORAGE_KEYS.walkDescriptions, {});
+
       messageEl.textContent = "Loading electors...";
 
       try {
@@ -684,10 +701,11 @@
 
           });
 
-        function renderWalksLegend(households, walkOverridesMap) {
+        function renderWalksLegend(households, walkOverridesMap, pollingDistrict, walkDescriptionsMap) {
 
           // For each Walk, show how many of its households were actually
-          // plotted vs. how many matched in total, e.g. "Walk 1 (100/120)".
+          // plotted vs. how many matched in total, e.g. "1 - High Street
+          // and Harbour (100/120)".
           const counts = {};
 
           Object.keys(WALK_COLORS).forEach(walkNumber => {
@@ -713,15 +731,23 @@
           walkKeyEl.innerHTML =
             "<div class=\"walk-key-title\">WALK KEY (PLOTTED/NOT PLOTTED)</div>" +
             "<div class=\"walk-key-grid\">" +
-            Object.keys(WALK_COLORS).map(walkNumber =>
-              "<span class=\"walk-key-item\">" +
-              "<span class=\"walk-key-swatch\" style=\"background:" +
-              WALK_COLORS[walkNumber] + "\"></span>" +
-              "Walk " + walkNumber +
-              " (" + counts[walkNumber].plotted + "/" +
-              (counts[walkNumber].total - counts[walkNumber].plotted) + ")" +
-              "</span>"
-            ).join("") +
+            Object.keys(WALK_COLORS).map(walkNumber => {
+
+              const description =
+                getWalkDescription(pollingDistrict, walkNumber, walkDescriptionsMap);
+
+              return (
+                "<span class=\"walk-key-item\">" +
+                "<span class=\"walk-key-swatch\" style=\"background:" +
+                WALK_COLORS[walkNumber] + "\"></span>" +
+                walkNumber +
+                (description ? " - " + escapeHtml(description) : "") +
+                " (" + counts[walkNumber].plotted + "/" +
+                (counts[walkNumber].total - counts[walkNumber].plotted) + ")" +
+                "</span>"
+              );
+
+            }).join("") +
             "</div>";
 
         }
@@ -797,7 +823,7 @@
 
           if (showWalks) {
 
-            renderWalksLegend(shownHouseholds, walkOverrides);
+            renderWalksLegend(shownHouseholds, walkOverrides, filterState.pollingDistrict, walkDescriptions);
 
             renderMap(
               shownHouseholds,

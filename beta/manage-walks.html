@@ -24,15 +24,6 @@
 
       <p><a href="index.html" class="back-link">&larr; back to main list</a></p>
 
-      <p class="manage-walks-intro">
-        Choose a Subroad and Polling District to see every household on
-        that walk, in delivery/canvass Sort Order. A walk can never cross
-        Polling Districts. Reach this page by clicking "Sort Order"
-        against any household on the main list. Once shown, assign this
-        Subroad to one of the 5 larger Walks below - this updates the
-        Walk shown against every household on the main list.
-      </p>
-
       <div class="manage-walks-picker">
         <div class="manage-walks-picker-row">
           <label for="polling-district-select">Polling District</label>
@@ -47,16 +38,21 @@
           <label for="subroad-select">Subroad</label>
           <select id="subroad-select"></select>
         </div>
+      </div>
 
-        <div class="manage-walks-picker-row">
-          <label for="walk-select">Walk</label>
-          <select id="walk-select" disabled>
+      <div class="walk-descriptions-panel" id="walk-descriptions-panel">
+        <p class="walk-descriptions-title">Walk description</p>
+        <div class="walk-descriptions-row">
+          <label for="walk-description-select">Walk</label>
+          <select id="walk-description-select" disabled>
             <option value="1">1</option>
             <option value="2">2</option>
             <option value="3">3</option>
             <option value="4">4</option>
             <option value="5">5</option>
           </select>
+          <label for="walk-description-input">Description</label>
+          <input type="text" id="walk-description-input" disabled placeholder="Description">
         </div>
       </div>
 
@@ -89,7 +85,18 @@
       sheetUrl: "abersoch-sheet-url",
       progress: "abersoch-elector-progress-v1",
       areaOverrides: "abersoch-area-overrides-v1",
-      walkOverrides: "abersoch-walk-overrides-v1"
+      walkOverrides: "abersoch-walk-overrides-v1",
+      deliveryOrderOverrides: "abersoch-delivery-order-overrides-v1",
+      walkDescriptions: "abersoch-walk-descriptions-v1"
+    };
+
+    // Seed descriptions retrieved from the Polling Day page's Walk
+    // filter, so both pages start out consistent. Only Walk 1 has a
+    // name in each Polling District so far; 2-5 are left blank until
+    // someone fills them in below.
+    const DEFAULT_WALK_DESCRIPTIONS = {
+      "ra1|1": "High Street and Harbour",
+      "qb6|1": "Farms and remote properties"
     };
 
     const DEFAULT_SHEET_URL =
@@ -125,12 +132,36 @@
     const pollingDistrictSelectEl =
       document.getElementById("polling-district-select");
 
-    const walkSelectEl =
-      document.getElementById("walk-select");
+    const walkDescriptionsPanelEl =
+      document.getElementById("walk-descriptions-panel");
+
+    const walkDescriptionSelectEl =
+      document.getElementById("walk-description-select");
+
+    const walkDescriptionInputEl =
+      document.getElementById("walk-description-input");
+
+    // Populated once in init() from localStorage; keyed by householdKey
+    // (see buildHouseholds), so each household's Walk can be reassigned
+    // individually in the table below.
+    let walkOverrides = {};
+
+    // Populated once in init() from localStorage; keyed by householdKey,
+    // so each household's Sort Order can be nudged individually with the
+    // +/- buttons in the table below.
+    let deliveryOrderOverrides = {};
 
     // Populated once in init() from localStorage; keyed by
-    // "<subroad>|<pollingdistrict>" (both normalizeText'd).
-    let walkOverrides = {};
+    // "<pollingdistrict>|<walknumber>" (normalizeText'd), since a walk
+    // can never cross Polling Districts, each Polling District has its
+    // own set of Walk 1-5 names.
+    let walkDescriptions = {};
+
+    // Remember what's currently on screen so the walk-description inputs
+    // and the +/- / dropdown handlers can trigger a re-render without
+    // needing to re-run the Subroad/Polling District filter.
+    let lastShownHouseholds = [];
+    let lastShownDistrict = "";
 
     function loadFromStorage(key, fallback) {
 
@@ -160,10 +191,40 @@
 
     }
 
-    function walkOverrideKey(subRoad, pollingDistrict) {
+    function walkDescriptionKey(pollingDistrict, walkNumber) {
       return (
-        normalizeText(subRoad) + "|" + normalizeText(pollingDistrict)
+        normalizeText(pollingDistrict) + "|" + walkNumber
       );
+    }
+
+    function getWalkDescription(pollingDistrict, walkNumber) {
+      const key = walkDescriptionKey(pollingDistrict, walkNumber);
+      if (walkDescriptions[key] !== undefined) {
+        return walkDescriptions[key];
+      }
+      return DEFAULT_WALK_DESCRIPTIONS[key] || "";
+    }
+
+    function setWalkDescription(pollingDistrict, walkNumber, text) {
+      const key = walkDescriptionKey(pollingDistrict, walkNumber);
+      if (text) {
+        walkDescriptions[key] = text;
+      } else {
+        delete walkDescriptions[key];
+      }
+      saveToStorage(STORAGE_KEYS.walkDescriptions, walkDescriptions);
+    }
+
+    function renderWalkDescriptionsPanel(pollingDistrict) {
+
+      walkDescriptionSelectEl.disabled = !pollingDistrict;
+      walkDescriptionInputEl.disabled = !pollingDistrict;
+
+      walkDescriptionInputEl.value =
+        pollingDistrict
+          ? getWalkDescription(pollingDistrict, walkDescriptionSelectEl.value || "1")
+          : "";
+
     }
 
     function toGoogleCsvUrl(rawUrl) {
@@ -614,12 +675,34 @@
 
     }
 
+    function getEffectiveDeliveryOrder(household) {
+      const key = household.householdKey;
+      if (
+        key &&
+        deliveryOrderOverrides[key] !== undefined &&
+        deliveryOrderOverrides[key] !== null &&
+        deliveryOrderOverrides[key] !== ""
+      ) {
+        return deliveryOrderOverrides[key];
+      }
+      return household.deliveryOrder;
+    }
+
+    function getEffectiveWalkNumber(household) {
+      const key = household.householdKey;
+      if (key && walkOverrides[key]) {
+        return String(walkOverrides[key]);
+      }
+      const match = String(household.deliveryWalk || "").match(/\d+/);
+      return match ? match[0] : "1";
+    }
+
     function sortByDeliveryOrder(households) {
 
       households.sort((a, b) => {
 
-        const orderA = parseFloat(a.deliveryOrder);
-        const orderB = parseFloat(b.deliveryOrder);
+        const orderA = parseFloat(getEffectiveDeliveryOrder(a));
+        const orderB = parseFloat(getEffectiveDeliveryOrder(b));
 
         const validA = !isNaN(orderA);
         const validB = !isNaN(orderB);
@@ -632,30 +715,54 @@
           return validA ? -1 : 1;
         }
 
-        return String(a.deliveryOrder).localeCompare(String(b.deliveryOrder));
+        return String(getEffectiveDeliveryOrder(a)).localeCompare(String(getEffectiveDeliveryOrder(b)));
 
       });
 
     }
 
-    function renderTable(households, walkOverrideValue) {
+    function renderTable(households, pollingDistrict) {
+
+      lastShownHouseholds = households;
+      lastShownDistrict = pollingDistrict;
 
       bodyEl.innerHTML =
         households.map(household => {
 
-          const cells = [
-            household.deliveryOrder || "—",
-            formatAddress(household),
-            household.electorNames.length,
-            (walkOverrideValue && walkOverrideValue + " of 5") ||
-              household.deliveryWalk,
-            household.deliverer,
-            household.pollingDistrict
-          ];
+          const key = household.householdKey;
+          const order = getEffectiveDeliveryOrder(household);
+          const walkNumber = getEffectiveWalkNumber(household);
+
+          const walkOptions =
+            ["1", "2", "3", "4", "5"].map(num => {
+
+              const description = getWalkDescription(pollingDistrict, num);
+              const label = num + (description ? " \u2013 " + description : "");
+
+              return (
+                "<option value=\"" + num + "\"" +
+                (num === walkNumber ? " selected" : "") +
+                ">" + escapeHtml(label) + "</option>"
+              );
+
+            }).join("");
 
           return (
             "<tr>" +
-            cells.map(cell => "<td>" + escapeHtml(cell || "") + "</td>").join("") +
+            "<td class=\"sort-order-cell\">" +
+              "<button type=\"button\" class=\"sort-order-btn\" data-action=\"decrement\" data-key=\"" +
+              escapeHtml(key) + "\" aria-label=\"Move earlier in sort order\">&minus;</button>" +
+              "<span class=\"sort-order-value\">" + escapeHtml(order || "\u2014") + "</span>" +
+              "<button type=\"button\" class=\"sort-order-btn\" data-action=\"increment\" data-key=\"" +
+              escapeHtml(key) + "\" aria-label=\"Move later in sort order\">+</button>" +
+            "</td>" +
+            "<td>" + escapeHtml(formatAddress(household)) + "</td>" +
+            "<td>" + household.electorNames.length + "</td>" +
+            "<td><select class=\"walk-row-select\" data-key=\"" + escapeHtml(key) + "\">" +
+              walkOptions +
+            "</select></td>" +
+            "<td>" + escapeHtml(household.deliverer || "") + "</td>" +
+            "<td>" + escapeHtml(household.pollingDistrict || "") + "</td>" +
             "</tr>"
           );
 
@@ -663,12 +770,18 @@
 
     }
 
-    function populateSubRoadPicker(allHouseholds, selectedSubRoad) {
+    function populateSubRoadPicker(allHouseholds, selectedSubRoad, pollingDistrict) {
+
+      const wantedDistrict = normalizeText(pollingDistrict);
 
       const subRoadNames =
         Array.from(
           new Set(
             allHouseholds
+              .filter(h =>
+                !wantedDistrict ||
+                normalizeText(h.pollingDistrict) === wantedDistrict
+              )
               .map(h => h.subRoad)
               .filter(Boolean)
           )
@@ -706,6 +819,8 @@
     // a Polling District must be chosen before any households are shown.
     function showHouseholds(allHouseholds, allHouseholdsUnfiltered, subRoad, pollingDistrict) {
 
+      renderWalkDescriptionsPanel(pollingDistrict);
+
       if (!subRoad || !pollingDistrict) {
 
         bodyEl.innerHTML = "";
@@ -713,16 +828,12 @@
         messageEl.textContent =
           "Choose a Subroad and a Polling District above to see its households.";
 
-        walkSelectEl.disabled = true;
-        walkSelectEl.value = "";
+        lastShownHouseholds = [];
+        lastShownDistrict = "";
 
         return;
 
       }
-
-      walkSelectEl.disabled = false;
-      walkSelectEl.value =
-        walkOverrides[walkOverrideKey(subRoad, pollingDistrict)] || "1";
 
       const wantedSubRoad = normalizeText(subRoad);
       const wantedDistrict = normalizeText(pollingDistrict);
@@ -743,12 +854,7 @@
       const truncated = totalMatched > MAX_HOUSEHOLDS;
       const shown = matched.slice(0, MAX_HOUSEHOLDS);
 
-      // Every Subroad must be assigned to a Walk; if no override has
-      // been saved yet, it defaults to Walk 1.
-      renderTable(
-        shown,
-        walkOverrides[walkOverrideKey(subRoad, pollingDistrict)] || "1"
-      );
+      renderTable(shown, pollingDistrict);
 
       messageEl.textContent = "";
 
@@ -798,6 +904,12 @@
       walkOverrides =
         loadFromStorage(STORAGE_KEYS.walkOverrides, {});
 
+      deliveryOrderOverrides =
+        loadFromStorage(STORAGE_KEYS.deliveryOrderOverrides, {});
+
+      walkDescriptions =
+        loadFromStorage(STORAGE_KEYS.walkDescriptions, {});
+
       const params = new URLSearchParams(window.location.search);
       const requestedSubRoad = params.get("subroad") || "";
       const requestedDistrict = params.get("district") || "";
@@ -837,7 +949,7 @@
         const allHouseholds =
           buildHouseholds(electors, areaOverrides);
 
-        populateSubRoadPicker(allHouseholds, requestedSubRoad);
+        populateSubRoadPicker(allHouseholds, requestedSubRoad, requestedDistrict);
         selectPollingDistrict(requestedDistrict);
 
         showHouseholds(
@@ -880,39 +992,92 @@
 
 
         subRoadSelectEl.addEventListener("change", updateFromPickers);
-        pollingDistrictSelectEl.addEventListener("change", updateFromPickers);
+        pollingDistrictSelectEl.addEventListener("change", () => {
+          walkDescriptionSelectEl.value = "1";
+          populateSubRoadPicker(allHouseholds, "", pollingDistrictSelectEl.value);
+          updateFromPickers();
+        });
 
-        walkSelectEl.addEventListener("change", () => {
+        // Sort Order +/- buttons and the per-row Walk dropdown are both
+        // handled here via delegation, since rows are re-created on
+        // every render.
+        bodyEl.addEventListener("click", event => {
 
-          const subRoad = subRoadSelectEl.value;
-          const pollingDistrict = pollingDistrictSelectEl.value;
+          const button = event.target.closest(".sort-order-btn");
 
-          if (!subRoad || !pollingDistrict) {
+          if (!button) {
             return;
           }
 
-          const key = walkOverrideKey(subRoad, pollingDistrict);
+          const key = button.dataset.key;
+          const household = lastShownHouseholds.find(h => h.householdKey === key);
 
-          if (walkSelectEl.value) {
-            walkOverrides[key] = walkSelectEl.value;
-          } else {
-            delete walkOverrides[key];
+          if (!household) {
+            return;
           }
 
+          const current = parseFloat(getEffectiveDeliveryOrder(household));
+          const base = isNaN(current) ? 0 : current;
+
+          deliveryOrderOverrides[key] =
+            button.dataset.action === "increment" ? base + 1 : base - 1;
+
+          saveToStorage(STORAGE_KEYS.deliveryOrderOverrides, deliveryOrderOverrides);
+
+          showHouseholds(
+            allHouseholds,
+            allHouseholdsUnfiltered,
+            subRoadSelectEl.value,
+            pollingDistrictSelectEl.value
+          );
+
+        });
+
+        bodyEl.addEventListener("change", event => {
+
+          const select = event.target.closest(".walk-row-select");
+
+          if (!select) {
+            return;
+          }
+
+          walkOverrides[select.dataset.key] = select.value;
           saveToStorage(STORAGE_KEYS.walkOverrides, walkOverrides);
 
           showHouseholds(
             allHouseholds,
             allHouseholdsUnfiltered,
-            subRoad,
-            pollingDistrict
+            subRoadSelectEl.value,
+            pollingDistrictSelectEl.value
           );
 
-          messageEl.textContent =
-            walkSelectEl.value
-              ? "Subroad \"" + subRoad + "\" assigned to Walk " +
-                walkSelectEl.value + ". This is now shown on the main list."
-              : "Walk assignment cleared for Subroad \"" + subRoad + "\".";
+        });
+
+        // Editing a Walk description re-renders the table so every row's
+        // Walk dropdown shows the updated name straight away.
+        // Switching the Walk dropdown just changes which Walk's
+        // description is shown in the box next to it.
+        walkDescriptionSelectEl.addEventListener("change", () => {
+          renderWalkDescriptionsPanel(pollingDistrictSelectEl.value);
+        });
+
+        // Editing the description re-renders the table so every row's
+        // Walk dropdown shows the updated name straight away.
+        walkDescriptionInputEl.addEventListener("input", () => {
+
+          if (!pollingDistrictSelectEl.value) {
+            return;
+          }
+
+          setWalkDescription(
+            pollingDistrictSelectEl.value,
+            walkDescriptionSelectEl.value || "1",
+            walkDescriptionInputEl.value
+          );
+
+          if (lastShownHouseholds.length) {
+            renderTable(lastShownHouseholds, lastShownDistrict);
+          }
 
         });
 
