@@ -557,8 +557,13 @@
         const line1 = household.addressLine1 || "";
         const line2 = household.addressLine2 || "";
 
+        const line1WithSubRoad =
+          household.subRoad
+            ? line1 + " (" + household.subRoad + ")"
+            : line1;
+
         const label =
-          [line1, line2]
+          [line1WithSubRoad, line2]
             .filter(Boolean)
             .map(line => escapeHtml(line))
             .join("<br>") ||
