@@ -878,7 +878,7 @@ body.mobile-mode .elector-list {
 
 .walk-key-grid {
   display: grid;
-  grid-template-columns: repeat(5, auto);
+  grid-template-columns: auto;
   gap: 0.4rem 1.25rem;
 }
 
