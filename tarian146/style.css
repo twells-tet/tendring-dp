@@ -2118,6 +2118,19 @@ body.printer-friendly-mode .exit-printer-friendly-link {
   color: var(--text);
 }
 
+.signup-day-checkboxes input:disabled + * ,
+.signup-day-checkboxes label:has(input:disabled) {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.signup-day-restriction-note {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
 .signup-duration-options {
   display: flex;
   flex-direction: column;

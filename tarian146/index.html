@@ -17,7 +17,7 @@
     <main class="app-shell">
         <div class="tarian-homepage-card">
             <p class="eyebrow">Tarian Newspapers</p>
-            <p class="subheading">Serving the Llŷn Peninsula.</p>
+            <p class="subheading">Serving the Llŷn Peninsula</p>
 
             <div class="hero">
                 <h2>Delivery areas</h2>
@@ -86,11 +86,12 @@
             </div>
 
             <div class="signup-days">
-                <p class="signup-days-label">Delivery days</p>
+                <p class="signup-days-label">Delivery days (optional — let us know if you're not sure yet)</p>
                 <div class="signup-day-shortcuts">
                     <button type="button" class="signup-shortcut-btn" data-shortcut="sunday-only">Sundays Only</button>
                     <button type="button" class="signup-shortcut-btn" data-shortcut="no-sat">All except Saturday</button>
                     <button type="button" class="signup-shortcut-btn" data-shortcut="no-sat-sun">All except weekends</button>
+                    <button type="button" class="signup-shortcut-btn" data-shortcut="later">Let me decide later</button>
                 </div>
                 <div class="signup-day-checkboxes">
                     <label><input type="checkbox" class="signup-day" value="Monday" checked> Monday</label>
@@ -101,6 +102,7 @@
                     <label><input type="checkbox" class="signup-day" value="Saturday" checked> Saturday</label>
                     <label><input type="checkbox" class="signup-day" value="Sunday" checked> Sunday</label>
                 </div>
+                <p id="signup-day-restriction-note" class="signup-day-restriction-note" hidden></p>
             </div>
 
             <label class="signup-field" for="signup-name">
@@ -133,7 +135,7 @@
                 <textarea id="signup-notes" rows="3" placeholder="Anything else we should know?"></textarea>
             </label>
 
-            <p id="signup-error" class="signup-error" hidden>Please choose a newspaper, at least one delivery day, and fill in your name, mobile number and email.</p>
+            <p id="signup-error" class="signup-error" hidden>Please choose a newspaper and fill in your name, mobile number and email.</p>
 
             <button type="button" id="signup-submit" class="cta signup-submit-btn">Email my request</button>
         </div>
@@ -146,6 +148,47 @@
         const dateRangeEl = document.getElementById("signup-date-range");
         const startDateEl = document.getElementById("signup-start-date");
         const endDateEl = document.getElementById("signup-end-date");
+        const newspaperSelect = document.getElementById("signup-newspaper");
+        const dayRestrictionNoteEl = document.getElementById("signup-day-restriction-note");
+
+        const NEWSPAPER_NO_SUNDAY = ["The i", "Western Mail"];
+        const NEWSPAPER_WEEKLY_DAY = { "Cambrian News": "Tuesday" };
+
+        function applyNewspaperDayRestrictions() {
+            const newspaper = newspaperSelect.value;
+            let allowedDays = null;
+            let note = "";
+
+            if (NEWSPAPER_WEEKLY_DAY[newspaper]) {
+                allowedDays = [NEWSPAPER_WEEKLY_DAY[newspaper]];
+                note = newspaper + " is a weekly paper — only " + allowedDays[0] + " is available.";
+            } else if (NEWSPAPER_NO_SUNDAY.includes(newspaper)) {
+                allowedDays = dayCheckboxes.map(checkbox => checkbox.value).filter(value => value !== "Sunday");
+                note = newspaper + " isn't published on Sundays.";
+            }
+
+            dayCheckboxes.forEach(checkbox => {
+                const isAllowed = !allowedDays || allowedDays.includes(checkbox.value);
+                checkbox.disabled = !isAllowed;
+                if (!isAllowed) {
+                    checkbox.checked = false;
+                }
+            });
+
+            if (allowedDays && allowedDays.length === 1) {
+                dayCheckboxes.forEach(checkbox => {
+                    if (checkbox.value === allowedDays[0]) {
+                        checkbox.checked = true;
+                    }
+                });
+            }
+
+            dayRestrictionNoteEl.textContent = note;
+            dayRestrictionNoteEl.hidden = !note;
+        }
+
+        newspaperSelect.addEventListener("change", applyNewspaperDayRestrictions);
+        applyNewspaperDayRestrictions();
 
         durationRadios.forEach(radio => {
             radio.addEventListener("change", () => {
@@ -168,8 +211,11 @@
                         checkbox.checked = checkbox.value !== "Saturday";
                     } else if (shortcut === "no-sat-sun") {
                         checkbox.checked = checkbox.value !== "Saturday" && checkbox.value !== "Sunday";
+                    } else if (shortcut === "later") {
+                        checkbox.checked = false;
                     }
                 });
+                applyNewspaperDayRestrictions();
             });
         });
 
@@ -189,7 +235,6 @@
 
             if (
                 !newspaper ||
-                selectedDays.length === 0 ||
                 (durationChoice === "dates" && (!startDate || !endDate)) ||
                 !name ||
                 !phone ||
@@ -214,7 +259,7 @@
             const subject = "Tarian Newspaper delivery sign-up";
             const bodyLines = [
                 "Newspaper: " + newspaper,
-                "Delivery days: " + selectedDays.join(", "),
+                "Delivery days: " + (selectedDays.length ? selectedDays.join(", ") : "To be decided"),
                 "Delivery period: " + durationText,
                 "Name: " + (name || "-"),
                 "Delivery address: " + (address || "-"),
