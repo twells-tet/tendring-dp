@@ -212,6 +212,9 @@
             });
         });
 
+        const DEFAULT_START_DATE = "2026-08-03";
+        const DEFAULT_END_DATE = "2026-08-09";
+
         function updateDateRangeAvailability() {
             const durationChoice = durationRadios.find(radio => radio.checked).value;
             const startDisabled = durationChoice === "later";
@@ -221,6 +224,18 @@
             endDateEl.disabled = endDisabled;
             startDateEl.closest(".signup-field").classList.toggle("is-disabled", startDisabled);
             endDateEl.closest(".signup-field").classList.toggle("is-disabled", endDisabled);
+
+            if (startDisabled) {
+                startDateEl.value = "";
+            } else if (!startDateEl.value) {
+                startDateEl.value = DEFAULT_START_DATE;
+            }
+
+            if (endDisabled) {
+                endDateEl.value = "";
+            } else if (!endDateEl.value) {
+                endDateEl.value = DEFAULT_END_DATE;
+            }
         }
 
         updateDateRangeAvailability();
