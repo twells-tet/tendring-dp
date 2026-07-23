@@ -2032,8 +2032,13 @@ body.printer-friendly-mode .exit-printer-friendly-link {
   font-weight: 600;
 }
 
+.signup-required {
+  color: var(--plaid-red);
+}
+
 .signup-field input,
-.signup-field select {
+.signup-field select,
+.signup-field textarea {
   display: block;
   width: 100%;
   margin-top: 0.35rem;
@@ -2045,8 +2050,13 @@ body.printer-friendly-mode .exit-printer-friendly-link {
   background: var(--surface);
 }
 
+.signup-field textarea {
+  resize: vertical;
+}
+
 .signup-field input:focus,
-.signup-field select:focus {
+.signup-field select:focus,
+.signup-field textarea:focus {
   outline: 2px solid var(--plaid-green);
   outline-offset: 1px;
 }
@@ -2106,6 +2116,42 @@ body.printer-friendly-mode .exit-printer-friendly-link {
   font-size: 0.9rem;
   font-weight: 500;
   color: var(--text);
+}
+
+.signup-duration-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.signup-duration-options label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.signup-date-range {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 1rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--surface-soft);
+}
+
+@media (max-width: 480px) {
+  .signup-date-range {
+    grid-template-columns: 1fr;
+  }
+}
+
+.signup-date-range .signup-field {
+  margin-bottom: 0;
 }
 
 .signup-error {

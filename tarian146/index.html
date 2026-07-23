@@ -17,7 +17,7 @@
     <main class="app-shell">
         <div class="tarian-homepage-card">
             <p class="eyebrow">Tarian Newspapers</p>
-            <p class="subheading">Serving the Llŷn Peninsula during the summer season.</p>
+            <p class="subheading">Serving the Llŷn Peninsula.</p>
 
             <div class="hero">
                 <h2>Delivery areas</h2>
@@ -46,24 +46,44 @@
 
         <div id="signup-form" class="signup-form tarian-homepage-card">
             <h2>Start your delivery</h2>
-            <p class="signup-intro">Deliveries start <strong>Saturday 1 August 2026</strong>. Tell us what you'd like and we'll email your request to Chris to set it up.</p>
+            <p class="signup-intro">Deliveries begin <strong>Saturday 1 August 2026</strong>. Tell us what you'd like and we'll email your request to Chris to set it up.</p>
 
             <label class="signup-field" for="signup-newspaper">
                 Newspaper
                 <select id="signup-newspaper">
-                    <option value="">Choose a newspaper</option>
+                    <option selected>The Times / The Sunday Times</option>
+                    <option>Guardian / Observer</option>
+                    <option>Cambrian News</option>
+                    <option>Daily Mail / The Mail on Sunday</option>
+                    <option>Daily Post</option>
                     <option>Express / Sunday Express</option>
                     <option>FT (Financial Times)</option>
-                    <option>Guardian / Observer</option>
-                    <option>The i</option>
-                    <option>Daily Mail / The Mail on Sunday</option>
                     <option>Mirror / Sunday Mirror</option>
                     <option>Star / Daily Star Sunday</option>
-                    <option>The Telegraph / The Sunday Telegraph</option>
+                    <option>The i</option>
                     <option>The Sun / The Sun on Sunday</option>
-                    <option>The Times / The Sunday Times</option>
+                    <option>The Telegraph / The Sunday Telegraph</option>
+                    <option>Western Mail</option>
                 </select>
             </label>
+
+            <div class="signup-days">
+                <p class="signup-days-label">How long do you need delivery?</p>
+                <div class="signup-duration-options">
+                    <label><input type="radio" name="signup-duration" class="signup-duration-radio" value="ongoing" checked> Until further notice</label>
+                    <label><input type="radio" name="signup-duration" class="signup-duration-radio" value="dates"> Specific dates (e.g. a holiday week)</label>
+                </div>
+                <div class="signup-date-range" id="signup-date-range" hidden>
+                    <label class="signup-field" for="signup-start-date">
+                        Start date
+                        <input type="date" id="signup-start-date" min="2026-08-01" value="2026-08-01">
+                    </label>
+                    <label class="signup-field" for="signup-end-date">
+                        End date
+                        <input type="date" id="signup-end-date" min="2026-08-01">
+                    </label>
+                </div>
+            </div>
 
             <div class="signup-days">
                 <p class="signup-days-label">Delivery days</p>
@@ -84,8 +104,8 @@
             </div>
 
             <label class="signup-field" for="signup-name">
-                Your name
-                <input type="text" id="signup-name" autocomplete="name">
+                Your name <span class="signup-required">*</span>
+                <input type="text" id="signup-name" autocomplete="name" required>
             </label>
 
             <label class="signup-field" for="signup-address">
@@ -99,16 +119,21 @@
             </label>
 
             <label class="signup-field" for="signup-phone">
-                Phone number
-                <input type="tel" id="signup-phone" autocomplete="tel">
+                Mobile number <span class="signup-required">*</span>
+                <input type="tel" id="signup-phone" autocomplete="tel" required>
             </label>
 
             <label class="signup-field" for="signup-email">
-                Email address
-                <input type="email" id="signup-email" autocomplete="off">
+                Email address <span class="signup-required">*</span>
+                <input type="email" id="signup-email" autocomplete="off" required>
             </label>
 
-            <p id="signup-error" class="signup-error" hidden>Please choose a newspaper and at least one delivery day.</p>
+            <label class="signup-field" for="signup-notes">
+                Notes (optional)
+                <textarea id="signup-notes" rows="3" placeholder="Anything else we should know?"></textarea>
+            </label>
+
+            <p id="signup-error" class="signup-error" hidden>Please choose a newspaper, at least one delivery day, and fill in your name, mobile number and email.</p>
 
             <button type="button" id="signup-submit" class="cta signup-submit-btn">Email my request</button>
         </div>
@@ -117,6 +142,21 @@
     <script>
         const signupErrorEl = document.getElementById("signup-error");
         const dayCheckboxes = Array.from(document.querySelectorAll(".signup-day"));
+        const durationRadios = Array.from(document.querySelectorAll(".signup-duration-radio"));
+        const dateRangeEl = document.getElementById("signup-date-range");
+        const startDateEl = document.getElementById("signup-start-date");
+        const endDateEl = document.getElementById("signup-end-date");
+
+        durationRadios.forEach(radio => {
+            radio.addEventListener("change", () => {
+                dateRangeEl.hidden = radio.value !== "dates" || !radio.checked;
+                durationRadios.forEach(other => {
+                    if (other.value === "dates" && other.checked) {
+                        dateRangeEl.hidden = false;
+                    }
+                });
+            });
+        });
 
         document.querySelectorAll(".signup-shortcut-btn").forEach(button => {
             button.addEventListener("click", () => {
@@ -136,29 +176,52 @@
         document.getElementById("signup-submit").addEventListener("click", () => {
             const newspaper = document.getElementById("signup-newspaper").value;
             const selectedDays = dayCheckboxes.filter(checkbox => checkbox.checked).map(checkbox => checkbox.value);
-
-            if (!newspaper || selectedDays.length === 0) {
-                signupErrorEl.hidden = false;
-                return;
-            }
-            signupErrorEl.hidden = true;
+            const durationChoice = durationRadios.find(radio => radio.checked).value;
+            const startDate = startDateEl.value;
+            const endDate = endDateEl.value;
 
             const name = document.getElementById("signup-name").value.trim();
             const address = document.getElementById("signup-address").value.trim();
             const postcode = document.getElementById("signup-postcode").value.trim();
             const phone = document.getElementById("signup-phone").value.trim();
             const email = document.getElementById("signup-email").value.trim();
+            const notes = document.getElementById("signup-notes").value.trim();
+
+            if (
+                !newspaper ||
+                selectedDays.length === 0 ||
+                (durationChoice === "dates" && (!startDate || !endDate)) ||
+                !name ||
+                !phone ||
+                !email
+            ) {
+                signupErrorEl.hidden = false;
+                return;
+            }
+            signupErrorEl.hidden = true;
+
+            const formatDate = (isoDate) => {
+                if (!isoDate) return isoDate;
+                const [year, month, day] = isoDate.split("-");
+                return day + "/" + month + "/" + year;
+            };
+
+            const durationText =
+                durationChoice === "dates"
+                    ? formatDate(startDate) + " to " + formatDate(endDate)
+                    : "Until further notice (from 1 August 2026)";
 
             const subject = "Tarian Newspaper delivery sign-up";
             const bodyLines = [
                 "Newspaper: " + newspaper,
                 "Delivery days: " + selectedDays.join(", "),
-                "Start date: Saturday 1 August 2026",
+                "Delivery period: " + durationText,
                 "Name: " + (name || "-"),
                 "Delivery address: " + (address || "-"),
                 "Postcode: " + (postcode || "-"),
-                "Phone: " + (phone || "-"),
-                "Email: " + (email || "-")
+                "Mobile: " + (phone || "-"),
+                "Email: " + (email || "-"),
+                "Notes: " + (notes || "-")
             ];
             const mailtoUrl =
                 "mailto:chris@trinitystreetcomms.co.uk?subject=" +
