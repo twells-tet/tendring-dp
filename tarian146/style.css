@@ -2176,6 +2176,15 @@ body.printer-friendly-mode .exit-printer-friendly-link {
   margin-bottom: 0;
 }
 
+.signup-date-range .signup-field.is-disabled {
+  opacity: 0.5;
+}
+
+.signup-date-range input:disabled {
+  background: var(--border);
+  cursor: not-allowed;
+}
+
 .signup-error {
   margin: 0 0 1rem;
   color: var(--plaid-red);

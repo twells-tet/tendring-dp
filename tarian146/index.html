@@ -80,7 +80,7 @@
                     <label><input type="radio" name="signup-duration" class="signup-duration-radio" value="dates"> Specific dates (e.g. a holiday week)</label>
                     <label><input type="radio" name="signup-duration" class="signup-duration-radio" value="later"> Let me decide later</label>
                 </div>
-                <div class="signup-date-range" id="signup-date-range" hidden>
+                <div class="signup-date-range" id="signup-date-range">
                     <label class="signup-field" for="signup-start-date">
                         Start date
                         <input type="date" id="signup-start-date" min="2026-08-01" value="2026-08-03">
@@ -207,15 +207,23 @@
 
         durationRadios.forEach(radio => {
             radio.addEventListener("change", () => {
-                dateRangeEl.hidden = radio.value !== "dates" || !radio.checked;
-                durationRadios.forEach(other => {
-                    if (other.value === "dates" && other.checked) {
-                        dateRangeEl.hidden = false;
-                    }
-                });
+                updateDateRangeAvailability();
                 updateDeliveryDaysAvailability();
             });
         });
+
+        function updateDateRangeAvailability() {
+            const durationChoice = durationRadios.find(radio => radio.checked).value;
+            const startDisabled = durationChoice === "later";
+            const endDisabled = durationChoice === "ongoing" || durationChoice === "later";
+
+            startDateEl.disabled = startDisabled;
+            endDateEl.disabled = endDisabled;
+            startDateEl.closest(".signup-field").classList.toggle("is-disabled", startDisabled);
+            endDateEl.closest(".signup-field").classList.toggle("is-disabled", endDisabled);
+        }
+
+        updateDateRangeAvailability();
 
         function updateDeliveryDaysAvailability() {
             const durationChoice = durationRadios.find(radio => radio.checked).value;
