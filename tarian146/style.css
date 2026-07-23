@@ -2032,6 +2032,10 @@ body.printer-friendly-mode .exit-printer-friendly-link {
   font-weight: 600;
 }
 
+.signup-field[hidden] {
+  display: none;
+}
+
 .signup-required {
   color: var(--plaid-red);
 }
