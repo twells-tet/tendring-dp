@@ -377,7 +377,7 @@
             <dt>Walk Name</dt>
             <dd id="delivery-description">High Street and Harbour</dd>
 
-            <dt>SUBROAD</dt>
+            <dt>Subroad</dt>
             <dd>
               <input type="text" id="delivery-area-input" class="delivery-area-input">
               <button type="button" id="road-area-help-toggle" class="road-area-help-toggle">What does this mean?</button>
@@ -1495,6 +1495,12 @@ function mapRowToElector(row, headers, index) {
     deliverer:
       data.deliverer ||
       row[39] ||
+      "",
+
+
+    subRoad:
+      data.subroad ||
+      row[40] ||
       "",
 
 
@@ -3182,7 +3188,7 @@ function updateDeliveryDetails(elector) {
   deliveryAreaInputEl.value =
     householdId && state.areaOverrides[householdId] !== undefined
       ? state.areaOverrides[householdId]
-      : formatHouseholdArea(elector);
+      : (elector && elector.subRoad) || formatHouseholdArea(elector);
 
   deliveryDescriptionEl.textContent =
     buildDeliveryDescription(elector);
