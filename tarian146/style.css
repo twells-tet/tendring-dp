@@ -1907,3 +1907,95 @@ body.printer-friendly-mode .exit-printer-friendly-link {
   display: inline-block;
 }
 
+.tarian-homepage .app-shell {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 2.5rem;
+}
+
+.tarian-homepage-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 2rem 1.75rem;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(10, 94, 73, 0.08);
+}
+
+.tarian-homepage-card .eyebrow {
+  margin: 0 0 0.5rem;
+  color: var(--plaid-green);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.tarian-homepage-card .subheading {
+  margin: 0 0 1.5rem;
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.tarian-homepage-card .hero {
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 1.25rem 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.tarian-homepage-card .hero h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+}
+
+.tarian-homepage-card .areas {
+  margin: 0;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.tarian-homepage-card .intro p {
+  margin: 0 0 0.75rem;
+  line-height: 1.5;
+}
+
+.tarian-homepage-card .cta {
+  display: inline-block;
+  margin: 0.5rem 0 1.5rem;
+  padding: 0.7rem 1.75rem;
+  border-radius: 0.5rem;
+  background: var(--plaid-green);
+  color: #ffffff;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.tarian-homepage-card .cta:hover {
+  opacity: 0.9;
+}
+
+.tarian-homepage-card ul {
+  text-align: left;
+  margin: 0 0 1.5rem;
+  padding-left: 1.25rem;
+  color: var(--text-muted);
+}
+
+.tarian-homepage-card ul li {
+  margin-bottom: 0.35rem;
+}
+
+.tarian-homepage-card .footer {
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.tarian-homepage-card .footer strong {
+  color: var(--text);
+}
+
