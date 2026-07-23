@@ -49,8 +49,8 @@
             <p class="signup-intro">Deliveries begin <strong>Saturday 1 August 2026</strong>. Tell us what you'd like and we'll email your request to Chris to set it up.</p>
 
             <label class="signup-field" for="signup-newspaper">
-                Newspaper
-                <select id="signup-newspaper">
+                Newspaper <span class="signup-required">*</span>
+                <select id="signup-newspaper" required>
                     <option selected>The Times / The Sunday Times</option>
                     <option>Guardian / Observer</option>
                     <option>Cambrian News</option>
@@ -64,7 +64,13 @@
                     <option>The Sun / The Sun on Sunday</option>
                     <option>The Telegraph / The Sunday Telegraph</option>
                     <option>Western Mail</option>
+                    <option value="Other">Other (please specify)</option>
                 </select>
+            </label>
+
+            <label class="signup-field" for="signup-newspaper-other" id="signup-newspaper-other-field" hidden>
+                Please specify <span class="signup-required">*</span>
+                <input type="text" id="signup-newspaper-other" autocomplete="off">
             </label>
 
             <div class="signup-days">
@@ -149,6 +155,8 @@
         const startDateEl = document.getElementById("signup-start-date");
         const endDateEl = document.getElementById("signup-end-date");
         const newspaperSelect = document.getElementById("signup-newspaper");
+        const newspaperOtherFieldEl = document.getElementById("signup-newspaper-other-field");
+        const newspaperOtherInputEl = document.getElementById("signup-newspaper-other");
         const dayRestrictionNoteEl = document.getElementById("signup-day-restriction-note");
         const deliveryDaysSectionEl = document.getElementById("signup-delivery-days-section");
 
@@ -189,6 +197,12 @@
         }
 
         newspaperSelect.addEventListener("change", applyNewspaperDayRestrictions);
+        newspaperSelect.addEventListener("change", () => {
+            newspaperOtherFieldEl.hidden = newspaperSelect.value !== "Other";
+            if (newspaperOtherFieldEl.hidden) {
+                newspaperOtherInputEl.value = "";
+            }
+        });
         applyNewspaperDayRestrictions();
 
         durationRadios.forEach(radio => {
@@ -243,6 +257,8 @@
 
         document.getElementById("signup-submit").addEventListener("click", () => {
             const newspaper = document.getElementById("signup-newspaper").value;
+            const newspaperOther = newspaperOtherInputEl.value.trim();
+            const newspaperText = newspaper === "Other" ? newspaperOther : newspaper;
             const selectedDays = dayCheckboxes.filter(checkbox => checkbox.checked).map(checkbox => checkbox.value);
             const durationChoice = durationRadios.find(radio => radio.checked).value;
             const startDate = startDateEl.value;
@@ -257,6 +273,7 @@
 
             if (
                 !newspaper ||
+                (newspaper === "Other" && !newspaperOther) ||
                 (durationChoice === "dates" && (!startDate || !endDate)) ||
                 !name ||
                 !phone ||
@@ -282,7 +299,7 @@
 
             const subject = "Tarian Newspaper delivery sign-up";
             const bodyLines = [
-                "Newspaper: " + newspaper,
+                "Newspaper: " + newspaperText,
                 "Delivery days: " + (selectedDays.length ? selectedDays.join(", ") : "To be decided"),
                 "Delivery period: " + durationText,
                 "Name: " + (name || "-"),
