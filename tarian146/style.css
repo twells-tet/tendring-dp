@@ -1968,6 +1968,7 @@ body.printer-friendly-mode .exit-printer-friendly-link {
 .tarian-homepage-card .intro p {
   margin: 0 0 0.75rem;
   line-height: 1.5;
+  text-align: left;
 }
 
 .tarian-homepage-card .cta {
