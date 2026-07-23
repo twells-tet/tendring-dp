@@ -1907,6 +1907,14 @@ body.printer-friendly-mode .exit-printer-friendly-link {
   display: inline-block;
 }
 
+.tarian-homepage-header {
+  text-align: center;
+}
+
+.tarian-homepage-header .page-header-logo-link {
+  margin: 0 auto;
+}
+
 .tarian-homepage .app-shell {
   max-width: 700px;
   margin: 0 auto;

@@ -8,12 +8,10 @@
 </head>
 <body class="tarian-homepage">
 
-    <header class="page-header" id="top">
+    <header class="page-header tarian-homepage-header" id="top">
         <a href="index.html" class="page-header-logo-link" aria-label="Tarian Newspapers home">
             <img src="tarian-shield.svg" alt="" class="page-header-logo">
         </a>
-        <h1>TARIAN</h1>
-        <p class="page-subtitle">Newspapers delivered to your front door</p>
     </header>
 
     <main class="app-shell">
@@ -45,6 +43,132 @@
                 Enquiries? Call <strong>Chris</strong> on <strong>07731 854731</strong>
             </div>
         </div>
+
+        <div id="signup-form" class="signup-form tarian-homepage-card" hidden>
+            <h2>Start your delivery</h2>
+            <p class="signup-intro">Deliveries start <strong>Saturday 1 August 2026</strong>. Tell us what you'd like and we'll email your request to Chris to set it up.</p>
+
+            <label class="signup-field" for="signup-newspaper">
+                Newspaper
+                <select id="signup-newspaper">
+                    <option value="">Choose a newspaper</option>
+                    <option>Express</option>
+                    <option>FT (Financial Times)</option>
+                    <option>Guardian / Observer</option>
+                    <option>The i</option>
+                    <option>Daily Mail</option>
+                    <option>Mirror</option>
+                    <option>Racing Post</option>
+                    <option>Star</option>
+                    <option>The Telegraph</option>
+                    <option>Sunday People</option>
+                    <option>The Sun</option>
+                    <option>The Times</option>
+                </select>
+            </label>
+
+            <div class="signup-days">
+                <p class="signup-days-label">Delivery days</p>
+                <div class="signup-day-shortcuts">
+                    <button type="button" class="signup-shortcut-btn" data-shortcut="all">Until Further Notice</button>
+                    <button type="button" class="signup-shortcut-btn" data-shortcut="no-sat">Not Saturdays</button>
+                    <button type="button" class="signup-shortcut-btn" data-shortcut="no-sat-sun">Not Saturdays or Sundays</button>
+                </div>
+                <div class="signup-day-checkboxes">
+                    <label><input type="checkbox" class="signup-day" value="Monday" checked> Monday</label>
+                    <label><input type="checkbox" class="signup-day" value="Tuesday" checked> Tuesday</label>
+                    <label><input type="checkbox" class="signup-day" value="Wednesday" checked> Wednesday</label>
+                    <label><input type="checkbox" class="signup-day" value="Thursday" checked> Thursday</label>
+                    <label><input type="checkbox" class="signup-day" value="Friday" checked> Friday</label>
+                    <label><input type="checkbox" class="signup-day" value="Saturday" checked> Saturday</label>
+                    <label><input type="checkbox" class="signup-day" value="Sunday" checked> Sunday</label>
+                </div>
+            </div>
+
+            <label class="signup-field" for="signup-name">
+                Your name
+                <input type="text" id="signup-name" autocomplete="name">
+            </label>
+
+            <label class="signup-field" for="signup-address">
+                Delivery address
+                <input type="text" id="signup-address" autocomplete="street-address">
+            </label>
+
+            <label class="signup-field" for="signup-phone">
+                Phone number
+                <input type="tel" id="signup-phone" autocomplete="tel">
+            </label>
+
+            <p id="signup-error" class="signup-error" hidden>Please choose a newspaper and at least one delivery day.</p>
+
+            <button type="button" id="signup-submit" class="cta signup-submit-btn">Email my request</button>
+        </div>
     </main>
+
+    <script>
+        const signupToggleEl = document.querySelector(".hero + .intro + .cta, .intro + .cta");
+        const ctaLinkEl = document.querySelector("a.cta[href='https://www.tarian146.co.uk']");
+        const signupFormEl = document.getElementById("signup-form");
+        const signupErrorEl = document.getElementById("signup-error");
+        const dayCheckboxes = Array.from(document.querySelectorAll(".signup-day"));
+
+        if (ctaLinkEl) {
+            ctaLinkEl.addEventListener("click", event => {
+                event.preventDefault();
+                signupFormEl.hidden = !signupFormEl.hidden;
+                if (!signupFormEl.hidden) {
+                    signupFormEl.scrollIntoView({ behavior: "smooth", block: "start" });
+                }
+            });
+        }
+
+        document.querySelectorAll(".signup-shortcut-btn").forEach(button => {
+            button.addEventListener("click", () => {
+                const shortcut = button.dataset.shortcut;
+                dayCheckboxes.forEach(checkbox => {
+                    if (shortcut === "all") {
+                        checkbox.checked = true;
+                    } else if (shortcut === "no-sat") {
+                        checkbox.checked = checkbox.value !== "Saturday";
+                    } else if (shortcut === "no-sat-sun") {
+                        checkbox.checked = checkbox.value !== "Saturday" && checkbox.value !== "Sunday";
+                    }
+                });
+            });
+        });
+
+        document.getElementById("signup-submit").addEventListener("click", () => {
+            const newspaper = document.getElementById("signup-newspaper").value;
+            const selectedDays = dayCheckboxes.filter(checkbox => checkbox.checked).map(checkbox => checkbox.value);
+
+            if (!newspaper || selectedDays.length === 0) {
+                signupErrorEl.hidden = false;
+                return;
+            }
+            signupErrorEl.hidden = true;
+
+            const name = document.getElementById("signup-name").value.trim();
+            const address = document.getElementById("signup-address").value.trim();
+            const phone = document.getElementById("signup-phone").value.trim();
+
+            const subject = "Tarian Newspaper delivery sign-up";
+            const bodyLines = [
+                "Newspaper: " + newspaper,
+                "Delivery days: " + selectedDays.join(", "),
+                "Start date: Saturday 1 August 2026",
+                "Name: " + (name || "-"),
+                "Delivery address: " + (address || "-"),
+                "Phone: " + (phone || "-")
+            ];
+            const mailtoUrl =
+                "mailto:chris@trinitystreetcomms.co.uk?subject=" +
+                encodeURIComponent(subject) +
+                "&body=" +
+                encodeURIComponent(bodyLines.join("\n"));
+
+            window.location.href = mailtoUrl;
+        });
+    </script>
 </body>
 </html>
