@@ -662,7 +662,7 @@
 
     // A walk can never cross Polling Districts, so both a Subroad and
     // a Polling District must be chosen before any households are shown.
-    function showHouseholds(allHouseholds, subRoad, pollingDistrict) {
+    function showHouseholds(allHouseholds, allHouseholdsUnfiltered, subRoad, pollingDistrict) {
 
       if (!subRoad || !pollingDistrict) {
 
@@ -678,12 +678,15 @@
       const wantedSubRoad = normalizeText(subRoad);
       const wantedDistrict = normalizeText(pollingDistrict);
 
-      const matched =
-        allHouseholds.filter(
-          household =>
-            normalizeText(household.subRoad) === wantedSubRoad &&
-            normalizeText(household.pollingDistrict) === wantedDistrict
+      function matchesSubRoadAndDistrict(household) {
+        return (
+          normalizeText(household.subRoad) === wantedSubRoad &&
+          normalizeText(household.pollingDistrict) === wantedDistrict
         );
+      }
+
+      const matched =
+        allHouseholds.filter(matchesSubRoadAndDistrict);
 
       sortByDeliveryOrder(matched);
 
@@ -695,15 +698,32 @@
 
       messageEl.textContent = "";
 
+      // The summary always reports the true, unfiltered totals for the
+      // Subroad/Polling District combination - unaffected by Anti-Plaid
+      // flags or any other filter applied elsewhere in the app - so
+      // organisers always see the real size of the walk.
+      const unfilteredMatched =
+        allHouseholdsUnfiltered.filter(matchesSubRoadAndDistrict);
+
+      const totalHouseholds = unfilteredMatched.length;
+
+      const totalElectors =
+        unfilteredMatched.reduce(
+          (sum, household) => sum + household.electorNames.length,
+          0
+        );
+
       summaryEl.textContent =
-        shown.length +
-        " household" + (shown.length === 1 ? "" : "s") +
-        " shown for Subroad \"" + subRoad + "\" in Polling District " +
-        pollingDistrict.toUpperCase() + ", in Sort Order." +
+        totalHouseholds +
+        " household" + (totalHouseholds === 1 ? "" : "s") +
+        " containing " +
+        totalElectors +
+        " elector" + (totalElectors === 1 ? "" : "s") +
+        " assigned to Subroad \"" + subRoad + "\" in Polling District " +
+        pollingDistrict.toUpperCase() + "." +
         (
           truncated
-            ? " Only the first " + MAX_HOUSEHOLDS + " households are shown (" +
-              totalMatched + " matched)."
+            ? " Only the first " + MAX_HOUSEHOLDS + " households are shown in the table below."
             : ""
         );
 
@@ -740,12 +760,22 @@
         const rows = parseCsv(csvText);
         const headers = rows[0].map(h => normalizeHeader(h));
 
-        const electors =
+        const electorsRaw =
           rows
             .slice(1)
             .map((row, index) => mapRowToElector(row, headers, index))
-            .filter(e => e.name)
+            .filter(e => e.name);
+
+        const electors =
+          electorsRaw
             .filter(e => !hasAntiPlaidFlag(getElectorProgress(e.id, progress)));
+
+        // Household/elector totals shown in the summary always reflect
+        // every record assigned to the Subroad/Polling District, so they
+        // stay accurate regardless of any filters (e.g. Anti-Plaid
+        // flags) applied elsewhere in the app.
+        const allHouseholdsUnfiltered =
+          buildHouseholds(electorsRaw, areaOverrides);
 
         const allHouseholds =
           buildHouseholds(electors, areaOverrides);
@@ -753,7 +783,12 @@
         populateSubRoadPicker(allHouseholds, requestedSubRoad);
         selectPollingDistrict(requestedDistrict);
 
-        showHouseholds(allHouseholds, requestedSubRoad, requestedDistrict);
+        showHouseholds(
+          allHouseholds,
+          allHouseholdsUnfiltered,
+          requestedSubRoad,
+          requestedDistrict
+        );
 
         function updateFromPickers() {
 
@@ -779,11 +814,13 @@
 
           showHouseholds(
             allHouseholds,
+            allHouseholdsUnfiltered,
             subRoadSelectEl.value,
             pollingDistrictSelectEl.value
           );
 
         }
+
 
         subRoadSelectEl.addEventListener("change", updateFromPickers);
         pollingDistrictSelectEl.addEventListener("change", updateFromPickers);
