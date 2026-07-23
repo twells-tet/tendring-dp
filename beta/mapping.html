@@ -453,7 +453,13 @@
           "Address unavailable";
 
         const marker =
-          L.marker([household.lat, household.lng])
+          L.circleMarker([household.lat, household.lng], {
+            radius: 5,
+            color: "#000000",
+            weight: 1,
+            fillColor: "#000000",
+            fillOpacity: 0.85
+          })
             .addTo(leafletMap)
             .bindPopup(label)
             .bindTooltip(label, { direction: "top" });
