@@ -72,26 +72,26 @@
                 <div class="signup-duration-options">
                     <label><input type="radio" name="signup-duration" class="signup-duration-radio" value="ongoing" checked> Until further notice</label>
                     <label><input type="radio" name="signup-duration" class="signup-duration-radio" value="dates"> Specific dates (e.g. a holiday week)</label>
+                    <label><input type="radio" name="signup-duration" class="signup-duration-radio" value="later"> Let me decide later</label>
                 </div>
                 <div class="signup-date-range" id="signup-date-range" hidden>
                     <label class="signup-field" for="signup-start-date">
                         Start date
-                        <input type="date" id="signup-start-date" min="2026-08-01" value="2026-08-01">
+                        <input type="date" id="signup-start-date" min="2026-08-01" value="2026-08-03">
                     </label>
                     <label class="signup-field" for="signup-end-date">
                         End date
-                        <input type="date" id="signup-end-date" min="2026-08-01">
+                        <input type="date" id="signup-end-date" min="2026-08-01" value="2026-08-09">
                     </label>
                 </div>
             </div>
 
-            <div class="signup-days">
+            <div class="signup-days" id="signup-delivery-days-section">
                 <p class="signup-days-label">Delivery days (optional — let us know if you're not sure yet)</p>
                 <div class="signup-day-shortcuts">
                     <button type="button" class="signup-shortcut-btn" data-shortcut="sunday-only">Sundays Only</button>
                     <button type="button" class="signup-shortcut-btn" data-shortcut="no-sat">All except Saturday</button>
                     <button type="button" class="signup-shortcut-btn" data-shortcut="no-sat-sun">All except weekends</button>
-                    <button type="button" class="signup-shortcut-btn" data-shortcut="later">Let me decide later</button>
                 </div>
                 <div class="signup-day-checkboxes">
                     <label><input type="checkbox" class="signup-day" value="Monday" checked> Monday</label>
@@ -150,6 +150,7 @@
         const endDateEl = document.getElementById("signup-end-date");
         const newspaperSelect = document.getElementById("signup-newspaper");
         const dayRestrictionNoteEl = document.getElementById("signup-day-restriction-note");
+        const deliveryDaysSectionEl = document.getElementById("signup-delivery-days-section");
 
         const NEWSPAPER_NO_SUNDAY = ["The i", "Western Mail"];
         const NEWSPAPER_WEEKLY_DAY = { "Cambrian News": "Tuesday" };
@@ -198,8 +199,31 @@
                         dateRangeEl.hidden = false;
                     }
                 });
+                updateDeliveryDaysAvailability();
             });
         });
+
+        function updateDeliveryDaysAvailability() {
+            const durationChoice = durationRadios.find(radio => radio.checked).value;
+            const isLater = durationChoice === "later";
+
+            deliveryDaysSectionEl.classList.toggle("is-disabled", isLater);
+            deliveryDaysSectionEl.querySelectorAll(".signup-shortcut-btn").forEach(button => {
+                button.disabled = isLater;
+            });
+
+            if (isLater) {
+                dayCheckboxes.forEach(checkbox => {
+                    checkbox.disabled = true;
+                    checkbox.checked = false;
+                });
+                dayRestrictionNoteEl.hidden = true;
+            } else {
+                applyNewspaperDayRestrictions();
+            }
+        }
+
+        updateDeliveryDaysAvailability();
 
         document.querySelectorAll(".signup-shortcut-btn").forEach(button => {
             button.addEventListener("click", () => {
@@ -211,8 +235,6 @@
                         checkbox.checked = checkbox.value !== "Saturday";
                     } else if (shortcut === "no-sat-sun") {
                         checkbox.checked = checkbox.value !== "Saturday" && checkbox.value !== "Sunday";
-                    } else if (shortcut === "later") {
-                        checkbox.checked = false;
                     }
                 });
                 applyNewspaperDayRestrictions();
@@ -254,7 +276,9 @@
             const durationText =
                 durationChoice === "dates"
                     ? formatDate(startDate) + " to " + formatDate(endDate)
-                    : "Until further notice (from 1 August 2026)";
+                    : durationChoice === "later"
+                        ? "To be decided"
+                        : "Until further notice (from 1 August 2026)";
 
             const subject = "Tarian Newspaper delivery sign-up";
             const bodyLines = [

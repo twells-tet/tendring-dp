@@ -2065,6 +2065,11 @@ body.printer-friendly-mode .exit-printer-friendly-link {
   margin-bottom: 1.1rem;
 }
 
+.signup-days.is-disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
 .signup-days-label {
   margin: 0 0 0.5rem;
   color: var(--text-muted);
