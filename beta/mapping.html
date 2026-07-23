@@ -455,9 +455,9 @@
         const marker =
           L.circleMarker([household.lat, household.lng], {
             radius: 5,
-            color: "#000000",
+            color: "#da291c",
             weight: 1,
-            fillColor: "#000000",
+            fillColor: "#da291c",
             fillOpacity: 0.85
           })
             .addTo(leafletMap)
@@ -610,7 +610,7 @@
           " shown on the map" +
           (
             missingCoords
-              ? " (" + missingCoords + " without saved GPS coordinates could not be plotted)."
+              ? " (" + missingCoords + " could not be plotted due to missing geocoding data)."
               : "."
           ) +
           (
