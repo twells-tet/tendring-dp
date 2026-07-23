@@ -275,16 +275,18 @@
         </select>
       </label>
 
-      <button type="button" id="add-another-filter" class="add-filter-button">Add Another Filter</button>
+      <button type="button" id="add-another-filter" class="add-filter-button">Add Filter</button>
 
     </section>
 
 
     <section class="export-buttons" aria-label="Export options">
       <button type="button" id="run-search-button" class="export-button run-search-button">Run Search</button>
+      <button type="button" id="display-map-button" class="export-button display-map-button">View Households on Map</button>
       <a href="polling-day.html" target="_blank" rel="noopener" class="export-button polling-day-button">GOTV: Run Polling Day</a>
       <a href="volunteers.html" class="export-button members-activists-button">Members &amp; Activists</a>
       <button type="button" class="export-button" disabled>Switch to Training Mode</button>
+      <button type="button" class="export-button" disabled>Export to Canvassing App</button>
     </section>
 
 
@@ -375,7 +377,7 @@
             <dt>Walk Name</dt>
             <dd id="delivery-description">High Street and Harbour</dd>
 
-            <dt>Road/Area</dt>
+            <dt>SUBROAD</dt>
             <dd>
               <input type="text" id="delivery-area-input" class="delivery-area-input">
               <button type="button" id="road-area-help-toggle" class="road-area-help-toggle">What does this mean?</button>
@@ -391,7 +393,7 @@
               <p id="sort-order-help-text" class="road-area-help-text" hidden>This is the order of delivery for the road/area. The correct sequence should be the order that you would deliver or canvass this road, usually starting either at Number 1 or the first named house on the road.</p>
             </dd>
 
-            <dt>Deliverer</dt>
+            <dt>Volunteer Deliverer</dt>
             <dd id="delivery-deliverer">—</dd>
           </dl>
 
@@ -420,6 +422,28 @@
               id="name-search-input"
               class="address-search-input"
               placeholder="Start typing a name...">
+          </div>
+
+          <div class="household-nav list-household-nav" id="list-household-nav">
+
+            <button
+              type="button"
+              id="list-prev-household"
+              class="household-nav-btn list-household-nav-btn"
+              disabled>
+              &lt; Previous
+            </button>
+
+            <p id="list-household-count">Household —</p>
+
+            <button
+              type="button"
+              id="list-next-household"
+              class="household-nav-btn list-household-nav-btn"
+              disabled>
+              Next &gt;
+            </button>
+
           </div>
 
           <div id="elector-list" class="elector-list"></div>
@@ -460,7 +484,7 @@
     <section id="what3words-box" class="what3words-box">
       <h3>what3words</h3>
       <p class="what3words-hint">
-        Marker displaying incorrectly? Enter the what3words that relates to the front door or letterbox of this address to update the coordinates.
+        Marker displaying incorrectly? Enter the what3words that relates to the front door or letterbox of this address to lookup new coordinates. Alternatively, manually update the coordinates. In either case, press save to commit these changes.
       </p>
       <div class="what3words-row">
         <input
@@ -579,7 +603,8 @@ const STORAGE_KEYS = {
   hideAiComments: "abersoch-hide-ai-comments",
   pollingDistrict: "abersoch-polling-district",
   areaOverrides: "abersoch-area-overrides-v1",
-  currentListFilter: "abersoch-current-list-filter"
+  currentListFilter: "abersoch-current-list-filter",
+  mappingFilter: "abersoch-mapping-filter"
 };
 
 
@@ -638,7 +663,8 @@ const state = {
   ),
   householdPageIndex: 0,
   showingWardBoundary: false,
-  currentMapElector: null
+  currentMapElector: null,
+  expandedHouseholdElectorNav: new Set()
 };
 
 // Seed a demo poster scenario (Joe Bloggs wants a garden poster, Jane
@@ -725,6 +751,15 @@ const mapNextHouseholdEl =
 const mapHouseholdCountEl =
   document.getElementById("map-household-count");
 
+const listPrevHouseholdEl =
+  document.getElementById("list-prev-household");
+
+const listNextHouseholdEl =
+  document.getElementById("list-next-household");
+
+const listHouseholdCountEl =
+  document.getElementById("list-household-count");
+
 const aiCommentsEl =
   document.getElementById("ai-comments-text");
 
@@ -769,6 +804,9 @@ const filterTypeEl =
 
 const runSearchButtonEl =
   document.getElementById("run-search-button");
+
+const displayMapButtonEl =
+  document.getElementById("display-map-button");
 
 const addressSearchInputEl =
   document.getElementById("address-search-input");
@@ -871,6 +909,27 @@ function initControls() {
       );
 
       window.open("current-list.html", "_blank");
+
+    }
+  );
+
+
+
+  displayMapButtonEl.addEventListener(
+    "click",
+    () => {
+
+      const filterState = {
+        pollingDistrict: pollingDistrictEl.value,
+        filterType: filterTypeEl.value
+      };
+
+      localStorage.setItem(
+        STORAGE_KEYS.mappingFilter,
+        JSON.stringify(filterState)
+      );
+
+      window.open("mapping.html", "_blank");
 
     }
   );
@@ -1097,6 +1156,8 @@ function initControls() {
   updateStats();
 
   bindMapHouseholdNavigation();
+
+  bindListHouseholdNavigation();
 
   bindCentreMapButton();
 
@@ -1696,6 +1757,8 @@ function renderElectorList() {
 
     updateMapHouseholdNav(0, 0);
 
+    updateListHouseholdNav(0, 0);
+
 
     updateStats();
 
@@ -1741,6 +1804,12 @@ function renderElectorList() {
 
 
   updateMapHouseholdNav(
+    state.householdPageIndex,
+    households.length
+  );
+
+
+  updateListHouseholdNav(
     state.householdPageIndex,
     households.length
   );
@@ -1823,6 +1892,13 @@ function renderElectorList() {
         ${escapeHtml(formatPollingDistrictSummary(firstElector))}
       </p>
 
+      <p class="household-elector-nav-row">
+        <strong>Jump to Elector:</strong>
+        <span class="household-elector-nav">
+          ${buildHouseholdElectorNav(household.electors)}
+        </span>
+      </p>
+
     </div>
   `;
 
@@ -1838,7 +1914,8 @@ function renderElectorList() {
 
       const progress =
         getElectorProgress(
-          elector.id
+          elector.id,
+          elector.name
         );
 
 
@@ -1849,8 +1926,12 @@ function renderElectorList() {
 
 
       item.className =
-        "elector-item";
+        "elector-item " +
+        getPoliticalLeanClass(progress.canvassId);
 
+
+      item.id =
+        "elector-" + elector.id;
 
 
       item.innerHTML =
@@ -2124,6 +2205,9 @@ function renderElectorList() {
   );
 
 
+  bindHouseholdElectorNav();
+
+
   bindProgressEditors();
 
 
@@ -2198,6 +2282,7 @@ function bindHouseholdNavigation(totalHouseholds) {
           state.householdPageIndex > 0
         ) {
           state.householdPageIndex -= 1;
+          state.showingWardBoundary = false;
           renderElectorList();
         }
 
@@ -2206,11 +2291,71 @@ function bindHouseholdNavigation(totalHouseholds) {
           state.householdPageIndex < totalHouseholds - 1
         ) {
           state.householdPageIndex += 1;
+          state.showingWardBoundary = false;
           renderElectorList();
         }
 
       }
     );
+
+  });
+
+}
+
+
+// Wires up the horizontal household elector quick-jump list rendered
+// next to Property ID/Address/Polling District: name links scroll
+// straight to the matching elector card below, and the "N more" toggle
+// expands the list in place to reveal the rest of the household.
+function bindHouseholdElectorNav() {
+
+  const links =
+    listEl.querySelectorAll(
+      ".household-elector-link"
+    );
+
+  links.forEach(link => {
+
+    link.addEventListener("click", () => {
+
+      const targetId = link.dataset.target;
+      const targetEl = document.getElementById(targetId);
+
+      if (!targetEl) {
+        return;
+      }
+
+      targetEl.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+
+      targetEl.classList.add("elector-item-highlight");
+
+      window.setTimeout(() => {
+        targetEl.classList.remove("elector-item-highlight");
+      }, 1500);
+
+    });
+
+  });
+
+  const moreButtons =
+    listEl.querySelectorAll(
+      ".household-elector-more"
+    );
+
+  moreButtons.forEach(button => {
+
+    button.addEventListener("click", () => {
+
+      const householdKey = button.dataset.householdKey;
+
+      state.expandedHouseholdElectorNav.add(householdKey);
+
+      renderElectorList();
+
+    });
 
   });
 
@@ -2246,6 +2391,7 @@ function bindMapHouseholdNavigation() {
 
     if (state.householdPageIndex > 0) {
       state.householdPageIndex -= 1;
+      state.showingWardBoundary = false;
       renderElectorList();
     }
 
@@ -2260,6 +2406,7 @@ function bindMapHouseholdNavigation() {
 
     if (state.householdPageIndex < totalHouseholds - 1) {
       state.householdPageIndex += 1;
+      state.showingWardBoundary = false;
       renderElectorList();
     }
 
@@ -2286,6 +2433,66 @@ function updateMapHouseholdNav(currentIndex, totalHouseholds) {
 
   mapPrevHouseholdEl.disabled = currentIndex === 0;
   mapNextHouseholdEl.disabled = currentIndex >= totalHouseholds - 1;
+
+}
+
+
+// Wires the previous/next household controls under the Household
+// Details search boxes. Bound once at startup like the map-panel
+// equivalent, and stays in sync with the current filtered household
+// count at click time.
+function bindListHouseholdNavigation() {
+
+  if (!listPrevHouseholdEl || !listNextHouseholdEl) {
+    return;
+  }
+
+  listPrevHouseholdEl.addEventListener("click", () => {
+
+    if (state.householdPageIndex > 0) {
+      state.householdPageIndex -= 1;
+      state.showingWardBoundary = false;
+      renderElectorList();
+    }
+
+  });
+
+  listNextHouseholdEl.addEventListener("click", () => {
+
+    const totalHouseholds =
+      buildVisibleHouseholds(
+        getFilteredActiveElectors()
+      ).length;
+
+    if (state.householdPageIndex < totalHouseholds - 1) {
+      state.householdPageIndex += 1;
+      state.showingWardBoundary = false;
+      renderElectorList();
+    }
+
+  });
+
+}
+
+
+function updateListHouseholdNav(currentIndex, totalHouseholds) {
+
+  if (!listPrevHouseholdEl || !listNextHouseholdEl || !listHouseholdCountEl) {
+    return;
+  }
+
+  if (!totalHouseholds) {
+    listHouseholdCountEl.textContent = "Household —";
+    listPrevHouseholdEl.disabled = true;
+    listNextHouseholdEl.disabled = true;
+    return;
+  }
+
+  listHouseholdCountEl.textContent =
+    "Household " + (currentIndex + 1) + " of " + totalHouseholds;
+
+  listPrevHouseholdEl.disabled = currentIndex === 0;
+  listNextHouseholdEl.disabled = currentIndex >= totalHouseholds - 1;
 
 }
 
@@ -2426,6 +2633,61 @@ function formatPollingDistrictSummary(elector) {
   }
 
   return String(elector.pollingDistrict || "").trim() || "—";
+
+}
+
+
+// Renders a horizontal list of hyperlinked elector names for the
+// current household so the user can jump straight to any elector's
+// record below. Shows at most 4 slots: if there are more than 4
+// electors, the first 3 are shown as named links and the 4th slot
+// becomes a "N more" toggle that expands to reveal the rest.
+function buildHouseholdElectorNav(electors) {
+
+  if (!electors || !electors.length) {
+    return "—";
+  }
+
+  const householdKey =
+    electors[0].householdGroupKey || "";
+
+  const isExpanded =
+    state.expandedHouseholdElectorNav.has(householdKey);
+
+  const buildLink = elector => {
+
+    const progress = getElectorProgress(elector.id, elector.name);
+    const leanClass = getPoliticalLeanClass(progress.canvassId);
+
+    return `
+    <button
+    type="button"
+    class="household-elector-link ${leanClass}"
+    data-target="elector-${escapeHtmlAttr(elector.id)}">
+    ${escapeHtml(elector.name || "Unnamed elector")}
+    </button>
+    `;
+
+  };
+
+  if (electors.length <= 4 || isExpanded) {
+    return electors.map(buildLink).join("");
+  }
+
+  const visible = electors.slice(0, 3);
+  const remaining = electors.length - visible.length;
+
+  return (
+    visible.map(buildLink).join("") +
+    `
+    <button
+    type="button"
+    class="household-elector-more"
+    data-household-key="${escapeHtmlAttr(householdKey)}">
+    ${remaining} more
+    </button>
+    `
+  );
 
 }
 
@@ -3196,14 +3458,35 @@ function updateStats() {
 }
 
 
-function getElectorProgress(electorId) {
+// Demo electors used to showcase political-leaning colour coding:
+// these default to a specific Canvass ID until a user overrides it.
+const DEMO_PLAID_ELECTOR_NAMES = [
+  "pat postie",
+  "sam sorefeet"
+];
+
+const DEMO_CANVASS_ID_BY_ELECTOR_ID = {
+  "801071110": "Conservative",
+  "508891699": "Labour"
+};
+
+function getElectorProgress(electorId, electorName) {
 
   const existing = state.progress[electorId] || {};
+
+  const isDemoPlaidElector =
+    DEMO_PLAID_ELECTOR_NAMES.includes(
+      String(electorName || "").trim().toLowerCase()
+    );
+
+  const demoCanvassId =
+    DEMO_CANVASS_ID_BY_ELECTOR_ID[String(electorId)];
 
   const legacyCanvassId =
     existing.canvassId ||
     existing.status ||
-    "No Data";
+    demoCanvassId ||
+    (isDemoPlaidElector ? "Definite Plaid" : "No Data");
 
   const canvassId = normalizeCanvassId(legacyCanvassId);
   const supportIndependence = existing.supportIndependence || "No Data";
@@ -3245,6 +3528,33 @@ function hasAntiPlaidFlag(progress) {
     progress &&
     (progress.doNotDeliver || progress.doNotContact)
   );
+
+}
+
+
+// Colour-codes an elector card by political leaning based on Canvass ID.
+// Confirmed/likely Plaid supporters are green, Conservative is blue,
+// and everyone else stays neutral dark grey.
+function getPoliticalLeanClass(canvassId) {
+
+  const PLAID_LEAN_IDS = [
+    "Definite Plaid",
+    "Probable Plaid"
+  ];
+
+  if (PLAID_LEAN_IDS.includes(canvassId)) {
+    return "elector-lean-green";
+  }
+
+  if (canvassId === "Conservative") {
+    return "elector-lean-blue";
+  }
+
+  if (canvassId === "Labour") {
+    return "elector-lean-red";
+  }
+
+  return "elector-lean-grey";
 
 }
 
