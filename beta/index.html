@@ -604,7 +604,8 @@ const STORAGE_KEYS = {
   pollingDistrict: "abersoch-polling-district",
   areaOverrides: "abersoch-area-overrides-v1",
   currentListFilter: "abersoch-current-list-filter",
-  mappingFilter: "abersoch-mapping-filter"
+  mappingFilter: "abersoch-mapping-filter",
+  walkOverrides: "abersoch-walk-overrides-v1"
 };
 
 
@@ -659,6 +660,10 @@ const state = {
   ),
   areaOverrides: loadFromStorage(
     STORAGE_KEYS.areaOverrides,
+    {}
+  ),
+  walkOverrides: loadFromStorage(
+    STORAGE_KEYS.walkOverrides,
     {}
   ),
   householdPageIndex: 0,
@@ -3194,10 +3199,14 @@ function updateAiComments(household) {
 }
 
 
-function updateDeliveryDetails(elector) {
+function walkOverrideKey(subRoad, pollingDistrict) {
+  return (
+    normalizeText(subRoad) + "|" + normalizeText(pollingDistrict)
+  );
+}
 
-  deliveryWalkEl.textContent =
-    (elector && elector.deliveryWalk) || "—";
+
+function updateDeliveryDetails(elector) {
 
   const householdId =
     elector ? elector.householdGroupKey : null;
@@ -3213,12 +3222,6 @@ function updateDeliveryDetails(elector) {
   deliveryAreaInputEl.value =
     currentSubRoad;
 
-  deliveryDescriptionEl.textContent =
-    buildDeliveryDescription(elector);
-
-  deliveryOrderEl.textContent =
-    (elector && elector.deliveryOrder) || "—";
-
   const subRoadForLink =
     currentSubRoad && currentSubRoad !== "—"
       ? currentSubRoad
@@ -3226,6 +3229,28 @@ function updateDeliveryDetails(elector) {
 
   const districtForLink =
     (elector && elector.pollingDistrict) || "";
+
+  // The Walk shown here can be reassigned in bulk on the Manage Walks
+  // page (grouped by Subroad + Polling District, since a walk can
+  // never cross Polling Districts) - if an override has been saved for
+  // this household's Subroad/Polling District, show that instead of
+  // the value from the sheet.
+  const walkOverride =
+    subRoadForLink && districtForLink
+      ? state.walkOverrides[walkOverrideKey(subRoadForLink, districtForLink)]
+      : undefined;
+
+  // Every Subroad must be assigned to a Walk. If no override has been
+  // saved yet for this household's Subroad/Polling District, it
+  // defaults to Walk 1 (a walk can never cross Polling Districts).
+  deliveryWalkEl.textContent =
+    (walkOverride || "1") + " of 5";
+
+  deliveryDescriptionEl.textContent =
+    buildDeliveryDescription(elector);
+
+  deliveryOrderEl.textContent =
+    (elector && elector.deliveryOrder) || "—";
 
   sortOrderLinkEl.href =
     subRoadForLink

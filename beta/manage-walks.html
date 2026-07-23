@@ -28,7 +28,9 @@
         Choose a Subroad and Polling District to see every household on
         that walk, in delivery/canvass Sort Order. A walk can never cross
         Polling Districts. Reach this page by clicking "Sort Order"
-        against any household on the main list.
+        against any household on the main list. Once shown, assign this
+        Subroad to one of the 5 larger Walks below - this updates the
+        Walk shown against every household on the main list.
       </p>
 
       <div class="manage-walks-picker">
@@ -44,6 +46,17 @@
         <div class="manage-walks-picker-row">
           <label for="subroad-select">Subroad</label>
           <select id="subroad-select"></select>
+        </div>
+
+        <div class="manage-walks-picker-row">
+          <label for="walk-select">Walk</label>
+          <select id="walk-select" disabled>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
         </div>
       </div>
 
@@ -75,7 +88,8 @@
     const STORAGE_KEYS = {
       sheetUrl: "abersoch-sheet-url",
       progress: "abersoch-elector-progress-v1",
-      areaOverrides: "abersoch-area-overrides-v1"
+      areaOverrides: "abersoch-area-overrides-v1",
+      walkOverrides: "abersoch-walk-overrides-v1"
     };
 
     const DEFAULT_SHEET_URL =
@@ -111,6 +125,13 @@
     const pollingDistrictSelectEl =
       document.getElementById("polling-district-select");
 
+    const walkSelectEl =
+      document.getElementById("walk-select");
+
+    // Populated once in init() from localStorage; keyed by
+    // "<subroad>|<pollingdistrict>" (both normalizeText'd).
+    let walkOverrides = {};
+
     function loadFromStorage(key, fallback) {
 
       try {
@@ -127,6 +148,22 @@
         return fallback;
       }
 
+    }
+
+    function saveToStorage(key, value) {
+
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+      } catch (error) {
+        // Ignore storage errors (e.g. private browsing quota).
+      }
+
+    }
+
+    function walkOverrideKey(subRoad, pollingDistrict) {
+      return (
+        normalizeText(subRoad) + "|" + normalizeText(pollingDistrict)
+      );
     }
 
     function toGoogleCsvUrl(rawUrl) {
@@ -601,7 +638,7 @@
 
     }
 
-    function renderTable(households) {
+    function renderTable(households, walkOverrideValue) {
 
       bodyEl.innerHTML =
         households.map(household => {
@@ -610,7 +647,8 @@
             household.deliveryOrder || "—",
             formatAddress(household),
             household.electorNames.length,
-            household.deliveryWalk,
+            (walkOverrideValue && walkOverrideValue + " of 5") ||
+              household.deliveryWalk,
             household.deliverer,
             household.pollingDistrict
           ];
@@ -675,9 +713,16 @@
         messageEl.textContent =
           "Choose a Subroad and a Polling District above to see its households.";
 
+        walkSelectEl.disabled = true;
+        walkSelectEl.value = "";
+
         return;
 
       }
+
+      walkSelectEl.disabled = false;
+      walkSelectEl.value =
+        walkOverrides[walkOverrideKey(subRoad, pollingDistrict)] || "1";
 
       const wantedSubRoad = normalizeText(subRoad);
       const wantedDistrict = normalizeText(pollingDistrict);
@@ -698,7 +743,12 @@
       const truncated = totalMatched > MAX_HOUSEHOLDS;
       const shown = matched.slice(0, MAX_HOUSEHOLDS);
 
-      renderTable(shown);
+      // Every Subroad must be assigned to a Walk; if no override has
+      // been saved yet, it defaults to Walk 1.
+      renderTable(
+        shown,
+        walkOverrides[walkOverrideKey(subRoad, pollingDistrict)] || "1"
+      );
 
       messageEl.textContent = "";
 
@@ -744,6 +794,9 @@
 
       const areaOverrides =
         loadFromStorage(STORAGE_KEYS.areaOverrides, {});
+
+      walkOverrides =
+        loadFromStorage(STORAGE_KEYS.walkOverrides, {});
 
       const params = new URLSearchParams(window.location.search);
       const requestedSubRoad = params.get("subroad") || "";
@@ -828,6 +881,40 @@
 
         subRoadSelectEl.addEventListener("change", updateFromPickers);
         pollingDistrictSelectEl.addEventListener("change", updateFromPickers);
+
+        walkSelectEl.addEventListener("change", () => {
+
+          const subRoad = subRoadSelectEl.value;
+          const pollingDistrict = pollingDistrictSelectEl.value;
+
+          if (!subRoad || !pollingDistrict) {
+            return;
+          }
+
+          const key = walkOverrideKey(subRoad, pollingDistrict);
+
+          if (walkSelectEl.value) {
+            walkOverrides[key] = walkSelectEl.value;
+          } else {
+            delete walkOverrides[key];
+          }
+
+          saveToStorage(STORAGE_KEYS.walkOverrides, walkOverrides);
+
+          showHouseholds(
+            allHouseholds,
+            allHouseholdsUnfiltered,
+            subRoad,
+            pollingDistrict
+          );
+
+          messageEl.textContent =
+            walkSelectEl.value
+              ? "Subroad \"" + subRoad + "\" assigned to Walk " +
+                walkSelectEl.value + ". This is now shown on the main list."
+              : "Walk assignment cleared for Subroad \"" + subRoad + "\".";
+
+        });
 
       } catch (error) {
         messageEl.textContent = "Unable to load sheet: " + error.message;
