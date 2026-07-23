@@ -711,14 +711,15 @@
           });
 
           walkKeyEl.innerHTML =
-            "<div class=\"walk-key-title\">Walk key</div>" +
+            "<div class=\"walk-key-title\">WALK KEY (PLOTTED/NOT PLOTTED)</div>" +
             "<div class=\"walk-key-grid\">" +
             Object.keys(WALK_COLORS).map(walkNumber =>
               "<span class=\"walk-key-item\">" +
               "<span class=\"walk-key-swatch\" style=\"background:" +
               WALK_COLORS[walkNumber] + "\"></span>" +
               "Walk " + walkNumber +
-              " (" + counts[walkNumber].plotted + "/" + counts[walkNumber].total + ")" +
+              " (" + counts[walkNumber].plotted + "/" +
+              (counts[walkNumber].total - counts[walkNumber].plotted) + ")" +
               "</span>"
             ).join("") +
             "</div>";
