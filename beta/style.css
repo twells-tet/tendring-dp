@@ -901,11 +901,6 @@ body.mobile-mode .elector-list {
   overflow-x: auto;
 }
 
-.manage-walks-intro {
-  color: var(--text-muted);
-  max-width: 60ch;
-}
-
 .manage-walks-picker {
   display: flex;
   flex-direction: column;
@@ -939,6 +934,95 @@ body.mobile-mode .elector-list {
 .current-list-summary {
   margin: 0 0 0.75rem;
   color: var(--text-muted);
+}
+
+.walk-descriptions-panel {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+  background: var(--surface);
+}
+
+.walk-descriptions-title {
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.walk-descriptions-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.walk-descriptions-row label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.walk-descriptions-row select,
+.walk-descriptions-row input {
+  padding: 0.4rem 0.55rem;
+  border: 1px solid var(--plaid-green);
+  border-radius: 0.5rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+}
+
+.walk-descriptions-row input {
+  flex: 1;
+  min-width: 200px;
+}
+
+.walk-descriptions-row select:disabled,
+.walk-descriptions-row input:disabled {
+  background: var(--border);
+  cursor: not-allowed;
+}
+
+.sort-order-cell {
+  white-space: nowrap;
+}
+
+.sort-order-btn {
+  width: 1.8rem;
+  height: 1.8rem;
+  line-height: 1;
+  border: 1px solid var(--plaid-green);
+  border-radius: 0.4rem;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sort-order-btn:hover {
+  background: var(--plaid-green);
+  color: #fff;
+}
+
+.sort-order-value {
+  display: inline-block;
+  min-width: 2rem;
+  margin: 0 0.35rem;
+  text-align: center;
+  font-weight: 600;
+}
+
+.walk-row-select {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--plaid-green);
+  border-radius: 0.5rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  max-width: 100%;
 }
 
 .current-list-table {

@@ -603,7 +603,16 @@ const STORAGE_KEYS = {
   areaOverrides: "abersoch-area-overrides-v1",
   currentListFilter: "abersoch-current-list-filter",
   mappingFilter: "abersoch-mapping-filter",
-  walkOverrides: "abersoch-walk-overrides-v1"
+  walkOverrides: "abersoch-walk-overrides-v1",
+  deliveryOrderOverrides: "abersoch-delivery-order-overrides-v1",
+  walkDescriptions: "abersoch-walk-descriptions-v1"
+};
+
+// Kept in sync with the Manage Walks page's seed values, so both pages
+// agree on Walk 1's name before anyone edits it there.
+const DEFAULT_WALK_DESCRIPTIONS = {
+  "ra1|1": "High Street and Harbour",
+  "qb6|1": "Farms and remote properties"
 };
 
 
@@ -662,6 +671,14 @@ const state = {
   ),
   walkOverrides: loadFromStorage(
     STORAGE_KEYS.walkOverrides,
+    {}
+  ),
+  deliveryOrderOverrides: loadFromStorage(
+    STORAGE_KEYS.deliveryOrderOverrides,
+    {}
+  ),
+  walkDescriptions: loadFromStorage(
+    STORAGE_KEYS.walkDescriptions,
     {}
   ),
   householdPageIndex: 0,
