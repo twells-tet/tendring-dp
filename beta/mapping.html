@@ -29,6 +29,20 @@
       <p id="mapping-message" class="message" role="status" aria-live="polite"></p>
       <p id="mapping-summary" class="current-list-summary"></p>
 
+      <div class="mapping-controls">
+        <button type="button" id="show-walks-toggle" class="show-walks-toggle-button">Show Delivery Walks</button>
+
+        <div class="manage-walks-picker-row" id="walk-district-row" hidden>
+          <label for="walk-district-select">Polling District</label>
+          <select id="walk-district-select">
+            <option value="RA1">RA1 (Abersoch)</option>
+            <option value="QB6">QB6 (Llanengan)</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="walk-key" class="walk-key" hidden></div>
+
       <div id="household-map" class="household-map"></div>
 
     </section>
@@ -41,7 +55,8 @@
       sheetUrl: "abersoch-sheet-url",
       progress: "abersoch-elector-progress-v1",
       areaOverrides: "abersoch-area-overrides-v1",
-      mappingFilter: "abersoch-mapping-filter"
+      mappingFilter: "abersoch-mapping-filter",
+      walkOverrides: "abersoch-walk-overrides-v1"
     };
 
     const DEFAULT_SHEET_URL =
@@ -61,6 +76,18 @@
     // Town field, so repeating them here is just noise/duplication.
     const EXCLUDED_TOWN_WORDS = ["PWLLHELI", "GWYNEDD"];
 
+    // Distinct colours for each of the 5 delivery Walks, used when
+    // "Show delivery walks" is switched on.
+    const WALK_COLORS = {
+      "1": "#3366cc",
+      "2": "#3cb44b",
+      "3": "#f58231",
+      "4": "#b19cd9",
+      "5": "#d2b48c"
+    };
+
+    const DEFAULT_MARKER_COLOR = "#da291c";
+
     const WELSH_LOWERCASE = new Set([
       "a", "ac", "â", "i", "o", "y", "yr", "yn", "am", "ar", "at", "dan", "dros",
       "drwy", "heb", "tan", "tros", "trwy", "wrth",
@@ -75,6 +102,18 @@
 
     const mapEl =
       document.getElementById("household-map");
+
+    const showWalksToggleEl =
+      document.getElementById("show-walks-toggle");
+
+    const walkDistrictRowEl =
+      document.getElementById("walk-district-row");
+
+    const walkDistrictSelectEl =
+      document.getElementById("walk-district-select");
+
+    const walkKeyEl =
+      document.getElementById("walk-key");
 
     function loadFromStorage(key, fallback) {
 
@@ -331,6 +370,11 @@
           row[15] ||
           "",
 
+        subRoad:
+          data.subroad ||
+          row[40] ||
+          "",
+
         lat:
           parseFloat(
             data.latitude ||
@@ -378,13 +422,48 @@
       return Boolean(progress && (progress.doNotDeliver || progress.doNotContact));
     }
 
+    // Resolves a household's Subroad, preferring a saved household-level
+    // override (set on the main list's Delivery Details) over the raw
+    // Subroad value from the sheet.
+    function resolveSubRoad(elector, areaOverrides) {
+
+      const householdKey = elector.householdGroupKey;
+
+      if (
+        householdKey &&
+        areaOverrides[householdKey] !== undefined
+      ) {
+        return areaOverrides[householdKey];
+      }
+
+      return elector.subRoad || "";
+
+    }
+
+    // Every Subroad/Polling District combination is assigned to a Walk
+    // (defaulting to Walk 1 if no override has been saved yet on the
+    // Manage Walks page). A walk can never cross Polling Districts.
+    function walkOverrideKey(subRoad, pollingDistrict) {
+      return (
+        normalizeText(subRoad) + "|" + normalizeText(pollingDistrict)
+      );
+    }
+
+    function getWalkForHousehold(household, walkOverrides) {
+      return (
+        walkOverrides[
+          walkOverrideKey(household.subRoad, household.pollingDistrict)
+        ] || "1"
+      );
+    }
+
     // Groups a flat elector list into one entry per Household ID, keeping
     // the first elector's address/coordinates as representative of the
     // whole household (all electors sharing a Household ID live at the
     // same property). This guarantees exactly one marker per Household ID
     // even if multiple electors at that address have differing KEY 1
     // values.
-    function buildHouseholds(electors) {
+    function buildHouseholds(electors, areaOverrides) {
 
       const order = [];
       const byKey = new Map();
@@ -400,13 +479,26 @@
             addressLine2: elector.addressLine2,
             lat: elector.lat,
             lng: elector.lng,
-            electorCount: 0
+            electorCount: 0,
+            pollingDistrict: elector.pollingDistrict || "",
+            subRoad: resolveSubRoad(elector, areaOverrides)
           });
           order.push(key);
         }
 
         const household = byKey.get(key);
         household.electorCount += 1;
+
+        if (!household.pollingDistrict && elector.pollingDistrict) {
+          household.pollingDistrict = elector.pollingDistrict;
+        }
+
+        if (!household.subRoad) {
+          const subRoad = resolveSubRoad(elector, areaOverrides);
+          if (subRoad) {
+            household.subRoad = subRoad;
+          }
+        }
 
         // Prefer any elector record within the household that actually
         // has usable coordinates, in case the first one is missing them.
@@ -425,8 +517,9 @@
     }
 
     let leafletMap = null;
+    let markersLayer = null;
 
-    function renderMap(households) {
+    function renderMap(households, colorForHousehold) {
 
       if (!leafletMap) {
 
@@ -440,6 +533,10 @@
           }
         ).addTo(leafletMap);
 
+      }
+
+      if (markersLayer) {
+        leafletMap.removeLayer(markersLayer);
       }
 
       const markers = [];
@@ -467,21 +564,27 @@
             .join("<br>") ||
           "Address unavailable";
 
+        const fillColor =
+          colorForHousehold
+            ? colorForHousehold(household)
+            : DEFAULT_MARKER_COLOR;
+
         const marker =
           L.circleMarker([household.lat, household.lng], {
             radius: 5,
             color: "#ffffff",
             weight: 1.5,
-            fillColor: "#da291c",
+            fillColor: fillColor,
             fillOpacity: 0.9
           })
-            .addTo(leafletMap)
             .bindPopup(label)
             .bindTooltip(label, { direction: "top" });
 
         markers.push(marker);
 
       });
+
+      markersLayer = L.layerGroup(markers).addTo(leafletMap);
 
       if (markers.length) {
 
@@ -525,6 +628,12 @@
       const progress =
         loadFromStorage(STORAGE_KEYS.progress, {});
 
+      const areaOverrides =
+        loadFromStorage(STORAGE_KEYS.areaOverrides, {});
+
+      const walkOverrides =
+        loadFromStorage(STORAGE_KEYS.walkOverrides, {});
+
       messageEl.textContent = "Loading electors...";
 
       try {
@@ -546,21 +655,14 @@
             .map((row, index) => mapRowToElector(row, headers, index))
             .filter(e => e.name);
 
-        const wantedPollingDistrict =
-          normalizeText(filterState.pollingDistrict || "");
-
         const wantedFilterType =
           filterState.filterType || "";
 
-        const filtered =
+        // Shared across both display modes: Anti-Plaid and Postal/Proxy
+        // filters always apply. Polling District filtering differs
+        // between the two modes (see below), so it is applied later.
+        const baseFiltered =
           electors.filter(elector => {
-
-            if (
-              wantedPollingDistrict &&
-              normalizeText(elector.pollingDistrict) !== wantedPollingDistrict
-            ) {
-              return false;
-            }
 
             if (wantedFilterType === "postal-proxy") {
               if (
@@ -582,58 +684,158 @@
 
           });
 
-        const households = buildHouseholds(filtered);
+        function renderWalksLegend(households, walkOverridesMap) {
 
-        const totalHouseholds = households.length;
-        const truncated = totalHouseholds > MAX_HOUSEHOLDS;
-        const shownHouseholds = households.slice(0, MAX_HOUSEHOLDS);
+          // For each Walk, show how many of its households were actually
+          // plotted vs. how many matched in total, e.g. "Walk 1 (100/120)".
+          const counts = {};
 
-        const plottable =
-          shownHouseholds.filter(household =>
-            !isNaN(household.lat) && !isNaN(household.lng)
-          );
+          Object.keys(WALK_COLORS).forEach(walkNumber => {
+            counts[walkNumber] = { plotted: 0, total: 0 };
+          });
 
-        const missingCoords =
-          shownHouseholds.length - plottable.length;
+          households.forEach(household => {
 
-        if (plottable.length > MAX_MARKERS) {
+            const walkNumber = getWalkForHousehold(household, walkOverridesMap);
 
-          mapEl.hidden = true;
+            if (!counts[walkNumber]) {
+              counts[walkNumber] = { plotted: 0, total: 0 };
+            }
 
-          messageEl.textContent =
-            "Map not loaded: this filter would generate " +
-            plottable.length +
-            " markers, which exceeds the safety limit of " +
-            MAX_MARKERS +
-            ". Please apply a narrower filter (e.g. a specific Polling District) before displaying the map.";
+            counts[walkNumber].total += 1;
 
-          summaryEl.textContent = "";
+            if (!isNaN(household.lat) && !isNaN(household.lng)) {
+              counts[walkNumber].plotted += 1;
+            }
 
-          return;
+          });
+
+          walkKeyEl.innerHTML =
+            "<span class=\"walk-key-title\">Walk key:</span>" +
+            Object.keys(WALK_COLORS).map(walkNumber =>
+              "<span class=\"walk-key-item\">" +
+              "<span class=\"walk-key-swatch\" style=\"background:" +
+              WALK_COLORS[walkNumber] + "\"></span>" +
+              "Walk " + walkNumber +
+              " (" + counts[walkNumber].plotted + "/" + counts[walkNumber].total + ")" +
+              "</span>"
+            ).join("");
 
         }
 
-        mapEl.hidden = false;
+        let showWalksActive = false;
 
-        renderMap(shownHouseholds);
+        function applyAndRender() {
 
-        messageEl.textContent = "";
+          const showWalks = showWalksActive;
 
-        summaryEl.textContent =
-          shownHouseholds.length +
-          " household" + (shownHouseholds.length === 1 ? "" : "s") +
-          " shown on the map" +
-          (
-            missingCoords
-              ? " (" + missingCoords + " could not be plotted due to missing geocoding data)."
-              : "."
-          ) +
-          (
-            truncated
-              ? " Only the first " + MAX_HOUSEHOLDS + " households are shown (" +
-                totalHouseholds + " matched)."
-              : ""
-          );
+          showWalksToggleEl.textContent =
+            showWalks ? "Hide Delivery Walks" : "Show Delivery Walks";
+          showWalksToggleEl.classList.toggle("is-active", showWalks);
+
+          walkDistrictRowEl.hidden = !showWalks;
+          walkKeyEl.hidden = !showWalks;
+
+          // In "Show delivery walks" mode, the Polling District dropdown
+          // (defaulting to RA1) always controls which district is shown,
+          // since a walk can never cross Polling Districts and the same
+          // Walk number/colour is reused in each district.
+          const wantedPollingDistrict =
+            showWalks
+              ? normalizeText(walkDistrictSelectEl.value || "RA1")
+              : normalizeText(filterState.pollingDistrict || "");
+
+          const filtered =
+            baseFiltered.filter(elector => {
+
+              if (
+                wantedPollingDistrict &&
+                normalizeText(elector.pollingDistrict) !== wantedPollingDistrict
+              ) {
+                return false;
+              }
+
+              return true;
+
+            });
+
+          const households = buildHouseholds(filtered, areaOverrides);
+
+          const totalHouseholds = households.length;
+          const truncated = totalHouseholds > MAX_HOUSEHOLDS;
+          const shownHouseholds = households.slice(0, MAX_HOUSEHOLDS);
+
+          const plottable =
+            shownHouseholds.filter(household =>
+              !isNaN(household.lat) && !isNaN(household.lng)
+            );
+
+          const missingCoords =
+            shownHouseholds.length - plottable.length;
+
+          if (plottable.length > MAX_MARKERS) {
+
+            mapEl.hidden = true;
+
+            messageEl.textContent =
+              "Map not loaded: this filter would generate " +
+              plottable.length +
+              " markers, which exceeds the safety limit of " +
+              MAX_MARKERS +
+              ". Please apply a narrower filter (e.g. a specific Polling District) before displaying the map.";
+
+            summaryEl.textContent = "";
+
+            return;
+
+          }
+
+          mapEl.hidden = false;
+
+          if (showWalks) {
+
+            renderWalksLegend(shownHouseholds, walkOverrides);
+
+            renderMap(
+              shownHouseholds,
+              household =>
+                WALK_COLORS[getWalkForHousehold(household, walkOverrides)] ||
+                DEFAULT_MARKER_COLOR
+            );
+
+          } else {
+
+            renderMap(shownHouseholds);
+
+          }
+
+          messageEl.textContent = "";
+
+          summaryEl.textContent =
+            shownHouseholds.length +
+            " household" + (shownHouseholds.length === 1 ? "" : "s") +
+            " shown on the map" +
+            (
+              missingCoords
+                ? " (" + missingCoords + " could not be plotted due to missing geocoding data)."
+                : "."
+            ) +
+            (
+              truncated
+                ? " Only the first " + MAX_HOUSEHOLDS + " households are shown (" +
+                  totalHouseholds + " matched)."
+                : ""
+            );
+
+        }
+
+        applyAndRender();
+
+        showWalksToggleEl.addEventListener("click", () => {
+          showWalksActive = !showWalksActive;
+          applyAndRender();
+        });
+        walkDistrictSelectEl.addEventListener("change", applyAndRender);
 
       } catch (error) {
         messageEl.textContent = "Unable to load sheet: " + error.message;

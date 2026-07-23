@@ -800,6 +800,93 @@ body.mobile-mode .elector-list {
   overflow: hidden;
 }
 
+.mapping-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.show-walks-toggle-button {
+  border: 1px solid var(--plaid-green);
+  background: var(--plaid-green);
+  color: #fff;
+  border-radius: 0.5rem;
+  padding: 0.45rem 0.9rem;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.show-walks-toggle-button:hover {
+  background: var(--plaid-green-dark);
+  border-color: var(--plaid-green-dark);
+}
+
+.show-walks-toggle-button.is-active {
+  border-color: var(--plaid-red);
+  background: var(--plaid-red);
+}
+
+.show-walks-toggle-button.is-active:hover {
+  background: var(--plaid-red-dark);
+  border-color: var(--plaid-red-dark);
+}
+
+#walk-district-row label {
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+#walk-district-row[hidden] {
+  display: none;
+}
+
+#walk-district-row select {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--plaid-green);
+  border-radius: 0.5rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+}
+
+.walk-key {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.walk-key[hidden] {
+  display: none;
+}
+
+.walk-key-title {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.walk-key-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.walk-key-swatch {
+  display: inline-block;
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
 .current-list-wrapper {
   overflow-x: auto;
 }
