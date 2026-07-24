@@ -936,6 +936,22 @@ body.mobile-mode .elector-list {
   color: var(--text-muted);
 }
 
+.reset-walk-overrides-button {
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 0.4rem;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.reset-walk-overrides-button:hover {
+  background: var(--border);
+}
+
 .walk-descriptions-panel {
   margin-bottom: 1rem;
   padding: 0.75rem 1rem;
