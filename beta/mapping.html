@@ -378,6 +378,14 @@
           row[15] ||
           "",
 
+        // The Sheet's own Walk column (AL), used as the default Walk
+        // when no override has been saved on the Manage Walks page -
+        // keeps this page's colours in sync with Manage Walks.
+        deliveryWalk:
+          data.walk ||
+          row[37] ||
+          "",
+
         subRoad:
           data.subroad ||
           row[40] ||
@@ -449,12 +457,22 @@
     }
 
     // Each household's Walk can be reassigned individually on the Manage
-    // Walks page (defaulting to Walk 1 if no override has been saved yet).
+    // Walks page. If no override has been saved, fall back to the Sheet's
+    // own Walk column (AL) so this page's colours stay in sync with
+    // Manage Walks, and only default to Walk 1 if neither is present.
     // A walk can never cross Polling Districts.
     function getWalkForHousehold(household, walkOverrides) {
-      return (
-        walkOverrides[household.key] || "1"
-      );
+
+      const override = walkOverrides[household.key];
+
+      if (override) {
+        return String(override);
+      }
+
+      const match = String(household.deliveryWalk || "").match(/\d+/);
+
+      return match ? match[0] : "1";
+
     }
 
     function walkDescriptionKey(pollingDistrict, walkNumber) {
@@ -495,7 +513,8 @@
             lng: elector.lng,
             electorCount: 0,
             pollingDistrict: elector.pollingDistrict || "",
-            subRoad: resolveSubRoad(elector, areaOverrides)
+            subRoad: resolveSubRoad(elector, areaOverrides),
+            deliveryWalk: elector.deliveryWalk || ""
           });
           order.push(key);
         }
@@ -505,6 +524,10 @@
 
         if (!household.pollingDistrict && elector.pollingDistrict) {
           household.pollingDistrict = elector.pollingDistrict;
+        }
+
+        if (!household.deliveryWalk && elector.deliveryWalk) {
+          household.deliveryWalk = elector.deliveryWalk;
         }
 
         if (!household.subRoad) {
