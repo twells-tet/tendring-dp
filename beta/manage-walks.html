@@ -24,6 +24,12 @@
 
       <p><a href="index.html" class="back-link">&larr; back to main list</a></p>
 
+      <p>
+        <button type="button" id="reset-walk-overrides-btn" class="reset-walk-overrides-button">
+          Reset Walks &amp; Sort Order to Sheet
+        </button>
+      </p>
+
       <div class="manage-walks-picker">
         <div class="manage-walks-picker-row">
           <label for="polling-district-select">Polling District</label>
@@ -140,6 +146,9 @@
 
     const walkDescriptionInputEl =
       document.getElementById("walk-description-input");
+
+    const resetWalkOverridesBtnEl =
+      document.getElementById("reset-walk-overrides-btn");
 
     // Populated once in init() from localStorage; keyed by householdKey
     // (see buildHouseholds), so each household's Walk can be reassigned
@@ -996,6 +1005,29 @@
           walkDescriptionSelectEl.value = "1";
           populateSubRoadPicker(allHouseholds, "", pollingDistrictSelectEl.value);
           updateFromPickers();
+        });
+
+        // Clears every saved Walk and Sort Order override, so every
+        // household falls back to showing whatever is currently in the
+        // Google Sheet's Walk (AL) and Sort Order (AM) columns.
+        resetWalkOverridesBtnEl.addEventListener("click", () => {
+
+          walkOverrides = {};
+          deliveryOrderOverrides = {};
+
+          saveToStorage(STORAGE_KEYS.walkOverrides, walkOverrides);
+          saveToStorage(STORAGE_KEYS.deliveryOrderOverrides, deliveryOrderOverrides);
+
+          showHouseholds(
+            allHouseholds,
+            allHouseholdsUnfiltered,
+            subRoadSelectEl.value,
+            pollingDistrictSelectEl.value
+          );
+
+          messageEl.textContent =
+            "Walk and Sort Order assignments have been reset to match the Google Sheet.";
+
         });
 
         // Sort Order +/- buttons and the per-row Walk dropdown are both
