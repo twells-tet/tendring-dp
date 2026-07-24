@@ -864,12 +864,12 @@
           messageEl.textContent = "";
 
           summaryEl.textContent =
-            shownHouseholds.length +
-            " household" + (shownHouseholds.length === 1 ? "" : "s") +
+            plottable.length +
+            " household" + (plottable.length === 1 ? "" : "s") +
             " shown on the map" +
             (
               missingCoords
-                ? " (" + missingCoords + " could not be plotted due to missing geocoding data)."
+                ? " (" + missingCoords + " could not be plotted due to missing latitude and longitude)."
                 : "."
             ) +
             (
