@@ -297,6 +297,11 @@
             <input type="text" id="quick-search-last-name" placeholder="Last name" aria-label="Last name">
           </label>
 
+          <label for="quick-search-postcode" class="quick-name-search-postcode-label">
+            Search by postcode
+            <input type="text" id="quick-search-postcode" placeholder="LL53 7AA" aria-label="Postcode">
+          </label>
+
           <button type="button" id="quick-search-button" class="add-filter-button">Quick Lookup</button>
         </div>
       </section>
@@ -936,6 +941,9 @@ const quickSearchFirstNameEl =
 const quickSearchLastNameEl =
   document.getElementById("quick-search-last-name");
 
+const quickSearchPostcodeEl =
+  document.getElementById("quick-search-postcode");
+
 const quickSearchButtonEl =
   document.getElementById("quick-search-button");
 
@@ -1118,7 +1126,8 @@ function initControls() {
             quickSearchLastNameEl.value.trim()
           ]
             .filter(Boolean)
-            .join(" ")
+            .join(" "),
+        postcodeSearch: quickSearchPostcodeEl.value.trim()
       };
 
       localStorage.setItem(
@@ -3584,7 +3593,7 @@ function getTotalWalkCountForDistrict(pollingDistrict) {
 const DEFAULT_VOLUNTEERS = [
   { rowKey: "member-1", firstName: "Meirion", lastName: "Member", regularDeliverer: false },
   { rowKey: "nonmember-1", firstName: "Pat", lastName: "Postie", regularDeliverer: true },
-  { rowKey: "nonmember-2", firstName: "Sam", lastName: "Sorefeet", regularDeliverer: true }
+  { rowKey: "nonmember-2", firstName: "Sam", lastName: "Sorefeet", regularDeliverer: false }
 ];
 
 const DEFAULT_WALK_DELIVERERS = {
