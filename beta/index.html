@@ -274,32 +274,33 @@
     </section>
 
 
-    <section class="export-buttons" aria-label="Export options">
-      <button type="button" id="run-search-button" class="export-button run-search-button">Run Search</button>
-      <button type="button" id="display-map-button" class="export-button display-map-button">View Households on Map</button>
-      <a href="polling-day.html" class="export-button polling-day-button">GOTV: Run Polling Day</a>
-      <a href="volunteers.html" class="export-button members-activists-button">Members &amp; Activists</a>
-      <button type="button" class="export-button" disabled>Switch to Training Mode</button>
-    </section>
+    <div class="search-actions-row">
+      <section class="export-buttons" aria-label="Export options">
+        <button type="button" id="run-search-button" class="export-button run-search-button">Run Search</button>
+        <button type="button" id="display-map-button" class="export-button display-map-button">View Households on Map</button>
+        <a href="polling-day.html" class="export-button polling-day-button">GOTV: Run Polling Day</a>
+        <a href="volunteers.html" class="export-button members-activists-button">Members &amp; Activists</a>
+        <button type="button" class="export-button" disabled>Switch to Training Mode</button>
+      </section>
 
-    <section class="quick-name-search" id="quick-name-search-section" aria-label="Quick name search">
-      <div class="quick-name-search-head">
-        <label for="quick-search-first-name">Quick Lookup</label>
-        <button type="button" id="toggle-quick-lookup" class="walk-key-toggle walk-key-toggle-hide">Hide</button>
-      </div>
-      <div class="quick-name-search-row" id="quick-lookup-row">
-        <label for="quick-search-first-name">
-          Search by name
-          <input type="text" id="quick-search-first-name" placeholder="First name">
-        </label>
+      <section class="quick-name-search" id="quick-name-search-section" aria-label="Quick name search">
+        <div class="quick-name-search-head panel-heading">
+          <button type="button" id="toggle-quick-lookup" class="map-toggle-button quick-lookup-toggle-button">Hide</button>
+        </div>
+        <div class="quick-name-search-row" id="quick-lookup-row">
+          <label for="quick-search-first-name">
+            Search by name
+            <input type="text" id="quick-search-first-name" placeholder="First name">
+          </label>
 
-        <label for="quick-search-last-name" class="quick-name-search-last-name-label">
-          <input type="text" id="quick-search-last-name" placeholder="Last name" aria-label="Last name">
-        </label>
+          <label for="quick-search-last-name" class="quick-name-search-last-name-label">
+            <input type="text" id="quick-search-last-name" placeholder="Last name" aria-label="Last name">
+          </label>
 
-        <button type="button" id="quick-search-button" class="add-filter-button">Quick Lookup</button>
-      </div>
-    </section>
+          <button type="button" id="quick-search-button" class="add-filter-button">Quick Lookup</button>
+        </div>
+      </section>
+    </div>
 
 
     <section class="workspace" aria-label="Elector boundaries and list">
@@ -368,6 +369,16 @@
             <button type="button" id="toggle-ai-comments" class="map-toggle-button">Hide</button>
           </div>
           <p id="ai-comments-text">—</p>
+        </div>
+
+        <div class="voting-history-box" aria-label="Voting History">
+          <div class="panel-heading">
+            <h3>Voting History</h3>
+            <button type="button" id="toggle-voting-history" class="map-toggle-button">Hide</button>
+          </div>
+          <div id="voting-history-body">
+            <div id="voting-history-table"></div>
+          </div>
         </div>
 
       </div>
@@ -527,7 +538,7 @@
       </div>
     </section>
 
-    <button type="button" id="mobile-toggle" class="mobile-toggle-button">Mobile Version</button>
+    <button type="button" id="mobile-toggle" class="mobile-toggle-button">Mobile View</button>
 
     <p class="disclaimer">
       For demonstrative purposes. No part of this data may be copied, shared, downloaded, etc.
@@ -625,6 +636,7 @@ const STORAGE_KEYS = {
   hideMap: "abersoch-hide-map",
   hideDeliveryDetails: "abersoch-hide-delivery-details",
   hideAiComments: "abersoch-hide-ai-comments",
+  hideVotingHistory: "abersoch-hide-voting-history",
   pollingDistrict: "abersoch-polling-district",
   areaOverrides: "abersoch-area-overrides-v1",
   currentListFilter: "abersoch-current-list-filter",
@@ -694,6 +706,21 @@ const posterOptions = [
   "No Poster",
   "Poster: Window",
   "Poster: Garden"
+];
+
+const VOTING_HISTORY_YEARS = [
+  "2026 (General)",
+  "2024 (PCC)",
+  "2024 (General)",
+  "2022 (Local)",
+  "2021 (Senedd)",
+  "2019 (General)",
+  "2019 (European)",
+  "2017 (General)",
+  "2017 (Local)",
+  "2016 (Referendum)",
+  "2016 (Senedd)",
+  "2015 (General)"
 ];
 
 
@@ -828,8 +855,17 @@ const aiCommentsEl =
 const aiCommentsBoxEl =
   document.getElementById("ai-comments-box");
 
+const votingHistoryBodyEl =
+  document.getElementById("voting-history-body");
+
+const votingHistoryTableEl =
+  document.getElementById("voting-history-table");
+
 const toggleAiCommentsEl =
   document.getElementById("toggle-ai-comments");
+
+const toggleVotingHistoryEl =
+  document.getElementById("toggle-voting-history");
 
 const deliveryPanelEl =
   document.getElementById("delivery-panel");
@@ -1044,9 +1080,6 @@ function initControls() {
     quickNameSearchSectionEl.classList.toggle("quick-name-search--collapsed", collapsed);
     toggleQuickLookupEl.textContent = collapsed ? "Show" : "Hide";
     toggleQuickLookupEl.setAttribute("aria-expanded", collapsed ? "false" : "true");
-    toggleQuickLookupEl.className =
-      "walk-key-toggle " +
-      (collapsed ? "walk-key-toggle-show" : "walk-key-toggle-hide");
   }
 
   setQuickLookupCollapsed(false);
@@ -1271,6 +1304,30 @@ function initControls() {
     }
   );
 
+  const savedHideVotingHistory =
+    localStorage.getItem(
+      STORAGE_KEYS.hideVotingHistory
+    ) === "true";
+
+  applyVotingHistoryVisibility(savedHideVotingHistory);
+
+  toggleVotingHistoryEl.addEventListener(
+    "click",
+    () => {
+
+      const hidden =
+        !votingHistoryBodyEl.hidden;
+
+      localStorage.setItem(
+        STORAGE_KEYS.hideVotingHistory,
+        String(hidden)
+      );
+
+      applyVotingHistoryVisibility(hidden);
+
+    }
+  );
+
 
   const roadAreaHelpToggleEl =
     document.getElementById("road-area-help-toggle");
@@ -1308,10 +1365,13 @@ function initControls() {
         );
 
       mobileToggleEl.textContent =
-        isMobile ? "Desktop Version" : "Mobile Version";
+        isMobile ? "Desktop View" : "Mobile View";
 
     }
   );
+
+  initFooterPreview(".disclaimer", 100);
+  initFooterPreview(".mapping-attribution", 100);
 
 }
 
@@ -1339,6 +1399,15 @@ function applyAiCommentsVisibility(hidden) {
   aiCommentsEl.hidden = hidden;
 
   toggleAiCommentsEl.textContent =
+    hidden ? "Show" : "Hide";
+
+}
+
+function applyVotingHistoryVisibility(hidden) {
+
+  votingHistoryBodyEl.hidden = hidden;
+
+  toggleVotingHistoryEl.textContent =
     hidden ? "Show" : "Hide";
 
 }
@@ -1894,6 +1963,7 @@ function renderElectorList() {
 
 
     updateAiComments(null);
+    updateVotingHistory(null);
 
 
     updateDeliveryDetails(null);
@@ -1938,6 +2008,10 @@ function renderElectorList() {
 
 
   updateAiComments(
+    getFullHousehold(household.electors[0].householdGroupKey)
+  );
+
+  updateVotingHistory(
     getFullHousehold(household.electors[0].householdGroupKey)
   );
 
@@ -3102,7 +3176,7 @@ function bindProgressEditors() {
       const id = event.target.dataset.id;
       const isChecked = event.target.checked;
 
-      if (!confirmAntiPlaidSelection(isChecked)) {
+      if (!confirmAntiPlaidSelection(isChecked, "Do Not Deliver")) {
         event.target.checked = false;
         return;
       }
@@ -3122,7 +3196,7 @@ function bindProgressEditors() {
       const id = event.target.dataset.id;
       const isChecked = event.target.checked;
 
-      if (!confirmAntiPlaidSelection(isChecked)) {
+      if (!confirmAntiPlaidSelection(isChecked, "Do Not Contact")) {
         event.target.checked = false;
         return;
       }
@@ -3137,13 +3211,17 @@ function bindProgressEditors() {
 
 }
 
-function confirmAntiPlaidSelection(isChecked) {
+function confirmAntiPlaidSelection(isChecked, actionLabel) {
 
   if (!isChecked) {
     return true;
   }
 
-  return window.confirm("Are you sure you want to select this?");
+  return window.confirm(
+    "Are you sure? This will mark all electors in the household as " +
+    actionLabel +
+    "."
+  );
 
 }
 
@@ -3341,6 +3419,69 @@ function updateAiComments(household) {
 
 }
 
+function updateVotingHistory(household) {
+
+  if (!votingHistoryTableEl) {
+    return;
+  }
+
+  const electors =
+    household && household.electors
+      ? household.electors
+      : [];
+
+  const visibleElectors =
+    electors.length >= 5
+      ? electors.slice(0, 4)
+      : electors;
+
+  const DEMO_ALWAYS_VOTES_NAMES = new Set([
+    "pat postie",
+    "sam sorefeet"
+  ]);
+
+  const electorEntries =
+    visibleElectors.length
+      ? visibleElectors.map(elector => {
+          const rawName = String(elector.name || "Unnamed elector");
+          const normalizedName = rawName.trim().toLowerCase();
+          return {
+            displayName: escapeHtml(rawName),
+            alwaysVotesDemo: DEMO_ALWAYS_VOTES_NAMES.has(normalizedName)
+          };
+        })
+      : [
+          {
+            displayName: "—",
+            alwaysVotesDemo: false
+          }
+        ];
+
+  const headerCells =
+    "<th scope=\"col\">Year</th>" +
+    electorEntries.map(entry => "<th scope=\"col\">" + entry.displayName + "</th>").join("");
+
+  const bodyRows =
+    VOTING_HISTORY_YEARS.map(year =>
+      "<tr>" +
+      "<th scope=\"row\">" + escapeHtml(year) + "</th>" +
+      electorEntries.map(entry => {
+        const voted =
+          entry.alwaysVotesDemo &&
+          !year.includes("(Local)");
+        return "<td class=\"voting-history-disabled-cell\">" + (voted ? "X" : "—") + "</td>";
+      }).join("") +
+      "</tr>"
+    ).join("");
+
+  votingHistoryTableEl.innerHTML =
+    "<table class=\"voting-history-table\">" +
+    "<thead><tr>" + headerCells + "</tr></thead>" +
+    "<tbody>" + bodyRows + "</tbody>" +
+    "</table>";
+
+}
+
 
 function walkOverrideKey(subRoad, pollingDistrict) {
   return (
@@ -3446,6 +3587,11 @@ const DEFAULT_VOLUNTEERS = [
   { rowKey: "nonmember-2", firstName: "Sam", lastName: "Sorefeet", regularDeliverer: true }
 ];
 
+const DEFAULT_WALK_DELIVERERS = {
+  "qb6|1": "nonmember-1",
+  "ra1|1": "nonmember-2"
+};
+
 function walkDelivererKey(pollingDistrict, walkNumber) {
   return normalizeText(pollingDistrict) + "|" + walkNumber;
 }
@@ -3455,7 +3601,10 @@ function getAssignedDelivererName(pollingDistrict, walkNumber) {
   const key = walkDelivererKey(pollingDistrict, walkNumber);
 
   const walkDeliverers =
-    loadFromStorage(STORAGE_KEYS.walkDeliverers, {});
+    loadFromStorage(
+      STORAGE_KEYS.walkDeliverers,
+      DEFAULT_WALK_DELIVERERS
+    );
 
   const assignedRowKey = walkDeliverers[key];
 
@@ -3934,6 +4083,9 @@ const DEMO_PLAID_ELECTOR_NAMES = [
   "pat postie",
   "sam sorefeet"
 ];
+const DEMO_PROBABLE_PLAID_ELECTOR_NAMES = [
+  "jane smith"
+];
 
 const DEMO_CANVASS_ID_BY_ELECTOR_ID = {
   "801071110": "Conservative",
@@ -3958,6 +4110,10 @@ function getElectorProgress(electorId, electorName) {
     DEMO_PLAID_ELECTOR_NAMES.includes(
       String(electorName || "").trim().toLowerCase()
     );
+  const isDemoProbablePlaidElector =
+    DEMO_PROBABLE_PLAID_ELECTOR_NAMES.includes(
+      String(electorName || "").trim().toLowerCase()
+    );
 
   const demoCanvassId =
     DEMO_CANVASS_ID_BY_ELECTOR_ID[String(electorId)];
@@ -3968,7 +4124,11 @@ function getElectorProgress(electorId, electorName) {
     existing.canvassId ||
     existing.status ||
     demoCanvassId ||
-    (isDemoPlaidElector ? "Definite Plaid" : "No Data");
+    (
+      isDemoPlaidElector
+        ? "Definite Plaid"
+        : (isDemoProbablePlaidElector ? "Probable Plaid" : "No Data")
+    );
 
   const baseCanvassId = normalizeCanvassId(legacyCanvassId);
   const supportIndependence =
@@ -4477,6 +4637,55 @@ function escapeHtml(value) {
 
 function escapeHtmlAttr(value) {
   return escapeHtml(value).replace(/`/g, "&#096;");
+}
+
+function initFooterPreview(selector, maxChars) {
+
+  const el = document.querySelector(selector);
+
+  if (!el) {
+    return;
+  }
+
+  const fullHtml = el.innerHTML;
+  const fullText = (el.textContent || "").replace(/\s+/g, " ").trim();
+
+  if (fullText.length <= maxChars) {
+    return;
+  }
+
+  const previewText = fullText.slice(0, maxChars).trimEnd();
+
+  function renderCollapsed() {
+    el.innerHTML = "";
+
+    const textNode =
+      document.createTextNode(previewText + "... ");
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "footer-see-more-button";
+    button.textContent = "(see more)";
+    button.addEventListener("click", renderExpanded);
+
+    el.appendChild(textNode);
+    el.appendChild(button);
+  }
+
+  function renderExpanded() {
+    el.innerHTML = fullHtml + " ";
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "footer-see-more-button";
+    button.textContent = "(see less)";
+    button.addEventListener("click", renderCollapsed);
+
+    el.appendChild(button);
+  }
+
+  renderCollapsed();
+
 }
   </script>
 </body>
