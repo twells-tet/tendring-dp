@@ -278,6 +278,7 @@
       <section class="export-buttons" aria-label="Export options">
         <button type="button" id="run-search-button" class="export-button run-search-button">Run Search</button>
         <button type="button" id="display-map-button" class="export-button display-map-button">View Households on Map</button>
+        <a href="/shuttleworth/" class="export-button data-button">Data</a>
         <a href="polling-day.html" class="export-button polling-day-button">GOTV: Run Polling Day</a>
         <a href="volunteers.html" class="export-button members-activists-button">Members &amp; Activists</a>
         <button type="button" class="export-button" disabled>Switch to Training Mode</button>
@@ -285,6 +286,7 @@
 
       <section class="quick-name-search" id="quick-name-search-section" aria-label="Quick name search">
         <div class="quick-name-search-head panel-heading">
+          <h3>Quick Lookup</h3>
           <button type="button" id="toggle-quick-lookup" class="map-toggle-button quick-lookup-toggle-button">Hide</button>
         </div>
         <div class="quick-name-search-row" id="quick-lookup-row">
@@ -905,6 +907,9 @@ const messageEl =
 const listEl =
   document.getElementById("elector-list");
 
+const listPanelEl =
+  document.querySelector(".list-panel");
+
 const filterTypeEl =
   document.getElementById("filter-type");
 
@@ -1354,6 +1359,7 @@ function initControls() {
 
 
   updateStats();
+  syncHouseholdDetailsPanelHeight();
 
   bindMapHouseholdNavigation();
 
@@ -1376,7 +1382,14 @@ function initControls() {
       mobileToggleEl.textContent =
         isMobile ? "Desktop View" : "Mobile View";
 
+      requestAnimationFrame(syncHouseholdDetailsPanelHeight);
+
     }
+  );
+
+  window.addEventListener(
+    "resize",
+    () => requestAnimationFrame(syncHouseholdDetailsPanelHeight)
   );
 
   initFooterPreview(".disclaimer", 100);
@@ -1390,6 +1403,8 @@ function applyMapVisibility(hidden) {
     "map-panel--hidden",
     hidden
   );
+
+  requestAnimationFrame(syncHouseholdDetailsPanelHeight);
 }
 
 
@@ -1399,6 +1414,54 @@ function applyDeliveryDetailsVisibility(hidden) {
 
   toggleDeliveryDetailsEl.textContent =
     hidden ? "Show" : "Hide";
+
+  requestAnimationFrame(syncHouseholdDetailsPanelHeight);
+
+}
+
+function syncHouseholdDetailsPanelHeight() {
+
+  if (!listPanelEl || !deliveryPanelEl || !mapPanelEl) {
+    return;
+  }
+
+  const isDesktop =
+    window.matchMedia("(min-width: 1041px)").matches;
+
+  if (
+    !isDesktop ||
+    document.body.classList.contains("mobile-mode") ||
+    mapPanelEl.classList.contains("map-panel--hidden")
+  ) {
+    listPanelEl.style.minHeight = "";
+    listPanelEl.style.height = "";
+    listPanelEl.style.maxHeight = "";
+    return;
+  }
+
+  const listColumnEl = document.querySelector(".list-column");
+  const gapValue = listColumnEl
+    ? (
+      parseFloat(getComputedStyle(listColumnEl).rowGap) ||
+      parseFloat(getComputedStyle(listColumnEl).gap) ||
+      0
+    )
+    : 0;
+
+  const targetHeight =
+    Math.max(
+      0,
+      Math.round(
+        mapPanelEl.getBoundingClientRect().height -
+        deliveryPanelEl.getBoundingClientRect().height -
+        gapValue
+      )
+    );
+
+  const targetHeightPx = targetHeight + "px";
+  listPanelEl.style.minHeight = targetHeightPx;
+  listPanelEl.style.height = targetHeightPx;
+  listPanelEl.style.maxHeight = targetHeightPx;
 
 }
 
@@ -1984,6 +2047,7 @@ function renderElectorList() {
 
 
     updateStats();
+    syncHouseholdDetailsPanelHeight();
 
     return;
 
@@ -2439,6 +2503,7 @@ function renderElectorList() {
 
 
   updateStats();
+  syncHouseholdDetailsPanelHeight();
 
 }
 

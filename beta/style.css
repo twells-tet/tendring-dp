@@ -823,23 +823,27 @@ body.mobile-mode .elector-list {
 
 .quick-name-search {
   width: 100%;
-  max-width: 560px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
   display: block;
   box-sizing: border-box;
 }
 
 .quick-name-search-head {
-  justify-content: flex-end;
+  justify-content: space-between;
   margin-bottom: 0.6rem;
 }
 
 .quick-name-search-head.panel-heading {
-  justify-content: flex-end;
+  justify-content: space-between;
+}
+
+.quick-name-search-head h3 {
+  margin: 0;
 }
 
 .quick-lookup-toggle-button {
-  margin: 0 0 0.75rem;
+  margin: 0;
 }
 
 .quick-name-search-row {
@@ -851,8 +855,7 @@ body.mobile-mode .elector-list {
 
 @media (min-width: 1200px) {
   .search-actions-row {
-    grid-template-columns: minmax(0, 560px) minmax(0, 560px);
-    justify-content: center;
+    grid-template-columns: minmax(360px, 1fr) minmax(380px, 1fr);
     align-items: start;
   }
 
@@ -925,7 +928,8 @@ body.mobile-mode .elector-list {
   background: var(--plaid-green);
   opacity: 0.55;
   cursor: pointer;
-  grid-column: span 2;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
 }
 
 .run-search-button:hover {
@@ -942,6 +946,22 @@ body.mobile-mode .elector-list {
 }
 
 .display-map-button:hover {
+  opacity: 0.7;
+}
+
+.data-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  text-align: center;
+  border-color: #2b6cb0;
+  background: #2b6cb0;
+  opacity: 0.55;
+  cursor: pointer;
+}
+
+.data-button:hover {
   opacity: 0.7;
 }
 
@@ -1918,15 +1938,27 @@ body.mobile-mode .elector-list {
 }
 
 @media (min-width: 1041px) {
-  .workspace:not(:has(.map-panel--hidden)) .list-panel {
-    min-height: 65vh;
+  .workspace:not(:has(.map-panel--hidden)) {
+    align-items: stretch;
+  }
+
+  .workspace:not(:has(.map-panel--hidden)) .list-column {
+    height: 100%;
     display: flex;
     flex-direction: column;
+  }
+
+  .workspace:not(:has(.map-panel--hidden)) .list-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
   }
 
   .workspace:not(:has(.map-panel--hidden)) .list-panel .elector-list {
     flex: 1;
     min-height: 0;
+    max-height: none;
   }
 }
 
