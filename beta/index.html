@@ -2973,7 +2973,7 @@ function buildHouseholdElectorNav(electors) {
     type="button"
     class="household-elector-link ${leanClass}"
     data-target="elector-${escapeHtmlAttr(elector.id)}">
-    ${escapeHtml(elector.name || "Unnamed elector")}
+    ${escapeHtml(elector.name || "Unnamed elector")}${elector.postalProxy === "Postal" ? " *" : ""}
     </button>
     `;
 
