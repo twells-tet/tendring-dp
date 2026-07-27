@@ -571,8 +571,12 @@ body.mobile-mode .elector-list {
 
 .stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.75rem;
+}
+
+.stats #view-all-districts-button {
+  grid-column: 1 / -1;
 }
 
 .quick-name-search {
@@ -608,6 +612,21 @@ body.mobile-mode .elector-list {
 
 .quick-name-search-last-name-label input {
   margin-top: 0;
+}
+
+/* Bare inputs in quick-lookup rows (postcode, elector ID) match label-wrapped inputs */
+#quick-lookup-row > input,
+#quick-lookup-id-row > input {
+  display: block;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 0.5rem;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--surface);
+  flex: 1 1 160px;
+  box-sizing: border-box;
 }
 
 .filter-section {
@@ -891,6 +910,16 @@ body.mobile-mode .elector-list {
   cursor: not-allowed;
   width: 100%;
   box-sizing: border-box;
+}
+
+.export-button.enabled,
+#view-all-districts-button {
+  opacity: 1;
+  cursor: pointer;
+}
+
+#view-all-districts-button:hover {
+  opacity: 0.85;
 }
 
 .polling-day-button {

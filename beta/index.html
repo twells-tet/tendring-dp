@@ -219,6 +219,8 @@
         <label for="polling-district">
           Polling District
           <select id="polling-district">
+            <option value="" id="polling-district-all-opt" hidden>SHOWING ALL POLLING DISTRICTS IN WARD</option>
+            <option value="" id="polling-district-placeholder-opt">Select Polling District</option>
             <option value="qb6">QB6 (Llanengan)</option>
             <option value="ra1" selected>RA1 (Abersoch)</option>
           </select>
@@ -230,6 +232,8 @@
 
 
     <section class="stats" aria-label="Elector statistics">
+
+      <button type="button" id="view-all-districts-button" class="export-button">View All Polling Districts</button>
 
       <div class="stat-card">
         <span class="stat-label">Households</span>
@@ -250,15 +254,15 @@
       <label for="filter-type">
         Filter
         <select id="filter-type">
+          <option value="" selected>No filter</option>
+          <option value="postal-proxy">Postal Voters</option>
           <option value="first-language-english" disabled>First Language: English</option>
           <option value="first-language-welsh" disabled>First Language: Welsh</option>
           <option value="likely-conservative" disabled>Likely Conservative</option>
           <option value="likely-labour" disabled>Likely Labour</option>
           <option value="likely-reform" disabled>Likely Reform</option>
-          <option value="no-canvass-since-2020" disabled>No canvass data since 1 January 2020</option>
-          <option value="" selected>No filter</option>
           <option value="never-voted" disabled>No record of ever voting</option>
-          <option value="postal-proxy">Postal Voters</option>
+          <option value="no-canvass-since-2020" disabled>No canvass data since 1 January 2020</option>
           <option value="squeeze" disabled>Squeeze</option>
           <option value="stay-at-home" disabled>Stay At Home</option>
           <option value="supporters" disabled>Supporters</option>
@@ -291,7 +295,7 @@
         </div>
         <div class="quick-name-search-row" id="quick-lookup-row">
           <label for="quick-search-first-name">
-            Search by name
+            Search by name or postcode
             <input type="text" id="quick-search-first-name" placeholder="First name">
           </label>
 
@@ -299,12 +303,14 @@
             <input type="text" id="quick-search-last-name" placeholder="Last name" aria-label="Last name">
           </label>
 
-          <label for="quick-search-postcode" class="quick-name-search-postcode-label">
-            Search by postcode
-            <input type="text" id="quick-search-postcode" placeholder="LL53 7AA" aria-label="Postcode">
-          </label>
+          <input type="text" id="quick-search-postcode" placeholder="LL53 5AA" aria-label="Postcode">
 
-          <button type="button" id="quick-search-button" class="add-filter-button">Quick Lookup</button>
+          <button type="button" id="quick-search-button" class="add-filter-button">Search</button>
+        </div>
+        <div id="quick-search-results"></div>
+        <div class="quick-name-search-row" id="quick-lookup-id-row">
+          <input type="text" id="quick-search-elector-id" placeholder="Jump to profile by Elector ID" aria-label="Elector ID">
+          <button type="button" id="quick-search-id-button" class="add-filter-button">Search Elector ID</button>
         </div>
       </section>
     </div>
@@ -799,6 +805,9 @@ const westminsterEl =
 const pollingDistrictEl =
   document.getElementById("polling-district");
 
+const viewAllDistrictsButtonEl =
+  document.getElementById("view-all-districts-button");
+
 const wardPreviewEl =
   document.getElementById("ward-preview");
 
@@ -951,6 +960,12 @@ const quickSearchPostcodeEl =
 
 const quickSearchButtonEl =
   document.getElementById("quick-search-button");
+
+const quickSearchIdInputEl =
+  document.getElementById("quick-search-elector-id");
+
+const quickSearchIdButtonEl =
+  document.getElementById("quick-search-id-button");
 
 const statLoadedEl =
   document.getElementById("stat-loaded");
@@ -1131,30 +1146,54 @@ function initControls() {
   );
 
 
-  quickSearchButtonEl.addEventListener(
-    "click",
-    () => {
+  const quickSearchResultsEl = document.getElementById("quick-search-results");
 
-      const filterState = {
-        nameSearch:
-          [
-            quickSearchFirstNameEl.value.trim(),
-            quickSearchLastNameEl.value.trim()
-          ]
-            .filter(Boolean)
-            .join(" "),
-        postcodeSearch: quickSearchPostcodeEl.value.trim()
-      };
+  function runQuickNameSearch() {
+    const firstName = normalizeText(quickSearchFirstNameEl.value.trim());
+    const lastName  = normalizeText(quickSearchLastNameEl.value.trim());
+    const postcode  = normalizeText(quickSearchPostcodeEl.value.trim());
+    if (!firstName && !lastName && !postcode) { quickSearchResultsEl.innerHTML = ""; return; }
 
-      localStorage.setItem(
-        STORAGE_KEYS.currentListFilter,
-        JSON.stringify(filterState)
-      );
+    const matches = (state.electors || []).filter(e => {
+      const name = normalizeText(e.name || "");
+      const pc   = normalizeText(e.postcode || "");
+      if (firstName && !name.includes(firstName)) return false;
+      if (lastName  && !name.includes(lastName))  return false;
+      if (postcode  && !pc.startsWith(postcode))  return false;
+      return true;
+    }).slice(0, 50);
 
-      window.location.href = "current-list.html";
-
+    if (!matches.length) {
+      quickSearchResultsEl.innerHTML = "<p style='font-size:0.9rem;color:#666;margin:0.4rem 0'>No results found.</p>";
+      return;
     }
-  );
+
+    quickSearchResultsEl.innerHTML =
+      "<table class='quick-search-results-table' style='border-collapse:collapse;font-size:0.9rem;margin-top:0.5rem;width:100%'>" +
+      "<thead><tr><th style='text-align:left;padding:3px 8px;border-bottom:1px solid #ccc'>Name</th>" +
+      "<th style='text-align:left;padding:3px 8px;border-bottom:1px solid #ccc'>Elector ID</th>" +
+      "<th style='text-align:left;padding:3px 8px;border-bottom:1px solid #ccc'>Address</th></tr></thead>" +
+      "<tbody>" +
+      matches.map(e =>
+        "<tr><td style='padding:3px 8px'><a href='profile.html?id=" + encodeURIComponent(e.id) + "' class='elector-id-link'>" + escapeHtml(e.name || "—") + "</a></td>" +
+        "<td style='padding:3px 8px'><a href='profile.html?id=" + encodeURIComponent(e.id) + "' class='elector-id-link'>" + escapeHtml(e.id) + "</a></td>" +
+        "<td style='padding:3px 8px'>" + escapeHtml(e.address || "") + "</td></tr>"
+      ).join("") +
+      "</tbody></table>" +
+      (matches.length === 50 ? "<p style='font-size:0.8rem;color:#888;margin:0.2rem 0'>Showing first 50 results.</p>" : "");
+  }
+
+  quickSearchButtonEl.addEventListener("click", runQuickNameSearch);
+  quickSearchFirstNameEl.addEventListener("keydown", e => { if (e.key === "Enter") runQuickNameSearch(); });
+  quickSearchLastNameEl.addEventListener("keydown",  e => { if (e.key === "Enter") runQuickNameSearch(); });
+  quickSearchPostcodeEl.addEventListener("keydown",  e => { if (e.key === "Enter") runQuickNameSearch(); });
+
+  function doIdLookup() {
+    const val = quickSearchIdInputEl.value.trim();
+    if (val) window.location.href = "profile.html?id=" + encodeURIComponent(val);
+  }
+  quickSearchIdButtonEl.addEventListener("click", doIdLookup);
+  quickSearchIdInputEl.addEventListener("keydown", e => { if (e.key === "Enter") doIdLookup(); });
 
 
 
@@ -1185,10 +1224,33 @@ function initControls() {
   pollingDistrictEl.addEventListener(
     "change",
     () => {
+      pollingDistrictEl.disabled = false;
+      document.getElementById("polling-district-all-opt").hidden = true;
+      document.getElementById("polling-district-placeholder-opt").hidden = true;
+      viewAllDistrictsButtonEl.textContent = "View All Polling Districts";
       populateSubroadFilterOptions();
       handleFilterChange();
     }
   );
+
+  viewAllDistrictsButtonEl.addEventListener("click", () => {
+    const isShowingAll = viewAllDistrictsButtonEl.textContent.trim() === "Narrow By Polling District";
+    if (isShowingAll) {
+      // Return to "pick a district" state — clears data until user selects one
+      pollingDistrictEl.disabled = false;
+      document.getElementById("polling-district-all-opt").hidden = true;
+      document.getElementById("polling-district-placeholder-opt").selected = true;
+      viewAllDistrictsButtonEl.textContent = "View All Polling Districts";
+    } else {
+      // Show all districts
+      document.getElementById("polling-district-all-opt").hidden = false;
+      pollingDistrictEl.value = "";
+      pollingDistrictEl.disabled = true;
+      viewAllDistrictsButtonEl.textContent = "Narrow By Polling District";
+    }
+    populateSubroadFilterOptions();
+    handleFilterChange();
+  });
 
   const savedPollingDistrict =
     localStorage.getItem(
@@ -2259,9 +2321,7 @@ function renderElectorList() {
       <div class="elector-main">
 
         <p class="elector-id">
-          ${escapeHtml(
-            elector.displayId
-          )}
+          <a href="profile.html?id=${escapeHtmlAttr(elector.id)}" class="elector-id-link">${escapeHtml(elector.displayId)}</a>
         </p>
 
 
@@ -2296,7 +2356,7 @@ function renderElectorList() {
 
       <p class="elector-column-id">
         <strong>Elector ID:</strong>
-        ${escapeHtml(elector.electorIdValue || "—")}
+        <a href="profile.html?id=${escapeHtmlAttr(elector.id)}" class="elector-id-link">${escapeHtml(elector.electorIdValue || "—")}</a>
       </p>
 
       <p class="elector-column-id">
@@ -4018,7 +4078,7 @@ function buildAiComments(household) {
   if (!independenceWithData.length) {
 
     sentences.push(
-      "We have no Support Independence data against them."
+      "Independence: we have no data on whether they are For or Against."
     );
 
   } else {
@@ -4370,7 +4430,10 @@ function getActiveElectors() {
   const ward = normalizeText(wardEl.value);
   const pollingDistrict = normalizeText(pollingDistrictEl.value);
 
-  return state.electors.filter(elector => {
+  // If no district selected and not in "all districts" mode, show nothing
+  if (!pollingDistrict && !pollingDistrictEl.disabled) return [];
+
+  const results = state.electors.filter(elector => {
 
     const electorAuthority = normalizeText(elector.localAuthority);
     const electorSenedd = normalizeText(elector.senedd);
@@ -4401,6 +4464,19 @@ function getActiveElectors() {
     return true;
 
   });
+
+  // When showing all districts, sort QB6 before RA1
+  if (!pollingDistrict) {
+    results.sort((a, b) => {
+      const da = normalizeText(a.pollingDistrict || "");
+      const db = normalizeText(b.pollingDistrict || "");
+      if (da < db) return -1;
+      if (da > db) return 1;
+      return 0;
+    });
+  }
+
+  return results;
 
 }
 
