@@ -70,7 +70,7 @@
       </div>
 
       <div class="move-subroad-panel" id="move-subroad-panel">
-        <p class="walk-descriptions-title">Move all properties in this Subroad</p>
+        <p class="walk-descriptions-title">Move all properties in subroad to a different Walk</p>
         <div class="walk-descriptions-row">
           <label for="move-subroad-walk-select">Walk</label>
           <select id="move-subroad-walk-select" disabled>
@@ -977,21 +977,96 @@
 
         const orderA = parseFloat(getEffectiveDeliveryOrder(a));
         const orderB = parseFloat(getEffectiveDeliveryOrder(b));
+        const validOrderA = !isNaN(orderA);
+        const validOrderB = !isNaN(orderB);
 
-        const validA = !isNaN(orderA);
-        const validB = !isNaN(orderB);
-
-        if (validA && validB && orderA !== orderB) {
+        // Primary sort: Sort Order
+        if (validOrderA && validOrderB && orderA !== orderB) {
           return orderA - orderB;
         }
 
-        if (validA !== validB) {
-          return validA ? -1 : 1;
+        if (validOrderA !== validOrderB) {
+          return validOrderA ? -1 : 1;
         }
 
-        return String(getEffectiveDeliveryOrder(a)).localeCompare(String(getEffectiveDeliveryOrder(b)));
+        // Secondary sort: Walk
+        const walkA = parseInt(getEffectiveWalkNumber(a), 10);
+        const walkB = parseInt(getEffectiveWalkNumber(b), 10);
+        const validWalkA = isFinite(walkA);
+        const validWalkB = isFinite(walkB);
+
+        if (validWalkA && validWalkB && walkA !== walkB) {
+          return walkA - walkB;
+        }
+
+        if (validWalkA !== validWalkB) {
+          return validWalkA ? -1 : 1;
+        }
+
+        // Tertiary sort: Postcode
+        const postcodeA = normalizeText(a.postcode || "");
+        const postcodeB = normalizeText(b.postcode || "");
+        if (postcodeA !== postcodeB) {
+          return postcodeA.localeCompare(postcodeB);
+        }
+
+        return String(a.householdKey || "").localeCompare(String(b.householdKey || ""));
 
       });
+
+    }
+
+    function renumberHouseholdsFromOne(orderedHouseholds) {
+
+      let hasChanges = false;
+      const walkCounters = {};
+
+      (orderedHouseholds || []).forEach(household => {
+        const walk = String(getEffectiveWalkNumber(household) || "1");
+        walkCounters[walk] = (walkCounters[walk] || 0) + 1;
+        const nextOrder = String(walkCounters[walk]);
+        if (String(getEffectiveDeliveryOrder(household)) !== nextOrder) {
+          deliveryOrderOverrides[household.householdKey] = nextOrder;
+          hasChanges = true;
+        }
+      });
+
+      if (hasChanges) {
+        saveToStorage(STORAGE_KEYS.deliveryOrderOverrides, deliveryOrderOverrides);
+      }
+
+    }
+
+    function moveHouseholdSortOrder(householdKey, action) {
+
+      if (!lastShownHouseholds.length) {
+        return false;
+      }
+
+      const ordered = lastShownHouseholds.slice();
+      sortByDeliveryOrder(ordered);
+
+      const currentIndex =
+        ordered.findIndex(household => household.householdKey === householdKey);
+
+      if (currentIndex < 0) {
+        return false;
+      }
+
+      const targetIndex =
+        action === "decrement"
+          ? currentIndex - 1
+          : currentIndex + 1;
+
+      if (targetIndex < 0 || targetIndex >= ordered.length) {
+        return false;
+      }
+
+      const moved = ordered.splice(currentIndex, 1)[0];
+      ordered.splice(targetIndex, 0, moved);
+      renumberHouseholdsFromOne(ordered);
+
+      return true;
 
     }
 
@@ -1143,6 +1218,7 @@
         allHouseholds.filter(matchesSubRoadAndDistrict);
 
       sortByDeliveryOrder(matched);
+      renumberHouseholdsFromOne(matched);
 
       const totalMatched = matched.length;
       const truncated = totalMatched > MAX_HOUSEHOLDS;
@@ -1512,19 +1588,12 @@
           }
 
           const key = button.dataset.key;
-          const household = lastShownHouseholds.find(h => h.householdKey === key);
+          const action = button.dataset.action;
+          const moved = moveHouseholdSortOrder(key, action);
 
-          if (!household) {
+          if (!moved) {
             return;
           }
-
-          const current = parseFloat(getEffectiveDeliveryOrder(household));
-          const base = isNaN(current) ? 0 : current;
-
-          deliveryOrderOverrides[key] =
-            button.dataset.action === "increment" ? base + 1 : base - 1;
-
-          saveToStorage(STORAGE_KEYS.deliveryOrderOverrides, deliveryOrderOverrides);
 
           showHouseholds(
             allHouseholds,
@@ -1543,8 +1612,34 @@
             return;
           }
 
-          walkOverrides[select.dataset.key] = select.value;
+          const householdKey = select.dataset.key;
+          const household =
+            lastShownHouseholds.find(h => h.householdKey === householdKey);
+
+          if (!household) {
+            return;
+          }
+
+          const previousWalk = getEffectiveWalkNumber(household);
+
+          walkOverrides[householdKey] = select.value;
           saveToStorage(STORAGE_KEYS.walkOverrides, walkOverrides);
+
+          if (String(previousWalk) !== String(select.value)) {
+
+            const ordered = lastShownHouseholds.slice();
+            sortByDeliveryOrder(ordered);
+
+            const currentIndex =
+              ordered.findIndex(h => h.householdKey === householdKey);
+
+            if (currentIndex >= 0) {
+              const moved = ordered.splice(currentIndex, 1)[0];
+              ordered.push(moved);
+              renumberHouseholdsFromOne(ordered);
+            }
+
+          }
 
           showHouseholds(
             allHouseholds,
