@@ -148,6 +148,8 @@
         </div>
     </main>
 
+    <a href="lottery/" class="lottery-corner-link">lottery</a>
+
     <script>
         const signupErrorEl = document.getElementById("signup-error");
         const dayCheckboxes = Array.from(document.querySelectorAll(".signup-day"));
@@ -161,8 +163,8 @@
         const dayRestrictionNoteEl = document.getElementById("signup-day-restriction-note");
         const deliveryDaysSectionEl = document.getElementById("signup-delivery-days-section");
 
-        const NEWSPAPER_NO_SUNDAY = ["The i", "Western Mail", "FT (Financial Times)"];
-        const NEWSPAPER_WEEKLY_DAY = { "Cambrian News": "Tuesday" };
+        const NEWSPAPER_NO_SUNDAY = ["The i", "FT (Financial Times)"];
+        const NEWSPAPER_WEEKLY_DAY = { "Cambrian News": "Wednesday" };
 
         function applyNewspaperDayRestrictions() {
             const newspaper = newspaperSelect.value;
