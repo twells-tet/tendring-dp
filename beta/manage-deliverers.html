@@ -79,7 +79,7 @@
     // dropdown without needing that page's live DOM. Kept in sync with
     // volunteers.html's members-table/volunteers-table rows.
     const DEFAULT_VOLUNTEERS = [
-      { rowKey: "member-1", firstName: "Pat", lastName: "Postie", electorId: "836408391", regularDeliverer: false },
+      { rowKey: "member-1", firstName: "Pat", lastName: "Postie", electorId: "836408391", regularDeliverer: true },
       { rowKey: "nonmember-1", firstName: "Pat", lastName: "Postie", electorId: "836408392", regularDeliverer: true },
       { rowKey: "nonmember-2", firstName: "Sam", lastName: "Sorefeet", electorId: "934314542", regularDeliverer: false }
     ];
@@ -91,7 +91,7 @@
 
     const DEFAULT_WALK_DELIVERERS = {
       "qb6|1": "nonmember-1",
-      "ra1|1": "nonmember-2"
+      "ra1|2": "nonmember-2"
     };
 
     const bodyEl =

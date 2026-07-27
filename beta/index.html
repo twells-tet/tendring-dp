@@ -444,7 +444,7 @@
           <div class="address-search-row subroad-filter-row">
             <label for="subroad-filter-subroad-select">Filter by Subroad</label>
             <div class="subroad-filter-controls">
-              <select id="subroad-filter-district-select" aria-label="Polling District" disabled>
+              <select id="subroad-filter-district-select" aria-label="Polling District">
                 <option value="RA1" selected>RA1 (Abersoch)</option>
                 <option value="QB6">QB6 (Llanengan)</option>
               </select>
@@ -1118,6 +1118,15 @@ function initControls() {
 
       renderElectorList();
 
+    }
+  );
+
+  subroadFilterDistrictEl.addEventListener(
+    "change",
+    () => {
+      populateSubroadFilterOptions();
+      state.householdPageIndex = 0;
+      renderElectorList();
     }
   );
 
@@ -3676,14 +3685,14 @@ function getTotalWalkCountForDistrict(pollingDistrict) {
 // "Volunteer Deliverer" shown here always agrees with whatever was
 // assigned (or left unassigned) on that page.
 const DEFAULT_VOLUNTEERS = [
-  { rowKey: "member-1", firstName: "Pat", lastName: "Postie", regularDeliverer: false },
+  { rowKey: "member-1", firstName: "Pat", lastName: "Postie", regularDeliverer: true },
   { rowKey: "nonmember-1", firstName: "Pat", lastName: "Postie", regularDeliverer: true },
   { rowKey: "nonmember-2", firstName: "Sam", lastName: "Sorefeet", regularDeliverer: false }
 ];
 
 const DEFAULT_WALK_DELIVERERS = {
   "qb6|1": "nonmember-1",
-  "ra1|1": "nonmember-2"
+  "ra1|2": "nonmember-2"
 };
 
 function walkDelivererKey(pollingDistrict, walkNumber) {
@@ -4397,25 +4406,29 @@ function getActiveElectors() {
 
 
 // Populates the Filter by Subroad picker with every distinct Subroad
-// found for the currently selected Polling District (RA1 by default),
-// so users can narrow Household Details down to a single Subroad/walk
-// area, mirroring the Subroad picker on the Manage Walks page.
+// found for the selected Polling District in the subroad filter
+// controls, so users can narrow Household Details down to a single
+// Subroad/walk area, mirroring the Subroad picker on Manage Walks.
 function populateSubroadFilterOptions() {
 
-  const selectedDistrict = pollingDistrictEl.value;
+  const selectedDistrict =
+    normalizeText(subroadFilterDistrictEl.value || pollingDistrictEl.value);
 
   if (
     [...subroadFilterDistrictEl.options].some(
-      option => option.value === selectedDistrict
+      option => normalizeText(option.value) === selectedDistrict
     )
   ) {
-    subroadFilterDistrictEl.value = selectedDistrict;
+    const matchingOption = [...subroadFilterDistrictEl.options].find(
+      option => normalizeText(option.value) === selectedDistrict
+    );
+    if (matchingOption) {
+      subroadFilterDistrictEl.value = matchingOption.value;
+    }
   }
 
-  subroadFilterDistrictEl.disabled = true;
-
   const wantedDistrict =
-    normalizeText(pollingDistrictEl.value);
+    normalizeText(subroadFilterDistrictEl.value || pollingDistrictEl.value);
 
   const previousSelection =
     subroadFilterSubroadEl.value;
@@ -4501,7 +4514,7 @@ function getFilteredActiveElectors() {
     normalizeText(subroadFilterSubroadEl.value).trim();
 
   const subroadFilterDistrict =
-    normalizeText(pollingDistrictEl.value).trim();
+    normalizeText(subroadFilterDistrictEl.value).trim();
 
   return getActiveElectors().filter(elector => {
 
