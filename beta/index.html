@@ -958,6 +958,8 @@ const statLoadedEl =
 const statCanvassEl =
   document.getElementById("stat-complete");
 
+let householdDetailsHeightRetryPending = false;
+
 
 initControls();
 
@@ -1433,6 +1435,7 @@ function syncHouseholdDetailsPanelHeight() {
     document.body.classList.contains("mobile-mode") ||
     mapPanelEl.classList.contains("map-panel--hidden")
   ) {
+    householdDetailsHeightRetryPending = false;
     listPanelEl.style.minHeight = "";
     listPanelEl.style.height = "";
     listPanelEl.style.maxHeight = "";
@@ -1457,6 +1460,23 @@ function syncHouseholdDetailsPanelHeight() {
         gapValue
       )
     );
+
+  // Guard against intermittent first-render geometry races where the map
+  // column has not fully measured yet, which can collapse Household Details.
+  if (targetHeight < 220) {
+    listPanelEl.style.minHeight = "";
+    listPanelEl.style.height = "";
+    listPanelEl.style.maxHeight = "";
+
+    if (!householdDetailsHeightRetryPending) {
+      householdDetailsHeightRetryPending = true;
+      window.setTimeout(() => {
+        householdDetailsHeightRetryPending = false;
+        requestAnimationFrame(syncHouseholdDetailsPanelHeight);
+      }, 100);
+    }
+    return;
+  }
 
   const targetHeightPx = targetHeight + "px";
   listPanelEl.style.minHeight = targetHeightPx;
