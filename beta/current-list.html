@@ -555,6 +555,8 @@
 
         const wantedNameSearch =
           normalizeText(filterState.nameSearch || "").trim();
+        const wantedPostcodeSearch =
+          normalizeText(filterState.postcodeSearch || "").replace(/\s+/g, "");
 
         const filtered =
           electors.filter(elector => {
@@ -581,6 +583,14 @@
                 return false;
               }
 
+            }
+
+            if (wantedPostcodeSearch) {
+              const electorPostcode =
+                normalizeText(elector.postcode || "").replace(/\s+/g, "");
+              if (!electorPostcode.includes(wantedPostcodeSearch)) {
+                return false;
+              }
             }
 
             if (wantedFilterType === "postal-proxy") {
