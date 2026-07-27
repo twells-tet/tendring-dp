@@ -79,7 +79,7 @@
     // dropdown without needing that page's live DOM. Kept in sync with
     // volunteers.html's members-table/volunteers-table rows.
     const DEFAULT_VOLUNTEERS = [
-      { rowKey: "member-1", firstName: "Meirion", lastName: "Member", electorId: "836408391", regularDeliverer: false },
+      { rowKey: "member-1", firstName: "Pat", lastName: "Postie", electorId: "836408391", regularDeliverer: false },
       { rowKey: "nonmember-1", firstName: "Pat", lastName: "Postie", electorId: "836408392", regularDeliverer: true },
       { rowKey: "nonmember-2", firstName: "Sam", lastName: "Sorefeet", electorId: "934314542", regularDeliverer: false }
     ];
@@ -166,21 +166,32 @@
       const regularDelivererOverrides =
         loadFromStorage(STORAGE_KEYS.regularDelivererOverrides, {});
 
-      return DEFAULT_VOLUNTEERS
-        .map(volunteer => {
+      const defaultByRowKey = new Map(
+        DEFAULT_VOLUNTEERS.map(volunteer => [volunteer.rowKey, volunteer])
+      );
 
-          const override = volunteerOverrides[volunteer.rowKey];
+      const allRowKeys = new Set([
+        ...DEFAULT_VOLUNTEERS.map(volunteer => volunteer.rowKey),
+        ...Object.keys(volunteerOverrides),
+        ...Object.keys(regularDelivererOverrides)
+      ]);
+
+      return Array.from(allRowKeys)
+        .map(rowKey => {
+
+          const volunteer = defaultByRowKey.get(rowKey) || {};
+          const override = volunteerOverrides[rowKey] || {};
 
           const isRegularDeliverer =
-            regularDelivererOverrides[volunteer.rowKey] !== undefined
-              ? regularDelivererOverrides[volunteer.rowKey]
-              : volunteer.regularDeliverer;
+            regularDelivererOverrides[rowKey] !== undefined
+              ? regularDelivererOverrides[rowKey]
+              : Boolean(volunteer.regularDeliverer);
 
           return {
-            rowKey: volunteer.rowKey,
-            firstName: (override && override.firstName) || volunteer.firstName,
-            lastName: (override && override.lastName) || volunteer.lastName,
-            electorId: (override && override.electorId) || volunteer.electorId,
+            rowKey,
+            firstName: (override.firstName || volunteer.firstName || "").trim(),
+            lastName: (override.lastName || volunteer.lastName || "").trim(),
+            electorId: (override.electorId || volunteer.electorId || "").trim(),
             regularDeliverer: isRegularDeliverer
           };
 
