@@ -59,6 +59,7 @@
           </select>
           <label for="walk-description-input">Description</label>
           <input type="text" id="walk-description-input" disabled placeholder="Description">
+          <button type="button" id="edit-walk-description-btn" class="edit-walk-description-button" disabled>Edit</button>
         </div>
       </div>
 
@@ -178,6 +179,9 @@
     const walkDescriptionInputEl =
       document.getElementById("walk-description-input");
 
+    const editWalkDescriptionBtnEl =
+      document.getElementById("edit-walk-description-btn");
+
     const moveSubroadWalkSelectEl =
       document.getElementById("move-subroad-walk-select");
 
@@ -222,6 +226,7 @@
     let lastShownHouseholds = [];
     let lastShownDistrict = "";
     let allHouseholdsForWalkValidation = [];
+    let isEditingWalkDescription = false;
     const WALK_ADD_DELETE_TEMP_DISABLED = true;
 
     function loadFromStorage(key, fallback) {
@@ -481,7 +486,9 @@
       syncWalkSelectors(pollingDistrict, households);
 
       walkDescriptionSelectEl.disabled = !pollingDistrict;
-      walkDescriptionInputEl.disabled = !pollingDistrict;
+      walkDescriptionInputEl.disabled = !pollingDistrict || !isEditingWalkDescription;
+      editWalkDescriptionBtnEl.disabled = !pollingDistrict;
+      editWalkDescriptionBtnEl.textContent = isEditingWalkDescription ? "Done" : "Edit";
       addWalkBtnEl.disabled = WALK_ADD_DELETE_TEMP_DISABLED || !pollingDistrict;
       viewWalkOnMapBtnEl.disabled = !pollingDistrict;
 
@@ -1073,14 +1080,28 @@
     function selectPollingDistrict(selectedDistrict) {
 
       const wanted = normalizeText(selectedDistrict);
+      const options = Array.from(pollingDistrictSelectEl.options);
+      const selectedOption = options.find(
+        option =>
+          option.value &&
+          normalizeText(option.value) === wanted
+      );
 
-      Array.from(pollingDistrictSelectEl.options).forEach(option => {
+      options.forEach(option => {
         option.selected = normalizeText(option.value) === wanted;
       });
 
-      if (!wanted) {
-        pollingDistrictSelectEl.value = "";
+      if (selectedOption) {
+        pollingDistrictSelectEl.value = selectedOption.value;
+        return selectedOption.value;
       }
+
+      const defaultOption =
+        options.find(option => normalizeText(option.value) === "ra1") ||
+        options.find(option => option.value);
+
+      pollingDistrictSelectEl.value = defaultOption ? defaultOption.value : "";
+      return pollingDistrictSelectEl.value;
 
     }
 
@@ -1088,6 +1109,7 @@
     // a Polling District must be chosen before any households are shown.
     function showHouseholds(allHouseholds, allHouseholdsUnfiltered, subRoad, pollingDistrict) {
 
+      subRoadSelectEl.disabled = !pollingDistrict;
       moveSubroadWalkSelectEl.disabled = !subRoad || !pollingDistrict;
       moveSubroadBtnEl.disabled = !subRoad || !pollingDistrict;
 
@@ -1188,7 +1210,7 @@
 
       const params = new URLSearchParams(window.location.search);
       const requestedSubRoad = params.get("subroad") || "";
-      const requestedDistrict = params.get("district") || "";
+      const requestedDistrict = params.get("district") || "RA1";
 
       messageEl.textContent = "Loading electors...";
 
@@ -1227,14 +1249,14 @@
 
         allHouseholdsForWalkValidation = allHouseholdsUnfiltered.slice();
 
-        populateSubRoadPicker(allHouseholds, requestedSubRoad, requestedDistrict);
-        selectPollingDistrict(requestedDistrict);
+        const initialDistrict = selectPollingDistrict(requestedDistrict);
+        populateSubRoadPicker(allHouseholds, requestedSubRoad, initialDistrict);
 
         showHouseholds(
           allHouseholds,
           allHouseholdsUnfiltered,
           requestedSubRoad,
-          requestedDistrict
+          initialDistrict
         );
 
         function updateFromPickers() {
@@ -1271,6 +1293,7 @@
 
         subRoadSelectEl.addEventListener("change", updateFromPickers);
         pollingDistrictSelectEl.addEventListener("change", () => {
+          isEditingWalkDescription = false;
           walkDescriptionSelectEl.value = "1";
           moveSubroadWalkSelectEl.value = "1";
           populateSubRoadPicker(allHouseholds, "", pollingDistrictSelectEl.value);
@@ -1537,7 +1560,20 @@
         // Switching the Walk dropdown just changes which Walk's
         // description is shown in the box next to it.
         walkDescriptionSelectEl.addEventListener("change", () => {
+          isEditingWalkDescription = false;
           renderWalkDescriptionsPanel(pollingDistrictSelectEl.value);
+        });
+
+        editWalkDescriptionBtnEl.addEventListener("click", () => {
+          if (!pollingDistrictSelectEl.value) {
+            return;
+          }
+          isEditingWalkDescription = !isEditingWalkDescription;
+          renderWalkDescriptionsPanel(pollingDistrictSelectEl.value, lastShownHouseholds);
+          if (isEditingWalkDescription) {
+            walkDescriptionInputEl.focus();
+            walkDescriptionInputEl.select();
+          }
         });
 
         // Editing the description re-renders the table so every row's

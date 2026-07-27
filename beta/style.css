@@ -1193,6 +1193,13 @@ body.mobile-mode .elector-list {
   background: var(--surface);
 }
 
+.manage-walks-picker select:disabled {
+  background: var(--border);
+  color: var(--text-muted);
+  border-color: var(--border-strong);
+  cursor: not-allowed;
+}
+
 .current-list-summary {
   margin: 0 0 0.75rem;
   color: var(--text-muted);
@@ -1333,6 +1340,27 @@ body.mobile-mode .elector-list {
 .walk-descriptions-row select:disabled,
 .walk-descriptions-row input:disabled {
   background: var(--border);
+  cursor: not-allowed;
+}
+
+.edit-walk-description-button {
+  padding: 0.4rem 0.7rem;
+  border: 1px solid #2b6cb0;
+  border-radius: 0.45rem;
+  background: #2b6cb0;
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.edit-walk-description-button:hover:not(:disabled) {
+  opacity: 0.8;
+}
+
+.edit-walk-description-button:disabled {
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
