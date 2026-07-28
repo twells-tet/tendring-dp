@@ -253,6 +253,7 @@
       <label for="filter-type">
         Filter
         <select id="filter-type">
+          <option value="age-known">Age Known</option>
           <option value="first-language-english" disabled>First Language: English</option>
           <option value="first-language-welsh" disabled>First Language: Welsh</option>
           <option value="likely-conservative" disabled>Likely Conservative</option>
@@ -1697,6 +1698,18 @@ async function loadElectorsFromSheet(inputUrl) {
       assignHouseholdLabels(
         electors
       );
+
+
+
+    loadSheet5DobById(inputUrl).then(dobById => {
+
+      state.electors.forEach(elector => {
+        elector.sheetDob = dobById[elector.id] || "";
+      });
+
+      renderElectorList();
+
+    });
 
 
 
@@ -4623,6 +4636,17 @@ function getFilteredActiveElectors() {
 
     }
 
+    if (filterType === "age-known") {
+
+      const progressDob = (state.progress[elector.id] || {}).dob || "";
+      const knownDob = progressDob || elector.sheetDob || "";
+
+      if (!knownDob) {
+        return false;
+      }
+
+    }
+
     if (addressSearch) {
 
       const electorAddress =
@@ -4692,6 +4716,67 @@ function toGoogleCsvUrl(rawUrl) {
     "/export?format=csv&gid=" +
     gid
   );
+
+}
+
+
+// "Sheet5" of the workbook holds Elector ID (col C) and Date Of Birth
+// (col J) — only populated for a small subset of electors — used here
+// to power the "Age Known" filter.
+function toSheet5CsvUrl(rawUrl) {
+
+  const match =
+    rawUrl.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+
+  if (!match) {
+    return null;
+  }
+
+  return (
+    "https://docs.google.com/spreadsheets/d/" +
+    match[1] +
+    "/gviz/tq?tqx=out:csv&sheet=Sheet5"
+  );
+
+}
+
+
+async function loadSheet5DobById(sheetUrl) {
+
+  const dobById = {};
+
+  const sheet5Url = toSheet5CsvUrl(sheetUrl);
+
+  if (!sheet5Url) {
+    return dobById;
+  }
+
+  try {
+
+    const response = await fetch(sheet5Url);
+
+    if (!response.ok) {
+      return dobById;
+    }
+
+    const rows = parseCsv(await response.text());
+
+    rows.slice(1).forEach(row => {
+
+      const electorId = (row[2] || "").trim();
+      const rawDob = (row[9] || "").trim();
+
+      if (electorId && rawDob) {
+        dobById[electorId] = rawDob;
+      }
+
+    });
+
+  } catch (error) {
+    // Sheet5 is supplementary — ignore failures.
+  }
+
+  return dobById;
 
 }
 
