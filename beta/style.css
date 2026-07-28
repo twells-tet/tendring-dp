@@ -520,11 +520,13 @@ body.mobile-mode .elector-list {
   font: inherit;
   color: var(--text);
   background: var(--surface);
+  cursor: pointer;
 }
 
 .filter-grid select:disabled {
   background: #f3f4f8;
   color: #6c757d;
+  cursor: not-allowed;
 }
 
 .control-row {
@@ -890,6 +892,24 @@ body.mobile-mode .elector-list {
   margin-bottom: 0;
 }
 
+.quick-name-search-fixed-label {
+  flex: 0 1 220px;
+}
+
+.quick-search-action-button {
+  flex: 0 0 190px;
+  width: 190px;
+  white-space: nowrap;
+  border-color: var(--plaid-green);
+  background: var(--plaid-green);
+  color: #ffffff;
+}
+
+.quick-search-action-button:hover {
+  background: var(--plaid-green-dark);
+  border-color: var(--plaid-green-dark);
+}
+
 .export-button {
   padding: 0.6rem 1rem;
   border: 1px solid var(--plaid-red);
@@ -958,6 +978,19 @@ body.mobile-mode .elector-list {
 
 .display-map-button:hover {
   opacity: 0.7;
+}
+
+.view-all-districts-button {
+  display: inline-block;
+  text-align: center;
+  border-color: var(--plaid-green);
+  background: var(--plaid-green);
+  opacity: 1;
+  cursor: pointer;
+}
+
+.view-all-districts-button:hover {
+  opacity: 0.85;
 }
 
 .data-button {
