@@ -101,9 +101,10 @@
       <div class="mapping-controls">
         <button type="button" id="show-walks-toggle" class="show-walks-toggle-button">Show Delivery Walks</button>
 
-        <div class="manage-walks-picker-row" id="walk-district-row" hidden>
+        <div class="manage-walks-picker-row" id="walk-district-row">
           <label for="walk-district-select">Polling District</label>
           <select id="walk-district-select">
+            <option value="">All Polling Districts</option>
             <option value="RA1">RA1 (Abersoch)</option>
             <option value="QB6">QB6 (Llanengan)</option>
           </select>
@@ -946,23 +947,41 @@
 
         function applyAndRender() {
 
+          // "All Polling Districts" can't be colour-coded by Walk (a Walk
+          // never crosses a Polling District boundary, and the same Walk
+          // number/colour is reused in each district), so selecting it
+          // disables the "Show Delivery Walks" toggle entirely. The
+          // Polling District picker itself always stays visible.
+          const isAllDistrictsSelected =
+            walkDistrictSelectEl.value === "";
+
+          if (isAllDistrictsSelected) {
+            showWalksActive = false;
+          }
+
+          showWalksToggleEl.disabled = isAllDistrictsSelected;
+
           const showWalks = showWalksActive;
 
           showWalksToggleEl.textContent =
             showWalks ? "Hide Delivery Walks" : "Show Delivery Walks";
           showWalksToggleEl.classList.toggle("is-active", showWalks);
 
-          walkDistrictRowEl.hidden = !showWalks;
           walkKeyEl.hidden = !showWalks;
 
           // In "Show delivery walks" mode, the Polling District dropdown
           // (defaulting to RA1) always controls which district is shown,
           // since a walk can never cross Polling Districts and the same
-          // Walk number/colour is reused in each district.
+          // Walk number/colour is reused in each district. Selecting
+          // "All Polling Districts" shows every household unfiltered.
           const wantedPollingDistrict =
-            showWalks
-              ? normalizeText(walkDistrictSelectEl.value || "RA1")
-              : normalizeText(filterState.pollingDistrict || "");
+            isAllDistrictsSelected
+              ? ""
+              : (
+                showWalks
+                  ? normalizeText(walkDistrictSelectEl.value || "RA1")
+                  : normalizeText(filterState.pollingDistrict || "")
+              );
 
           const filtered =
             baseFiltered.filter(elector => {
@@ -1071,6 +1090,9 @@
         applyAndRender();
 
         showWalksToggleEl.addEventListener("click", () => {
+          if (showWalksToggleEl.disabled) {
+            return;
+          }
           showWalksActive = !showWalksActive;
           applyAndRender();
         });

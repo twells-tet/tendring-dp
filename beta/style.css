@@ -1037,6 +1037,18 @@ body.mobile-mode .elector-list {
   border-color: var(--plaid-green-dark);
 }
 
+.show-walks-toggle-button:disabled {
+  background: #ccc;
+  border-color: #ccc;
+  color: #777;
+  cursor: not-allowed;
+}
+
+.show-walks-toggle-button:disabled:hover {
+  background: #ccc;
+  border-color: #ccc;
+}
+
 .show-walks-toggle-button.is-active {
   border-color: var(--plaid-red);
   background: var(--plaid-red);
