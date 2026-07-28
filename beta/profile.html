@@ -137,11 +137,14 @@
     .profile-dob-inputs {
       display: flex;
       gap: 0.5rem;
+      width: 100%;
+      max-width: 320px;
     }
 
     .profile-dob-select {
-      width: auto;
-      min-width: 90px;
+      width: 100%;
+      min-width: 0;
+      flex: 1 1 0;
     }
 
     .identity-field-row {
@@ -223,7 +226,7 @@
             </select>
           </div>
         </div>
-        <p id="profile-age-display" class="profile-meta" style="margin:0 0 0.75rem;display:none"></p>
+        <p id="profile-age-display" style="margin:0 0 0.75rem;font-size:0.9rem;color:var(--text);display:none"></p>
 
         <div class="profile-section">
           <h3>Household Data</h3>
@@ -354,12 +357,14 @@
       { rowKey: "member-1", firstName: "Meirion", lastName: "Member", regularDeliverer: false },
       { rowKey: "nonmember-1", firstName: "Pat", lastName: "Postie", regularDeliverer: true },
       { rowKey: "nonmember-2", firstName: "Sam", lastName: "Sorefeet", regularDeliverer: false },
-      { rowKey: "member-2", firstName: "Jane", lastName: "Smith", regularDeliverer: false }
+      { rowKey: "member-2", firstName: "Jane", lastName: "Smith", regularDeliverer: false },
+      { rowKey: "member-3", firstName: "Chris", lastName: "Green", regularDeliverer: true }
     ];
 
     const DEFAULT_WALK_DELIVERERS = {
       "qb6|1": "nonmember-1",
-      "ra1|1": "nonmember-2"
+      "ra1|1": "nonmember-2",
+      "qb6|4": "member-3"
     };
 
     const canvassIdOptions = [
@@ -399,7 +404,8 @@
     const DEMO_CANVASS_ID_BY_ELECTOR_ID = {
       "836408391": "Definite Plaid",
       "934314542": "Probable Plaid",
-      "425577355": "Conservative"
+      "425577355": "Conservative",
+      "234421037": "Definite Plaid"
     };
     // Pat Postie is a listed volunteer on the Members & Activists page,
     // so her profile should default to reflecting that: an active
@@ -1125,13 +1131,21 @@
 
         const rows = parseCsv(await response.text());
         const headers = rows[0].map(normalizeHeader);
-        const elector = rows.slice(1)
-          .map((row, index) => mapRowToElector(row, headers, index))
-          .find(candidate => candidate.id === wantedId);
+        const allElectors = rows.slice(1).map((row, index) => mapRowToElector(row, headers, index));
+        const elector = allElectors.find(candidate => candidate.id === wantedId);
 
         if (!elector) {
           messageEl.textContent = "Elector not found (ID: " + wantedId + ").";
           return;
+        }
+
+        // The sheet's own per-row "electors in household" count is
+        // sometimes left blank, so always recompute it by counting how
+        // many electors share this Household ID — that's authoritative
+        // and never leaves a "—" gap when the count is simply missing.
+        if (elector.uprn) {
+          elector.electorsInHousehold =
+            allElectors.filter(candidate => candidate.uprn === elector.uprn).length || elector.electorsInHousehold;
         }
 
         renderProfile(elector);

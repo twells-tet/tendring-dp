@@ -3766,12 +3766,14 @@ const DEFAULT_VOLUNTEERS = [
   { rowKey: "member-1", firstName: "Meirion", lastName: "Member", regularDeliverer: false },
   { rowKey: "nonmember-1", firstName: "Pat", lastName: "Postie", regularDeliverer: true },
   { rowKey: "nonmember-2", firstName: "Sam", lastName: "Sorefeet", regularDeliverer: false },
-  { rowKey: "member-2", firstName: "Jane", lastName: "Smith", regularDeliverer: false }
+  { rowKey: "member-2", firstName: "Jane", lastName: "Smith", regularDeliverer: false },
+  { rowKey: "member-3", firstName: "Chris", lastName: "Green", regularDeliverer: true }
 ];
 
 const DEFAULT_WALK_DELIVERERS = {
   "qb6|1": "nonmember-1",
-  "ra1|1": "nonmember-2"
+  "ra1|1": "nonmember-2",
+  "qb6|4": "member-3"
 };
 
 function walkDelivererKey(pollingDistrict, walkNumber) {
@@ -4280,7 +4282,8 @@ const DEMO_CANVASS_ID_BY_ELECTOR_ID = {
   "693445390": "Independent",
   "954638525": "Lib Dem",
   "934314542": "Probable Plaid",
-  "425577355": "Conservative"
+  "425577355": "Conservative",
+  "234421037": "Definite Plaid"
 };
 
 const DEMO_SUPPORT_INDEPENDENCE_BY_ELECTOR_ID = {
