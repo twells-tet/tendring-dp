@@ -232,7 +232,7 @@
 
     <section class="stats" aria-label="Elector statistics">
 
-      <button type="button" id="view-all-districts-button" class="export-button">View All Polling Districts</button>
+      <button type="button" id="view-all-districts-button" class="export-button view-all-districts-button">View All Polling Districts</button>
 
       <div class="stat-card">
         <span class="stat-label">Households</span>
@@ -294,7 +294,7 @@
         </div>
         <div class="quick-name-search-row" id="quick-lookup-row">
           <label for="quick-search-first-name">
-            Search by name
+            Search by name OR postcode
             <input type="text" id="quick-search-first-name" placeholder="First name">
           </label>
 
@@ -302,19 +302,17 @@
             <input type="text" id="quick-search-last-name" placeholder="Last name" aria-label="Last name">
           </label>
 
-          <label for="quick-search-postcode" class="quick-name-search-postcode-label">
-            Search by postcode
-            <input type="text" id="quick-search-postcode" placeholder="LL53 7AA" aria-label="Postcode">
+          <label for="quick-search-postcode" class="quick-name-search-postcode-label quick-name-search-fixed-label">
+            <input type="text" id="quick-search-postcode" placeholder="Search by postcode" aria-label="Search by postcode">
           </label>
 
-          <button type="button" id="quick-search-button" class="add-filter-button">Quick Lookup</button>
+          <button type="button" id="quick-search-button" class="add-filter-button quick-search-action-button">Search</button>
         </div>
         <div class="quick-name-search-row" id="quick-lookup-id-row">
-          <label for="quick-search-elector-id">
-            Search Elector ID
-            <input type="text" id="quick-search-elector-id" placeholder="836408391" aria-label="Elector ID">
+          <label for="quick-search-elector-id" class="quick-name-search-fixed-label">
+            <input type="text" id="quick-search-elector-id" placeholder="Search by Elector ID" aria-label="Search by Elector ID">
           </label>
-          <button type="button" id="quick-search-id-button" class="add-filter-button">Search Elector ID</button>
+          <button type="button" id="quick-search-id-button" class="add-filter-button quick-search-action-button">Search by Elector ID</button>
         </div>
       </section>
     </div>
