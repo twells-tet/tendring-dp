@@ -624,6 +624,11 @@ body.mobile-mode .elector-list {
   margin-top: 0;
 }
 
+.quick-name-search-first-name-label {
+  white-space: nowrap;
+  flex-basis: 260px;
+}
+
 .filter-section {
   background: var(--surface);
   border: 1px solid var(--border);

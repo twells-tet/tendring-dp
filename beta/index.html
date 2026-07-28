@@ -293,7 +293,7 @@
           <button type="button" id="toggle-quick-lookup" class="map-toggle-button quick-lookup-toggle-button">Hide</button>
         </div>
         <div class="quick-name-search-row" id="quick-lookup-row">
-          <label for="quick-search-first-name">
+          <label for="quick-search-first-name" class="quick-name-search-first-name-label">
             Search by name OR postcode
             <input type="text" id="quick-search-first-name" placeholder="First name">
           </label>
@@ -303,7 +303,7 @@
           </label>
 
           <label for="quick-search-postcode" class="quick-name-search-postcode-label quick-name-search-fixed-label">
-            <input type="text" id="quick-search-postcode" placeholder="Search by postcode" aria-label="Search by postcode">
+            <input type="text" id="quick-search-postcode" placeholder="LL53 7AA" aria-label="Search by postcode">
           </label>
 
           <button type="button" id="quick-search-button" class="add-filter-button quick-search-action-button">Search</button>
@@ -3765,12 +3765,15 @@ function getTotalWalkCountForDistrict(pollingDistrict) {
 const DEFAULT_VOLUNTEERS = [
   { rowKey: "member-1", firstName: "Meirion", lastName: "Member", regularDeliverer: false },
   { rowKey: "nonmember-1", firstName: "Pat", lastName: "Postie", regularDeliverer: true },
-  { rowKey: "nonmember-2", firstName: "Sam", lastName: "Sorefeet", regularDeliverer: false }
+  { rowKey: "nonmember-2", firstName: "Sam", lastName: "Sorefeet", regularDeliverer: false },
+  { rowKey: "member-2", firstName: "Jane", lastName: "Smith", regularDeliverer: false },
+  { rowKey: "member-3", firstName: "Chris", lastName: "Green", regularDeliverer: true }
 ];
 
 const DEFAULT_WALK_DELIVERERS = {
   "qb6|1": "nonmember-1",
-  "ra1|1": "nonmember-2"
+  "ra1|1": "nonmember-2",
+  "qb6|4": "member-3"
 };
 
 function walkDelivererKey(pollingDistrict, walkNumber) {
@@ -4278,13 +4281,24 @@ const DEMO_CANVASS_ID_BY_ELECTOR_ID = {
   "911051031": "Reform",
   "693445390": "Independent",
   "954638525": "Lib Dem",
-  "934314541": "Probable Plaid",
-  "425577355": "Conservative"
+  "934314542": "Probable Plaid",
+  "425577355": "Conservative",
+  "234421037": "Definite Plaid"
 };
 
 const DEMO_SUPPORT_INDEPENDENCE_BY_ELECTOR_ID = {
   "425577355": "No"
 };
+
+// Anyone listed on the Members & Activists page (DEFAULT_VOLUNTEERS)
+// defaults to "Active Volunteer" ticked here too, unless the user has
+// explicitly overridden it.
+function isKnownVolunteer(electorName) {
+  const normalizedName = normalizeText(electorName);
+  return DEFAULT_VOLUNTEERS.some(
+    volunteer => normalizeText((volunteer.firstName + " " + volunteer.lastName).trim()) === normalizedName
+  );
+}
 
 function getElectorProgress(electorId, electorName) {
 
@@ -4328,7 +4342,10 @@ function getElectorProgress(electorId, electorName) {
   const poster = existing.poster || "No Poster";
   const normalizedPoster =
     posterOptions.includes(poster) ? poster : "No Poster";
-  const volunteer = Boolean(existing.volunteer);
+  const volunteer =
+    existing.volunteer !== undefined
+      ? Boolean(existing.volunteer)
+      : isKnownVolunteer(electorName);
   const askToVolunteer = volunteer ? false : Boolean(existing.askToVolunteer);
   const doNotDeliver = Boolean(existing.doNotDeliver);
   const doNotContact = Boolean(existing.doNotContact);
