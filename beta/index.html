@@ -219,6 +219,7 @@
         <label for="polling-district">
           Polling District
           <select id="polling-district">
+            <option value="" id="polling-district-all-opt" hidden>SHOWING ALL POLLING DISTRICTS IN WARD</option>
             <option value="qb6">QB6 (Llanengan)</option>
             <option value="ra1" selected>RA1 (Abersoch)</option>
           </select>
@@ -230,6 +231,8 @@
 
 
     <section class="stats" aria-label="Elector statistics">
+
+      <button type="button" id="view-all-districts-button" class="export-button">View All Polling Districts</button>
 
       <div class="stat-card">
         <span class="stat-label">Households</span>
@@ -800,6 +803,9 @@ const westminsterEl =
 const pollingDistrictEl =
   document.getElementById("polling-district");
 
+const viewAllDistrictsButtonEl =
+  document.getElementById("view-all-districts-button");
+
 const wardPreviewEl =
   document.getElementById("ward-preview");
 
@@ -1175,13 +1181,64 @@ function initControls() {
   );
 
 
+  let lastSelectedDistrict = pollingDistrictEl.value;
+
   pollingDistrictEl.addEventListener(
     "change",
     () => {
+      if (pollingDistrictEl.value) {
+        lastSelectedDistrict = pollingDistrictEl.value;
+      }
+      pollingDistrictEl.disabled = false;
+      document.getElementById("polling-district-all-opt").hidden = true;
+      viewAllDistrictsButtonEl.textContent = "View All Polling Districts";
       populateSubroadFilterOptions();
       handleFilterChange();
     }
   );
+
+  viewAllDistrictsButtonEl.addEventListener("click", () => {
+
+    const isShowingAll =
+      viewAllDistrictsButtonEl.textContent.trim() === "Narrow By Polling District";
+
+    if (isShowingAll) {
+
+      // Return to the normal single-district state, restoring whichever
+      // district was selected before "View All" was activated.
+      pollingDistrictEl.disabled = false;
+      document.getElementById("polling-district-all-opt").hidden = true;
+
+      const restoredDistrict =
+        lastSelectedDistrict ||
+        localStorage.getItem(STORAGE_KEYS.pollingDistrict);
+
+      if (
+        restoredDistrict &&
+        [...pollingDistrictEl.options].some(
+          option => option.value === restoredDistrict
+        )
+      ) {
+        pollingDistrictEl.value = restoredDistrict;
+      }
+
+      viewAllDistrictsButtonEl.textContent = "View All Polling Districts";
+
+    } else {
+
+      // Show every Polling District at once.
+      lastSelectedDistrict = pollingDistrictEl.value || lastSelectedDistrict;
+      document.getElementById("polling-district-all-opt").hidden = false;
+      pollingDistrictEl.value = "";
+      pollingDistrictEl.disabled = true;
+      viewAllDistrictsButtonEl.textContent = "Narrow By Polling District";
+
+    }
+
+    populateSubroadFilterOptions();
+    handleFilterChange();
+
+  });
 
   const savedPollingDistrict =
     localStorage.getItem(
@@ -1195,6 +1252,7 @@ function initControls() {
     )
   ) {
     pollingDistrictEl.value = savedPollingDistrict;
+    lastSelectedDistrict = savedPollingDistrict;
   }
 
   pollingDistrictEl.addEventListener(
@@ -4413,7 +4471,7 @@ function populateSubroadFilterOptions() {
   const subRoadEntriesByKey = new Map();
 
   (state.electors || []).forEach(elector => {
-    if (normalizeText(elector.pollingDistrict) !== wantedDistrict) {
+    if (wantedDistrict && normalizeText(elector.pollingDistrict) !== wantedDistrict) {
       return;
     }
 
