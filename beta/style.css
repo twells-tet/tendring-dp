@@ -384,14 +384,15 @@ body.pin-locked > *:not(#pin-gate) {
 }
 
 .elector-id-link {
-  color: inherit;
+  color: var(--plaid-green-dark, #0a5e49);
   font-weight: inherit;
-  text-decoration: none;
+  text-decoration: underline;
 }
 
 .elector-id-link:hover,
 .elector-id-link:focus-visible {
   text-decoration: underline;
+  color: var(--plaid-green, #0f7a5f);
 }
 
 .polling-district-select {
@@ -864,6 +865,12 @@ body.mobile-mode .elector-list {
   flex-wrap: wrap;
   align-items: flex-end;
   gap: 1rem;
+}
+
+.quick-name-search-id-row {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--border);
 }
 
 @media (min-width: 1200px) {

@@ -121,6 +121,19 @@
       font-size: 0.9rem;
     }
 
+    /* Canvassing Data uses a shared fixed column width across its
+       selects and definition-list rows so all five values (Canvass
+       ID, Support Independence, First Language, Postal Vote Status,
+       Postal / Proxy) line up neatly at the same left edge. */
+    .canvassing-section .profile-field-row,
+    .canvassing-section .profile-dl {
+      grid-template-columns: 170px 220px;
+    }
+
+    .canvassing-section .profile-field-select {
+      width: 100%;
+    }
+
     .profile-field-label {
       font-weight: 600;
       color: #555;
@@ -166,6 +179,7 @@
       <div id="profile-content" hidden>
         <h2 id="profile-name" style="margin-bottom:0.4rem"></h2>
         <p id="profile-elector-identifiers" class="profile-meta"></p>
+        <p id="profile-electors-in-household" class="profile-meta"></p>
         <div id="profile-canvass-badge" class="profile-canvass-badge"></div>
 
         <div class="profile-field-row" style="margin-bottom:0.75rem">
@@ -183,7 +197,7 @@
           <dl class="profile-dl" id="profile-delivery-dl"></dl>
         </div>
 
-        <div class="profile-section">
+        <div class="profile-section canvassing-section">
           <h3>Canvassing Data</h3>
           <div class="profile-field-row">
             <span class="profile-field-label">Canvass ID</span>
@@ -205,7 +219,7 @@
           <div id="profile-voting-history"></div>
         </div>
 
-        <div class="profile-section">
+        <div class="profile-section canvassing-section">
           <h3>Membership</h3>
           <div class="profile-field-row">
             <span class="profile-field-label">Party Member</span>
@@ -347,6 +361,15 @@
       "836408391": "Definite Plaid",
       "934314541": "Probable Plaid",
       "425577355": "Conservative"
+    };
+    // Pat Postie is a listed volunteer on the Members & Activists page,
+    // so her profile should default to reflecting that: an active
+    // volunteer, a current party member, with a window poster up.
+    const DEMO_PARTY_MEMBER_BY_ELECTOR_ID = {
+      "836408391": "Current"
+    };
+    const DEMO_POSTER_BY_ELECTOR_ID = {
+      "836408391": "Poster: Window"
     };
     const DEMO_SUPPORT_INDEPENDENCE_BY_ELECTOR_ID = {
       "425577355": "No"
@@ -630,21 +653,37 @@
       return normalizeCanvassId(canvassId);
     }
 
+    function isKnownVolunteer(electorName) {
+      const normalizedName = normalizeText(electorName);
+      return DEFAULT_VOLUNTEERS.some(
+        volunteer => normalizeText((volunteer.firstName + " " + volunteer.lastName).trim()) === normalizedName
+      );
+    }
+
     function getElectorProgress(electorId, electorName) {
       const existing = loadFromStorage(STORAGE_KEYS.progress, {})[electorId] || {};
       const isDemoPlaidElector = DEMO_PLAID_ELECTOR_NAMES.includes(String(electorName || "").trim().toLowerCase());
       const isDemoProbablePlaidElector = DEMO_PROBABLE_PLAID_ELECTOR_NAMES.includes(String(electorName || "").trim().toLowerCase());
       const demoCanvassId = DEMO_CANVASS_ID_BY_ELECTOR_ID[String(electorId)];
       const demoSupportIndependence = DEMO_SUPPORT_INDEPENDENCE_BY_ELECTOR_ID[String(electorId)];
+      const demoPartyMember = DEMO_PARTY_MEMBER_BY_ELECTOR_ID[String(electorId)];
+      const demoPoster = DEMO_POSTER_BY_ELECTOR_ID[String(electorId)];
       const legacyCanvassId =
         existing.canvassId ||
         existing.status ||
         demoCanvassId ||
         (isDemoPlaidElector ? "Definite Plaid" : (isDemoProbablePlaidElector ? "Probable Plaid" : "No Data"));
       const baseCanvassId = normalizeCanvassId(legacyCanvassId);
-      const partyMember = partyMemberOptions.includes(existing.partyMember || "No") ? (existing.partyMember || "No") : "No";
-      const poster = posterOptions.includes(existing.poster || "No Poster") ? (existing.poster || "No Poster") : "No Poster";
-      const volunteer = Boolean(existing.volunteer);
+      const partyMember = partyMemberOptions.includes(existing.partyMember || demoPartyMember || "No")
+        ? (existing.partyMember || demoPartyMember || "No")
+        : "No";
+      const poster = posterOptions.includes(existing.poster || demoPoster || "No Poster")
+        ? (existing.poster || demoPoster || "No Poster")
+        : "No Poster";
+      const volunteer =
+        existing.volunteer !== undefined
+          ? Boolean(existing.volunteer)
+          : isKnownVolunteer(electorName);
       const askToVolunteer = volunteer ? false : Boolean(existing.askToVolunteer);
       const canvassId = applyCanvassAffinityRules(baseCanvassId, partyMember, volunteer, askToVolunteer, poster);
 
@@ -701,27 +740,28 @@
       const walkDescription = getWalkDescription(elector.pollingDistrict, walkNumber);
       const assignedDeliverer = getAssignedDelivererName(elector.pollingDistrict, walkNumber);
       const volunteerRecord = getVolunteerRecordForElector(elector);
-      const addressLine = elector.address || [elector.addressLine1, elector.addressLine2, elector.postcode].filter(Boolean).join(", ");
+      const addressLine = [elector.address, elector.postcode].filter(Boolean).join(", ") ||
+        [elector.addressLine1, elector.addressLine2, elector.postcode].filter(Boolean).join(", ");
 
       document.getElementById("profile-name").textContent = elector.name || "Unnamed elector";
       document.getElementById("profile-elector-identifiers").textContent =
-        "Elector ID: " + (elector.electorIdValue || "—") + " · Record ID: " + elector.id;
+        "Elector ID: " + (elector.electorIdValue || "—") +
+        " · Household ID: " + (elector.uprn || "—");
+      document.getElementById("profile-electors-in-household").textContent =
+        "Electors in Household: " + (elector.electorsInHousehold || "—");
       updateCanvassBadge(progress.canvassId);
 
       document.getElementById("profile-household-dl").innerHTML =
-        dlRow("Household ID", elector.householdKey || elector.householdGroupKey || elector.uprn) +
-        dlRow("Property ID", elector.uprn) +
+        dlRow("Household ID", elector.uprn) +
         dlRow("Address", addressLine) +
-        dlRow("Community", elector.community) +
         dlRow("Ward", elector.ward) +
+        dlRow("Polling Number", (elector.pollingDistrict || "") + (elector.pollingElectorNumber ? "-" + elector.pollingElectorNumber : "")) +
         dlRow("Senedd", elector.senedd) +
         dlRow("Westminster", elector.westminster) +
-        dlRow("Local Authority", elector.localAuthority) +
-        dlRow("Electors in Household", elector.electorsInHousehold);
+        dlRow("Local Authority", elector.localAuthority);
 
       document.getElementById("profile-delivery-dl").innerHTML =
         dlRow("Polling District", getPollingDistrictLabel(elector.pollingDistrict)) +
-        dlRow("Polling Number", elector.pollingElectorNumber) +
         dlRow("Walk", String(walkNumber) + (walkDescription ? " (" + walkDescription + ")" : "")) +
         dlRow("Assigned Deliverer", assignedDeliverer) +
         dlRow("Subroad", elector.subRoad) +
@@ -740,6 +780,14 @@
         dlRow("Volunteer Record", volunteerRecord ? (volunteerRecord.firstName + " " + volunteerRecord.lastName).trim() : "Not listed") +
         dlRow("Regular Deliverer", volunteerRecord ? (volunteerRecord.regularDeliverer ? "Yes" : "No") : "No") +
         dlRow("Volunteer Elector ID", volunteerRecord && volunteerRecord.electorId ? volunteerRecord.electorId : "");
+
+      // Every elector record originated from the same initial data
+      // import, so a "Created" entry is shown as the default first
+      // Contact History row until real canvassing contacts are logged.
+      document.getElementById("contact-history-body").innerHTML =
+        "<tr><td>" + escapeHtml("29 July 2026") + "</td><td>" + escapeHtml("00:01") + "</td><td>" +
+        escapeHtml("Chris Green") + "</td><td>" + escapeHtml("Origin Data") + "</td><td>" +
+        escapeHtml("Created") + "</td></tr>";
 
       const preferredNameEl = document.getElementById("profile-preferred-name");
       preferredNameEl.value = progress.preferredName || elector.name || "";
