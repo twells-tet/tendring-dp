@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elector Profile | TARIAN</title>
+  <link rel="icon" type="image/svg+xml" href="tarian-shield.svg">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .profile-meta {
+      margin: 0 0 0.75rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .profile-canvass-badge {
+      display: inline-block;
+      padding: 0.3rem 1rem;
+      border-radius: 0.4rem;
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      border: 2px solid transparent;
+    }
+
+    .profile-canvass-badge.elector-lean-green { background: rgba(10, 167, 125, 0.12); border-color: var(--plaid-green); color: var(--plaid-green-dark); }
+    .profile-canvass-badge.elector-lean-grey { background: #f4f4f4; border-color: #aaa; color: #555; }
+    .profile-canvass-badge.elector-lean-blue { background: rgba(43, 108, 176, 0.1); border-color: #2b6cb0; color: #1a4c90; }
+    .profile-canvass-badge.elector-lean-red { background: rgba(218, 41, 28, 0.08); border-color: var(--plaid-red); color: var(--plaid-red-dark); }
+    .profile-canvass-badge.elector-lean-light-green { background: rgba(102, 187, 106, 0.1); border-color: #66bb6a; color: #2e7d32; }
+    .profile-canvass-badge.elector-lean-orange { background: rgba(245, 166, 35, 0.1); border-color: #f5a623; color: #7a4f00; }
+    .profile-canvass-badge.elector-lean-turquoise { background: rgba(0, 167, 179, 0.1); border-color: #00a7b3; color: #006670; }
+
+    .profile-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .profile-section h3 {
+      margin: 0 0 0.5rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #777;
+      border-bottom: 1px solid #e0e0e0;
+      padding-bottom: 0.3rem;
+    }
+
+    .profile-dl {
+      display: grid;
+      grid-template-columns: max-content 1fr;
+      gap: 0.3rem 1rem;
+      margin: 0;
+      font-size: 0.9rem;
+    }
+
+    .profile-dl dt {
+      font-weight: 600;
+      color: #555;
+      white-space: nowrap;
+    }
+
+    .profile-dl dd {
+      margin: 0;
+    }
+
+    .profile-table,
+    .voting-history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .profile-table th,
+    .profile-table td,
+    .voting-history-table th,
+    .voting-history-table td {
+      text-align: left;
+      padding: 0.35rem 0.6rem;
+      border: 1px solid #ddd;
+    }
+
+    .profile-table thead th,
+    .voting-history-table thead th {
+      background: #f4f4f4;
+      font-weight: 600;
+    }
+
+    .profile-table .empty-row td,
+    .voting-history-disabled-cell {
+      color: #aaa;
+    }
+
+    .profile-anti-plaid {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem 1rem;
+      padding: 0.6rem 0.75rem;
+      border: 1px solid #d33;
+      border-radius: 0.5rem;
+      background: #fff5f5;
+    }
+
+    .profile-anti-plaid-title {
+      flex-basis: 100%;
+      margin: 0 0 0.25rem;
+      font-weight: 700;
+      color: #c00;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .profile-field-row {
+      display: grid;
+      grid-template-columns: max-content minmax(0, 1fr);
+      gap: 0.35rem 1rem;
+      align-items: center;
+      margin: 0.3rem 0;
+      font-size: 0.9rem;
+    }
+
+    .profile-field-label {
+      font-weight: 600;
+      color: #555;
+      white-space: nowrap;
+    }
+
+    .profile-field-input,
+    .profile-field-select {
+      padding: 0.3rem 0.5rem;
+      border: 1px solid var(--border-strong);
+      border-radius: 0.4rem;
+      font: inherit;
+      font-size: 0.9rem;
+      background: var(--surface);
+      color: var(--text);
+      max-width: 320px;
+      width: 100%;
+    }
+
+    .profile-checkboxes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem 1rem;
+      margin: 0.5rem 0;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="page-header">
+    <a href="index.html" class="page-header-logo-link" aria-label="TARIAN home">
+      <img src="tarian-shield.svg" alt="" class="page-header-logo">
+    </a>
+    <h1>TARIAN</h1>
+    <p class="page-subtitle">Elector Profile</p>
+  </header>
+
+  <main class="app-shell">
+    <section class="panel">
+      <p><a href="index.html" class="back-link">&larr; Back to main list</a></p>
+      <p id="profile-message" class="message" role="status" aria-live="polite">Loading&hellip;</p>
+
+      <div id="profile-content" hidden>
+        <h2 id="profile-name" style="margin-bottom:0.4rem"></h2>
+        <p id="profile-elector-identifiers" class="profile-meta"></p>
+        <div id="profile-canvass-badge" class="profile-canvass-badge"></div>
+
+        <div class="profile-field-row" style="margin-bottom:0.75rem">
+          <span class="profile-field-label">Preferred Name</span>
+          <input type="text" id="profile-preferred-name" class="profile-field-input" placeholder="Enter preferred name">
+        </div>
+
+        <div class="profile-section">
+          <h3>Household Data</h3>
+          <dl class="profile-dl" id="profile-household-dl"></dl>
+        </div>
+
+        <div class="profile-section">
+          <h3>Delivery Details</h3>
+          <dl class="profile-dl" id="profile-delivery-dl"></dl>
+        </div>
+
+        <div class="profile-section">
+          <h3>Canvassing Data</h3>
+          <div class="profile-field-row">
+            <span class="profile-field-label">Canvass ID</span>
+            <select id="profile-canvass-select" class="profile-field-select"></select>
+          </div>
+          <div class="profile-field-row">
+            <span class="profile-field-label">Support Independence</span>
+            <select id="profile-independence-select" class="profile-field-select"></select>
+          </div>
+          <div class="profile-field-row">
+            <span class="profile-field-label">First Language</span>
+            <select id="profile-language-select" class="profile-field-select"></select>
+          </div>
+          <dl class="profile-dl" id="profile-canvass-dl" style="margin-top:0.4rem"></dl>
+        </div>
+
+        <div class="profile-section">
+          <h3>Voting History</h3>
+          <div id="profile-voting-history"></div>
+        </div>
+
+        <div class="profile-section">
+          <h3>Membership</h3>
+          <div class="profile-field-row">
+            <span class="profile-field-label">Party Member</span>
+            <select id="profile-party-member-select" class="profile-field-select"></select>
+          </div>
+          <div class="profile-field-row">
+            <span class="profile-field-label">Poster</span>
+            <select id="profile-poster-select" class="profile-field-select"></select>
+          </div>
+          <div class="profile-checkboxes">
+            <label class="checkbox-label">
+              <input type="checkbox" id="profile-volunteer-checkbox"> Active Volunteer
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="profile-ask-volunteer-checkbox"> Ask to Volunteer
+            </label>
+          </div>
+          <dl class="profile-dl" id="profile-membership-dl" style="margin-top:0.4rem"></dl>
+        </div>
+
+        <div class="profile-section">
+          <h3>Contact History</h3>
+          <table class="profile-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Canvasser</th>
+                <th>Channel</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody id="contact-history-body">
+              <tr class="empty-row"><td colspan="5">No contact history recorded.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="profile-section">
+          <div class="profile-anti-plaid">
+            <p class="profile-anti-plaid-title">Anti-Plaid?</p>
+            <label class="checkbox-label">
+              <input type="checkbox" id="profile-do-not-deliver">
+              DO NOT DELIVER
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="profile-do-not-doorstep">
+              DO NOT DOORSTEP
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const DEFAULT_SHEET_URL =
+      "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/edit?usp=sharing";
+
+    const STORAGE_KEYS = {
+      sheetUrl: "abersoch-sheet-url",
+      progress: "abersoch-elector-progress-v1",
+      hideMap: "abersoch-hide-map",
+      hideDeliveryDetails: "abersoch-hide-delivery-details",
+      hideAiComments: "abersoch-hide-ai-comments",
+      hideVotingHistory: "abersoch-hide-voting-history",
+      pollingDistrict: "abersoch-polling-district",
+      areaOverrides: "abersoch-area-overrides-v1",
+      currentListFilter: "abersoch-current-list-filter",
+      mappingFilter: "abersoch-mapping-filter",
+      walkOverrides: "abersoch-walk-overrides-v1",
+      deliveryOrderOverrides: "abersoch-delivery-order-overrides-v1",
+      walkDescriptions: "abersoch-walk-descriptions-v1",
+      walkCounts: "abersoch-walk-counts-v1",
+      volunteerOverrides: "abersoch-volunteer-overrides",
+      regularDelivererOverrides: "abersoch-regular-deliverer-overrides",
+      walkDeliverers: "abersoch-walk-deliverers-v1"
+    };
+
+    const DEFAULT_WALK_DESCRIPTIONS = {
+      "ra1|1": "High Street and Harbour",
+      "ra1|2": "Cae Du",
+      "ra1|3": "Village North",
+      "ra1|4": "Village South",
+      "ra1|5": "Farms and Outliers",
+      "qb6|1": "Llanengan",
+      "qb6|2": "Bwlchtocyn",
+      "qb6|3": "Cilan",
+      "qb6|4": "Sarn Bach",
+      "qb6|5": "Farm and Outliers"
+    };
+
+    const DEFAULT_VOLUNTEERS = [
+      { rowKey: "member-1", firstName: "Meirion", lastName: "Member", regularDeliverer: false },
+      { rowKey: "nonmember-1", firstName: "Pat", lastName: "Postie", regularDeliverer: true },
+      { rowKey: "nonmember-2", firstName: "Sam", lastName: "Sorefeet", regularDeliverer: false }
+    ];
+
+    const DEFAULT_WALK_DELIVERERS = {
+      "qb6|1": "nonmember-1",
+      "ra1|1": "nonmember-2"
+    };
+
+    const canvassIdOptions = [
+      "No Data",
+      "Definite Plaid",
+      "Probable Plaid",
+      "Conservative",
+      "Green",
+      "Independent",
+      "Labour",
+      "Lib Dem",
+      "Reform"
+    ];
+
+    const independenceOptions = ["No Data", "Yes", "No"];
+    const languageOptions = ["English", "Cymraeg"];
+    const partyMemberOptions = ["No", "Current", "Former", "Lapsed", "Supporter", "Ask to Join"];
+    const posterOptions = ["No Poster", "Poster: Window", "Poster: Garden"];
+
+    const VOTING_HISTORY_YEARS = [
+      "2026 (Senedd)",
+      "2024 (PCC)",
+      "2024 (General)",
+      "2022 (Local)",
+      "2021 (Senedd)",
+      "2019 (General)",
+      "2019 (European)",
+      "2017 (General)",
+      "2017 (Local)",
+      "2016 (Referendum)",
+      "2016 (Senedd)",
+      "2015 (General)"
+    ];
+
+    const DEMO_PLAID_ELECTOR_NAMES = ["meirion member"];
+    const DEMO_PROBABLE_PLAID_ELECTOR_NAMES = ["pat postie"];
+    const DEMO_CANVASS_ID_BY_ELECTOR_ID = {
+      "836408391": "Definite Plaid",
+      "934314541": "Probable Plaid",
+      "425577355": "Conservative"
+    };
+    const DEMO_SUPPORT_INDEPENDENCE_BY_ELECTOR_ID = {
+      "425577355": "No"
+    };
+
+    const POLLING_DISTRICT_LABELS = {
+      "ra1": "RA1 (Abersoch)",
+      "qb6": "QB6 (Llanengan)"
+    };
+
+    function loadFromStorage(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch (error) {
+        return fallback;
+      }
+    }
+
+    function saveProgressField(electorId, field, value) {
+      const all = loadFromStorage(STORAGE_KEYS.progress, {});
+      all[electorId] = Object.assign({}, all[electorId] || {}, { [field]: value });
+      localStorage.setItem(STORAGE_KEYS.progress, JSON.stringify(all));
+    }
+
+    function toGoogleCsvUrl(rawUrl) {
+      if (rawUrl.includes("output=csv") || rawUrl.includes("/export?format=csv")) {
+        return rawUrl;
+      }
+      const match = rawUrl.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+      if (!match) {
+        return rawUrl;
+      }
+      const gidMatch = rawUrl.match(/[?&#]gid=([0-9]+)/);
+      const gid = gidMatch ? gidMatch[1] : "0";
+      return "https://docs.google.com/spreadsheets/d/" + match[1] + "/export?format=csv&gid=" + gid;
+    }
+
+    function parseCsv(csvText) {
+      const rows = [];
+      let row = [];
+      let value = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < csvText.length; i += 1) {
+        const char = csvText[i];
+        const next = csvText[i + 1];
+
+        if (char === "\"" && inQuotes && next === "\"") {
+          value += "\"";
+          i += 1;
+          continue;
+        }
+        if (char === "\"") {
+          inQuotes = !inQuotes;
+          continue;
+        }
+        if (char === "," && !inQuotes) {
+          row.push(value);
+          value = "";
+          continue;
+        }
+        if ((char === "\n" || char === "\r") && !inQuotes) {
+          if (char === "\r" && next === "\n") {
+            i += 1;
+          }
+          row.push(value);
+          rows.push(row);
+          row = [];
+          value = "";
+          continue;
+        }
+        value += char;
+      }
+
+      if (value.length || row.length) {
+        row.push(value);
+        rows.push(row);
+      }
+
+      return rows;
+    }
+
+    function normalizeHeader(value) {
+      return (value || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+    }
+
+    function normalizeText(value) {
+      return String(value || "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function formatPostalProxy(value) {
+      const cleaned = String(value || "").trim();
+      const normalized = normalizeText(cleaned);
+      if (!normalized) {
+        return "";
+      }
+      if (normalized.includes("postal")) {
+        return "Postal";
+      }
+      if (normalized.includes("proxy")) {
+        return "Proxy";
+      }
+      return cleaned;
+    }
+
+    function escapeHtml(value) {
+      return String(value == null ? "" : value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function mapRowToElector(row, headers, index) {
+      const data = {};
+      headers.forEach((header, idx) => {
+        data[header] = (row[idx] || "").trim();
+      });
+
+      const sourceRow = index + 2;
+      const id = data.electorid || data.id || data.reference || data.uprn || ("row-" + sourceRow);
+      const name = data.name || data.elector || data.electorname || "";
+      const address = [data.address, data.address1, data.address2, data.address3, data.household]
+        .filter(part => part && !/^\d+$/.test(part) && part.toLowerCase() !== "gwynedd")
+        .join(", ");
+
+      return {
+        id: String(id),
+        name,
+        address,
+        addressLine1: data.address1 || "",
+        addressLine2: data.address2 || "",
+        postcode: data.postcode || "",
+        localAuthority: data.localauthority || data.localauthorityname || row[30] || "",
+        senedd: data.senedd || row[31] || "",
+        westminster: data.westminster || row[32] || "",
+        ward: data.ward || data.electoralward || row[33] || "",
+        pollingDistrict: data.pollingdistrict || data.pollingdist || data.district || data.pd || row[15] || "",
+        pollingElectorNumber: data.electornumber || data.electorno || data.electornum || row[16] || "",
+        community: data.community || data.communityname || row[34] || "",
+        deliveryWalk: data.walk || row[37] || "",
+        deliveryOrder: data.deliveryorder || row[38] || "",
+        deliverer: data.deliverer || row[39] || "",
+        subRoad: data.subroad || row[40] || "",
+        uprn: data.uprn || row[19] || "",
+        electorIdValue: data.electorid || row[20] || "",
+        lat: parseFloat(data.latitude || data.lat || row[21]) || null,
+        lng: parseFloat(data.longitude || data.lng || data.lon || row[22]) || null,
+        postalProxy: formatPostalProxy(data.postalproxy || data.postalorproxy || row[17] || ""),
+        pvStatusRaw: String(data.pvstatus || row[17] || "").trim(),
+        sourceRow,
+        householdKey: data.householdkey || data.key || row[11] || "",
+        householdGroupKey: normalizeText(data.householdkey || data.key || row[11] || "") || ("row-" + sourceRow),
+        electorsInHousehold: parseInt(data.numberofelectors || data.electors || data.householdcount || row[14] || "", 10) || null,
+        householdNumber: null,
+        electorNumber: null,
+        displayId: String(id)
+      };
+    }
+
+    function getPoliticalLeanClass(canvassId) {
+      if (["Definite Plaid", "Probable Plaid"].includes(canvassId)) return "elector-lean-green";
+      if (canvassId === "Conservative") return "elector-lean-blue";
+      if (canvassId === "Green") return "elector-lean-light-green";
+      if (canvassId === "Lib Dem") return "elector-lean-orange";
+      if (canvassId === "Reform") return "elector-lean-turquoise";
+      if (canvassId === "Labour") return "elector-lean-red";
+      return "elector-lean-grey";
+    }
+
+    function getPollingDistrictLabel(value) {
+      return POLLING_DISTRICT_LABELS[normalizeText(value)] || value || "—";
+    }
+
+    function walkDescriptionKey(pollingDistrict, walkNumber) {
+      return normalizeText(pollingDistrict) + "|" + walkNumber;
+    }
+
+    function getWalkDescription(pollingDistrict, walkNumber) {
+      const key = walkDescriptionKey(pollingDistrict, walkNumber);
+      const walkDescriptions = loadFromStorage(STORAGE_KEYS.walkDescriptions, {});
+      if (walkDescriptions[key] !== undefined) {
+        return walkDescriptions[key];
+      }
+      return DEFAULT_WALK_DESCRIPTIONS[key] || "";
+    }
+
+    function parseWalkNumber(value) {
+      const match = String(value || "").match(/\d+/);
+      if (!match) {
+        return null;
+      }
+      const parsed = parseInt(match[0], 10);
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+    }
+
+    function getEffectiveWalkNumberForElector(elector) {
+      const walkOverrides = loadFromStorage(STORAGE_KEYS.walkOverrides, {});
+      const walkOverride = elector && elector.householdGroupKey ? walkOverrides[elector.householdGroupKey] : undefined;
+      return parseWalkNumber(walkOverride) || parseWalkNumber(elector && elector.deliveryWalk) || 1;
+    }
+
+    function walkDelivererKey(pollingDistrict, walkNumber) {
+      return normalizeText(pollingDistrict) + "|" + walkNumber;
+    }
+
+    function getAssignedDelivererName(pollingDistrict, walkNumber) {
+      const walkDeliverers = loadFromStorage(STORAGE_KEYS.walkDeliverers, DEFAULT_WALK_DELIVERERS);
+      const assignedRowKey = walkDeliverers[walkDelivererKey(pollingDistrict, walkNumber)];
+      if (!assignedRowKey) {
+        return "No Assigned Deliverer";
+      }
+
+      const volunteerOverrides = loadFromStorage(STORAGE_KEYS.volunteerOverrides, {});
+      const regularDelivererOverrides = loadFromStorage(STORAGE_KEYS.regularDelivererOverrides, {});
+      const volunteer = DEFAULT_VOLUNTEERS.find(entry => entry.rowKey === assignedRowKey);
+      if (!volunteer) {
+        return "No Assigned Deliverer";
+      }
+
+      const isRegularDeliverer =
+        regularDelivererOverrides[volunteer.rowKey] !== undefined
+          ? regularDelivererOverrides[volunteer.rowKey]
+          : volunteer.regularDeliverer;
+      if (!isRegularDeliverer) {
+        return "No Assigned Deliverer";
+      }
+
+      const override = volunteerOverrides[volunteer.rowKey] || {};
+      return ((override.firstName || volunteer.firstName) + " " + (override.lastName || volunteer.lastName)).trim() || "No Assigned Deliverer";
+    }
+
+    function getVolunteerRecordForElector(elector) {
+      const volunteerOverrides = loadFromStorage(STORAGE_KEYS.volunteerOverrides, {});
+      const regularDelivererOverrides = loadFromStorage(STORAGE_KEYS.regularDelivererOverrides, {});
+      const electorsName = normalizeText(elector.name);
+      const volunteers = DEFAULT_VOLUNTEERS.map(volunteer => {
+        const override = volunteerOverrides[volunteer.rowKey] || {};
+        return {
+          rowKey: volunteer.rowKey,
+          firstName: override.firstName || volunteer.firstName,
+          lastName: override.lastName || volunteer.lastName,
+          electorId: override.electorId || "",
+          regularDeliverer:
+            regularDelivererOverrides[volunteer.rowKey] !== undefined
+              ? Boolean(regularDelivererOverrides[volunteer.rowKey])
+              : Boolean(volunteer.regularDeliverer)
+        };
+      });
+
+      return volunteers.find(volunteer => String(volunteer.electorId) === String(elector.id)) ||
+        volunteers.find(volunteer => normalizeText((volunteer.firstName + " " + volunteer.lastName).trim()) === electorsName) ||
+        null;
+    }
+
+    function normalizeCanvassId(value) {
+      const cleaned = String(value || "").trim();
+      if (cleaned === "Tory") return "Conservative";
+      if (cleaned === "Plaid") return "Probable Plaid";
+      return cleaned || "No Data";
+    }
+
+    function applyCanvassAffinityRules(canvassId, partyMember, volunteer, askToVolunteer, poster) {
+      if (
+        partyMember === "Current" ||
+        volunteer ||
+        poster === "Poster: Window" ||
+        poster === "Poster: Garden"
+      ) {
+        return "Definite Plaid";
+      }
+      if (partyMember === "Supporter" || askToVolunteer) {
+        return "Probable Plaid";
+      }
+      return normalizeCanvassId(canvassId);
+    }
+
+    function getElectorProgress(electorId, electorName) {
+      const existing = loadFromStorage(STORAGE_KEYS.progress, {})[electorId] || {};
+      const isDemoPlaidElector = DEMO_PLAID_ELECTOR_NAMES.includes(String(electorName || "").trim().toLowerCase());
+      const isDemoProbablePlaidElector = DEMO_PROBABLE_PLAID_ELECTOR_NAMES.includes(String(electorName || "").trim().toLowerCase());
+      const demoCanvassId = DEMO_CANVASS_ID_BY_ELECTOR_ID[String(electorId)];
+      const demoSupportIndependence = DEMO_SUPPORT_INDEPENDENCE_BY_ELECTOR_ID[String(electorId)];
+      const legacyCanvassId =
+        existing.canvassId ||
+        existing.status ||
+        demoCanvassId ||
+        (isDemoPlaidElector ? "Definite Plaid" : (isDemoProbablePlaidElector ? "Probable Plaid" : "No Data"));
+      const baseCanvassId = normalizeCanvassId(legacyCanvassId);
+      const partyMember = partyMemberOptions.includes(existing.partyMember || "No") ? (existing.partyMember || "No") : "No";
+      const poster = posterOptions.includes(existing.poster || "No Poster") ? (existing.poster || "No Poster") : "No Poster";
+      const volunteer = Boolean(existing.volunteer);
+      const askToVolunteer = volunteer ? false : Boolean(existing.askToVolunteer);
+      const canvassId = applyCanvassAffinityRules(baseCanvassId, partyMember, volunteer, askToVolunteer, poster);
+
+      return {
+        preferredName: existing.preferredName || "",
+        canvassId: canvassIdOptions.includes(canvassId) ? canvassId : "No Data",
+        supportIndependence: independenceOptions.includes(existing.supportIndependence || demoSupportIndependence || "No Data")
+          ? (existing.supportIndependence || demoSupportIndependence || "No Data")
+          : "No Data",
+        firstLanguage: languageOptions.includes(existing.firstLanguage || "English") ? (existing.firstLanguage || "English") : "English",
+        phone: existing.phone || "",
+        email: existing.email || "",
+        partyMember,
+        poster,
+        volunteer,
+        askToVolunteer,
+        doNotDeliver: Boolean(existing.doNotDeliver),
+        doNotContact: Boolean(existing.doNotContact)
+      };
+    }
+
+    function dlRow(label, value) {
+      if (!value && value !== 0) {
+        return "";
+      }
+      return "<dt>" + escapeHtml(label) + "</dt><dd>" + escapeHtml(String(value)) + "</dd>";
+    }
+
+    function setSelectOptions(selectEl, options, selectedValue) {
+      selectEl.innerHTML = options.map(option =>
+        "<option" + (option === selectedValue ? " selected" : "") + ">" + escapeHtml(option) + "</option>"
+      ).join("");
+    }
+
+    function updateCanvassBadge(canvassId) {
+      const badgeEl = document.getElementById("profile-canvass-badge");
+      badgeEl.textContent = canvassId;
+      badgeEl.className = "profile-canvass-badge " + getPoliticalLeanClass(canvassId);
+    }
+
+    function renderVotingHistory(elector) {
+      const normalizedName = String(elector.name || "").trim().toLowerCase();
+      const alwaysVotes = normalizedName === "pat postie" || normalizedName === "sam sorefeet";
+      const rows = VOTING_HISTORY_YEARS.map(year => {
+        const voted = alwaysVotes && !year.includes("(Local)");
+        return "<tr><th scope=\"row\">" + escapeHtml(year) + "</th><td class=\"voting-history-disabled-cell\">" + (voted ? "X" : "—") + "</td></tr>";
+      }).join("");
+      return "<table class=\"voting-history-table\"><thead><tr><th scope=\"col\">Year</th><th scope=\"col\">" + escapeHtml(elector.name || "Elector") + "</th></tr></thead><tbody>" + rows + "</tbody></table>";
+    }
+
+    function renderProfile(elector) {
+      const progress = getElectorProgress(elector.id, elector.name);
+      const walkNumber = getEffectiveWalkNumberForElector(elector);
+      const walkDescription = getWalkDescription(elector.pollingDistrict, walkNumber);
+      const assignedDeliverer = getAssignedDelivererName(elector.pollingDistrict, walkNumber);
+      const volunteerRecord = getVolunteerRecordForElector(elector);
+      const addressLine = elector.address || [elector.addressLine1, elector.addressLine2, elector.postcode].filter(Boolean).join(", ");
+
+      document.getElementById("profile-name").textContent = elector.name || "Unnamed elector";
+      document.getElementById("profile-elector-identifiers").textContent =
+        "Elector ID: " + (elector.electorIdValue || "—") + " · Record ID: " + elector.id;
+      updateCanvassBadge(progress.canvassId);
+
+      document.getElementById("profile-household-dl").innerHTML =
+        dlRow("Household ID", elector.householdKey || elector.householdGroupKey || elector.uprn) +
+        dlRow("Property ID", elector.uprn) +
+        dlRow("Address", addressLine) +
+        dlRow("Community", elector.community) +
+        dlRow("Ward", elector.ward) +
+        dlRow("Senedd", elector.senedd) +
+        dlRow("Westminster", elector.westminster) +
+        dlRow("Local Authority", elector.localAuthority) +
+        dlRow("Electors in Household", elector.electorsInHousehold);
+
+      document.getElementById("profile-delivery-dl").innerHTML =
+        dlRow("Polling District", getPollingDistrictLabel(elector.pollingDistrict)) +
+        dlRow("Polling Number", elector.pollingElectorNumber) +
+        dlRow("Walk", String(walkNumber) + (walkDescription ? " (" + walkDescription + ")" : "")) +
+        dlRow("Assigned Deliverer", assignedDeliverer) +
+        dlRow("Subroad", elector.subRoad) +
+        dlRow("Sort Order", elector.deliveryOrder) +
+        dlRow("Coordinates", [elector.lat, elector.lng].filter(value => value !== null && value !== "").join(", "));
+
+      document.getElementById("profile-canvass-dl").innerHTML =
+        dlRow("Phone", progress.phone) +
+        dlRow("Email", progress.email) +
+        dlRow("Postal Vote Status", elector.pvStatusRaw || "None") +
+        dlRow("Postal / Proxy", elector.postalProxy || "None");
+
+      document.getElementById("profile-voting-history").innerHTML = renderVotingHistory(elector);
+
+      document.getElementById("profile-membership-dl").innerHTML =
+        dlRow("Volunteer Record", volunteerRecord ? (volunteerRecord.firstName + " " + volunteerRecord.lastName).trim() : "Not listed") +
+        dlRow("Regular Deliverer", volunteerRecord ? (volunteerRecord.regularDeliverer ? "Yes" : "No") : "No") +
+        dlRow("Volunteer Elector ID", volunteerRecord && volunteerRecord.electorId ? volunteerRecord.electorId : "");
+
+      const preferredNameEl = document.getElementById("profile-preferred-name");
+      preferredNameEl.value = progress.preferredName || elector.name || "";
+      preferredNameEl.addEventListener("change", () => {
+        saveProgressField(elector.id, "preferredName", preferredNameEl.value.trim());
+      });
+
+      const canvassSelectEl = document.getElementById("profile-canvass-select");
+      setSelectOptions(canvassSelectEl, canvassIdOptions, progress.canvassId);
+      canvassSelectEl.addEventListener("change", () => {
+        saveProgressField(elector.id, "canvassId", canvassSelectEl.value);
+        updateCanvassBadge(getElectorProgress(elector.id, elector.name).canvassId);
+      });
+
+      const independenceSelectEl = document.getElementById("profile-independence-select");
+      setSelectOptions(independenceSelectEl, independenceOptions, progress.supportIndependence);
+      independenceSelectEl.addEventListener("change", () => {
+        saveProgressField(elector.id, "supportIndependence", independenceSelectEl.value);
+      });
+
+      const languageSelectEl = document.getElementById("profile-language-select");
+      setSelectOptions(languageSelectEl, languageOptions, progress.firstLanguage);
+      languageSelectEl.addEventListener("change", () => {
+        saveProgressField(elector.id, "firstLanguage", languageSelectEl.value);
+      });
+
+      const partyMemberSelectEl = document.getElementById("profile-party-member-select");
+      setSelectOptions(partyMemberSelectEl, partyMemberOptions, progress.partyMember);
+      partyMemberSelectEl.addEventListener("change", () => {
+        saveProgressField(elector.id, "partyMember", partyMemberSelectEl.value);
+        updateCanvassBadge(getElectorProgress(elector.id, elector.name).canvassId);
+      });
+
+      const posterSelectEl = document.getElementById("profile-poster-select");
+      setSelectOptions(posterSelectEl, posterOptions, progress.poster);
+      posterSelectEl.addEventListener("change", () => {
+        saveProgressField(elector.id, "poster", posterSelectEl.value);
+        updateCanvassBadge(getElectorProgress(elector.id, elector.name).canvassId);
+      });
+
+      const volunteerCheckboxEl = document.getElementById("profile-volunteer-checkbox");
+      const askVolunteerCheckboxEl = document.getElementById("profile-ask-volunteer-checkbox");
+      volunteerCheckboxEl.checked = progress.volunteer;
+      askVolunteerCheckboxEl.checked = progress.askToVolunteer;
+      askVolunteerCheckboxEl.disabled = progress.volunteer;
+      volunteerCheckboxEl.addEventListener("change", () => {
+        saveProgressField(elector.id, "volunteer", volunteerCheckboxEl.checked);
+        if (volunteerCheckboxEl.checked) {
+          askVolunteerCheckboxEl.checked = false;
+          saveProgressField(elector.id, "askToVolunteer", false);
+        }
+        askVolunteerCheckboxEl.disabled = volunteerCheckboxEl.checked;
+        updateCanvassBadge(getElectorProgress(elector.id, elector.name).canvassId);
+      });
+      askVolunteerCheckboxEl.addEventListener("change", () => {
+        saveProgressField(elector.id, "askToVolunteer", askVolunteerCheckboxEl.checked);
+        updateCanvassBadge(getElectorProgress(elector.id, elector.name).canvassId);
+      });
+
+      const doNotDeliverEl = document.getElementById("profile-do-not-deliver");
+      const doNotDoorstepEl = document.getElementById("profile-do-not-doorstep");
+      doNotDeliverEl.checked = progress.doNotDeliver;
+      doNotDoorstepEl.checked = progress.doNotContact;
+      doNotDeliverEl.addEventListener("change", () => {
+        saveProgressField(elector.id, "doNotDeliver", doNotDeliverEl.checked);
+      });
+      doNotDoorstepEl.addEventListener("change", () => {
+        saveProgressField(elector.id, "doNotContact", doNotDoorstepEl.checked);
+      });
+
+      document.getElementById("profile-content").hidden = false;
+      document.getElementById("profile-message").textContent = "";
+    }
+
+    async function init() {
+      const wantedId = new URLSearchParams(window.location.search).get("id");
+      const messageEl = document.getElementById("profile-message");
+      if (!wantedId) {
+        messageEl.textContent = "No elector ID specified.";
+        return;
+      }
+
+      messageEl.textContent = "Loading…";
+
+      try {
+        const sheetUrl = localStorage.getItem(STORAGE_KEYS.sheetUrl) || DEFAULT_SHEET_URL;
+        const response = await fetch(toGoogleCsvUrl(sheetUrl));
+        if (!response.ok) {
+          throw new Error("Could not fetch sheet data.");
+        }
+
+        const rows = parseCsv(await response.text());
+        const headers = rows[0].map(normalizeHeader);
+        const elector = rows.slice(1)
+          .map((row, index) => mapRowToElector(row, headers, index))
+          .find(candidate => candidate.id === wantedId);
+
+        if (!elector) {
+          messageEl.textContent = "Elector not found (ID: " + wantedId + ").";
+          return;
+        }
+
+        renderProfile(elector);
+      } catch (error) {
+        messageEl.textContent = "Unable to load data: " + error.message;
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

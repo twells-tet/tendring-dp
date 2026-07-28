@@ -309,6 +309,13 @@
 
           <button type="button" id="quick-search-button" class="add-filter-button">Quick Lookup</button>
         </div>
+        <div class="quick-name-search-row" id="quick-lookup-id-row">
+          <label for="quick-search-elector-id">
+            Search Elector ID
+            <input type="text" id="quick-search-elector-id" placeholder="836408391" aria-label="Elector ID">
+          </label>
+          <button type="button" id="quick-search-id-button" class="add-filter-button">Search Elector ID</button>
+        </div>
       </section>
     </div>
 
@@ -962,6 +969,12 @@ const quickSearchPostcodeEl =
 const quickSearchButtonEl =
   document.getElementById("quick-search-button");
 
+const quickSearchIdInputEl =
+  document.getElementById("quick-search-elector-id");
+
+const quickSearchIdButtonEl =
+  document.getElementById("quick-search-id-button");
+
 const statLoadedEl =
   document.getElementById("stat-loaded");
 
@@ -1155,6 +1168,39 @@ function initControls() {
     }
   );
 
+  function doQuickElectorIdLookup() {
+
+    const electorId =
+      quickSearchIdInputEl.value.trim();
+
+
+    if (!electorId) {
+      return;
+    }
+
+
+    window.location.href =
+      "profile.html?id=" + encodeURIComponent(electorId);
+
+  }
+
+
+  quickSearchIdButtonEl.addEventListener(
+    "click",
+    doQuickElectorIdLookup
+  );
+
+
+  quickSearchIdInputEl.addEventListener(
+    "keydown",
+    event => {
+
+      if (event.key === "Enter") {
+        doQuickElectorIdLookup();
+      }
+
+    }
+  );
 
 
   wardEl.addEventListener(
@@ -2294,9 +2340,9 @@ function renderElectorList() {
       <div class="elector-main">
 
         <p class="elector-id">
-          ${escapeHtml(
+          <a href="profile.html?id=${escapeHtmlAttr(elector.id)}" class="elector-id-link">${escapeHtml(
             elector.displayId
-          )}
+          )}</a>
         </p>
 
 
@@ -2331,7 +2377,7 @@ function renderElectorList() {
 
       <p class="elector-column-id">
         <strong>Elector ID:</strong>
-        ${escapeHtml(elector.electorIdValue || "—")}
+        <a href="profile.html?id=${escapeHtmlAttr(elector.id)}" class="elector-id-link">${escapeHtml(elector.electorIdValue || "—")}</a>
       </p>
 
       <p class="elector-column-id">
@@ -4831,4 +4877,4 @@ function initFooterPreview(selector, maxChars) {
   </script>
 </body>
 </html>
-    
+
