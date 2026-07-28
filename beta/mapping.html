@@ -927,7 +927,10 @@
 
         }
 
-        let showWalksActive = true;
+        // Arriving via "View Walk on Map" (Manage Walks) implies the user
+        // wants to see Walk colouring immediately; otherwise default to
+        // "All Polling Districts" with Walk colouring switched off.
+        let showWalksActive = Boolean(requestedDistrict || requestedWalk);
 
         // Walk numbers currently hidden from the map (their markers are
         // suppressed), toggled via the "[hide]"/"[show]" link next to
@@ -943,6 +946,8 @@
           )
         ) {
           walkDistrictSelectEl.value = requestedDistrict;
+        } else if (showWalksActive) {
+          walkDistrictSelectEl.value = "RA1";
         }
 
         function applyAndRender() {
