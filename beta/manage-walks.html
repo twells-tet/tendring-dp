@@ -59,11 +59,18 @@
           </select>
           <label for="walk-description-input">Description</label>
           <input type="text" id="walk-description-input" disabled placeholder="Description">
+          <button type="button" id="edit-walk-description-btn" class="edit-walk-description-button" disabled>Edit</button>
         </div>
       </div>
 
+      <div class="add-walk-row">
+        <button type="button" id="add-walk-btn" class="add-walk-button" disabled>Add Walk</button>
+        <button type="button" id="delete-walk-btn" class="delete-walk-button" disabled>Delete Walk</button>
+        <button type="button" id="view-walk-on-map-btn" class="view-walk-map-button" disabled>View walk on map</button>
+      </div>
+
       <div class="move-subroad-panel" id="move-subroad-panel">
-        <p class="walk-descriptions-title">Move all properties in this Subroad</p>
+        <p class="walk-descriptions-title">Move all properties in subroad to a different Walk</p>
         <div class="walk-descriptions-row">
           <label for="move-subroad-walk-select">Walk</label>
           <select id="move-subroad-walk-select" disabled>
@@ -108,8 +115,11 @@
       areaOverrides: "abersoch-area-overrides-v1",
       walkOverrides: "abersoch-walk-overrides-v1",
       deliveryOrderOverrides: "abersoch-delivery-order-overrides-v1",
-      walkDescriptions: "abersoch-walk-descriptions-v1"
+      walkDescriptions: "abersoch-walk-descriptions-v1",
+      walkCounts: "abersoch-walk-counts-v1"
     };
+
+    const BASE_WALK_NUMBERS = ["1", "2", "3", "4", "5"];
 
     // Seed descriptions retrieved from the Polling Day page's Walk
     // filter, so both pages start out consistent, even if a user's
@@ -169,8 +179,20 @@
     const walkDescriptionInputEl =
       document.getElementById("walk-description-input");
 
+    const editWalkDescriptionBtnEl =
+      document.getElementById("edit-walk-description-btn");
+
     const moveSubroadWalkSelectEl =
       document.getElementById("move-subroad-walk-select");
+
+    const addWalkBtnEl =
+      document.getElementById("add-walk-btn");
+
+    const deleteWalkBtnEl =
+      document.getElementById("delete-walk-btn");
+
+    const viewWalkOnMapBtnEl =
+      document.getElementById("view-walk-on-map-btn");
 
     const moveSubroadBtnEl =
       document.getElementById("move-subroad-btn");
@@ -194,11 +216,18 @@
     // own set of Walk 1-5 names.
     let walkDescriptions = {};
 
+    // Per Polling District max Walk number (e.g. RA1 can grow from 1-5
+    // to 1-6, 1-7, etc.) so added Walks persist between page loads.
+    let walkCounts = {};
+
     // Remember what's currently on screen so the walk-description inputs
     // and the +/- / dropdown handlers can trigger a re-render without
     // needing to re-run the Subroad/Polling District filter.
     let lastShownHouseholds = [];
     let lastShownDistrict = "";
+    let allHouseholdsForWalkValidation = [];
+    let isEditingWalkDescription = false;
+    const WALK_ADD_DELETE_TEMP_DISABLED = true;
 
     function loadFromStorage(key, fallback) {
 
@@ -252,15 +281,223 @@
       saveToStorage(STORAGE_KEYS.walkDescriptions, walkDescriptions);
     }
 
-    function renderWalkDescriptionsPanel(pollingDistrict) {
+    function parseWalkNumber(value) {
+      const match = String(value || "").match(/\d+/);
+      if (!match) {
+        return null;
+      }
+      const parsed = parseInt(match[0], 10);
+      if (!isFinite(parsed) || parsed < 1) {
+        return null;
+      }
+      return String(parsed);
+    }
+
+    function setDistrictWalkCount(pollingDistrict, walkCount) {
+      const districtKey = normalizeText(pollingDistrict);
+      if (!districtKey) {
+        return;
+      }
+      const parsedCount = parseInt(walkCount, 10);
+      if (!isFinite(parsedCount) || parsedCount < 1) {
+        return;
+      }
+      const existingCount = parseInt(walkCounts[districtKey], 10);
+      walkCounts[districtKey] =
+        isFinite(existingCount)
+          ? String(Math.max(existingCount, parsedCount))
+          : String(parsedCount);
+      saveToStorage(STORAGE_KEYS.walkCounts, walkCounts);
+    }
+
+    function setDistrictWalkCountExact(pollingDistrict, walkCount) {
+      const districtKey = normalizeText(pollingDistrict);
+      if (!districtKey) {
+        return;
+      }
+      const parsedCount = parseInt(walkCount, 10);
+      const normalizedCount =
+        isFinite(parsedCount) && parsedCount > 0
+          ? parsedCount
+          : BASE_WALK_NUMBERS.length;
+      walkCounts[districtKey] = String(normalizedCount);
+      saveToStorage(STORAGE_KEYS.walkCounts, walkCounts);
+    }
+
+    function countHouseholdsAssignedToWalk(pollingDistrict, walkNumber) {
+
+      const wantedDistrict = normalizeText(pollingDistrict);
+      const wantedWalk = String(walkNumber || "");
+
+      return allHouseholdsForWalkValidation.filter(household =>
+        normalizeText(household.pollingDistrict) === wantedDistrict &&
+        parseWalkNumber(getEffectiveWalkNumber(household)) === wantedWalk
+      ).length;
+
+    }
+
+    function getHighestWalkNumberForDistrict(pollingDistrict) {
+
+      const districtKey = normalizeText(pollingDistrict);
+      let maxWalk = BASE_WALK_NUMBERS.length;
+
+      if (!districtKey) {
+        return maxWalk;
+      }
+
+      Object.keys(DEFAULT_WALK_DESCRIPTIONS).forEach(key => {
+        if (!key.startsWith(districtKey + "|")) {
+          return;
+        }
+        const parsed = parseInt(parseWalkNumber(key.split("|")[1]), 10);
+        if (isFinite(parsed) && parsed > maxWalk) {
+          maxWalk = parsed;
+        }
+      });
+
+      Object.keys(walkDescriptions).forEach(key => {
+        if (!key.startsWith(districtKey + "|")) {
+          return;
+        }
+        const parsed = parseInt(parseWalkNumber(key.split("|")[1]), 10);
+        if (isFinite(parsed) && parsed > maxWalk) {
+          maxWalk = parsed;
+        }
+      });
+
+      allHouseholdsForWalkValidation.forEach(household => {
+        if (normalizeText(household.pollingDistrict) !== districtKey) {
+          return;
+        }
+        const parsed = parseInt(parseWalkNumber(getEffectiveWalkNumber(household)), 10);
+        if (isFinite(parsed) && parsed > maxWalk) {
+          maxWalk = parsed;
+        }
+      });
+
+      return maxWalk;
+
+    }
+
+    function refreshWalkActionButtons(pollingDistrict) {
+
+      const hasDistrict = Boolean(pollingDistrict);
+      const selectedWalk = parseWalkNumber(walkDescriptionSelectEl.value || "1") || "1";
+      const selectedWalkInt = parseInt(selectedWalk, 10);
+      const assignedCount =
+        hasDistrict ? countHouseholdsAssignedToWalk(pollingDistrict, selectedWalk) : 0;
+      const isBaseWalk =
+        isFinite(selectedWalkInt) && selectedWalkInt <= BASE_WALK_NUMBERS.length;
+      const highestWalk =
+        hasDistrict ? getHighestWalkNumberForDistrict(pollingDistrict) : BASE_WALK_NUMBERS.length;
+      const isHighestWalk =
+        isFinite(selectedWalkInt) && selectedWalkInt === highestWalk;
+
+      deleteWalkBtnEl.disabled =
+        WALK_ADD_DELETE_TEMP_DISABLED ||
+        !hasDistrict ||
+        isBaseWalk ||
+        !isHighestWalk ||
+        assignedCount > 0;
+
+    }
+
+    function getWalkNumbersForDistrict(pollingDistrict, households) {
+
+      const numbers = new Set(BASE_WALK_NUMBERS);
+      const districtKey = normalizeText(pollingDistrict);
+
+      if (!districtKey) {
+        return Array.from(numbers);
+      }
+
+      const storedCount = parseInt(walkCounts[districtKey], 10);
+
+      if (isFinite(storedCount) && storedCount > 0) {
+        for (let i = 1; i <= storedCount; i += 1) {
+          numbers.add(String(i));
+        }
+      }
+
+      Object.keys(DEFAULT_WALK_DESCRIPTIONS).forEach(key => {
+        if (!key.startsWith(districtKey + "|")) {
+          return;
+        }
+        const parsed = parseWalkNumber(key.split("|")[1]);
+        if (parsed) {
+          numbers.add(parsed);
+        }
+      });
+
+      Object.keys(walkDescriptions).forEach(key => {
+        if (!key.startsWith(districtKey + "|")) {
+          return;
+        }
+        const parsed = parseWalkNumber(key.split("|")[1]);
+        if (parsed) {
+          numbers.add(parsed);
+        }
+      });
+
+      (households || []).forEach(household => {
+        const parsed = parseWalkNumber(getEffectiveWalkNumber(household));
+        if (parsed) {
+          numbers.add(parsed);
+        }
+      });
+
+      return Array.from(numbers).sort(
+        (a, b) => parseInt(a, 10) - parseInt(b, 10)
+      );
+
+    }
+
+    function populateWalkSelect(selectEl, walkNumbers, selectedValue) {
+      selectEl.innerHTML =
+        walkNumbers.map(num =>
+          "<option value=\"" + num + "\">" + num + "</option>"
+        ).join("");
+
+      if (walkNumbers.includes(String(selectedValue))) {
+        selectEl.value = String(selectedValue);
+      } else {
+        selectEl.value = walkNumbers[0] || "1";
+      }
+    }
+
+    function syncWalkSelectors(pollingDistrict, households) {
+      const walkNumbers =
+        getWalkNumbersForDistrict(pollingDistrict, households);
+
+      populateWalkSelect(
+        walkDescriptionSelectEl,
+        walkNumbers,
+        walkDescriptionSelectEl.value || "1"
+      );
+      populateWalkSelect(
+        moveSubroadWalkSelectEl,
+        walkNumbers,
+        moveSubroadWalkSelectEl.value || walkDescriptionSelectEl.value || "1"
+      );
+    }
+
+    function renderWalkDescriptionsPanel(pollingDistrict, households) {
+
+      syncWalkSelectors(pollingDistrict, households);
 
       walkDescriptionSelectEl.disabled = !pollingDistrict;
-      walkDescriptionInputEl.disabled = !pollingDistrict;
+      walkDescriptionInputEl.disabled = !pollingDistrict || !isEditingWalkDescription;
+      editWalkDescriptionBtnEl.disabled = !pollingDistrict;
+      editWalkDescriptionBtnEl.textContent = isEditingWalkDescription ? "Done" : "Edit";
+      addWalkBtnEl.disabled = WALK_ADD_DELETE_TEMP_DISABLED || !pollingDistrict;
+      viewWalkOnMapBtnEl.disabled = !pollingDistrict;
 
       walkDescriptionInputEl.value =
         pollingDistrict
           ? getWalkDescription(pollingDistrict, walkDescriptionSelectEl.value || "1")
           : "";
+
+      refreshWalkActionButtons(pollingDistrict);
 
     }
 
@@ -740,21 +977,96 @@
 
         const orderA = parseFloat(getEffectiveDeliveryOrder(a));
         const orderB = parseFloat(getEffectiveDeliveryOrder(b));
+        const validOrderA = !isNaN(orderA);
+        const validOrderB = !isNaN(orderB);
 
-        const validA = !isNaN(orderA);
-        const validB = !isNaN(orderB);
-
-        if (validA && validB && orderA !== orderB) {
+        // Primary sort: Sort Order
+        if (validOrderA && validOrderB && orderA !== orderB) {
           return orderA - orderB;
         }
 
-        if (validA !== validB) {
-          return validA ? -1 : 1;
+        if (validOrderA !== validOrderB) {
+          return validOrderA ? -1 : 1;
         }
 
-        return String(getEffectiveDeliveryOrder(a)).localeCompare(String(getEffectiveDeliveryOrder(b)));
+        // Secondary sort: Walk
+        const walkA = parseInt(getEffectiveWalkNumber(a), 10);
+        const walkB = parseInt(getEffectiveWalkNumber(b), 10);
+        const validWalkA = isFinite(walkA);
+        const validWalkB = isFinite(walkB);
+
+        if (validWalkA && validWalkB && walkA !== walkB) {
+          return walkA - walkB;
+        }
+
+        if (validWalkA !== validWalkB) {
+          return validWalkA ? -1 : 1;
+        }
+
+        // Tertiary sort: Postcode
+        const postcodeA = normalizeText(a.postcode || "");
+        const postcodeB = normalizeText(b.postcode || "");
+        if (postcodeA !== postcodeB) {
+          return postcodeA.localeCompare(postcodeB);
+        }
+
+        return String(a.householdKey || "").localeCompare(String(b.householdKey || ""));
 
       });
+
+    }
+
+    function renumberHouseholdsFromOne(orderedHouseholds) {
+
+      let hasChanges = false;
+      const walkCounters = {};
+
+      (orderedHouseholds || []).forEach(household => {
+        const walk = String(getEffectiveWalkNumber(household) || "1");
+        walkCounters[walk] = (walkCounters[walk] || 0) + 1;
+        const nextOrder = String(walkCounters[walk]);
+        if (String(getEffectiveDeliveryOrder(household)) !== nextOrder) {
+          deliveryOrderOverrides[household.householdKey] = nextOrder;
+          hasChanges = true;
+        }
+      });
+
+      if (hasChanges) {
+        saveToStorage(STORAGE_KEYS.deliveryOrderOverrides, deliveryOrderOverrides);
+      }
+
+    }
+
+    function moveHouseholdSortOrder(householdKey, action) {
+
+      if (!lastShownHouseholds.length) {
+        return false;
+      }
+
+      const ordered = lastShownHouseholds.slice();
+      sortByDeliveryOrder(ordered);
+
+      const currentIndex =
+        ordered.findIndex(household => household.householdKey === householdKey);
+
+      if (currentIndex < 0) {
+        return false;
+      }
+
+      const targetIndex =
+        action === "decrement"
+          ? currentIndex - 1
+          : currentIndex + 1;
+
+      if (targetIndex < 0 || targetIndex >= ordered.length) {
+        return false;
+      }
+
+      const moved = ordered.splice(currentIndex, 1)[0];
+      ordered.splice(targetIndex, 0, moved);
+      renumberHouseholdsFromOne(ordered);
+
+      return true;
 
     }
 
@@ -762,6 +1074,8 @@
 
       lastShownHouseholds = households;
       lastShownDistrict = pollingDistrict;
+      const walkNumbers =
+        getWalkNumbersForDistrict(pollingDistrict, households);
 
       bodyEl.innerHTML =
         households.map(household => {
@@ -771,7 +1085,7 @@
           const walkNumber = getEffectiveWalkNumber(household);
 
           const walkOptions =
-            ["1", "2", "3", "4", "5"].map(num => {
+            walkNumbers.map(num => {
 
               const description = getWalkDescription(pollingDistrict, num);
               const label = num + (description ? " \u2013 " + description : "");
@@ -841,14 +1155,28 @@
     function selectPollingDistrict(selectedDistrict) {
 
       const wanted = normalizeText(selectedDistrict);
+      const options = Array.from(pollingDistrictSelectEl.options);
+      const selectedOption = options.find(
+        option =>
+          option.value &&
+          normalizeText(option.value) === wanted
+      );
 
-      Array.from(pollingDistrictSelectEl.options).forEach(option => {
+      options.forEach(option => {
         option.selected = normalizeText(option.value) === wanted;
       });
 
-      if (!wanted) {
-        pollingDistrictSelectEl.value = "";
+      if (selectedOption) {
+        pollingDistrictSelectEl.value = selectedOption.value;
+        return selectedOption.value;
       }
+
+      const defaultOption =
+        options.find(option => normalizeText(option.value) === "ra1") ||
+        options.find(option => option.value);
+
+      pollingDistrictSelectEl.value = defaultOption ? defaultOption.value : "";
+      return pollingDistrictSelectEl.value;
 
     }
 
@@ -856,12 +1184,13 @@
     // a Polling District must be chosen before any households are shown.
     function showHouseholds(allHouseholds, allHouseholdsUnfiltered, subRoad, pollingDistrict) {
 
-      renderWalkDescriptionsPanel(pollingDistrict);
-
+      subRoadSelectEl.disabled = !pollingDistrict;
       moveSubroadWalkSelectEl.disabled = !subRoad || !pollingDistrict;
       moveSubroadBtnEl.disabled = !subRoad || !pollingDistrict;
 
       if (!subRoad || !pollingDistrict) {
+
+        renderWalkDescriptionsPanel(pollingDistrict, []);
 
         bodyEl.innerHTML = "";
         summaryEl.textContent = "";
@@ -889,11 +1218,13 @@
         allHouseholds.filter(matchesSubRoadAndDistrict);
 
       sortByDeliveryOrder(matched);
+      renumberHouseholdsFromOne(matched);
 
       const totalMatched = matched.length;
       const truncated = totalMatched > MAX_HOUSEHOLDS;
       const shown = matched.slice(0, MAX_HOUSEHOLDS);
 
+      renderWalkDescriptionsPanel(pollingDistrict, shown);
       renderTable(shown, pollingDistrict);
 
       messageEl.textContent = "";
@@ -950,9 +1281,12 @@
       walkDescriptions =
         loadFromStorage(STORAGE_KEYS.walkDescriptions, {});
 
+      walkCounts =
+        loadFromStorage(STORAGE_KEYS.walkCounts, {});
+
       const params = new URLSearchParams(window.location.search);
       const requestedSubRoad = params.get("subroad") || "";
-      const requestedDistrict = params.get("district") || "";
+      const requestedDistrict = params.get("district") || "RA1";
 
       messageEl.textContent = "Loading electors...";
 
@@ -989,14 +1323,16 @@
         const allHouseholds =
           buildHouseholds(electors, areaOverrides);
 
-        populateSubRoadPicker(allHouseholds, requestedSubRoad, requestedDistrict);
-        selectPollingDistrict(requestedDistrict);
+        allHouseholdsForWalkValidation = allHouseholdsUnfiltered.slice();
+
+        const initialDistrict = selectPollingDistrict(requestedDistrict);
+        populateSubRoadPicker(allHouseholds, requestedSubRoad, initialDistrict);
 
         showHouseholds(
           allHouseholds,
           allHouseholdsUnfiltered,
           requestedSubRoad,
-          requestedDistrict
+          initialDistrict
         );
 
         function updateFromPickers() {
@@ -1033,9 +1369,147 @@
 
         subRoadSelectEl.addEventListener("change", updateFromPickers);
         pollingDistrictSelectEl.addEventListener("change", () => {
+          isEditingWalkDescription = false;
           walkDescriptionSelectEl.value = "1";
+          moveSubroadWalkSelectEl.value = "1";
           populateSubRoadPicker(allHouseholds, "", pollingDistrictSelectEl.value);
           updateFromPickers();
+        });
+
+        addWalkBtnEl.addEventListener("click", () => {
+
+          if (WALK_ADD_DELETE_TEMP_DISABLED) {
+            messageEl.textContent = "Add Walk is temporarily disabled.";
+            return;
+          }
+
+          const pollingDistrict = pollingDistrictSelectEl.value;
+
+          if (!pollingDistrict) {
+            return;
+          }
+
+          const walkNumbers =
+            getWalkNumbersForDistrict(pollingDistrict, lastShownHouseholds);
+
+          const maxWalkNumber =
+            walkNumbers.reduce((maxValue, value) => {
+              const parsed = parseInt(value, 10);
+              return isFinite(parsed) ? Math.max(maxValue, parsed) : maxValue;
+            }, 0);
+
+          const nextWalk = String(maxWalkNumber + 1);
+
+          setDistrictWalkCount(pollingDistrict, nextWalk);
+          syncWalkSelectors(pollingDistrict, lastShownHouseholds);
+          walkDescriptionSelectEl.value = nextWalk;
+          moveSubroadWalkSelectEl.value = nextWalk;
+          renderWalkDescriptionsPanel(pollingDistrict, lastShownHouseholds);
+          walkDescriptionInputEl.focus();
+          walkDescriptionInputEl.select();
+
+          messageEl.textContent =
+            "Added Walk " + nextWalk + " for Polling District " +
+            pollingDistrict.toUpperCase() + ".";
+
+        });
+
+        deleteWalkBtnEl.addEventListener("click", () => {
+
+          if (WALK_ADD_DELETE_TEMP_DISABLED) {
+            messageEl.textContent = "Delete Walk is temporarily disabled.";
+            return;
+          }
+
+          const pollingDistrict = pollingDistrictSelectEl.value;
+
+          if (!pollingDistrict) {
+            return;
+          }
+
+          const selectedWalk =
+            parseWalkNumber(walkDescriptionSelectEl.value || "1") || "1";
+          const selectedWalkInt = parseInt(selectedWalk, 10);
+
+          if (
+            isFinite(selectedWalkInt) &&
+            selectedWalkInt <= BASE_WALK_NUMBERS.length
+          ) {
+            messageEl.textContent =
+              "Walk " + selectedWalk + " is a base walk and cannot be deleted.";
+            return;
+          }
+
+          const highestWalk = getHighestWalkNumberForDistrict(pollingDistrict);
+
+          if (selectedWalkInt !== highestWalk) {
+            messageEl.textContent =
+              "Only the highest-numbered added walk can be deleted. Select Walk " +
+              highestWalk + " to delete.";
+            return;
+          }
+
+          const assignedCount =
+            countHouseholdsAssignedToWalk(pollingDistrict, selectedWalk);
+
+          if (assignedCount > 0) {
+            messageEl.textContent =
+              "Walk " + selectedWalk + " cannot be deleted because " +
+              assignedCount + " household" + (assignedCount === 1 ? " is" : "s are") +
+              " assigned to it.";
+            return;
+          }
+
+          const confirmed = window.confirm(
+            "Delete Walk " + selectedWalk + " from Polling District " +
+            pollingDistrict.toUpperCase() + "?"
+          );
+
+          if (!confirmed) {
+            return;
+          }
+
+          setWalkDescription(pollingDistrict, selectedWalk, "");
+          setDistrictWalkCountExact(
+            pollingDistrict,
+            getHighestWalkNumberForDistrict(pollingDistrict)
+          );
+
+          syncWalkSelectors(pollingDistrict, lastShownHouseholds);
+
+          const fallbackWalk = String(Math.max(1, selectedWalkInt - 1));
+          if ([...walkDescriptionSelectEl.options].some(option => option.value === fallbackWalk)) {
+            walkDescriptionSelectEl.value = fallbackWalk;
+            moveSubroadWalkSelectEl.value = fallbackWalk;
+          }
+
+          renderWalkDescriptionsPanel(pollingDistrict, lastShownHouseholds);
+
+          if (lastShownHouseholds.length) {
+            renderTable(lastShownHouseholds, lastShownDistrict);
+          }
+
+          messageEl.textContent =
+            "Deleted Walk " + selectedWalk + " for Polling District " +
+            pollingDistrict.toUpperCase() + ".";
+
+        });
+
+        viewWalkOnMapBtnEl.addEventListener("click", () => {
+
+          const pollingDistrict = pollingDistrictSelectEl.value;
+          const walk = walkDescriptionSelectEl.value || "1";
+
+          if (!pollingDistrict) {
+            return;
+          }
+
+          const params = new URLSearchParams();
+          params.set("district", pollingDistrict.toUpperCase());
+          params.set("walk", walk);
+
+          window.location.href = "mapping.html?" + params.toString();
+
         });
 
         // Clears every saved Walk and Sort Order override, so every
@@ -1114,19 +1588,12 @@
           }
 
           const key = button.dataset.key;
-          const household = lastShownHouseholds.find(h => h.householdKey === key);
+          const action = button.dataset.action;
+          const moved = moveHouseholdSortOrder(key, action);
 
-          if (!household) {
+          if (!moved) {
             return;
           }
-
-          const current = parseFloat(getEffectiveDeliveryOrder(household));
-          const base = isNaN(current) ? 0 : current;
-
-          deliveryOrderOverrides[key] =
-            button.dataset.action === "increment" ? base + 1 : base - 1;
-
-          saveToStorage(STORAGE_KEYS.deliveryOrderOverrides, deliveryOrderOverrides);
 
           showHouseholds(
             allHouseholds,
@@ -1145,8 +1612,34 @@
             return;
           }
 
-          walkOverrides[select.dataset.key] = select.value;
+          const householdKey = select.dataset.key;
+          const household =
+            lastShownHouseholds.find(h => h.householdKey === householdKey);
+
+          if (!household) {
+            return;
+          }
+
+          const previousWalk = getEffectiveWalkNumber(household);
+
+          walkOverrides[householdKey] = select.value;
           saveToStorage(STORAGE_KEYS.walkOverrides, walkOverrides);
+
+          if (String(previousWalk) !== String(select.value)) {
+
+            const ordered = lastShownHouseholds.slice();
+            sortByDeliveryOrder(ordered);
+
+            const currentIndex =
+              ordered.findIndex(h => h.householdKey === householdKey);
+
+            if (currentIndex >= 0) {
+              const moved = ordered.splice(currentIndex, 1)[0];
+              ordered.push(moved);
+              renumberHouseholdsFromOne(ordered);
+            }
+
+          }
 
           showHouseholds(
             allHouseholds,
@@ -1162,7 +1655,20 @@
         // Switching the Walk dropdown just changes which Walk's
         // description is shown in the box next to it.
         walkDescriptionSelectEl.addEventListener("change", () => {
+          isEditingWalkDescription = false;
           renderWalkDescriptionsPanel(pollingDistrictSelectEl.value);
+        });
+
+        editWalkDescriptionBtnEl.addEventListener("click", () => {
+          if (!pollingDistrictSelectEl.value) {
+            return;
+          }
+          isEditingWalkDescription = !isEditingWalkDescription;
+          renderWalkDescriptionsPanel(pollingDistrictSelectEl.value, lastShownHouseholds);
+          if (isEditingWalkDescription) {
+            walkDescriptionInputEl.focus();
+            walkDescriptionInputEl.select();
+          }
         });
 
         // Editing the description re-renders the table so every row's
