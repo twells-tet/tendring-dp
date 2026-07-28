@@ -397,6 +397,7 @@
 
           <div class="panel-heading">
             <h2>Deliverer / Walk Details</h2>
+            <span id="delivery-polling-district" class="delivery-polling-district"></span>
             <button type="button" id="toggle-delivery-details" class="map-toggle-button">Hide</button>
           </div>
 
@@ -900,6 +901,9 @@ const sortOrderLinkEl =
 
 const deliveryDelivererEl =
   document.getElementById("delivery-deliverer");
+
+const deliveryPollingDistrictEl =
+  document.getElementById("delivery-polling-district");
 
 const messageEl =
   document.getElementById("message");
@@ -1411,6 +1415,8 @@ function applyMapVisibility(hidden) {
 function applyDeliveryDetailsVisibility(hidden) {
 
   deliveryDetailsBodyEl.hidden = hidden;
+
+  deliveryPollingDistrictEl.hidden = hidden;
 
   toggleDeliveryDetailsEl.textContent =
     hidden ? "Show" : "Hide";
@@ -3775,6 +3781,9 @@ function updateDeliveryDetails(elector) {
 
   const districtForLink =
     (elector && elector.pollingDistrict) || "";
+
+  deliveryPollingDistrictEl.textContent =
+    districtForLink || "";
 
   // The Walk shown here can be reassigned on the Manage Walks page,
   // either per-household or in bulk for a whole Subroad - if an
