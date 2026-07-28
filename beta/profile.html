@@ -122,9 +122,9 @@
     }
 
     /* Canvassing Data uses a shared fixed column width across its
-       selects and definition-list rows so all five values (Canvass
-       ID, Support Independence, First Language, Postal Vote Status,
-       Postal / Proxy) line up neatly at the same left edge. */
+       selects and definition-list rows so all four values (Canvass
+       ID, Support Independence, First Language, Postal Vote Status)
+       line up neatly at the same left edge. */
     .canvassing-section .profile-field-row,
     .canvassing-section .profile-dl {
       grid-template-columns: 170px 220px;
@@ -132,6 +132,27 @@
 
     .canvassing-section .profile-field-select {
       width: 100%;
+    }
+
+    .profile-dob-inputs {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .profile-dob-select {
+      width: auto;
+      min-width: 90px;
+    }
+
+    .identity-field-row {
+      grid-template-columns: 160px minmax(0, 1fr);
+    }
+
+    .profile-field-note {
+      margin: 0 0 0.75rem;
+      margin-left: calc(160px + 1rem);
+      font-size: 0.75rem;
+      color: var(--text-muted);
     }
 
     .profile-field-label {
@@ -182,10 +203,27 @@
         <p id="profile-electors-in-household" class="profile-meta"></p>
         <div id="profile-canvass-badge" class="profile-canvass-badge"></div>
 
-        <div class="profile-field-row" style="margin-bottom:0.75rem">
+        <div class="profile-field-row identity-field-row" style="margin-bottom:0.15rem">
           <span class="profile-field-label">Preferred Name</span>
           <input type="text" id="profile-preferred-name" class="profile-field-input" placeholder="Enter preferred name">
         </div>
+        <p class="profile-field-note">N.B. This is the name that will be displayed on letters addressed to the Elector</p>
+
+        <div class="profile-field-row identity-field-row" style="margin-bottom:0.25rem">
+          <span class="profile-field-label">Date of Birth</span>
+          <div class="profile-dob-inputs">
+            <select id="profile-dob-year" class="profile-field-select profile-dob-select" aria-label="Birth year">
+              <option value="">Year</option>
+            </select>
+            <select id="profile-dob-month" class="profile-field-select profile-dob-select" aria-label="Birth month" disabled>
+              <option value="">Month</option>
+            </select>
+            <select id="profile-dob-day" class="profile-field-select profile-dob-select" aria-label="Birth day" disabled>
+              <option value="">Day</option>
+            </select>
+          </div>
+        </div>
+        <p id="profile-age-display" class="profile-meta" style="margin:0 0 0.75rem;display:none"></p>
 
         <div class="profile-section">
           <h3>Household Data</h3>
@@ -315,7 +353,8 @@
     const DEFAULT_VOLUNTEERS = [
       { rowKey: "member-1", firstName: "Meirion", lastName: "Member", regularDeliverer: false },
       { rowKey: "nonmember-1", firstName: "Pat", lastName: "Postie", regularDeliverer: true },
-      { rowKey: "nonmember-2", firstName: "Sam", lastName: "Sorefeet", regularDeliverer: false }
+      { rowKey: "nonmember-2", firstName: "Sam", lastName: "Sorefeet", regularDeliverer: false },
+      { rowKey: "member-2", firstName: "Jane", lastName: "Smith", regularDeliverer: false }
     ];
 
     const DEFAULT_WALK_DELIVERERS = {
@@ -359,7 +398,7 @@
     const DEMO_PROBABLE_PLAID_ELECTOR_NAMES = ["pat postie"];
     const DEMO_CANVASS_ID_BY_ELECTOR_ID = {
       "836408391": "Definite Plaid",
-      "934314541": "Probable Plaid",
+      "934314542": "Probable Plaid",
       "425577355": "Conservative"
     };
     // Pat Postie is a listed volunteer on the Members & Activists page,
@@ -463,6 +502,150 @@
         .toLowerCase()
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    const MONTH_NAMES = [
+      "january", "february", "march", "april", "may", "june",
+      "july", "august", "september", "october", "november", "december"
+    ];
+
+    // Tries to read a birth month + year from free text, e.g. "1991-06"
+    // or "June 1991" — returns { year, month } (month is 0-indexed) or
+    // null if no month can be identified (just a bare year, or a full
+    // day-month-year date, which are handled separately).
+    function parseMonthYear(cleaned) {
+      const isoMatch = cleaned.match(/^(\d{4})-(\d{1,2})$/);
+      if (isoMatch) {
+        const year = parseInt(isoMatch[1], 10);
+        const month = parseInt(isoMatch[2], 10) - 1;
+        return month >= 0 && month <= 11 ? { year, month } : null;
+      }
+
+      const lower = cleaned.toLowerCase();
+      for (let i = 0; i < MONTH_NAMES.length; i++) {
+        if (new RegExp("\\b" + MONTH_NAMES[i] + "\\b").test(lower)) {
+          const yearMatch = cleaned.match(/(\d{4})/);
+          if (yearMatch) {
+            return { year: parseInt(yearMatch[1], 10), month: i };
+          }
+        }
+      }
+
+      return null;
+    }
+
+    // Accepts a full date ("YYYY-MM-DD") for an exact age, a birth
+    // month + year ("1991-06" or "June 1991") for an age that's exact
+    // outside that month and a two-way range during it (e.g. "34/35"),
+    // or just a birth year ("1991") when only that much is known, in
+    // which case we can't tell if the birthday has passed yet this
+    // year, so we show both possible ages, e.g. "34/35".
+    function calculateAgeDisplay(value) {
+      const cleaned = String(value || "").trim();
+      if (!cleaned) {
+        return "";
+      }
+
+      const yearOnlyMatch = cleaned.match(/^(\d{4})$/);
+      if (yearOnlyMatch) {
+        const birthYear = parseInt(yearOnlyMatch[1], 10);
+        const currentYear = new Date().getFullYear();
+        const olderAge = currentYear - birthYear;
+        const youngerAge = olderAge - 1;
+        if (olderAge < 0 || olderAge > 130) {
+          return "";
+        }
+        return youngerAge + "/" + olderAge;
+      }
+
+      const fullDateMatch = cleaned.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+      if (!fullDateMatch) {
+        const monthYear = parseMonthYear(cleaned);
+        if (monthYear) {
+          const today = new Date();
+          const olderAge = today.getFullYear() - monthYear.year;
+          if (olderAge < 0 || olderAge > 130) {
+            return "";
+          }
+          if (today.getMonth() > monthYear.month) {
+            return String(olderAge);
+          }
+          if (today.getMonth() < monthYear.month) {
+            return String(olderAge - 1);
+          }
+          return (olderAge - 1) + "/" + olderAge;
+        }
+      }
+
+      const parsed = new Date(cleaned);
+      if (isNaN(parsed.getTime())) {
+        return "";
+      }
+
+      const today = new Date();
+      let age = today.getFullYear() - parsed.getFullYear();
+      const monthDiff = today.getMonth() - parsed.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < parsed.getDate())) {
+        age--;
+      }
+      return age >= 0 && age <= 130 ? String(age) : "";
+    }
+
+    // Parses the normalized dob storage format ("YYYY", "YYYY-MM", or
+    // "YYYY-MM-DD") back into the three separate select values.
+    function parseDobParts(value) {
+      const cleaned = String(value || "").trim();
+      const match = cleaned.match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/);
+      if (!match) {
+        return { year: "", month: "", day: "" };
+      }
+      return { year: match[1] || "", month: match[2] || "", day: match[3] || "" };
+    }
+
+    function padTwoDigits(value) {
+      return value < 10 ? "0" + value : String(value);
+    }
+
+    const EARLIEST_BIRTH_YEAR = 1927;
+
+    function populateDobSelects(yearEl, monthEl, dayEl) {
+      const currentYear = new Date().getFullYear();
+      for (let year = currentYear; year >= EARLIEST_BIRTH_YEAR; year--) {
+        const option = document.createElement("option");
+        option.value = String(year);
+        option.textContent = String(year);
+        yearEl.appendChild(option);
+      }
+
+      MONTH_NAMES.forEach((name, index) => {
+        const option = document.createElement("option");
+        option.value = padTwoDigits(index + 1);
+        option.textContent = name.charAt(0).toUpperCase() + name.slice(1);
+        monthEl.appendChild(option);
+      });
+    }
+
+    // Rebuilds the Day select's options to match the number of days in
+    // the chosen year/month (respecting leap years), preserving the
+    // previously selected day where it's still valid.
+    function refreshDobDaySelect(dayEl, year, month, preferredDay) {
+      const desiredDay = preferredDay !== undefined ? preferredDay : dayEl.value;
+      dayEl.innerHTML = '<option value="">Day</option>';
+
+      if (!year || !month) {
+        dayEl.value = "";
+        return;
+      }
+
+      const daysInMonth = new Date(parseInt(year, 10), parseInt(month, 10), 0).getDate();
+      for (let day = 1; day <= daysInMonth; day++) {
+        const option = document.createElement("option");
+        option.value = padTwoDigits(day);
+        option.textContent = String(day);
+        dayEl.appendChild(option);
+      }
+
+      dayEl.value = desiredDay && parseInt(desiredDay, 10) <= daysInMonth ? desiredDay : "";
     }
 
     function formatPostalProxy(value) {
@@ -689,6 +872,7 @@
 
       return {
         preferredName: existing.preferredName || "",
+        dob: existing.dob || "",
         canvassId: canvassIdOptions.includes(canvassId) ? canvassId : "No Data",
         supportIndependence: independenceOptions.includes(existing.supportIndependence || demoSupportIndependence || "No Data")
           ? (existing.supportIndependence || demoSupportIndependence || "No Data")
@@ -771,8 +955,7 @@
       document.getElementById("profile-canvass-dl").innerHTML =
         dlRow("Phone", progress.phone) +
         dlRow("Email", progress.email) +
-        dlRow("Postal Vote Status", elector.pvStatusRaw || "None") +
-        dlRow("Postal / Proxy", elector.postalProxy || "None");
+        dlRow("Postal Vote Status", elector.postalProxy || "None");
 
       document.getElementById("profile-voting-history").innerHTML = renderVotingHistory(elector);
 
@@ -794,6 +977,67 @@
       preferredNameEl.addEventListener("change", () => {
         saveProgressField(elector.id, "preferredName", preferredNameEl.value.trim());
       });
+
+      const dobYearEl = document.getElementById("profile-dob-year");
+      const dobMonthEl = document.getElementById("profile-dob-month");
+      const dobDayEl = document.getElementById("profile-dob-day");
+      const ageDisplayEl = document.getElementById("profile-age-display");
+
+      populateDobSelects(dobYearEl, dobMonthEl, dobDayEl);
+
+      const dobParts = parseDobParts(progress.dob || "");
+      dobYearEl.value = dobParts.year;
+      dobMonthEl.value = dobParts.month;
+      refreshDobDaySelect(dobDayEl, dobParts.year, dobParts.month, dobParts.day);
+      updateDobEnablement();
+      updateAgeDisplay(buildDobValue());
+
+      function updateDobEnablement() {
+        dobMonthEl.disabled = !dobYearEl.value;
+        dobDayEl.disabled = !dobYearEl.value || !dobMonthEl.value;
+      }
+
+      function buildDobValue() {
+        if (!dobYearEl.value) {
+          return "";
+        }
+        if (!dobMonthEl.value) {
+          return dobYearEl.value;
+        }
+        if (!dobDayEl.value) {
+          return dobYearEl.value + "-" + dobMonthEl.value;
+        }
+        return dobYearEl.value + "-" + dobMonthEl.value + "-" + dobDayEl.value;
+      }
+
+      function handleDobChange() {
+        if (!dobYearEl.value) {
+          dobMonthEl.value = "";
+        }
+        if (!dobMonthEl.value) {
+          dobDayEl.value = "";
+        }
+        refreshDobDaySelect(dobDayEl, dobYearEl.value, dobMonthEl.value, dobDayEl.value);
+        updateDobEnablement();
+        const value = buildDobValue();
+        saveProgressField(elector.id, "dob", value);
+        updateAgeDisplay(value);
+      }
+
+      dobYearEl.addEventListener("change", handleDobChange);
+      dobMonthEl.addEventListener("change", handleDobChange);
+      dobDayEl.addEventListener("change", handleDobChange);
+
+      function updateAgeDisplay(value) {
+        const age = calculateAgeDisplay(value);
+        if (age) {
+          ageDisplayEl.textContent = "Age: " + age;
+          ageDisplayEl.style.display = "";
+        } else {
+          ageDisplayEl.textContent = "";
+          ageDisplayEl.style.display = "none";
+        }
+      }
 
       const canvassSelectEl = document.getElementById("profile-canvass-select");
       setSelectOptions(canvassSelectEl, canvassIdOptions, progress.canvassId);
