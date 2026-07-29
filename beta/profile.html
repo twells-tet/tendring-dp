@@ -112,6 +112,62 @@
       letter-spacing: 0.04em;
     }
 
+    .add-attempt-button {
+      display: inline-block;
+      margin: 0.6rem 0 0;
+      padding: 0.4rem 0.9rem;
+      border: 1px solid var(--plaid-green-dark, #0a7a5d);
+      border-radius: 0.4rem;
+      background: none;
+      color: var(--plaid-green-dark, #0a7a5d);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .add-attempt-button:hover {
+      background: rgba(10, 167, 125, 0.08);
+    }
+
+    .add-attempt-form {
+      margin-top: 0.75rem;
+      padding: 0.75rem;
+      border: 1px solid #e0e0e0;
+      border-radius: 0.5rem;
+      background: #fafafa;
+    }
+
+    .add-attempt-form .profile-field-row {
+      margin-bottom: 0.5rem;
+    }
+
+    .add-attempt-form-buttons {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .attempt-save-button,
+    .attempt-cancel-button {
+      padding: 0.35rem 0.9rem;
+      border-radius: 0.4rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .attempt-save-button {
+      border: none;
+      background: var(--plaid-green-dark, #0a7a5d);
+      color: #fff;
+    }
+
+    .attempt-cancel-button {
+      border: 1px solid #aaa;
+      background: none;
+      color: #555;
+    }
+
     .profile-field-row {
       display: grid;
       grid-template-columns: max-content minmax(0, 1fr);
@@ -252,6 +308,10 @@
             <span class="profile-field-label">First Language</span>
             <select id="profile-language-select" class="profile-field-select"></select>
           </div>
+          <div class="profile-field-row" id="profile-postal-vote-row" style="display:none">
+            <span class="profile-field-label">Postal Vote Status</span>
+            <select id="profile-postal-vote-select" class="profile-field-select"></select>
+          </div>
           <dl class="profile-dl" id="profile-canvass-dl" style="margin-top:0.4rem"></dl>
         </div>
 
@@ -297,6 +357,33 @@
               <tr class="empty-row"><td colspan="5">No contact history recorded.</td></tr>
             </tbody>
           </table>
+          <button type="button" id="add-attempt-button" class="add-attempt-button">+ Add An Attempt</button>
+          <div id="add-attempt-form" class="add-attempt-form" style="display:none">
+            <div class="profile-field-row">
+              <span class="profile-field-label">Date</span>
+              <input type="date" id="attempt-date-input" class="profile-field-select">
+            </div>
+            <div class="profile-field-row">
+              <span class="profile-field-label">Time</span>
+              <input type="time" id="attempt-time-input" class="profile-field-select">
+            </div>
+            <div class="profile-field-row">
+              <span class="profile-field-label">Canvasser</span>
+              <select id="attempt-canvasser-select" class="profile-field-select"></select>
+            </div>
+            <div class="profile-field-row">
+              <span class="profile-field-label">Channel</span>
+              <select id="attempt-channel-select" class="profile-field-select"></select>
+            </div>
+            <div class="profile-field-row">
+              <span class="profile-field-label">Notes</span>
+              <input type="text" id="attempt-notes-input" class="profile-field-select">
+            </div>
+            <div class="add-attempt-form-buttons">
+              <button type="button" id="attempt-save-button" class="attempt-save-button">Save Attempt</button>
+              <button type="button" id="attempt-cancel-button" class="attempt-cancel-button">Cancel</button>
+            </div>
+          </div>
         </div>
 
         <div class="profile-section">
@@ -337,8 +424,29 @@
       walkCounts: "abersoch-walk-counts-v1",
       volunteerOverrides: "abersoch-volunteer-overrides",
       regularDelivererOverrides: "abersoch-regular-deliverer-overrides",
-      walkDeliverers: "abersoch-walk-deliverers-v1"
+      walkDeliverers: "abersoch-walk-deliverers-v1",
+      contactHistory: "abersoch-contact-history-v1"
     };
+
+    const CONTACT_CHANNEL_OPTIONS = [
+      "Door Knocking",
+      "Telephone Call",
+      "Text Message",
+      "Email",
+      "Letter"
+    ];
+
+    function loadContactAttempts(electorId) {
+      const all = loadFromStorage(STORAGE_KEYS.contactHistory, {});
+      return Array.isArray(all[electorId]) ? all[electorId] : [];
+    }
+
+    function saveContactAttempt(electorId, attempt) {
+      const all = loadFromStorage(STORAGE_KEYS.contactHistory, {});
+      const existingAttempts = Array.isArray(all[electorId]) ? all[electorId] : [];
+      all[electorId] = existingAttempts.concat([attempt]);
+      localStorage.setItem(STORAGE_KEYS.contactHistory, JSON.stringify(all));
+    }
 
     const DEFAULT_WALK_DESCRIPTIONS = {
       "ra1|1": "High Street and Harbour",
@@ -387,7 +495,8 @@
     ];
 
     const independenceOptions = ["No Data", "Yes", "No"];
-    const languageOptions = ["English", "Cymraeg"];
+    const languageOptions = ["English", "Cymraeg", "Other"];
+    const postalVoteOptions = ["None", "Requested"];
     const partyMemberOptions = ["No", "Current", "Former", "Lapsed", "Supporter", "Ask to Join"];
     const posterOptions = ["No Poster", "Poster: Window", "Poster: Garden"];
 
@@ -406,26 +515,15 @@
       "2015 (General)"
     ];
 
-    const DEMO_PLAID_ELECTOR_NAMES = ["meirion member"];
-    const DEMO_PROBABLE_PLAID_ELECTOR_NAMES = ["pat postie"];
-    const DEMO_CANVASS_ID_BY_ELECTOR_ID = {
-      "836408391": "Definite Plaid",
-      "934314542": "Probable Plaid",
-      "425577355": "Conservative",
-      "234421037": "Definite Plaid"
-    };
-    // Pat Postie is a listed volunteer on the Members & Activists page,
-    // so her profile should default to reflecting that: an active
-    // volunteer, a current party member, with a window poster up.
-    const DEMO_PARTY_MEMBER_BY_ELECTOR_ID = {
-      "836408391": "Current"
-    };
-    const DEMO_POSTER_BY_ELECTOR_ID = {
-      "836408391": "Poster: Window"
-    };
-    const DEMO_SUPPORT_INDEPENDENCE_BY_ELECTOR_ID = {
-      "425577355": "No"
-    };
+    // Live data starts with no preset canvass/independence/party/poster
+    // assignments — electors show "No Data" until a real canvasser
+    // records it.
+    const DEMO_PLAID_ELECTOR_NAMES = [];
+    const DEMO_PROBABLE_PLAID_ELECTOR_NAMES = [];
+    const DEMO_CANVASS_ID_BY_ELECTOR_ID = {};
+    const DEMO_PARTY_MEMBER_BY_ELECTOR_ID = {};
+    const DEMO_POSTER_BY_ELECTOR_ID = {};
+    const DEMO_SUPPORT_INDEPENDENCE_BY_ELECTOR_ID = {};
 
     const POLLING_DISTRICT_LABELS = {
       "ra1": "RA1 (Abersoch)",
@@ -483,7 +581,7 @@
     }
 
     async function loadSheet5DataById(sheetUrl) {
-      const result = { dobById: {}, preferredNameById: {} };
+      const result = { dobById: {}, preferredNameById: {}, legalNameById: {} };
       const sheet5Url = toSheet5CsvUrl(sheetUrl);
       if (!sheet5Url) {
         return result;
@@ -502,6 +600,10 @@
           const iso = parseSheet5DobToIso(row[9]);
           if (iso) {
             result.dobById[electorId] = iso;
+          }
+          const legalName = (row[10] || "").trim();
+          if (legalName) {
+            result.legalNameById[electorId] = legalName;
           }
           const preferredName = [row[3], row[4], row[5]]
             .map(part => (part || "").trim())
@@ -644,6 +746,25 @@
             return String(olderAge - 1);
           }
           return (olderAge - 1) + "/" + olderAge;
+        }
+      }
+
+      // "DD MM YYYY" / "DD/MM/YYYY" / "DD-MM-YYYY" — the sheet's
+      // day-month-year DOB format (e.g. "19 12 2010").
+      const dayMonthYearMatch = cleaned.match(/^(\d{1,2})[\s/.-](\d{1,2})[\s/.-](\d{4})$/);
+      if (dayMonthYearMatch) {
+        const day = parseInt(dayMonthYearMatch[1], 10);
+        const month = parseInt(dayMonthYearMatch[2], 10) - 1;
+        const year = parseInt(dayMonthYearMatch[3], 10);
+        if (month >= 0 && month <= 11 && day >= 1 && day <= 31) {
+          const dmyParsed = new Date(year, month, day);
+          const today = new Date();
+          let dmyAge = today.getFullYear() - dmyParsed.getFullYear();
+          const dmyMonthDiff = today.getMonth() - dmyParsed.getMonth();
+          if (dmyMonthDiff < 0 || (dmyMonthDiff === 0 && today.getDate() < dmyParsed.getDate())) {
+            dmyAge--;
+          }
+          return dmyAge >= 0 && dmyAge <= 130 ? String(dmyAge) : "";
         }
       }
 
@@ -910,10 +1031,22 @@
       return normalizeCanvassId(canvassId);
     }
 
-    function isKnownVolunteer(electorName) {
+    // Only Chris Green (the sole regular deliverer) defaults to "Active
+    // Volunteer" ticked; everyone else starts unticked until a user
+    // explicitly marks them as a volunteer. Matched by Elector ID rather
+    // than name, since the live Legal Name may differ from "Chris Green"
+    // (e.g. "Christopher Charles Green").
+    const CHRIS_GREEN_ELECTOR_ID = "234421037";
+
+    function isKnownVolunteer(electorName, electorId) {
+      if (String(electorId || "").trim() === CHRIS_GREEN_ELECTOR_ID) {
+        return true;
+      }
       const normalizedName = normalizeText(electorName);
       return DEFAULT_VOLUNTEERS.some(
-        volunteer => normalizeText((volunteer.firstName + " " + volunteer.lastName).trim()) === normalizedName
+        volunteer =>
+          volunteer.regularDeliverer &&
+          normalizeText((volunteer.firstName + " " + volunteer.lastName).trim()) === normalizedName
       );
     }
 
@@ -940,7 +1073,7 @@
       const volunteer =
         existing.volunteer !== undefined
           ? Boolean(existing.volunteer)
-          : isKnownVolunteer(electorName);
+          : isKnownVolunteer(electorName, electorId);
       const askToVolunteer = volunteer ? false : Boolean(existing.askToVolunteer);
       const supportIndependence = independenceOptions.includes(existing.supportIndependence || demoSupportIndependence || "No Data")
         ? (existing.supportIndependence || demoSupportIndependence || "No Data")
@@ -959,6 +1092,7 @@
         poster,
         volunteer,
         askToVolunteer,
+        postalVoteRequested: postalVoteOptions.includes(existing.postalVoteRequested || "None") ? (existing.postalVoteRequested || "None") : "None",
         doNotDeliver: Boolean(existing.doNotDeliver),
         doNotContact: Boolean(existing.doNotContact)
       };
@@ -983,14 +1117,122 @@
       badgeEl.className = "profile-canvass-badge " + getPoliticalLeanClass(canvassId);
     }
 
-    function renderVotingHistory(elector) {
-      const normalizedName = String(elector.name || "").trim().toLowerCase();
-      const alwaysVotes = normalizedName === "pat postie" || normalizedName === "sam sorefeet";
+    function renderVotingHistory(elector, dob) {
+      // Anyone under 17 hasn't had the chance to vote yet, so no
+      // Voting History table is shown at all. Ages given as a range
+      // (e.g. "16/17") are kept, since the elector may already be 17.
+      const ageStr = calculateAgeDisplay(dob || "");
+      const maxAge = ageStr ? Math.max.apply(null, ageStr.split("/").map(Number)) : null;
+      if (maxAge !== null && maxAge < 17) {
+        return "";
+      }
+      const alwaysVotes = String(elector.id || "").trim() === CHRIS_GREEN_ELECTOR_ID;
       const rows = VOTING_HISTORY_YEARS.map(year => {
-        const voted = alwaysVotes && !year.includes("(Local)");
+        const voted = alwaysVotes;
         return "<tr><th scope=\"row\">" + escapeHtml(year) + "</th><td class=\"voting-history-disabled-cell\">" + (voted ? "X" : "—") + "</td></tr>";
       }).join("");
       return "<table class=\"voting-history-table\"><thead><tr><th scope=\"col\">Year</th><th scope=\"col\">" + escapeHtml(elector.name || "Elector") + "</th></tr></thead><tbody>" + rows + "</tbody></table>";
+    }
+
+    // Formats an ISO date ("2026-07-29") to match the existing Origin
+    // Data row style ("29 July 2026"). Falls back to the raw value if
+    // it isn't a recognised date.
+    function formatAttemptDateLabel(isoDate) {
+      const match = String(isoDate || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (!match) {
+        return isoDate || "";
+      }
+      const day = parseInt(match[3], 10);
+      const monthIndex = parseInt(match[2], 10) - 1;
+      const year = match[1];
+      const monthName = AI_SUMMARY_MONTH_NAMES_DISPLAY[monthIndex] || "";
+      return day + " " + monthName + " " + year;
+    }
+
+    const AI_SUMMARY_MONTH_NAMES_DISPLAY = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+
+    function renderContactHistoryBody(electorId) {
+      const attempts = loadContactAttempts(electorId);
+
+      // Newest to oldest, by date then time.
+      const sortedAttempts = attempts.slice().sort((a, b) => {
+        const aKey = (a.date || "") + " " + (a.time || "");
+        const bKey = (b.date || "") + " " + (b.time || "");
+        return bKey.localeCompare(aKey);
+      });
+
+      const attemptRows = sortedAttempts.map(attempt =>
+        "<tr><td>" + escapeHtml(formatAttemptDateLabel(attempt.date)) + "</td><td>" +
+        escapeHtml(attempt.time || "") + "</td><td>" +
+        escapeHtml(attempt.canvasser || "") + "</td><td>" +
+        escapeHtml(attempt.channel || "") + "</td><td>" +
+        escapeHtml(attempt.notes || "") + "</td></tr>"
+      ).join("");
+
+      // Every elector record originated from the same initial data
+      // import, so a "Created" entry is always shown as the final
+      // (oldest) row.
+      const originRow =
+        "<tr><td>" + escapeHtml("29 July 2026") + "</td><td>" + escapeHtml("00:01") + "</td><td>" +
+        escapeHtml("Chris Green") + "</td><td>" + escapeHtml("Origin Data") + "</td><td>" +
+        escapeHtml("Created") + "</td></tr>";
+
+      document.getElementById("contact-history-body").innerHTML = attemptRows + originRow;
+    }
+
+    function setupAddAttemptForm(electorId) {
+      const addButtonEl = document.getElementById("add-attempt-button");
+      const formEl = document.getElementById("add-attempt-form");
+      const dateEl = document.getElementById("attempt-date-input");
+      const timeEl = document.getElementById("attempt-time-input");
+      const canvasserEl = document.getElementById("attempt-canvasser-select");
+      const channelEl = document.getElementById("attempt-channel-select");
+      const notesEl = document.getElementById("attempt-notes-input");
+      const saveButtonEl = document.getElementById("attempt-save-button");
+      const cancelButtonEl = document.getElementById("attempt-cancel-button");
+
+      const canvasserNames = DEFAULT_VOLUNTEERS.map(volunteer => (volunteer.firstName + " " + volunteer.lastName).trim());
+      setSelectOptions(canvasserEl, canvasserNames, "Chris Green");
+      setSelectOptions(channelEl, CONTACT_CHANNEL_OPTIONS, "Door Knocking");
+
+      function resetForm() {
+        const now = new Date();
+        const pad = value => String(value).padStart(2, "0");
+        dateEl.value = now.getFullYear() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate());
+        timeEl.value = pad(now.getHours()) + ":" + pad(now.getMinutes());
+        canvasserEl.value = "Chris Green";
+        channelEl.value = "Door Knocking";
+        notesEl.value = "Not Home";
+      }
+
+      resetForm();
+
+      addButtonEl.addEventListener("click", () => {
+        resetForm();
+        formEl.style.display = "";
+        addButtonEl.style.display = "none";
+      });
+
+      cancelButtonEl.addEventListener("click", () => {
+        formEl.style.display = "none";
+        addButtonEl.style.display = "";
+      });
+
+      saveButtonEl.addEventListener("click", () => {
+        saveContactAttempt(electorId, {
+          date: dateEl.value,
+          time: timeEl.value,
+          canvasser: canvasserEl.value,
+          channel: channelEl.value,
+          notes: notesEl.value.trim() || "Not Home"
+        });
+        renderContactHistoryBody(electorId);
+        formEl.style.display = "none";
+        addButtonEl.style.display = "";
+      });
     }
 
     function renderProfile(elector) {
@@ -1030,9 +1272,9 @@
       document.getElementById("profile-canvass-dl").innerHTML =
         dlRow("Phone", progress.phone) +
         dlRow("Email", progress.email) +
-        dlRow("Postal Vote Status", elector.postalProxy || "None");
+        (elector.postalProxy ? dlRow("Postal Vote Status", elector.postalProxy) : "");
 
-      document.getElementById("profile-voting-history").innerHTML = renderVotingHistory(elector);
+      document.getElementById("profile-voting-history").innerHTML = renderVotingHistory(elector, progress.dob);
 
       document.getElementById("profile-membership-dl").innerHTML =
         dlRow("Volunteer Record", volunteerRecord ? (volunteerRecord.firstName + " " + volunteerRecord.lastName).trim() : "Not listed") +
@@ -1040,12 +1282,11 @@
         dlRow("Volunteer Elector ID", volunteerRecord && volunteerRecord.electorId ? volunteerRecord.electorId : "");
 
       // Every elector record originated from the same initial data
-      // import, so a "Created" entry is shown as the default first
-      // Contact History row until real canvassing contacts are logged.
-      document.getElementById("contact-history-body").innerHTML =
-        "<tr><td>" + escapeHtml("29 July 2026") + "</td><td>" + escapeHtml("00:01") + "</td><td>" +
-        escapeHtml("Chris Green") + "</td><td>" + escapeHtml("Origin Data") + "</td><td>" +
-        escapeHtml("Created") + "</td></tr>";
+      // import, so a "Created" entry is shown as the default last
+      // (oldest) Contact History row, with any logged attempts shown
+      // above it, newest to oldest.
+      renderContactHistoryBody(elector.id);
+      setupAddAttemptForm(elector.id);
 
       const preferredNameEl = document.getElementById("profile-preferred-name");
       preferredNameEl.value = progress.preferredName || elector.name || "";
@@ -1131,6 +1372,18 @@
       setSelectOptions(languageSelectEl, languageOptions, progress.firstLanguage);
       languageSelectEl.addEventListener("change", () => {
         saveProgressField(elector.id, "firstLanguage", languageSelectEl.value);
+      });
+
+      const postalVoteRowEl = document.getElementById("profile-postal-vote-row");
+      const postalVoteSelectEl = document.getElementById("profile-postal-vote-select");
+      if (elector.postalProxy) {
+        postalVoteRowEl.style.display = "none";
+      } else {
+        postalVoteRowEl.style.display = "";
+        setSelectOptions(postalVoteSelectEl, postalVoteOptions, progress.postalVoteRequested);
+      }
+      postalVoteSelectEl.addEventListener("change", () => {
+        saveProgressField(elector.id, "postalVoteRequested", postalVoteSelectEl.value);
       });
 
       const partyMemberSelectEl = document.getElementById("profile-party-member-select");
@@ -1219,7 +1472,10 @@
 
         const sheet5Data = await loadSheet5DataById(sheetUrl);
         elector.sheetDob = sheet5Data.dobById[elector.id] || "";
-        elector.sheetPreferredName = sheet5Data.preferredNameById[elector.id] || "";
+        // Legal Name (Sheet5 col K) is the authoritative elector name
+        // and default preferred name when present.
+        elector.name = sheet5Data.legalNameById[elector.id] || elector.name;
+        elector.sheetPreferredName = sheet5Data.legalNameById[elector.id] || sheet5Data.preferredNameById[elector.id] || "";
 
         renderProfile(elector);
       } catch (error) {

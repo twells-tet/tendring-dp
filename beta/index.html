@@ -584,7 +584,7 @@
 
   <script>
 
-    const PIN_GATE_CODE = "168800";
+    const PIN_GATE_CODE = "202705";
     const PIN_GATE_SESSION_KEY = "vote2027PinUnlocked";
 
     (function initPinGate() {
@@ -772,22 +772,6 @@ const state = {
   currentMapElector: null,
   expandedHouseholdElectorNav: new Set()
 };
-
-// Seed a demo poster scenario (Joe Bloggs wants a garden poster, Jane
-// Smith at the same address wants a window poster) so the Poster Sites
-// "Both" merge behaviour is always visible for display purposes on a
-// completely fresh browser/localStorage. This only runs once, on first
-// load with no saved progress, and never overwrites real user data.
-if (Object.keys(state.progress).length === 0) {
-
-  state.progress = {
-    "836408391": { poster: "Poster: Garden", partyMember: "Current" },
-    "836408392": { poster: "Poster: Window" }
-  };
-
-  saveToStorage(STORAGE_KEYS.progress, state.progress);
-
-}
 
 
 
@@ -1749,10 +1733,13 @@ async function loadElectorsFromSheet(inputUrl) {
 
 
 
-    loadSheet5DobById(inputUrl).then(dobById => {
+    loadSheet5DobById(inputUrl).then(({ dobById, legalNameById }) => {
 
       state.electors.forEach(elector => {
         elector.sheetDob = dobById[elector.id] || "";
+        // Legal Name (Sheet5 col K) is the authoritative elector name
+        // when present, overriding the main sheet's ELECTOR NAME.
+        elector.name = legalNameById[elector.id] || elector.name;
       });
 
       renderElectorList();
@@ -3675,24 +3662,27 @@ function updateVotingHistory(household) {
       ? household.electors
       : [];
 
-  const visibleElectors =
-    electors.length >= 5
-      ? electors.slice(0, 4)
-      : electors;
+    // Anyone under 17 hasn't had the chance to vote yet, so their column
+    // is dropped entirely from the Voting History table. Ages given as a
+    // range (e.g. "16/17") are kept, since the elector may already be 17.
+    const votingEligibleElectors =
+      electors.filter(elector => {
+        const maxAge = getElectorMaxAgeForVotingHistory(elector);
+        return maxAge === null || maxAge >= 17;
+      });
 
-  const DEMO_ALWAYS_VOTES_NAMES = new Set([
-    "pat postie",
-    "sam sorefeet"
-  ]);
+    const visibleElectors =
+      votingEligibleElectors.length >= 5
+        ? votingEligibleElectors.slice(0, 4)
+        : votingEligibleElectors;
 
   const electorEntries =
     visibleElectors.length
       ? visibleElectors.map(elector => {
           const rawName = String(elector.name || "Unnamed elector");
-          const normalizedName = rawName.trim().toLowerCase();
           return {
             displayName: escapeHtml(rawName),
-            alwaysVotesDemo: DEMO_ALWAYS_VOTES_NAMES.has(normalizedName)
+            alwaysVotesDemo: String(elector.id || "").trim() === CHRIS_GREEN_ELECTOR_ID
           };
         })
       : [
@@ -3711,9 +3701,7 @@ function updateVotingHistory(household) {
       "<tr>" +
       "<th scope=\"row\">" + escapeHtml(year) + "</th>" +
       electorEntries.map(entry => {
-        const voted =
-          entry.alwaysVotesDemo &&
-          !year.includes("(Local)");
+        const voted = entry.alwaysVotesDemo;
         return "<td class=\"voting-history-disabled-cell\">" + (voted ? "X" : "—") + "</td>";
       }).join("") +
       "</tr>"
@@ -4096,6 +4084,25 @@ function calculateAiSummaryAge(value) {
     }
   }
 
+  // "DD MM YYYY" / "DD/MM/YYYY" / "DD-MM-YYYY" — the sheet's
+  // day-month-year DOB format (e.g. "19 12 2010").
+  const dayMonthYearMatch = cleaned.match(/^(\d{1,2})[\s/.-](\d{1,2})[\s/.-](\d{4})$/);
+  if (dayMonthYearMatch) {
+    const day = parseInt(dayMonthYearMatch[1], 10);
+    const month = parseInt(dayMonthYearMatch[2], 10) - 1;
+    const year = parseInt(dayMonthYearMatch[3], 10);
+    if (month >= 0 && month <= 11 && day >= 1 && day <= 31) {
+      const dmyParsed = new Date(year, month, day);
+      const today = new Date();
+      let dmyAge = today.getFullYear() - dmyParsed.getFullYear();
+      const dmyMonthDiff = today.getMonth() - dmyParsed.getMonth();
+      if (dmyMonthDiff < 0 || (dmyMonthDiff === 0 && today.getDate() < dmyParsed.getDate())) {
+        dmyAge--;
+      }
+      return dmyAge >= 0 && dmyAge <= 130 ? String(dmyAge) : "";
+    }
+  }
+
   const parsed = new Date(cleaned);
   if (isNaN(parsed.getTime())) {
     return "";
@@ -4111,18 +4118,25 @@ function calculateAiSummaryAge(value) {
 
 }
 
+// Returns the oldest possible age for an elector (resolving "34/35"
+// range strings to 35), or null when no DOB is known at all. Used to
+// decide whether someone is definitely too young to have voted yet.
+function getElectorMaxAgeForVotingHistory(elector) {
+  const progressDob = (state.progress[elector.id] || {}).dob || "";
+  const knownDob = progressDob || elector.sheetDob || "";
+  const ageStr = calculateAiSummaryAge(knownDob);
+  if (!ageStr) {
+    return null;
+  }
+  const parts = ageStr.split("/").map(Number);
+  return Math.max.apply(null, parts);
+}
+
 function buildAiComments(household) {
 
   const electors = household.electors;
 
-  // Demo display names override the real elector name for these sentences
-  // only, so the app-facing demo scenario reads naturally.
-  const DEMO_PARTY_MEMBER_NAMES = {
-    "836408391": "Pat Postie"
-  };
-
   const getDisplayName = elector =>
-    DEMO_PARTY_MEMBER_NAMES[elector.id] ||
     elector.name ||
     "Unnamed elector";
 
@@ -4135,11 +4149,14 @@ function buildAiComments(household) {
     return age ? " (age " + age + ")" : "";
   };
 
-  const getDisplayNameWithAge = elector =>
-    getDisplayName(elector) + getAgeSuffix(elector);
+  // Bold display name (already HTML-escaped internally), so this must
+  // be inserted directly into the summary HTML rather than passed
+  // through escapeHtml again.
+  const getBoldDisplayName = elector =>
+    "<strong>" + escapeHtml(getDisplayName(elector)) + "</strong>" + getAgeSuffix(elector);
 
   const names =
-    electors.map(getDisplayNameWithAge);
+    electors.map(getBoldDisplayName);
 
   const sentences = [];
 
@@ -4168,7 +4185,7 @@ function buildAiComments(household) {
     }
 
     antiPlaidParts.push(
-      escapeHtml(getDisplayName(elector)) +
+      getBoldDisplayName(elector) +
       ": " +
       flags.join(", ") +
       "."
@@ -4192,7 +4209,7 @@ function buildAiComments(household) {
 
     sentences.push(
       "There is one elector in this household: " +
-      escapeHtml(names[0]) +
+      names[0] +
       "."
     );
 
@@ -4202,7 +4219,7 @@ function buildAiComments(household) {
       "There are " +
       numberToWords(names.length) +
       " electors in this household: " +
-      escapeHtml(joinNames(names)) +
+      joinNames(names) +
       "."
     );
 
@@ -4214,7 +4231,7 @@ function buildAiComments(household) {
     electors.map(elector => {
       const progress = getElectorProgress(elector.id);
       return {
-        name: getDisplayName(elector),
+        name: getBoldDisplayName(elector),
         canvassId: progress.canvassId || "No Data"
       };
     });
@@ -4246,7 +4263,7 @@ function buildAiComments(household) {
 
       const canvassSummary =
         canvassEntries.map(entry =>
-          escapeHtml(entry.name) + ": " + escapeHtml(entry.canvassId)
+          entry.name + ": " + escapeHtml(entry.canvassId)
         ).join("; ");
 
       sentences.push(
@@ -4265,7 +4282,7 @@ function buildAiComments(household) {
     electors.map(elector => {
       const progress = getElectorProgress(elector.id);
       return {
-        name: getDisplayName(elector),
+        name: getBoldDisplayName(elector),
         supportIndependence: progress.supportIndependence || "No Data"
       };
     });
@@ -4299,7 +4316,7 @@ function buildAiComments(household) {
 
       const independenceSummary =
         independenceWithData.map(entry =>
-          escapeHtml(entry.name) + " is " + (entry.supportIndependence === "Yes" ? "in favour" : "opposed")
+          entry.name + " is " + (entry.supportIndependence === "Yes" ? "in favour" : "opposed")
         ).join(". ");
 
       sentences.push(
@@ -4316,7 +4333,7 @@ function buildAiComments(household) {
   // Postal / proxy vote sentence
   const postalProxyEntries =
     electors.map(elector => ({
-      name: getDisplayName(elector),
+      name: getBoldDisplayName(elector),
       status: elector.postalProxy || ""
     }));
 
@@ -4332,7 +4349,7 @@ function buildAiComments(household) {
     if (names.length === 1) {
 
       sentences.push(
-        escapeHtml(names[0]) +
+        names[0] +
         " does not have a postal vote."
       );
 
@@ -4356,10 +4373,10 @@ function buildAiComments(household) {
       postalProxyEntries.map(entry => {
 
         if (entry.status === "Postal" || entry.status === "Proxy") {
-          return escapeHtml(entry.name) + " has a postal vote";
+          return entry.name + " has a postal vote";
         }
 
-        return escapeHtml(entry.name) + " does not have a postal vote";
+        return entry.name + " does not have a postal vote";
 
       });
 
@@ -4385,7 +4402,7 @@ function buildAiComments(household) {
     if (status) {
 
       sentences.push(
-        escapeHtml(getDisplayName(elector)) +
+        getBoldDisplayName(elector) +
         " " +
         status +
         "."
@@ -4396,7 +4413,8 @@ function buildAiComments(household) {
   });
 
 
-  return sentences.join(" ").replace(/\.\s+/g, ".<br>");
+  const joinedHtml = sentences.join(" ").replace(/\.\s+/g, ".<br>");
+  return "• " + joinedHtml.replace(/<br>/g, "<br>• ");
 
 }
 
@@ -4441,39 +4459,31 @@ function updateStats() {
 }
 
 
-// Demo electors used to showcase political-leaning colour coding:
-// these default to a specific Canvass ID until a user overrides it.
-const DEMO_PLAID_ELECTOR_NAMES = [
-  "pat postie",
-  "sam sorefeet"
-];
-const DEMO_PROBABLE_PLAID_ELECTOR_NAMES = [
-  "jane smith"
-];
+// Live data starts with no preset canvass/independence assignments —
+// electors show "No Data" until a real canvasser records it.
+const DEMO_PLAID_ELECTOR_NAMES = [];
+const DEMO_PROBABLE_PLAID_ELECTOR_NAMES = [];
 
-const DEMO_CANVASS_ID_BY_ELECTOR_ID = {
-  "801071110": "Conservative",
-  "508891699": "Labour",
-  "665650266": "Green",
-  "911051031": "Reform",
-  "693445390": "Independent",
-  "954638525": "Lib Dem",
-  "934314542": "Probable Plaid",
-  "425577355": "Conservative",
-  "234421037": "Definite Plaid"
-};
+const DEMO_CANVASS_ID_BY_ELECTOR_ID = {};
 
-const DEMO_SUPPORT_INDEPENDENCE_BY_ELECTOR_ID = {
-  "425577355": "No"
-};
+const DEMO_SUPPORT_INDEPENDENCE_BY_ELECTOR_ID = {};
 
-// Anyone listed on the Members & Activists page (DEFAULT_VOLUNTEERS)
-// defaults to "Active Volunteer" ticked here too, unless the user has
-// explicitly overridden it.
-function isKnownVolunteer(electorName) {
+// Only Chris Green (the sole regular deliverer) defaults to "Active
+// Volunteer" ticked; everyone else starts unticked until a user
+// explicitly marks them as a volunteer. Matched by Elector ID rather
+// than name, since the live Legal Name may differ from "Chris Green"
+// (e.g. "Christopher Charles Green").
+const CHRIS_GREEN_ELECTOR_ID = "234421037";
+
+function isKnownVolunteer(electorName, electorId) {
+  if (String(electorId || "").trim() === CHRIS_GREEN_ELECTOR_ID) {
+    return true;
+  }
   const normalizedName = normalizeText(electorName);
   return DEFAULT_VOLUNTEERS.some(
-    volunteer => normalizeText((volunteer.firstName + " " + volunteer.lastName).trim()) === normalizedName
+    volunteer =>
+      volunteer.regularDeliverer &&
+      normalizeText((volunteer.firstName + " " + volunteer.lastName).trim()) === normalizedName
   );
 }
 
@@ -4522,7 +4532,7 @@ function getElectorProgress(electorId, electorName) {
   const volunteer =
     existing.volunteer !== undefined
       ? Boolean(existing.volunteer)
-      : isKnownVolunteer(electorName);
+      : isKnownVolunteer(electorName, electorId);
   const askToVolunteer = volunteer ? false : Boolean(existing.askToVolunteer);
   const doNotDeliver = Boolean(existing.doNotDeliver);
   const doNotContact = Boolean(existing.doNotContact);
@@ -4914,11 +4924,12 @@ function toSheet5CsvUrl(rawUrl) {
 async function loadSheet5DobById(sheetUrl) {
 
   const dobById = {};
+  const legalNameById = {};
 
   const sheet5Url = toSheet5CsvUrl(sheetUrl);
 
   if (!sheet5Url) {
-    return dobById;
+    return { dobById, legalNameById };
   }
 
   try {
@@ -4926,7 +4937,7 @@ async function loadSheet5DobById(sheetUrl) {
     const response = await fetch(sheet5Url);
 
     if (!response.ok) {
-      return dobById;
+      return { dobById, legalNameById };
     }
 
     const rows = parseCsv(await response.text());
@@ -4935,9 +4946,14 @@ async function loadSheet5DobById(sheetUrl) {
 
       const electorId = (row[2] || "").trim();
       const rawDob = (row[9] || "").trim();
+      const legalName = (row[10] || "").trim();
 
       if (electorId && rawDob) {
         dobById[electorId] = rawDob;
+      }
+
+      if (electorId && legalName) {
+        legalNameById[electorId] = legalName;
       }
 
     });
@@ -4946,7 +4962,7 @@ async function loadSheet5DobById(sheetUrl) {
     // Sheet5 is supplementary — ignore failures.
   }
 
-  return dobById;
+  return { dobById, legalNameById };
 
 }
 
