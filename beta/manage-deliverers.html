@@ -81,7 +81,9 @@
     const DEFAULT_VOLUNTEERS = [
       { rowKey: "member-1", firstName: "Meirion", lastName: "Member", electorId: "836408391", regularDeliverer: false },
       { rowKey: "nonmember-1", firstName: "Pat", lastName: "Postie", electorId: "836408392", regularDeliverer: true },
-      { rowKey: "nonmember-2", firstName: "Sam", lastName: "Sorefeet", electorId: "934314542", regularDeliverer: false }
+      { rowKey: "nonmember-2", firstName: "Sam", lastName: "Sorefeet", electorId: "836408392", regularDeliverer: true },
+      { rowKey: "member-2", firstName: "Jane", lastName: "Smith", electorId: "934314542", regularDeliverer: true },
+      { rowKey: "member-3", firstName: "Chris", lastName: "Green", electorId: "234421037", regularDeliverer: true }
     ];
 
     const POLLING_DISTRICTS = [
@@ -91,6 +93,7 @@
 
     const DEFAULT_WALK_DELIVERERS = {
       "qb6|1": "nonmember-1",
+      "qb6|4": "member-3",
       "ra1|1": "nonmember-2"
     };
 
@@ -230,14 +233,8 @@
                 ? " - " + getWalkDescription(district.code, walkNumber)
                 : "");
 
-            const rowClass =
-              districtIndex > 0 && walkNumber === 1
-                ? " class=\"polling-district-break-row\""
-                : "";
-
             return (
-              "<tr" + rowClass + ">" +
-              "<tr" + (isDistrictStart ? " class=\"deliverer-district-start\"" : "") + ">" +
+              "<tr" + (isDistrictStart ? " class=\"polling-district-break-row\"" : "") + ">" +
                 "<td>" + escapeHtml(district.label) + "</td>" +
                 "<td>" + escapeHtml(walkLabel) + "</td>" +
                 "<td><select class=\"deliverer-row-select\" data-key=\"" + escapeHtml(key) + "\">" +

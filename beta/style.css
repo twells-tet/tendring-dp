@@ -829,7 +829,11 @@ body.mobile-mode .elector-list {
   padding: 1rem;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
   align-items: stretch;
+  align-content: stretch;
+  height: 100%;
+  box-sizing: border-box;
   max-width: 560px;
   margin: 0 auto;
   gap: 0.6rem;
@@ -881,13 +885,15 @@ body.mobile-mode .elector-list {
 @media (min-width: 1200px) {
   .search-actions-row {
     grid-template-columns: minmax(360px, 1fr) minmax(380px, 1fr);
-    align-items: start;
+    align-items: stretch;
   }
 
   .search-actions-row .export-buttons,
   .search-actions-row .quick-name-search {
     max-width: none;
     width: 100%;
+    height: 100%;
+    box-sizing: border-box;
     margin: 0;
   }
 
