@@ -942,12 +942,14 @@ body.mobile-mode .elector-list {
   cursor: not-allowed;
   width: 100%;
   box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 .polling-day-button {
-  display: inline-block;
   text-decoration: none;
-  text-align: center;
   border-color: var(--plaid-red);
   background: var(--plaid-red);
   opacity: 0.55;
@@ -959,9 +961,7 @@ body.mobile-mode .elector-list {
 }
 
 .members-activists-button {
-  display: inline-block;
   text-decoration: none;
-  text-align: center;
   border-color: var(--plaid-red);
   background: var(--plaid-red);
   opacity: 0.55;
@@ -973,14 +973,10 @@ body.mobile-mode .elector-list {
 }
 
 .run-search-button {
-  display: inline-block;
-  text-align: center;
   border-color: var(--plaid-green);
   background: var(--plaid-green);
   opacity: 0.55;
   cursor: pointer;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.9rem;
 }
 
 .run-search-button:hover {
@@ -988,8 +984,6 @@ body.mobile-mode .elector-list {
 }
 
 .display-map-button {
-  display: inline-block;
-  text-align: center;
   border-color: #2b6cb0;
   background: #2b6cb0;
   opacity: 0.55;
@@ -1001,8 +995,6 @@ body.mobile-mode .elector-list {
 }
 
 .view-all-districts-button {
-  display: inline-block;
-  text-align: center;
   border-color: var(--plaid-green);
   background: var(--plaid-green);
   opacity: 1;
@@ -1014,11 +1006,7 @@ body.mobile-mode .elector-list {
 }
 
 .data-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   text-decoration: none;
-  text-align: center;
   border-color: #2b6cb0;
   background: #2b6cb0;
   opacity: 0.55;
