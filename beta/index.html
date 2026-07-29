@@ -219,7 +219,7 @@
         <label for="polling-district">
           Polling District
           <select id="polling-district">
-            <option value="" id="polling-district-all-opt" hidden>SHOWING ALL POLLING DISTRICTS IN WARD</option>
+            <option value="" id="polling-district-all-opt" hidden>ALL POLLING DISTRICTS</option>
             <option value="qb6">QB6 (Llanengan)</option>
             <option value="ra1" selected>RA1 (Abersoch)</option>
           </select>
@@ -1466,6 +1466,7 @@ function initControls() {
 
   updateStats();
   syncHouseholdDetailsPanelHeight();
+  observeHouseholdDetailsPanelHeight();
 
   bindMapHouseholdNavigation();
 
@@ -1570,6 +1571,53 @@ function syncHouseholdDetailsPanelHeight() {
   listPanelEl.style.minHeight = targetHeightPx;
   listPanelEl.style.height = targetHeightPx;
   listPanelEl.style.maxHeight = targetHeightPx;
+
+}
+
+
+// The map panel's real height can keep changing after this function
+// has already run once (e.g. Leaflet tiles or the property image
+// finish loading asynchronously), and none of that triggers a
+// window "resize" event. Without watching for it directly, the
+// Household Details panel can get stuck at a too-small height from
+// an earlier, premature measurement until something else (like a
+// full page reload) happens to force a recalculation. A
+// ResizeObserver keeps the height in sync as soon as the map or
+// delivery panel actually change size, regardless of the cause.
+let householdDetailsHeightSyncScheduled = false;
+
+function scheduleHouseholdDetailsPanelHeightSync() {
+
+  if (householdDetailsHeightSyncScheduled) {
+    return;
+  }
+
+  householdDetailsHeightSyncScheduled = true;
+
+  requestAnimationFrame(() => {
+    householdDetailsHeightSyncScheduled = false;
+    syncHouseholdDetailsPanelHeight();
+  });
+
+}
+
+function observeHouseholdDetailsPanelHeight() {
+
+  if (
+    typeof ResizeObserver === "undefined" ||
+    !mapPanelEl ||
+    !deliveryPanelEl
+  ) {
+    return;
+  }
+
+  const resizeObserver =
+    new ResizeObserver(
+      () => scheduleHouseholdDetailsPanelHeightSync()
+    );
+
+  resizeObserver.observe(mapPanelEl);
+  resizeObserver.observe(deliveryPanelEl);
 
 }
 

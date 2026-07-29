@@ -982,11 +982,7 @@
           const wantedPollingDistrict =
             isAllDistrictsSelected
               ? ""
-              : (
-                showWalks
-                  ? normalizeText(walkDistrictSelectEl.value || "RA1")
-                  : normalizeText(filterState.pollingDistrict || "")
-              );
+              : normalizeText(walkDistrictSelectEl.value || "RA1");
 
           const filtered =
             baseFiltered.filter(elector => {
