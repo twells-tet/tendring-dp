@@ -262,14 +262,20 @@
                             }
 
                             .roof-extension {
-                                fill: url(#roof-tile-light);
-                                stroke: #4a3f33;
+                                fill: url(#roof-tile-dark);
+                                stroke: #2b2f36;
+                                stroke-width: 3;
+                            }
+
+                            .roof-flat {
+                                fill: #b9bec4;
+                                stroke: #4a4f56;
                                 stroke-width: 3;
                             }
 
                             .roof-porch {
-                                fill: url(#roof-tile-light);
-                                stroke: #4a3f33;
+                                fill: url(#roof-tile-dark);
+                                stroke: #2b2f36;
                                 stroke-width: 2;
                             }
 
@@ -653,11 +659,16 @@
                         <circle cx="618" cy="593" r="4" class="chimney-pot"/>
                         <circle cx="630" cy="593" r="4" class="chimney-pot"/>
 
-                        <path class="roof-extension" d="M191 160 H586 V425 H191 Z"/>
-                        <line class="ridge" x1="191" y1="292" x2="586" y2="292"/>
+                        <path class="roof-extension" d="M191 160 H378 V425 H191 Z"/>
+                        <line class="ridge" x1="284" y1="160" x2="284" y2="370"/>
+                        <line class="hip" x1="284" y1="370" x2="191" y2="425"/>
+                        <line class="hip" x1="284" y1="370" x2="378" y2="425"/>
                         <line class="roof-eave" x1="191" y1="160" x2="191" y2="425"/>
+                        <text x="284" y="200" class="roof-label">CROSS-GABLE</text>
+
+                        <path class="roof-flat" d="M378 160 H586 V425 H378 Z"/>
                         <line class="roof-eave" x1="586" y1="160" x2="586" y2="425"/>
-                        <text x="388" y="200" class="roof-label">EXTENSION ROOF</text>
+                        <text x="480" y="200" class="roof-label">FLAT / GLAZED ROOF</text>
 
                         <path class="roof-porch" d="M586 325 H651 V425 H586 Z"/>
                         <line class="roof-eave" x1="651" y1="325" x2="651" y2="425"/>
