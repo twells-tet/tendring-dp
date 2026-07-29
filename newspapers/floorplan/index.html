@@ -231,7 +231,78 @@
                                 stroke: #111;
                                 stroke-width: 2;
                             }
+
+                            .roof-existing {
+                                fill: url(#roof-tile-dark);
+                                stroke: #2b2f36;
+                                stroke-width: 3;
+                            }
+
+                            .roof-extension {
+                                fill: url(#roof-tile-light);
+                                stroke: #4a3f33;
+                                stroke-width: 3;
+                            }
+
+                            .roof-porch {
+                                fill: url(#roof-tile-light);
+                                stroke: #4a3f33;
+                                stroke-width: 2;
+                            }
+
+                            .ridge {
+                                stroke: #161616;
+                                stroke-width: 3.5;
+                            }
+
+                            .hip {
+                                stroke: #161616;
+                                stroke-width: 2;
+                            }
+
+                            .roof-glazing {
+                                fill: #bcdce6;
+                                fill-opacity: 0.85;
+                                stroke: #5b7f8d;
+                                stroke-width: 2;
+                            }
+
+                            .skylight {
+                                fill: #8a8a8a;
+                                stroke: #2f2f2f;
+                                stroke-width: 1.5;
+                            }
+
+                            .roof-label {
+                                font-family: Arial, Helvetica, sans-serif;
+                                font-size: 13px;
+                                font-weight: 700;
+                                text-anchor: middle;
+                                fill: #fff;
+                            }
                         </style>
+
+                        <pattern
+                            id="roof-tile-dark"
+                            width="16"
+                            height="10"
+                            patternUnits="userSpaceOnUse"
+                        >
+                            <rect width="16" height="10" fill="#5b6472"/>
+                            <path d="M0 0H16 M0 5H16" stroke="#454d59" stroke-width="1"/>
+                            <path d="M8 0V10" stroke="#454d59" stroke-width="0.5"/>
+                        </pattern>
+
+                        <pattern
+                            id="roof-tile-light"
+                            width="16"
+                            height="10"
+                            patternUnits="userSpaceOnUse"
+                        >
+                            <rect width="16" height="10" fill="#b7a58c"/>
+                            <path d="M0 0H16 M0 5H16" stroke="#9c8a72" stroke-width="1"/>
+                            <path d="M8 0V10" stroke="#9c8a72" stroke-width="0.5"/>
+                        </pattern>
 
                         <pattern
                             id="paving-pattern"
@@ -629,10 +700,10 @@
                         <text x="275" y="29" class="scale-text" text-anchor="middle">5 m</text>
                     </g>
 
-                    <g transform="translate(865 850)">
+                    <g transform="translate(70 70)">
                         <circle cx="0" cy="0" r="28" fill="#fff" stroke="#111" stroke-width="2"/>
-                        <path d="M0 -23L9 17L0 10L-9 17Z" class="north"/>
-                        <text x="0" y="-36" class="small-label">N</text>
+                        <path d="M0 -23L9 17L0 10L-9 17Z" class="north" transform="rotate(-80)"/>
+                        <text x="-35" y="-3" class="small-label">N</text>
                     </g>
 
                     <text x="500" y="908" class="subtitle">
