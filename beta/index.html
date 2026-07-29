@@ -4425,7 +4425,8 @@ function getElectorProgress(electorId, electorName) {
     partyMember,
     volunteer,
     askToVolunteer,
-    normalizedPoster
+    normalizedPoster,
+    supportIndependence
   );
 
   return {
@@ -4447,7 +4448,7 @@ function getElectorProgress(electorId, electorName) {
 
 }
 
-function applyCanvassAffinityRules(canvassId, partyMember, volunteer, askToVolunteer, poster) {
+function applyCanvassAffinityRules(canvassId, partyMember, volunteer, askToVolunteer, poster, supportIndependence) {
 
   if (
     partyMember === "Current" ||
@@ -4459,6 +4460,11 @@ function applyCanvassAffinityRules(canvassId, partyMember, volunteer, askToVolun
   }
 
   if (askToVolunteer) {
+    return canvassId === "Definite Plaid" ? "Definite Plaid" : "Probable Plaid";
+  }
+
+  // Anyone in favour of independence is at least a Probable Plaid lean.
+  if (supportIndependence === "Yes") {
     return canvassId === "Definite Plaid" ? "Definite Plaid" : "Probable Plaid";
   }
 

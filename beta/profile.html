@@ -891,7 +891,7 @@
       return cleaned || "No Data";
     }
 
-    function applyCanvassAffinityRules(canvassId, partyMember, volunteer, askToVolunteer, poster) {
+    function applyCanvassAffinityRules(canvassId, partyMember, volunteer, askToVolunteer, poster, supportIndependence) {
       if (
         partyMember === "Current" ||
         volunteer ||
@@ -901,6 +901,10 @@
         return "Definite Plaid";
       }
       if (partyMember === "Supporter" || askToVolunteer) {
+        return "Probable Plaid";
+      }
+      // Anyone in favour of independence is at least a Probable Plaid lean.
+      if (supportIndependence === "Yes") {
         return "Probable Plaid";
       }
       return normalizeCanvassId(canvassId);
@@ -938,15 +942,16 @@
           ? Boolean(existing.volunteer)
           : isKnownVolunteer(electorName);
       const askToVolunteer = volunteer ? false : Boolean(existing.askToVolunteer);
-      const canvassId = applyCanvassAffinityRules(baseCanvassId, partyMember, volunteer, askToVolunteer, poster);
+      const supportIndependence = independenceOptions.includes(existing.supportIndependence || demoSupportIndependence || "No Data")
+        ? (existing.supportIndependence || demoSupportIndependence || "No Data")
+        : "No Data";
+      const canvassId = applyCanvassAffinityRules(baseCanvassId, partyMember, volunteer, askToVolunteer, poster, supportIndependence);
 
       return {
         preferredName: existing.preferredName || sheetPreferredName || "",
         dob: existing.dob || sheetDob || "",
         canvassId: canvassIdOptions.includes(canvassId) ? canvassId : "No Data",
-        supportIndependence: independenceOptions.includes(existing.supportIndependence || demoSupportIndependence || "No Data")
-          ? (existing.supportIndependence || demoSupportIndependence || "No Data")
-          : "No Data",
+        supportIndependence,
         firstLanguage: languageOptions.includes(existing.firstLanguage || "English") ? (existing.firstLanguage || "English") : "English",
         phone: existing.phone || "",
         email: existing.email || "",
