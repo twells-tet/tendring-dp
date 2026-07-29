@@ -134,6 +134,14 @@
                                 stroke-width: 2;
                             }
 
+                            .existing-footprint {
+                                fill: none;
+                                stroke: #b3261e;
+                                stroke-width: 6;
+                                stroke-dasharray: 18 12;
+                                stroke-linecap: round;
+                            }
+
                             .boundary {
                                 stroke: #555;
                                 stroke-width: 4;
@@ -466,6 +474,20 @@
                             Bifold doors
                         </text>
                     </g>
+
+                    <path
+                        class="existing-footprint"
+                        d="
+                            M410 160
+                            H631
+                            V321
+                            H410
+                        "
+                    />
+
+                    <text x="520" y="336" class="annotation" text-anchor="middle" fill="#b3261e">
+                        Existing kitchen wall (approx.), 3.22m × 2.35m
+                    </text>
 
                     <text x="332" y="183" class="room-name">Utility</text>
                     <text x="332" y="200" class="room-area">≈ 2.0 m²</text>
