@@ -379,9 +379,9 @@
         </div>
 
 
-        <div class="ai-comments-box" id="ai-comments-box" aria-label="AI Comments">
+        <div class="ai-comments-box" id="ai-comments-box" aria-label="AI Summary">
           <div class="panel-heading">
-            <h3>AI Comments</h3>
+            <h3>AI Summary</h3>
             <button type="button" id="toggle-ai-comments" class="map-toggle-button">Hide</button>
           </div>
           <p id="ai-comments-text">—</p>
@@ -4020,6 +4020,97 @@ function buildDeliveryDescription(elector, pollingDistrict, walkNumber) {
 }
 
 
+const AI_SUMMARY_MONTH_NAMES = [
+  "january", "february", "march", "april", "may", "june",
+  "july", "august", "september", "october", "november", "december"
+];
+
+// Tries to read a birth month + year from free text, e.g. "1991-06"
+// or "June 1991" — returns { year, month } (month is 0-indexed) or
+// null if no month can be identified (just a bare year, or a full
+// day-month-year date, which are handled separately).
+function parseAiSummaryMonthYear(cleaned) {
+
+  const isoMatch = cleaned.match(/^(\d{4})-(\d{1,2})$/);
+  if (isoMatch) {
+    const year = parseInt(isoMatch[1], 10);
+    const month = parseInt(isoMatch[2], 10) - 1;
+    return month >= 0 && month <= 11 ? { year, month } : null;
+  }
+
+  const lower = cleaned.toLowerCase();
+  for (let i = 0; i < AI_SUMMARY_MONTH_NAMES.length; i++) {
+    if (new RegExp("\\b" + AI_SUMMARY_MONTH_NAMES[i] + "\\b").test(lower)) {
+      const yearMatch = cleaned.match(/(\d{4})/);
+      if (yearMatch) {
+        return { year: parseInt(yearMatch[1], 10), month: i };
+      }
+    }
+  }
+
+  return null;
+
+}
+
+// Accepts a full date ("YYYY-MM-DD") for an exact age, a birth
+// month + year ("1991-06" or "June 1991") for an age that's exact
+// outside that month and a two-way range during it (e.g. "34/35"),
+// or just a birth year ("1991") when only that much is known, in
+// which case we can't tell if the birthday has passed yet this
+// year, so we show both possible ages, e.g. "34/35".
+function calculateAiSummaryAge(value) {
+
+  const cleaned = String(value || "").trim();
+  if (!cleaned) {
+    return "";
+  }
+
+  const yearOnlyMatch = cleaned.match(/^(\d{4})$/);
+  if (yearOnlyMatch) {
+    const birthYear = parseInt(yearOnlyMatch[1], 10);
+    const currentYear = new Date().getFullYear();
+    const olderAge = currentYear - birthYear;
+    const youngerAge = olderAge - 1;
+    if (olderAge < 0 || olderAge > 130) {
+      return "";
+    }
+    return youngerAge + "/" + olderAge;
+  }
+
+  const fullDateMatch = cleaned.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (!fullDateMatch) {
+    const monthYear = parseAiSummaryMonthYear(cleaned);
+    if (monthYear) {
+      const today = new Date();
+      const olderAge = today.getFullYear() - monthYear.year;
+      if (olderAge < 0 || olderAge > 130) {
+        return "";
+      }
+      if (today.getMonth() > monthYear.month) {
+        return String(olderAge);
+      }
+      if (today.getMonth() < monthYear.month) {
+        return String(olderAge - 1);
+      }
+      return (olderAge - 1) + "/" + olderAge;
+    }
+  }
+
+  const parsed = new Date(cleaned);
+  if (isNaN(parsed.getTime())) {
+    return "";
+  }
+
+  const today = new Date();
+  let age = today.getFullYear() - parsed.getFullYear();
+  const monthDiff = today.getMonth() - parsed.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < parsed.getDate())) {
+    age--;
+  }
+  return age >= 0 && age <= 130 ? String(age) : "";
+
+}
+
 function buildAiComments(household) {
 
   const electors = household.electors;
@@ -4035,8 +4126,20 @@ function buildAiComments(household) {
     elector.name ||
     "Unnamed elector";
 
+  // Only shown alongside the name when we actually know a DOB, e.g.
+  // "Joe Bloggs (age 15)" or "Jane Smith (age 34/35)".
+  const getAgeSuffix = elector => {
+    const progressDob = (state.progress[elector.id] || {}).dob || "";
+    const knownDob = progressDob || elector.sheetDob || "";
+    const age = calculateAiSummaryAge(knownDob);
+    return age ? " (age " + age + ")" : "";
+  };
+
+  const getDisplayNameWithAge = elector =>
+    getDisplayName(elector) + getAgeSuffix(elector);
+
   const names =
-    electors.map(getDisplayName);
+    electors.map(getDisplayNameWithAge);
 
   const sentences = [];
 
@@ -4293,7 +4396,7 @@ function buildAiComments(household) {
   });
 
 
-  return sentences.join(" ");
+  return sentences.join(" ").replace(/\.\s+/g, ".<br>");
 
 }
 
