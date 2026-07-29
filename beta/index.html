@@ -4170,7 +4170,7 @@ function buildAiComments(household) {
   if (!independenceWithData.length) {
 
     sentences.push(
-      "We have no Support Independence data against them."
+      "Independence: No Data."
     );
 
   } else {
@@ -4180,21 +4180,24 @@ function buildAiComments(household) {
 
     if (independenceWithData.length === electors.length && uniqueIndependenceValues.length === 1) {
 
+      const independenceLabel =
+        uniqueIndependenceValues[0] === "Yes" ? "in favour of independence" : "opposed to independence";
+
       sentences.push(
-        "All electors in this household are recorded as Support Independence: " +
-        escapeHtml(uniqueIndependenceValues[0]) +
+        "Independence: All electors in this household are " +
+        independenceLabel +
         "."
       );
 
     } else {
 
       const independenceSummary =
-        independenceEntries.map(entry =>
-          escapeHtml(entry.name) + ": " + escapeHtml(entry.supportIndependence)
-        ).join("; ");
+        independenceWithData.map(entry =>
+          escapeHtml(entry.name) + " is " + (entry.supportIndependence === "Yes" ? "in favour" : "opposed")
+        ).join(". ");
 
       sentences.push(
-        "Support Independence data for this household: " +
+        "Independence: " +
         independenceSummary +
         "."
       );
