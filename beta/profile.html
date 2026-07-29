@@ -462,10 +462,6 @@
     };
 
     const DEFAULT_VOLUNTEERS = [
-      { rowKey: "member-1", firstName: "Meirion", lastName: "Member", regularDeliverer: false },
-      { rowKey: "nonmember-1", firstName: "Pat", lastName: "Postie", regularDeliverer: false },
-      { rowKey: "nonmember-2", firstName: "Sam", lastName: "Sorefeet", regularDeliverer: false },
-      { rowKey: "member-2", firstName: "Jane", lastName: "Smith", regularDeliverer: false },
       { rowKey: "member-3", firstName: "Chris", lastName: "Green", regularDeliverer: true }
     ];
 
@@ -520,7 +516,11 @@
     // records it.
     const DEMO_PLAID_ELECTOR_NAMES = [];
     const DEMO_PROBABLE_PLAID_ELECTOR_NAMES = [];
-    const DEMO_CANVASS_ID_BY_ELECTOR_ID = {};
+    const DEMO_CANVASS_ID_BY_ELECTOR_ID = {
+      // Chris Green is the sole real volunteer/deliverer, and a known
+      // Party supporter.
+      "234421037": "Definite Plaid"
+    };
     const DEMO_PARTY_MEMBER_BY_ELECTOR_ID = {};
     const DEMO_POSTER_BY_ELECTOR_ID = {};
     const DEMO_SUPPORT_INDEPENDENCE_BY_ELECTOR_ID = {
