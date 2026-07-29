@@ -113,11 +113,11 @@
           </tr>
         </thead>
         <tbody>
-          <tr data-row-key="member-1">
-            <td><input type="text" class="name-input first-name-input read-only-input" value="Pat" readonly title="Member name cannot be changed"></td>
-            <td><input type="text" class="name-input last-name-input read-only-input" value="Postie" readonly title="Member name cannot be changed"></td>
+          <tr data-row-key="member-3">
+            <td><input type="text" class="name-input first-name-input read-only-input" value="Chris" readonly title="Member name cannot be changed"></td>
+            <td><input type="text" class="name-input last-name-input read-only-input" value="Green" readonly title="Member name cannot be changed"></td>
             <td>
-              <input type="text" class="elector-id-input read-only-input" value="836408391" placeholder="Elector ID" readonly title="Elector ID cannot be changed">
+              <input type="text" class="elector-id-input read-only-input" value="234421037" placeholder="Elector ID" readonly title="Elector ID cannot be changed">
               <div class="elector-address-display"></div>
               <div class="elector-polling-district-display"></div>
               <div class="elector-local-authority-display">Gwynedd</div>
@@ -126,18 +126,18 @@
             <td class="placeholder-cell"><input type="email" class="placeholder-input" placeholder="elector@email.com"></td>
             <td>
               <ul class="activist-options">
-                <li><label><input type="checkbox"> Attend Action Days</label></li>
-                <li><label><input type="checkbox"> Attend social events</label></li>
-                <li><label><input type="checkbox"> Clerical work</label></li>
+                <li><label><input type="checkbox" checked> Attend Action Days</label></li>
+                <li><label><input type="checkbox" checked> Attend social events</label></li>
+                <li><label><input type="checkbox" checked> Clerical work</label></li>
                 <li><label><input type="checkbox"> Councillor</label></li>
-                <li><label><input type="checkbox"> Council Candidate</label></li>
-                <li><label><input type="checkbox"> Donate money</label></li>
-                <li><label><input type="checkbox"> Knock on doors</label></li>
-                <li><label><input type="checkbox"> Local Party Officer</label></li>
-                <li><label><input type="checkbox"> Make telephone calls</label></li>
-                <li><label><input type="checkbox"> Regular deliverer</label></li>
-                <li><label><input type="checkbox"> Stand for election</label></li>
-                <li><label><input type="checkbox"> Take leaflets to deliverers</label></li>
+                <li><label><input type="checkbox" checked> Council Candidate</label></li>
+                <li><label><input type="checkbox" checked> Donate money</label></li>
+                <li><label><input type="checkbox" checked> Knock on doors</label></li>
+                <li><label><input type="checkbox" checked> Local Party Officer</label></li>
+                <li><label><input type="checkbox" checked> Make telephone calls</label></li>
+                <li><label><input type="checkbox" checked> Regular deliverer</label></li>
+                <li><label><input type="checkbox" checked> Stand for election</label></li>
+                <li><label><input type="checkbox" checked> Take leaflets to deliverers</label></li>
               </ul>
             </td>
           </tr>
@@ -145,7 +145,7 @@
       </table>
 
       <div class="activist-category-row">
-        <h3 class="activist-category" id="volunteers-heading">Non-Member Volunteers [2]</h3>
+        <h3 class="activist-category" id="volunteers-heading">Non-Member Volunteers [0]</h3>
         <select class="add-activist-select" id="add-volunteer-select" data-table="volunteers-table" data-key-prefix="nonmember">
           <option value="" selected disabled>+ Add a volunteer</option>
           <option value="elector-id">Add using Elector ID</option>
@@ -164,56 +164,6 @@
           </tr>
         </thead>
         <tbody>
-          <tr data-row-key="nonmember-1">
-            <td><input type="text" class="name-input first-name-input" value="Pat"></td>
-            <td><input type="text" class="name-input last-name-input" value="Postie"></td>
-            <td>
-              <input type="text" class="elector-id-input" value="836408392" placeholder="Elector ID">
-              <div class="elector-address-display"></div>
-              <div class="elector-polling-district-display"></div>
-              <div class="elector-local-authority-display">Gwynedd</div>
-            </td>
-            <td class="placeholder-cell"><input type="tel" class="placeholder-input" placeholder="07700 111222"></td>
-            <td class="placeholder-cell"><input type="email" class="placeholder-input" placeholder="elector@email.com"></td>
-            <td>
-              <ul class="activist-options">
-                <li><label><input type="checkbox"> Ask to join the Party</label></li>
-                <li><label><input type="checkbox"> Attend Action Days</label></li>
-                <li><label><input type="checkbox"> Attend social events</label></li>
-                <li><label><input type="checkbox"> Clerical work</label></li>
-                <li><label><input type="checkbox"> Donate money</label></li>
-                <li><label><input type="checkbox"> Knock on doors</label></li>
-                <li><label><input type="checkbox"> Make telephone calls</label></li>
-                <li><label><input type="checkbox"> Regular deliverer</label></li>
-                <li><label><input type="checkbox"> Take leaflets to deliverers</label></li>
-              </ul>
-            </td>
-          </tr>
-          <tr data-row-key="nonmember-2">
-            <td><input type="text" class="name-input first-name-input" value="Sam"></td>
-            <td><input type="text" class="name-input last-name-input" value="Sorefeet"></td>
-            <td>
-              <input type="text" class="elector-id-input" value="934314542" placeholder="Elector ID">
-              <div class="elector-address-display"></div>
-              <div class="elector-polling-district-display"></div>
-              <div class="elector-local-authority-display">Gwynedd</div>
-            </td>
-            <td class="placeholder-cell"><input type="tel" class="placeholder-input" placeholder="07700 111222"></td>
-            <td class="placeholder-cell"><input type="email" class="placeholder-input" placeholder="elector@email.com"></td>
-            <td>
-              <ul class="activist-options">
-                <li><label><input type="checkbox"> Ask to join the Party</label></li>
-                <li><label><input type="checkbox"> Attend Action Days</label></li>
-                <li><label><input type="checkbox"> Attend social events</label></li>
-                <li><label><input type="checkbox"> Clerical work</label></li>
-                <li><label><input type="checkbox"> Donate money</label></li>
-                <li><label><input type="checkbox"> Knock on doors</label></li>
-                <li><label><input type="checkbox"> Make telephone calls</label></li>
-                <li><label><input type="checkbox"> Regular deliverer</label></li>
-                <li><label><input type="checkbox"> Take leaflets to deliverers</label></li>
-              </ul>
-            </td>
-          </tr>
         </tbody>
       </table>
 

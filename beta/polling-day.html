@@ -276,18 +276,12 @@
       JSON.parse(localStorage.getItem(STORAGE_KEYS.labelStatus) || "{}");
     const electorProgress =
       JSON.parse(localStorage.getItem(STORAGE_KEYS.progress) || "{}");
-    const DEMO_PLAID_ELECTOR_NAMES = new Set(["pat postie", "sam sorefeet"]);
-    const DEMO_PROBABLE_PLAID_ELECTOR_NAMES = new Set(["jane smith"]);
-    const DEMO_CANVASS_ID_BY_ELECTOR_ID = {
-      "801071110": "Conservative",
-      "508891699": "Labour",
-      "665650266": "Green",
-      "911051031": "Reform",
-      "693445390": "Independent",
-      "954638525": "Lib Dem",
-      "934314541": "Probable Plaid",
-      "425577355": "Conservative"
-    };
+    // Live data starts with no preset canvass assignments — electors
+    // default to "No Data" until a real canvasser records a result via
+    // their profile. Chris Green is the sole real volunteer/deliverer
+    // and a known Party supporter, so he defaults to Definite Plaid
+    // here until his profile records otherwise.
+    const CHRIS_GREEN_ELECTOR_ID = "234421037";
     const SUPPORTER_CANVASS_IDS =
       new Set(["definite plaid", "probable plaid"]);
 
@@ -305,23 +299,11 @@
     function getElectorCanvassId(elector) {
 
       const electorId = String(elector && elector.id ? elector.id : "");
-      const electorName =
-        normalizeText(elector && elector.name ? elector.name : "");
       const existing = electorProgress[electorId] || {};
-      const demoCanvassId = DEMO_CANVASS_ID_BY_ELECTOR_ID[electorId];
       const defaultCanvassId =
-        DEMO_PLAID_ELECTOR_NAMES.has(electorName)
-          ? "Definite Plaid"
-          : (DEMO_PROBABLE_PLAID_ELECTOR_NAMES.has(electorName)
-            ? "Probable Plaid"
-            : "No Data");
+        electorId === CHRIS_GREEN_ELECTOR_ID ? "Definite Plaid" : "No Data";
 
-      return (
-        existing.canvassId ||
-        existing.status ||
-        demoCanvassId ||
-        defaultCanvassId
-      );
+      return existing.canvassId || existing.status || defaultCanvassId;
 
     }
 
