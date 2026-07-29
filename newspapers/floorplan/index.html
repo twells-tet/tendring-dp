@@ -28,6 +28,29 @@
             width: 100%;
             height: auto;
         }
+
+        .floorplan-toggle {
+            display: flex;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .roof-toggle-btn {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            padding: 0.6rem 1.4rem;
+            border-radius: 0.35rem;
+            border: 1px solid #111;
+            background: #fff;
+            color: #111;
+            cursor: pointer;
+        }
+
+        .roof-toggle-btn:hover {
+            background: #111;
+            color: #fff;
+        }
     </style>
 </head>
 
@@ -56,8 +79,8 @@
 
                     <desc id="proposed-plan-desc">
                         Approximate proposed floorplan showing two bedrooms, lounge,
-                        hallway, master bedroom with en suite, bathroom, utility room,
-                        open kitchen diner, staircase, mezzanine, porch, bifold doors,
+                        hallway, bathroom, utility room,
+                        open kitchen diner, staircase, porch, bifold doors,
                         paving, French drain, stone garden steps and raised lawn.
                     </desc>
 
@@ -68,7 +91,7 @@
 
                             .wall {
                                 fill: none;
-                                stroke: #111;
+                                stroke: transparent;
                                 stroke-width: 14;
                                 stroke-linejoin: miter;
                                 stroke-linecap: square;
@@ -97,14 +120,6 @@
                                 fill: none;
                                 stroke: #5b7f8d;
                                 stroke-width: 2;
-                            }
-
-                            .mezzanine {
-                                fill: rgba(0, 0, 0, 0.025);
-                                stroke: #555;
-                                stroke-width: 3;
-                                stroke-dasharray: 10 8;
-                                stroke-linejoin: miter;
                             }
 
                             .stair-outline {
@@ -140,6 +155,22 @@
                                 fill: #ddd;
                                 stroke: #777;
                                 stroke-width: 2;
+                            }
+
+                            .existing-footprint {
+                                fill: none;
+                                stroke: #b3261e;
+                                stroke-width: 6;
+                                stroke-dasharray: 18 12;
+                                stroke-linecap: round;
+                            }
+
+                            .extension-outline {
+                                fill: none;
+                                stroke: #1a56db;
+                                stroke-width: 6;
+                                stroke-dasharray: 18 12;
+                                stroke-linecap: round;
                             }
 
                             .boundary {
@@ -223,7 +254,96 @@
                                 stroke: #111;
                                 stroke-width: 2;
                             }
+
+                            .roof-existing {
+                                fill: url(#roof-tile-dark);
+                                stroke: #2b2f36;
+                                stroke-width: 3;
+                            }
+
+                            .roof-extension {
+                                fill: url(#roof-tile-dark);
+                                stroke: #2b2f36;
+                                stroke-width: 3;
+                            }
+
+                            .roof-flat {
+                                fill: #b9bec4;
+                                stroke: #4a4f56;
+                                stroke-width: 3;
+                            }
+
+                            .roof-porch {
+                                fill: url(#roof-tile-dark);
+                                stroke: #2b2f36;
+                                stroke-width: 2;
+                            }
+
+                            .ridge {
+                                stroke: #161616;
+                                stroke-width: 3.5;
+                            }
+
+                            .hip {
+                                stroke: #161616;
+                                stroke-width: 2;
+                            }
+
+                            .roof-glazing {
+                                fill: #bcdce6;
+                                fill-opacity: 0.85;
+                                stroke: #5b7f8d;
+                                stroke-width: 2;
+                            }
+
+                            .skylight {
+                                fill: #8a8a8a;
+                                stroke: #2f2f2f;
+                                stroke-width: 1.5;
+                            }
+
+                            .roof-label {
+                                font-family: Arial, Helvetica, sans-serif;
+                                font-size: 13px;
+                                font-weight: 700;
+                                text-anchor: middle;
+                                fill: #fff;
+                            }
+
+                            .chimney {
+                                fill: #8a5a44;
+                                stroke: #4a3527;
+                                stroke-width: 1.5;
+                            }
+
+                            .chimney-pot {
+                                fill: #3a2c22;
+                                stroke: #201811;
+                                stroke-width: 1;
+                            }
                         </style>
+
+                        <pattern
+                            id="roof-tile-dark"
+                            width="16"
+                            height="10"
+                            patternUnits="userSpaceOnUse"
+                        >
+                            <rect width="16" height="10" fill="#5b6472"/>
+                            <path d="M0 0H16 M0 5H16" stroke="#454d59" stroke-width="1"/>
+                            <path d="M8 0V10" stroke="#454d59" stroke-width="0.5"/>
+                        </pattern>
+
+                        <pattern
+                            id="roof-tile-light"
+                            width="16"
+                            height="10"
+                            patternUnits="userSpaceOnUse"
+                        >
+                            <rect width="16" height="10" fill="#b7a58c"/>
+                            <path d="M0 0H16 M0 5H16" stroke="#9c8a72" stroke-width="1"/>
+                            <path d="M8 0V10" stroke="#9c8a72" stroke-width="0.5"/>
+                        </pattern>
 
                         <pattern
                             id="paving-pattern"
@@ -274,8 +394,8 @@
                         Approximate redevelopment floorplan · dimensions in metres
                     </text>
 
-                    <rect x="410" y="92" width="380" height="42" class="grass"/>
-                    <text x="490" y="116" class="small-label">RAISED GARDEN / LAWN</text>
+                    <rect x="255" y="92" width="535" height="42" class="grass"/>
+                    <text x="523" y="116" class="small-label">RAISED GARDEN / LAWN</text>
 
                     <g aria-label="Stone steps to raised garden">
                         <rect x="600" y="134" width="190" height="55" class="step"/>
@@ -291,21 +411,14 @@
                     <path
                         class="paving"
                         d="
-                            M790 134
-                            L880 134
-                            L880 650
-                            L820 650
-                            L820 605
-                            L790 605
-                            L790 560
-                            L760 560
-                            L760 585
-                            L700 585
-                            L700 820
-                            L760 820
-                            L760 700
-                            L850 700
-                            L850 134
+                            M586 134
+                            L790 134
+                            L790 793
+                            L637 793
+                            L637 425
+                            L651 425
+                            L651 325
+                            L586 325
                             Z
                         "
                     />
@@ -313,27 +426,21 @@
                     <path
                         class="french-drain"
                         d="
-                            M790 189
-                            L810 189
-                            L810 575
-                            L790 575
+                            M586 189
+                            L606 189
+                            L606 325
+                            L586 325
                             Z
 
-                            M760 560
-                            L790 560
-                            L790 585
-                            L760 585
-                            Z
-
-                            M700 585
-                            L720 585
-                            L720 820
-                            L700 820
+                            M617 425
+                            L637 425
+                            L637 793
+                            L617 793
                             Z
                         "
                     />
 
-                    <line x1="880" y1="134" x2="880" y2="820" class="boundary"/>
+                    <line x1="880" y1="134" x2="880" y2="793" class="boundary"/>
 
                     <text
                         x="902"
@@ -345,148 +452,121 @@
                         Approximate property boundary
                     </text>
 
-                    <path class="room" d="M180 560H400V820H180Z"/>
-                    <path class="room" d="M400 560H700V820H400Z"/>
-                    <path class="room" d="M180 480H400V560H180Z"/>
+                    <g class="floor-plan-only">
+                    <path class="room" d="M140 560H378V793H140Z"/>
+                    <path class="room" d="M378 560H637V793H378Z"/>
 
                     <path
                         class="room"
                         d="
-                            M180 315
-                            H255
-                            V295
-                            H410
-                            V480
-                            H180
-                            V440
+                            M140 480
+                            H378
+                            V560
                             H140
-                            V350
-                            H180
+                            V555
+                            H155
+                            V540
+                            H140
                             Z
                         "
                     />
 
-                    <rect x="255" y="160" width="155" height="52" class="room"/>
-                    <rect x="255" y="212" width="155" height="103" class="room"/>
-                    <rect x="255" y="315" width="155" height="90" class="room"/>
+                    <path
+                        class="room"
+                        d="
+                            M191 315
+                            H378
+                            V480
+                            H140
+                            V425
+                            H191
+                            Z
+                        "
+                    />
+
+                    <rect x="255" y="160" width="123" height="52" class="room"/>
+                    <rect x="255" y="212" width="123" height="103" class="room"/>
 
                     <path
                         class="room"
                         d="
                             M410 160
-                            H790
-                            V360
-                            H820
-                            V470
-                            H790
+                            H586
+                            V325
+                            H651
+                            V425
+                            H637
                             V560
-                            H700
-                            V585
-                            H400
-                            V480
                             H410
                             Z
                         "
                     />
 
-                    <rect x="790" y="360" width="65" height="110" class="room"/>
+                    <rect x="586" y="325" width="65" height="100" class="room"/>
 
                     <path
                         class="wall"
                         d="
                             M255 160
-                            H790
-                            V360
-                            H855
-                            V470
-                            H790
-                            V560
-                            H760
-                            V585
-                            H700
-                            V820
-                            H180
-                            V480
+                            H586
+                            V325
+                            H651
+                            V425
+                            H637
+                            V793
                             H140
-                            V350
-                            H180
+                            V555
+                            H155
+                            V540
+                            H140
+                            V425
+                            H191
                             V315
                             H255
                             Z
                         "
                     />
 
-                    <path class="partition" d="M410 160V405"/>
-                    <path class="partition" d="M255 212H410"/>
-                    <path class="partition" d="M255 315H410"/>
-                    <path class="partition" d="M255 405H410"/>
+                    <path class="partition" d="M378 160V480"/>
+                    <path class="partition" d="M255 212H378"/>
+                    <path class="partition" d="M255 315H378"/>
 
-                    <path
-                        class="partition"
-                        d="
-                            M180 315
-                            H255
-                            M410 405
-                            V480
-                            H180
-                        "
-                    />
+                    <path class="partition" d="M140 480H378"/>
+                    <path class="partition" d="M378 480V560"/>
+                    <path class="partition" d="M140 560H637"/>
+                    <path class="partition" d="M378 560V793"/>
+                    <path class="partition" d="M586 325V425"/>
 
-                    <path class="partition" d="M180 560H700"/>
-                    <path class="partition" d="M180 480H400"/>
-                    <path class="partition" d="M400 560V820"/>
-                    <path class="partition" d="M790 360V470"/>
+                    <rect x="325" y="472" width="50" height="17" class="opening-mask"/>
+                    <rect x="313" y="552" width="50" height="17" class="opening-mask"/>
+                    <rect x="370" y="510" width="17" height="48" class="opening-mask"/>
+                    <rect x="390" y="552" width="56" height="17" class="opening-mask"/>
+                    <rect x="578" y="354" width="17" height="42" class="opening-mask"/>
+                    <rect x="370" y="172" width="17" height="31" class="opening-mask"/>
+                    <rect x="370" y="245" width="17" height="34" class="opening-mask"/>
 
-                    <rect x="302" y="397" width="48" height="17" class="opening-mask"/>
-                    <rect x="285" y="472" width="50" height="17" class="opening-mask"/>
-                    <rect x="280" y="552" width="50" height="17" class="opening-mask"/>
-                    <rect x="392" y="510" width="17" height="48" class="opening-mask"/>
-                    <rect x="500" y="552" width="56" height="17" class="opening-mask"/>
-                    <rect x="782" y="395" width="17" height="42" class="opening-mask"/>
-                    <rect x="402" y="172" width="17" height="31" class="opening-mask"/>
-                    <rect x="402" y="245" width="17" height="34" class="opening-mask"/>
+                    <g aria-label="Staircase">
+                        <rect x="378" y="325" width="55" height="150" class="stair-outline"/>
 
-                    <g aria-label="Staircase to mezzanine">
-                        <rect x="410" y="325" width="55" height="150" class="stair-outline"/>
-
-                        <line x1="410" y1="340" x2="465" y2="340" class="stair-tread"/>
-                        <line x1="410" y1="355" x2="465" y2="355" class="stair-tread"/>
-                        <line x1="410" y1="370" x2="465" y2="370" class="stair-tread"/>
-                        <line x1="410" y1="385" x2="465" y2="385" class="stair-tread"/>
-                        <line x1="410" y1="400" x2="465" y2="400" class="stair-tread"/>
-                        <line x1="410" y1="415" x2="465" y2="415" class="stair-tread"/>
-                        <line x1="410" y1="430" x2="465" y2="430" class="stair-tread"/>
-                        <line x1="410" y1="445" x2="465" y2="445" class="stair-tread"/>
-                        <line x1="410" y1="460" x2="465" y2="460" class="stair-tread"/>
+                        <line x1="378" y1="340" x2="433" y2="340" class="stair-tread"/>
+                        <line x1="378" y1="355" x2="433" y2="355" class="stair-tread"/>
+                        <line x1="378" y1="370" x2="433" y2="370" class="stair-tread"/>
+                        <line x1="378" y1="385" x2="433" y2="385" class="stair-tread"/>
+                        <line x1="378" y1="400" x2="433" y2="400" class="stair-tread"/>
+                        <line x1="378" y1="415" x2="433" y2="415" class="stair-tread"/>
+                        <line x1="378" y1="430" x2="433" y2="430" class="stair-tread"/>
+                        <line x1="378" y1="445" x2="433" y2="445" class="stair-tread"/>
+                        <line x1="378" y1="460" x2="433" y2="460" class="stair-tread"/>
 
                         <line
-                            x1="437"
+                            x1="405"
                             y1="452"
-                            x2="437"
+                            x2="405"
                             y2="345"
                             class="dimension"
                             marker-end="url(#arrow)"
                         />
                     </g>
-
-                    <path
-                        class="mezzanine"
-                        d="
-                            M410 325
-                            H500
-                            V250
-                            H790
-                            V160
-                            H410
-                            Z
-                        "
-                    />
-
-                    <text x="610" y="194" class="small-label">MEZZANINE ABOVE</text>
-                    <text x="610" y="212" class="room-area">
-                        Inverted-L study / double-bedroom-size platform
-                    </text>
-                    <text x="610" y="229" class="room-area">Approx. 13–15 m²</text>
 
                     <line x1="470" y1="160" x2="585" y2="160" class="glazing"/>
                     <line x1="470" y1="154" x2="585" y2="154" class="glazing-detail"/>
@@ -498,113 +578,173 @@
                     </text>
 
                     <g aria-label="Bifold doors">
-                        <rect x="782" y="220" width="17" height="105" class="opening-mask"/>
+                        <rect x="578" y="220" width="17" height="105" class="opening-mask"/>
 
                         <path
                             d="
-                                M790 220
-                                L808 242
-                                L790 264
-                                L808 286
-                                L790 308
-                                L808 325
+                                M586 220
+                                L604 242
+                                L586 264
+                                L604 286
+                                L586 308
+                                L604 325
                             "
                             class="glazing"
                         />
 
                         <text
-                            x="828"
+                            x="624"
                             y="273"
                             class="annotation"
-                            transform="rotate(90 828 273)"
+                            transform="rotate(90 624 273)"
                             text-anchor="middle"
                         >
                             Bifold doors
                         </text>
                     </g>
 
-                    <text x="332" y="183" class="room-name">Utility</text>
-                    <text x="332" y="200" class="room-area">≈ 2.0 m²</text>
+                    </g>
 
-                    <text x="332" y="255" class="room-name">Bathroom</text>
-                    <text x="332" y="274" class="room-area">≈ 5.0 m²</text>
+                    <path
+                        class="existing-footprint"
+                        d="
+                            M140 425
+                            V793
+                            H637
+                            V425
+                            H586
+                            M191 425
+                            H140
+                        "
+                    />
 
-                    <text x="332" y="353" class="room-name">En Suite</text>
-                    <text x="332" y="372" class="room-area">≈ 3.8 m²</text>
+                    <path
+                        class="existing-footprint"
+                        d="
+                            M191 315
+                            V425
+                        "
+                    />
 
-                    <text x="275" y="390" class="room-name">Master Bedroom</text>
-                    <text x="275" y="410" class="room-area">≈ 12.5–13.0 m²</text>
+                    <path
+                        class="existing-footprint"
+                        d="
+                            M255 160
+                            V315
+                            H191
+                        "
+                    />
 
-                    <text x="290" y="520" class="room-name">Hallway</text>
-                    <text x="290" y="539" class="room-area">≈ 3.4 m²</text>
+                    <path
+                        class="extension-outline"
+                        d="
+                            M255 160
+                            H586
+                            V425
+                        "
+                    />
 
-                    <text x="290" y="687" class="room-name">Bedroom 2</text>
-                    <text x="290" y="706" class="room-area">≈ 11.7 m²</text>
+                    <g id="roof-plan" style="display:none">
+                        <path class="roof-existing" d="M140 425 H637 V793 H140 Z"/>
+                        <line class="ridge" x1="140" y1="609" x2="637" y2="609"/>
+                        <line class="ridge" x1="420.5" y1="160" x2="420.5" y2="504"/>
+                        <line class="roof-eave" x1="140" y1="425" x2="140" y2="793"/>
+                        <line class="roof-eave" x1="637" y1="425" x2="637" y2="793"/>
+                        <text x="388" y="700" class="roof-label">EXISTING ROOF (steep slate gable)</text>
 
-                    <text x="550" y="687" class="room-name">Lounge</text>
-                    <text x="550" y="706" class="room-area">≈ 13.0 m²</text>
+                        <rect x="140" y="593" width="26" height="32" class="chimney"/>
+                        <circle cx="147" cy="593" r="4" class="chimney-pot"/>
+                        <circle cx="159" cy="593" r="4" class="chimney-pot"/>
 
-                    <text x="625" y="390" class="room-name">Kitchen / Diner</text>
-                    <text x="625" y="410" class="room-area">Approx. 33–35 m²</text>
+                        <rect x="611" y="593" width="26" height="32" class="chimney"/>
+                        <circle cx="618" cy="593" r="4" class="chimney-pot"/>
+                        <circle cx="630" cy="593" r="4" class="chimney-pot"/>
 
-                    <text x="822" y="410" class="small-label">PORCH</text>
-                    <text x="822" y="428" class="room-area">≈ 3.0 m²</text>
+                        <path class="roof-extension" d="M255 160 H586 V425 H191 V315 H255 Z"/>
+                        <line class="hip" x1="420.5" y1="340" x2="586" y2="425"/>
+                        <line class="hip" x1="420.5" y1="340" x2="191" y2="425"/>
+                        <line class="hip" x1="420.5" y1="340" x2="255" y2="315"/>
+                        <text x="420" y="200" class="roof-label">NEW ROOF (slate, matching existing)</text>
 
-                    <text x="810" y="665" class="annotation" text-anchor="middle">
-                        Grey stone paving slabs / setts
-                    </text>
+                        <path class="roof-porch" d="M586 325 H651 V425 H586 Z"/>
+                        <line class="ridge" x1="586" y1="375" x2="651" y2="375"/>
+                    </g>
 
-                    <text x="810" y="683" class="annotation" text-anchor="middle">
-                        wrapping around right-hand side
-                    </text>
+                    <g class="floor-plan-only">
+                    <text x="317" y="183" class="room-name">Utility</text>
+                    <text x="317" y="200" class="room-area">≈ 1.6 m²</text>
+
+                    <text x="317" y="255" class="room-name">Bathroom</text>
+                    <text x="317" y="274" class="room-area">≈ 4.0 m²</text>
+
+                    <text x="259" y="405" class="room-name">Bedroom 1</text>
+                    <text x="259" y="424" class="room-area">≈ 8.6 m²</text>
+
+                    <text x="259" y="520" class="room-name">Hallway</text>
+                    <text x="259" y="537" class="room-area">3.40m × 1.2m</text>
+                    <text x="259" y="553" class="room-area">≈ 4.1 m²</text>
+
+                    <text x="259" y="660" class="room-name">Bedroom 2</text>
+                    <text x="259" y="679" class="room-area">3.47m × 3.44m</text>
+                    <text x="259" y="696" class="room-area">≈ 11.9 m²</text>
+
+                    <text x="507" y="660" class="room-name">Lounge</text>
+                    <text x="507" y="679" class="room-area">3.78m × 3.35m</text>
+                    <text x="507" y="696" class="room-area">≈ 12.7 m²</text>
+
+                    <text x="498" y="295" class="small-label">KITCHEN / DINER</text>
+
+                    <text x="618" y="368" class="small-label">PORCH</text>
+                    <text x="618" y="386" class="room-area">≈ 3.0 m²</text>
+                    </g>
 
                     <text
-                        x="744"
+                        x="627"
                         y="720"
                         class="annotation"
-                        transform="rotate(90 744 720)"
+                        transform="rotate(90 627 720)"
                         text-anchor="middle"
                     >
                         French drain
                     </text>
 
                     <line
-                        x1="180"
-                        y1="858"
-                        x2="790"
-                        y2="858"
+                        x1="140"
+                        y1="831"
+                        x2="637"
+                        y2="831"
                         class="dimension"
                         marker-start="url(#arrow)"
                         marker-end="url(#arrow)"
                     />
 
-                    <line x1="180" y1="827" x2="180" y2="872" class="dimension-extension"/>
-                    <line x1="790" y1="827" x2="790" y2="872" class="dimension-extension"/>
+                    <line x1="140" y1="800" x2="140" y2="845" class="dimension-extension"/>
+                    <line x1="637" y1="800" x2="637" y2="845" class="dimension-extension"/>
 
-                    <text x="485" y="849" class="dimension-text">
-                        Approx. 8.9 m overall width
+                    <text x="388" y="822" class="dimension-text">
+                        Approx. 7.3 m overall width
                     </text>
 
                     <line
                         x1="930"
                         y1="160"
                         x2="930"
-                        y2="820"
+                        y2="793"
                         class="dimension"
                         marker-start="url(#arrow)"
                         marker-end="url(#arrow)"
                     />
 
                     <line x1="890" y1="160" x2="944" y2="160" class="dimension-extension"/>
-                    <line x1="890" y1="820" x2="944" y2="820" class="dimension-extension"/>
+                    <line x1="890" y1="793" x2="944" y2="793" class="dimension-extension"/>
 
                     <text
                         x="950"
-                        y="490"
+                        y="476"
                         class="dimension-text"
-                        transform="rotate(90 950 490)"
+                        transform="rotate(90 950 476)"
                     >
-                        Approx. 10.4 m overall depth
+                        Approx. 9.2 m overall depth
                     </text>
 
                     <g transform="translate(70 876)">
@@ -624,10 +764,10 @@
                         <text x="275" y="29" class="scale-text" text-anchor="middle">5 m</text>
                     </g>
 
-                    <g transform="translate(865 850)">
+                    <g transform="translate(70 70)">
                         <circle cx="0" cy="0" r="28" fill="#fff" stroke="#111" stroke-width="2"/>
-                        <path d="M0 -23L9 17L0 10L-9 17Z" class="north"/>
-                        <text x="0" y="-36" class="small-label">N</text>
+                        <path d="M0 -23L9 17L0 10L-9 17Z" class="north" transform="rotate(-80)"/>
+                        <text x="-35" y="-3" class="small-label">N</text>
                     </g>
 
                     <text x="500" y="908" class="subtitle">
@@ -635,9 +775,39 @@
                     </text>
                 </svg>
 
+                <div class="floorplan-toggle">
+                    <button type="button" id="roof-toggle-btn" class="roof-toggle-btn" aria-pressed="false">
+                        Show roof plan
+                    </button>
+                </div>
+
             </div>
         </div>
     </main>
+
+    <script>
+        (function () {
+            var btn = document.getElementById('roof-toggle-btn');
+            var roofPlan = document.getElementById('roof-plan');
+            var floorPlanParts = document.querySelectorAll('.floor-plan-only');
+
+            if (!btn || !roofPlan) return;
+
+            var showingRoof = false;
+
+            btn.addEventListener('click', function () {
+                showingRoof = !showingRoof;
+
+                roofPlan.style.display = showingRoof ? '' : 'none';
+                floorPlanParts.forEach(function (el) {
+                    el.style.display = showingRoof ? 'none' : '';
+                });
+
+                btn.textContent = showingRoof ? 'Show floor plan' : 'Show roof plan';
+                btn.setAttribute('aria-pressed', showingRoof ? 'true' : 'false');
+            });
+        })();
+    </script>
 
 </body>
 </html>
