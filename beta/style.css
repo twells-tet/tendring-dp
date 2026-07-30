@@ -627,8 +627,13 @@ body.mobile-mode .elector-list {
 }
 
 .quick-name-search-first-name-label {
-  white-space: nowrap;
-  flex-basis: 260px;
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.quick-name-search-last-name-label,
+.quick-name-search-postcode-label {
+  min-width: 0;
 }
 
 .filter-section {
@@ -913,7 +918,7 @@ body.mobile-mode .elector-list {
 }
 
 .quick-name-search-fixed-label {
-  flex: 0 1 220px;
+  flex: 1 1 220px;
 }
 
 .quick-search-action-button {
