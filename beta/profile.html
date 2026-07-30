@@ -147,6 +147,29 @@
       margin-top: 0.5rem;
     }
 
+    .attempt-notes-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex: 1;
+    }
+
+    .attempt-not-home-label {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.85rem;
+      color: #555;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    #attempt-notes-input:disabled {
+      background: #eee;
+      color: #888;
+      cursor: not-allowed;
+    }
+
     .attempt-save-button,
     .attempt-cancel-button {
       padding: 0.35rem 0.9rem;
@@ -377,7 +400,13 @@
             </div>
             <div class="profile-field-row">
               <span class="profile-field-label">Notes</span>
-              <input type="text" id="attempt-notes-input" class="profile-field-select">
+              <span class="attempt-notes-wrap">
+                <label class="attempt-not-home-label">
+                  <input type="checkbox" id="attempt-not-home-checkbox">
+                  Not Home
+                </label>
+                <input type="text" id="attempt-notes-input" class="profile-field-select">
+              </span>
             </div>
             <div class="add-attempt-form-buttons">
               <button type="button" id="attempt-save-button" class="attempt-save-button">Save Attempt</button>
@@ -431,9 +460,8 @@
     const CONTACT_CHANNEL_OPTIONS = [
       "Door Knocking",
       "Telephone Call",
-      "Text Message",
-      "Email",
-      "Letter"
+      "Social Media",
+      "Survey"
     ];
 
     function loadContactAttempts(electorId) {
@@ -462,7 +490,7 @@
     };
 
     const DEFAULT_VOLUNTEERS = [
-      { rowKey: "member-3", firstName: "Chris", lastName: "Green", regularDeliverer: true }
+      { rowKey: "member-3", firstName: "Chris", lastName: "Green", electorId: "234421037", regularDeliverer: true }
     ];
 
     const DEFAULT_WALK_DELIVERERS = {
@@ -996,7 +1024,7 @@
           rowKey: volunteer.rowKey,
           firstName: override.firstName || volunteer.firstName,
           lastName: override.lastName || volunteer.lastName,
-          electorId: override.electorId || "",
+          electorId: override.electorId || volunteer.electorId || "",
           regularDeliverer:
             regularDelivererOverrides[volunteer.rowKey] !== undefined
               ? Boolean(regularDelivererOverrides[volunteer.rowKey])
@@ -1194,6 +1222,7 @@
       const timeEl = document.getElementById("attempt-time-input");
       const canvasserEl = document.getElementById("attempt-canvasser-select");
       const channelEl = document.getElementById("attempt-channel-select");
+      const notHomeEl = document.getElementById("attempt-not-home-checkbox");
       const notesEl = document.getElementById("attempt-notes-input");
       const saveButtonEl = document.getElementById("attempt-save-button");
       const cancelButtonEl = document.getElementById("attempt-cancel-button");
@@ -1202,6 +1231,23 @@
       setSelectOptions(canvasserEl, canvasserNames, "Chris Green");
       setSelectOptions(channelEl, CONTACT_CHANNEL_OPTIONS, "Door Knocking");
 
+      // "Not Home" is a tickbox: when checked, the Notes box is locked
+      // to "Not Home" and disabled; when unchecked, Notes reverts to a
+      // freeform field for the canvasser's own text.
+      function applyNotHomeState() {
+        if (notHomeEl.checked) {
+          notesEl.value = "Not Home";
+          notesEl.disabled = true;
+        } else {
+          if (notesEl.value === "Not Home") {
+            notesEl.value = "";
+          }
+          notesEl.disabled = false;
+        }
+      }
+
+      notHomeEl.addEventListener("change", applyNotHomeState);
+
       function resetForm() {
         const now = new Date();
         const pad = value => String(value).padStart(2, "0");
@@ -1209,7 +1255,8 @@
         timeEl.value = pad(now.getHours()) + ":" + pad(now.getMinutes());
         canvasserEl.value = "Chris Green";
         channelEl.value = "Door Knocking";
-        notesEl.value = "Not Home";
+        notHomeEl.checked = true;
+        applyNotHomeState();
       }
 
       resetForm();
@@ -1231,7 +1278,7 @@
           time: timeEl.value,
           canvasser: canvasserEl.value,
           channel: channelEl.value,
-          notes: notesEl.value.trim() || "Not Home"
+          notes: notHomeEl.checked ? "Not Home" : (notesEl.value.trim() || "Not Home")
         });
         renderContactHistoryBody(electorId);
         formEl.style.display = "none";

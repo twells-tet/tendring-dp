@@ -627,8 +627,13 @@ body.mobile-mode .elector-list {
 }
 
 .quick-name-search-first-name-label {
-  white-space: nowrap;
-  flex-basis: 260px;
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.quick-name-search-last-name-label,
+.quick-name-search-postcode-label {
+  min-width: 0;
 }
 
 .filter-section {
@@ -881,7 +886,6 @@ body.mobile-mode .elector-list {
 .quick-name-search-id-row {
   margin-top: 1.5rem;
   padding-top: 1rem;
-  border-top: 1px dashed var(--border);
 }
 
 @media (min-width: 1200px) {
@@ -913,7 +917,7 @@ body.mobile-mode .elector-list {
 }
 
 .quick-name-search-fixed-label {
-  flex: 0 1 220px;
+  flex: 1 1 220px;
 }
 
 .quick-search-action-button {
@@ -2155,6 +2159,13 @@ body.mobile-mode .elector-list {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.76rem;
+  table-layout: fixed;
+}
+
+.voting-history-table th:first-child,
+.voting-history-table td:first-child {
+  width: 8rem;
+  white-space: nowrap;
 }
 
 .voting-history-table th,
@@ -2163,6 +2174,7 @@ body.mobile-mode .elector-list {
   padding: 0.25rem 0.35rem;
   text-align: left;
   vertical-align: top;
+  overflow-wrap: break-word;
 }
 
 .voting-history-table thead th {
