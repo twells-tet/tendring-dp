@@ -91,6 +91,12 @@
       color: #aaa;
     }
 
+    .voting-history-table th:first-child,
+    .voting-history-table td:first-child {
+      width: 9.5em;
+      white-space: nowrap;
+    }
+
     .profile-anti-plaid {
       display: flex;
       flex-wrap: wrap;
@@ -490,7 +496,7 @@
     };
 
     const DEFAULT_VOLUNTEERS = [
-      { rowKey: "member-3", firstName: "Chris", lastName: "Green", electorId: "234421037", regularDeliverer: true }
+      { rowKey: "member-3", firstName: "Chris", lastName: "Green", electorId: "12345679", regularDeliverer: true }
     ];
 
     const DEFAULT_WALK_DELIVERERS = {
@@ -547,14 +553,14 @@
     const DEMO_CANVASS_ID_BY_ELECTOR_ID = {
       // Chris Green is the sole real volunteer/deliverer, and a known
       // Party supporter.
-      "234421037": "Definite Plaid"
+      "12345679": "Definite Plaid"
     };
     const DEMO_PARTY_MEMBER_BY_ELECTOR_ID = {};
     const DEMO_POSTER_BY_ELECTOR_ID = {};
     const DEMO_SUPPORT_INDEPENDENCE_BY_ELECTOR_ID = {
       // Chris Green is the sole real volunteer/deliverer, and is a
       // known independence supporter.
-      "234421037": "Yes"
+      "12345679": "Yes"
     };
 
     const POLLING_DISTRICT_LABELS = {
@@ -1068,7 +1074,50 @@
     // explicitly marks them as a volunteer. Matched by Elector ID rather
     // than name, since the live Legal Name may differ from "Chris Green"
     // (e.g. "Christopher Charles Green").
-    const CHRIS_GREEN_ELECTOR_ID = "234421037";
+    const CHRIS_GREEN_ELECTOR_ID = "12345679";
+    const CHRIS_GREEN_HOUSEHOLD_ID = "12345678";
+    const CHRIS_GREEN_DOB = "1991-06-14";
+
+    // Chris Green isn't a real row in the live Google Sheet — he's a
+    // fictional demo volunteer used to showcase the volunteer/canvass
+    // features. Build a synthetic elector record for him so his
+    // profile, Quick Lookup, and Current List entries all work.
+    function buildChrisGreenDemoElector() {
+      return {
+        id: CHRIS_GREEN_ELECTOR_ID,
+        name: "Christopher Green",
+        address: "12 Lôn Garmon, Abersoch, Pwllheli",
+        addressLine1: "12 Lôn Garmon",
+        addressLine2: "Abersoch",
+        postcode: "LL53 7AE",
+        householdId: CHRIS_GREEN_HOUSEHOLD_ID,
+        localAuthority: "Gwynedd",
+        senedd: "Gwynedd Maldwyn",
+        westminster: "Dwyfor Meirionnydd",
+        ward: "Abersoch gyda Llanengan",
+        pollingDistrict: "QB6",
+        pollingElectorNumber: "999",
+        community: "Llanengan",
+        deliveryWalk: "1",
+        deliveryOrder: "1",
+        deliverer: "Chris Green",
+        subRoad: "Lôn Garmon",
+        uprn: "900000001",
+        electorIdValue: CHRIS_GREEN_ELECTOR_ID,
+        lat: 52.8202,
+        lng: -4.5117,
+        postalProxy: formatPostalProxy(""),
+        pvStatusRaw: "",
+        sourceRow: -1,
+        householdKey: "chris-green-household",
+        householdGroupKey: "chris-green-household",
+        electorsInHousehold: 1,
+        householdNumber: null,
+        electorNumber: null,
+        displayId: CHRIS_GREEN_ELECTOR_ID,
+        sheetDob: CHRIS_GREEN_DOB
+      };
+    }
 
     function isKnownVolunteer(electorName, electorId) {
       if (String(electorId || "").trim() === CHRIS_GREEN_ELECTOR_ID) {
@@ -1505,6 +1554,11 @@
         const rows = parseCsv(await response.text());
         const headers = rows[0].map(normalizeHeader);
         const allElectors = rows.slice(1).map((row, index) => mapRowToElector(row, headers, index));
+
+        if (!allElectors.some(candidate => candidate.id === CHRIS_GREEN_ELECTOR_ID)) {
+          allElectors.push(buildChrisGreenDemoElector());
+        }
+
         const elector = allElectors.find(candidate => candidate.id === wantedId);
 
         if (!elector) {
@@ -1522,7 +1576,14 @@
         }
 
         const sheet5Data = await loadSheet5DataById(sheetUrl);
-        elector.sheetDob = sheet5Data.dobById[elector.id] || "";
+        // Chris Green's DOB isn't recorded in the live Sheet5 (he's a
+        // demo volunteer record), so apply his known demo DOB as a
+        // fallback regardless of whether his row is a real sheet entry
+        // or the synthetic record built above.
+        if (!sheet5Data.dobById[CHRIS_GREEN_ELECTOR_ID]) {
+          sheet5Data.dobById[CHRIS_GREEN_ELECTOR_ID] = CHRIS_GREEN_DOB;
+        }
+        elector.sheetDob = sheet5Data.dobById[elector.id] || elector.sheetDob || "";
         // Legal Name (Sheet5 col K) is the authoritative elector name
         // and default preferred name when present.
         elector.name = sheet5Data.legalNameById[elector.id] || elector.name;

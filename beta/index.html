@@ -1132,6 +1132,18 @@ function initControls() {
     }
   );
 
+  subroadFilterDistrictEl.addEventListener(
+    "change",
+    () => {
+
+      state.householdPageIndex = 0;
+
+      populateSubroadFilterOptions();
+      renderElectorList();
+
+    }
+  );
+
 
   quickSearchButtonEl.addEventListener(
     "click",
@@ -1777,6 +1789,12 @@ async function loadElectorsFromSheet(inputUrl) {
 
 
 
+    if (!electors.some(e => e.id === CHRIS_GREEN_ELECTOR_ID)) {
+      electors.push(buildChrisGreenDemoElector());
+    }
+
+
+
     state.electors =
       assignHouseholdLabels(
         electors
@@ -1786,8 +1804,16 @@ async function loadElectorsFromSheet(inputUrl) {
 
     loadSheet5DobById(inputUrl).then(({ dobById, legalNameById }) => {
 
+      // Chris Green's DOB isn't recorded in the live Sheet5 (he's a
+      // demo volunteer record), so apply his known demo DOB as a
+      // fallback regardless of whether his row is a real sheet entry
+      // or the synthetic record built above.
+      if (!dobById[CHRIS_GREEN_ELECTOR_ID]) {
+        dobById[CHRIS_GREEN_ELECTOR_ID] = CHRIS_GREEN_DOB;
+      }
+
       state.electors.forEach(elector => {
-        elector.sheetDob = dobById[elector.id] || "";
+        elector.sheetDob = dobById[elector.id] || elector.sheetDob || "";
         // Legal Name (Sheet5 col K) is the authoritative elector name
         // when present, overriding the main sheet's ELECTOR NAME.
         elector.name = legalNameById[elector.id] || elector.name;
@@ -3875,7 +3901,7 @@ function getTotalWalkCountForDistrict(pollingDistrict) {
 // "Volunteer Deliverer" shown here always agrees with whatever was
 // assigned (or left unassigned) on that page.
 const DEFAULT_VOLUNTEERS = [
-  { rowKey: "member-3", firstName: "Chris", lastName: "Green", electorId: "234421037", regularDeliverer: true }
+  { rowKey: "member-3", firstName: "Chris", lastName: "Green", electorId: "12345679", regularDeliverer: true }
 ];
 
 const DEFAULT_WALK_DELIVERERS = {
@@ -4188,6 +4214,62 @@ function getElectorMaxAgeForVotingHistory(elector) {
   return Math.max.apply(null, parts);
 }
 
+// Parses a DOB string into an exact JS Date, but only when the value
+// specifies a full day/month/year (either ISO "YYYY-MM-DD" or the
+// sheet's "DD MM YYYY" / "DD/MM/YYYY" / "DD-MM-YYYY" format) — a bare
+// year or month+year isn't precise enough to compute an exact future
+// birthday, so this returns null for those.
+function parseAiSummaryExactDob(value) {
+
+  const cleaned = String(value || "").trim();
+  if (!cleaned) {
+    return null;
+  }
+
+  const isoMatch = cleaned.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (isoMatch) {
+    const year = parseInt(isoMatch[1], 10);
+    const month = parseInt(isoMatch[2], 10) - 1;
+    const day = parseInt(isoMatch[3], 10);
+    if (month >= 0 && month <= 11 && day >= 1 && day <= 31) {
+      const parsed = new Date(year, month, day);
+      if (!isNaN(parsed.getTime())) {
+        return parsed;
+      }
+    }
+    return null;
+  }
+
+  const dayMonthYearMatch = cleaned.match(/^(\d{1,2})[\s/.-](\d{1,2})[\s/.-](\d{4})$/);
+  if (dayMonthYearMatch) {
+    const day = parseInt(dayMonthYearMatch[1], 10);
+    const month = parseInt(dayMonthYearMatch[2], 10) - 1;
+    const year = parseInt(dayMonthYearMatch[3], 10);
+    if (month >= 0 && month <= 11 && day >= 1 && day <= 31) {
+      const parsed = new Date(year, month, day);
+      if (!isNaN(parsed.getTime())) {
+        return parsed;
+      }
+    }
+  }
+
+  return null;
+
+}
+
+// Formats a Date as e.g. "14 June 2033" for the AI Summary text.
+function formatAiSummaryDate(date) {
+  const monthName =
+    AI_SUMMARY_MONTH_NAMES[date.getMonth()];
+  return (
+    date.getDate() +
+    " " +
+    monthName.charAt(0).toUpperCase() + monthName.slice(1) +
+    " " +
+    date.getFullYear()
+  );
+}
+
 function buildAiComments(household) {
 
   const electors = household.electors;
@@ -4209,10 +4291,16 @@ function buildAiComments(household) {
   // be inserted directly into the summary HTML rather than passed
   // through escapeHtml again.
   const getBoldDisplayName = elector =>
+    "<strong>" + escapeHtml(getDisplayName(elector)) + "</strong>";
+
+  // Age is only shown once, alongside the name in the household-size
+  // bullet (the first bullet) — every other bullet just uses the
+  // plain bold name via getBoldDisplayName above.
+  const getBoldDisplayNameWithAge = elector =>
     "<strong>" + escapeHtml(getDisplayName(elector)) + "</strong>" + getAgeSuffix(elector);
 
   const names =
-    electors.map(getBoldDisplayName);
+    electors.map(getBoldDisplayNameWithAge);
 
   const sentences = [];
 
@@ -4280,6 +4368,63 @@ function buildAiComments(household) {
     );
 
   }
+
+
+  // Under-18 milestone sentence(s) — only when we know an exact DOB
+  // (a full day/month/year, not just a year or month/year) and the
+  // elector isn't 18 yet. Under 16s get both their 16th and 18th
+  // birthdays; 16/17 year olds just get their 18th, since turning 16
+  // isn't a voting-eligibility milestone for them anymore.
+  electors.forEach(elector => {
+
+    const progressDob = (state.progress[elector.id] || {}).dob || "";
+    const knownDob = progressDob || elector.sheetDob || "";
+    const exactDob = parseAiSummaryExactDob(knownDob);
+
+    if (!exactDob) {
+      return;
+    }
+
+    const today = new Date();
+    let exactAge = today.getFullYear() - exactDob.getFullYear();
+    const monthDiff = today.getMonth() - exactDob.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < exactDob.getDate())) {
+      exactAge--;
+    }
+
+    if (exactAge >= 18) {
+      return;
+    }
+
+    const turn18Date =
+      new Date(exactDob.getFullYear() + 18, exactDob.getMonth(), exactDob.getDate());
+
+    if (exactAge < 16) {
+
+      const turn16Date =
+        new Date(exactDob.getFullYear() + 16, exactDob.getMonth(), exactDob.getDate());
+
+      sentences.push(
+        getBoldDisplayName(elector) +
+        " will turn 16 on " +
+        formatAiSummaryDate(turn16Date) +
+        " and 18 on " +
+        formatAiSummaryDate(turn18Date) +
+        "."
+      );
+
+    } else {
+
+      sentences.push(
+        getBoldDisplayName(elector) +
+        " will turn 18 on " +
+        formatAiSummaryDate(turn18Date) +
+        "."
+      );
+
+    }
+
+  });
 
 
   // Canvass data sentence
@@ -4523,11 +4668,11 @@ const DEMO_PROBABLE_PLAID_ELECTOR_NAMES = [];
 const DEMO_CANVASS_ID_BY_ELECTOR_ID = {
   // Chris Green is the sole real volunteer/deliverer, and a known
   // Party supporter.
-  "234421037": "Definite Plaid"
+  "12345679": "Definite Plaid"
 };
 
 const DEMO_SUPPORT_INDEPENDENCE_BY_ELECTOR_ID = {
-  "234421037": "Yes"
+  "12345679": "Yes"
 };
 
 // Only Chris Green (the sole regular deliverer) defaults to "Active
@@ -4535,7 +4680,50 @@ const DEMO_SUPPORT_INDEPENDENCE_BY_ELECTOR_ID = {
 // explicitly marks them as a volunteer. Matched by Elector ID rather
 // than name, since the live Legal Name may differ from "Chris Green"
 // (e.g. "Christopher Charles Green").
-const CHRIS_GREEN_ELECTOR_ID = "234421037";
+const CHRIS_GREEN_ELECTOR_ID = "12345679";
+const CHRIS_GREEN_HOUSEHOLD_ID = "12345678";
+const CHRIS_GREEN_DOB = "1991-06-14";
+
+// Chris Green isn't a real row in the live Google Sheet — he's a
+// fictional demo volunteer used to showcase the volunteer/canvass
+// features. Build a synthetic elector record for him so his profile,
+// Quick Lookup, and Current List entries all work.
+function buildChrisGreenDemoElector() {
+  return {
+    id: CHRIS_GREEN_ELECTOR_ID,
+    name: "Christopher Green",
+    address: "12 Lôn Garmon, Abersoch, Pwllheli",
+    addressLine1: "12 Lôn Garmon",
+    addressLine2: "Abersoch",
+    postcode: "LL53 7AE",
+    householdId: CHRIS_GREEN_HOUSEHOLD_ID,
+    localAuthority: "Gwynedd",
+    senedd: "Gwynedd Maldwyn",
+    westminster: "Dwyfor Meirionnydd",
+    ward: "Abersoch gyda Llanengan",
+    pollingDistrict: "QB6",
+    pollingElectorNumber: "999",
+    community: "Llanengan",
+    deliveryWalk: "1",
+    deliveryOrder: "1",
+    deliverer: "Chris Green",
+    subRoad: "Lôn Garmon",
+    uprn: "900000001",
+    electorIdValue: CHRIS_GREEN_ELECTOR_ID,
+    lat: 52.8202,
+    lng: -4.5117,
+    postalProxy: formatPostalProxy(""),
+    pvStatusRaw: "",
+    sourceRow: -1,
+    householdKey: "chris-green-household",
+    householdGroupKey: "chris-green-household",
+    electorsInHousehold: 1,
+    householdNumber: null,
+    electorNumber: null,
+    displayId: CHRIS_GREEN_ELECTOR_ID,
+    sheetDob: CHRIS_GREEN_DOB
+  };
+}
 
 function isKnownVolunteer(electorName, electorId) {
   if (String(electorId || "").trim() === CHRIS_GREEN_ELECTOR_ID) {
@@ -4761,23 +4949,36 @@ function getActiveElectors() {
 // Populates the Filter by Subroad picker with every distinct Subroad
 // found for the currently selected Polling District (RA1 by default),
 // so users can narrow Household Details down to a single Subroad/walk
-// area, mirroring the Subroad picker on the Manage Walks page.
+// area, mirroring the Subroad picker on the Manage Walks page. The
+// Polling District dropdown next to it normally just mirrors the main
+// Polling District selector at the top of the page (and stays
+// disabled) - but when "View All Polling Districts" is active, that
+// top selector is blank (showing every district at once), so this
+// dropdown is enabled instead, letting the user pick RA1 or QB6 (not
+// both) to scope the Subroad list/filter independently.
 function populateSubroadFilterOptions() {
 
-  const selectedDistrict = pollingDistrictEl.value;
+  const viewingAllDistricts = !pollingDistrictEl.value;
 
-  if (
-    [...subroadFilterDistrictEl.options].some(
-      option => option.value === selectedDistrict
-    )
-  ) {
-    subroadFilterDistrictEl.value = selectedDistrict;
+  subroadFilterDistrictEl.disabled = !viewingAllDistricts;
+
+  if (!viewingAllDistricts) {
+
+    const selectedDistrict = pollingDistrictEl.value;
+
+    const matchingOption =
+      [...subroadFilterDistrictEl.options].find(
+        option => option.value.toLowerCase() === selectedDistrict.toLowerCase()
+      );
+
+    if (matchingOption) {
+      subroadFilterDistrictEl.value = matchingOption.value;
+    }
+
   }
 
-  subroadFilterDistrictEl.disabled = true;
-
   const wantedDistrict =
-    normalizeText(pollingDistrictEl.value);
+    normalizeText(subroadFilterDistrictEl.value);
 
   const previousSelection =
     subroadFilterSubroadEl.value;
@@ -4863,7 +5064,7 @@ function getFilteredActiveElectors() {
     normalizeText(subroadFilterSubroadEl.value).trim();
 
   const subroadFilterDistrict =
-    normalizeText(pollingDistrictEl.value).trim();
+    normalizeText(subroadFilterDistrictEl.value).trim();
 
   return getActiveElectors().filter(elector => {
 
@@ -4913,10 +5114,11 @@ function getFilteredActiveElectors() {
 
     if (subroadFilter) {
 
-      if (
-        normalizeText(elector.subRoad) !== subroadFilter ||
-        normalizeText(elector.pollingDistrict) !== subroadFilterDistrict
-      ) {
+      if (normalizeText(elector.subRoad) !== subroadFilter) {
+        return false;
+      }
+
+      if (subroadFilterDistrict && normalizeText(elector.pollingDistrict) !== subroadFilterDistrict) {
         return false;
       }
 
