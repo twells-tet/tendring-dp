@@ -84,11 +84,11 @@
                 <div class="signup-date-range" id="signup-date-range">
                     <label class="signup-field" for="signup-start-date">
                         Start date
-                        <input type="date" id="signup-start-date" min="2026-08-01" value="2026-08-03">
+                        <input type="date" id="signup-start-date">
                     </label>
                     <label class="signup-field" for="signup-end-date">
                         End date
-                        <input type="date" id="signup-end-date" min="2026-08-01" value="2026-08-09">
+                        <input type="date" id="signup-end-date">
                     </label>
                 </div>
             </div>
@@ -213,8 +213,27 @@
             });
         });
 
-        const DEFAULT_START_DATE = "2026-08-03";
-        const DEFAULT_END_DATE = "2026-08-09";
+        function toIsoDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            return year + "-" + month + "-" + day;
+        }
+
+        function addDays(date, days) {
+            const result = new Date(date);
+            result.setDate(result.getDate() + days);
+            return result;
+        }
+
+        const today = new Date();
+        const tomorrow = addDays(today, 1);
+        const TOMORROW_ISO = toIsoDate(tomorrow);
+        const DEFAULT_START_DATE = TOMORROW_ISO;
+        const DEFAULT_END_DATE = toIsoDate(addDays(tomorrow, 7));
+
+        startDateEl.min = TOMORROW_ISO;
+        endDateEl.min = TOMORROW_ISO;
 
         function updateDateRangeAvailability() {
             const durationChoice = durationRadios.find(radio => radio.checked).value;
@@ -240,6 +259,20 @@
         }
 
         updateDateRangeAvailability();
+
+        function parseIsoDate(isoDate) {
+            const [year, month, day] = isoDate.split("-").map(Number);
+            return new Date(year, month - 1, day);
+        }
+
+        startDateEl.addEventListener("change", () => {
+            if (startDateEl.value) {
+                endDateEl.min = startDateEl.value;
+                if (!endDateEl.value || endDateEl.value < startDateEl.value) {
+                    endDateEl.value = toIsoDate(addDays(parseIsoDate(startDateEl.value), 7));
+                }
+            }
+        });
 
         function updateDeliveryDaysAvailability() {
             const durationChoice = durationRadios.find(radio => radio.checked).value;
@@ -319,7 +352,7 @@
                     ? formatDate(startDate) + " to " + formatDate(endDate)
                     : durationChoice === "later"
                         ? "To be decided"
-                        : "Until further notice (from 1 August 2026)";
+                        : "Until further notice (from " + formatDate(TOMORROW_ISO) + ")";
 
             const subject = "Tarian Newspaper delivery sign-up";
             const bodyLines = [
