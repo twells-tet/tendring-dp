@@ -2165,7 +2165,8 @@ body.mobile-mode .elector-list {
 
 .voting-history-table th:first-child,
 .voting-history-table td:first-child {
-  width: 3.5rem;
+  width: 8rem;
+  white-space: nowrap;
 }
 
 .voting-history-table th,
