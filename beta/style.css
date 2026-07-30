@@ -2155,6 +2155,12 @@ body.mobile-mode .elector-list {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.76rem;
+  table-layout: fixed;
+}
+
+.voting-history-table th:first-child,
+.voting-history-table td:first-child {
+  width: 3.5rem;
 }
 
 .voting-history-table th,
@@ -2163,6 +2169,7 @@ body.mobile-mode .elector-list {
   padding: 0.25rem 0.35rem;
   text-align: left;
   vertical-align: top;
+  overflow-wrap: break-word;
 }
 
 .voting-history-table thead th {
