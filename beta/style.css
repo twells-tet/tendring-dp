@@ -218,7 +218,7 @@ body.pin-locked > *:not(#pin-gate) {
 
 .page-footer .disclaimer,
 .page-footer .mapping-attribution {
-  margin: 0.35rem 0;
+  margin: 0.35rem auto 0;
   font-size: 0.72rem;
   line-height: 1.25;
   white-space: normal;
@@ -595,11 +595,11 @@ body.mobile-mode .elector-list {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 0.75rem;
-  padding: 1rem;
+  padding: 0.65rem;
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
-  gap: 1rem;
+  gap: 0.6rem;
 }
 
 .quick-name-search label {
@@ -687,11 +687,11 @@ body.mobile-mode .elector-list {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 0.75rem;
-  padding: 1rem;
+  padding: 0.65rem;
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
-  gap: 1rem;
+  gap: 0.6rem;
 }
 
 .quick-name-search label {
@@ -861,7 +861,7 @@ body.mobile-mode .elector-list {
 
 .quick-name-search-head {
   justify-content: space-between;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.4rem;
 }
 
 .quick-name-search-head.panel-heading {
@@ -880,12 +880,12 @@ body.mobile-mode .elector-list {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
-  gap: 1rem;
+  gap: 0.6rem;
 }
 
 .quick-name-search-id-row {
-  margin-top: 1.5rem;
-  padding-top: 1rem;
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
 }
 
 @media (min-width: 1200px) {
