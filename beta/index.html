@@ -294,16 +294,13 @@
           <button type="button" id="toggle-quick-lookup" class="map-toggle-button quick-lookup-toggle-button">Hide</button>
         </div>
         <div class="quick-name-search-row" id="quick-lookup-row">
-          <label for="quick-search-first-name" class="quick-name-search-first-name-label">
-            Search by name OR postcode
-            <input type="text" id="quick-search-first-name" placeholder="First name">
-          </label>
-
-          <label for="quick-search-last-name" class="quick-name-search-last-name-label">
-            <input type="text" id="quick-search-last-name" placeholder="Last name" aria-label="Last name">
+          <label for="quick-search-name" class="quick-name-search-first-name-label">
+            Search by name
+            <input type="text" id="quick-search-name" placeholder="Name">
           </label>
 
           <label for="quick-search-postcode" class="quick-name-search-postcode-label quick-name-search-fixed-label">
+            Search by postcode
             <input type="text" id="quick-search-postcode" placeholder="LL53 7AA" aria-label="Search by postcode">
           </label>
 
@@ -314,6 +311,12 @@
             <input type="text" id="quick-search-elector-id" placeholder="Search by Elector ID" aria-label="Search by Elector ID">
           </label>
           <button type="button" id="quick-search-id-button" class="add-filter-button quick-search-action-button">Search by Elector ID</button>
+        </div>
+        <div class="quick-name-search-row quick-name-search-id-row" id="quick-lookup-household-id-row">
+          <label for="quick-search-household-id" class="quick-name-search-fixed-label">
+            <input type="text" id="quick-search-household-id" placeholder="Search by Household ID" aria-label="Search by Household ID">
+          </label>
+          <button type="button" id="quick-search-household-id-button" class="add-filter-button quick-search-action-button">Search by Household ID</button>
         </div>
       </section>
     </div>
@@ -941,11 +944,8 @@ const subroadFilterDistrictEl =
 const subroadFilterSubroadEl =
   document.getElementById("subroad-filter-subroad-select");
 
-const quickSearchFirstNameEl =
-  document.getElementById("quick-search-first-name");
-
-const quickSearchLastNameEl =
-  document.getElementById("quick-search-last-name");
+const quickSearchNameEl =
+  document.getElementById("quick-search-name");
 
 const quickSearchPostcodeEl =
   document.getElementById("quick-search-postcode");
@@ -958,6 +958,12 @@ const quickSearchIdInputEl =
 
 const quickSearchIdButtonEl =
   document.getElementById("quick-search-id-button");
+
+const quickSearchHouseholdIdInputEl =
+  document.getElementById("quick-search-household-id");
+
+const quickSearchHouseholdIdButtonEl =
+  document.getElementById("quick-search-household-id-button");
 
 const statLoadedEl =
   document.getElementById("stat-loaded");
@@ -1132,13 +1138,7 @@ function initControls() {
     () => {
 
       const filterState = {
-        nameSearch:
-          [
-            quickSearchFirstNameEl.value.trim(),
-            quickSearchLastNameEl.value.trim()
-          ]
-            .filter(Boolean)
-            .join(" "),
+        nameSearch: quickSearchNameEl.value.trim(),
         postcodeSearch: quickSearchPostcodeEl.value.trim()
       };
 
@@ -1181,6 +1181,56 @@ function initControls() {
 
       if (event.key === "Enter") {
         doQuickElectorIdLookup();
+      }
+
+    }
+  );
+
+
+  function doQuickHouseholdIdLookup() {
+
+    const householdId =
+      quickSearchHouseholdIdInputEl.value.trim();
+
+    if (!householdId) {
+      return;
+    }
+
+    const normalizedHouseholdId =
+      normalizeText(householdId);
+
+    const matchedElector =
+      (state.electors || []).find(
+        elector =>
+          normalizeText(elector.householdId || "") ===
+          normalizedHouseholdId
+      );
+
+    if (!matchedElector) {
+      window.alert(
+        "No electors found for Household ID \"" + householdId + "\"."
+      );
+      return;
+    }
+
+    window.location.href =
+      "profile.html?id=" + encodeURIComponent(matchedElector.id);
+
+  }
+
+
+  quickSearchHouseholdIdButtonEl.addEventListener(
+    "click",
+    doQuickHouseholdIdLookup
+  );
+
+
+  quickSearchHouseholdIdInputEl.addEventListener(
+    "keydown",
+    event => {
+
+      if (event.key === "Enter") {
+        doQuickHouseholdIdLookup();
       }
 
     }
@@ -1819,6 +1869,13 @@ function mapRowToElector(row, headers, index) {
 
 
 
+  const householdId =
+    data.householdid ||
+    row[19] ||
+    "";
+
+
+
   const name =
     data.name ||
     data.elector ||
@@ -1863,6 +1920,8 @@ function mapRowToElector(row, headers, index) {
     addressLine2: data.address2 || "",
 
     postcode,
+
+    householdId: String(householdId || ""),
 
 
     localAuthority:
