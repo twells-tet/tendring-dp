@@ -3943,7 +3943,7 @@ function updateDeliveryDetails(elector) {
     (elector && elector.pollingDistrict) || "";
 
   deliveryPollingDistrictEl.textContent =
-    districtForLink || "";
+    elector ? formatPollingDistrictSummary(elector) : "";
 
   // The Walk shown here can be reassigned on the Manage Walks page,
   // either per-household or in bulk for a whole Subroad - if an
@@ -4251,7 +4251,7 @@ function buildAiComments(household) {
     if (canvassWithData.length === electors.length && uniqueCanvassIds.length === 1) {
 
       sentences.push(
-        "All electors in this household are recorded as " +
+        (electors.length === 1 ? "The elector is recorded as " : "All electors in this household are recorded as ") +
         escapeHtml(uniqueCanvassIds[0]) +
         "."
       );
