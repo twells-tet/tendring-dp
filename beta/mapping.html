@@ -1458,9 +1458,18 @@
 
           messageEl.textContent = "";
 
+          const totalElectors = filtered.length;
+
+          const electorsShown =
+            plottable.reduce(
+              (sum, household) => sum + (household.electorCount || 0),
+              0
+            );
+
           summaryEl.textContent =
             plottable.length +
             " household" + (plottable.length === 1 ? "" : "s") +
+            " (" + electorsShown + " elector" + (electorsShown === 1 ? "" : "s") + ")" +
             " shown on the map" +
             (
               missingCoords
@@ -1470,7 +1479,7 @@
             (
               truncated
                 ? " Only the first " + MAX_HOUSEHOLDS + " households are shown (" +
-                  totalHouseholds + " matched)."
+                  totalHouseholds + " households, " + totalElectors + " electors matched)."
                 : ""
             );
 
