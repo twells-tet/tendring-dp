@@ -443,10 +443,7 @@
 
             <dt>Subscription</dt>
             <dd>
-              <select id="newspaper-subscription-select" disabled>
-                <option value=""></option>
-                <option value="Y">Y</option>
-              </select>
+              <span id="delivery-subscription">—</span>
             </dd>
           </dl>
 
@@ -975,8 +972,8 @@ const sortOrderLinkEl =
 const deliveryDelivererEl =
   document.getElementById("delivery-deliverer");
 
-const newspaperSubscriptionSelectEl =
-  document.getElementById("newspaper-subscription-select");
+const deliverySubscriptionEl =
+  document.getElementById("delivery-subscription");
 
 const deliveryPollingDistrictEl =
   document.getElementById("delivery-polling-district");
@@ -4350,8 +4347,10 @@ function updateDeliveryDetails(elector) {
       ? getAssignedDelivererName(districtForLink, effectiveWalk)
       : "—";
 
-  newspaperSubscriptionSelectEl.value =
-    elector && elector.newspaperSubscribed ? "Y" : "";
+  deliverySubscriptionEl.textContent =
+    elector && elector.newspaperSubscriptionText
+      ? elector.newspaperSubscriptionText
+      : "—";
 
 }
 
@@ -5805,8 +5804,13 @@ function applyNewspapersDataToElectors(electors, dataByHouseholdId) {
       elector.deliveryOrder = entry.sortOrder;
     }
 
+    // Any non-blank value in NEWSPAPERS column C (SUBSCRIPTION) counts
+    // as a positive subscription; the Deliverer/Walk Details panel
+    // displays the raw text from that column rather than a fixed "Y".
+    elector.newspaperSubscriptionText =
+      String(entry.subscription || "").trim();
     elector.newspaperSubscribed =
-      String(entry.subscription || "").trim().toUpperCase() === "Y";
+      Boolean(elector.newspaperSubscriptionText);
 
     // NEWSPAPERS is the master source for Do Not Canvass ("DO NOT
     // CANVASS", column P) and Do Not Deliver ("DO NOT DELIVER", column
