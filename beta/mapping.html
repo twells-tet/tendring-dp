@@ -115,6 +115,7 @@
           <select id="mapping-filter-type">
             <option value="" selected>No filter</option>
             <option value="age-known">Age Known</option>
+            <option value="anti-plaid">Anti Plaid</option>
             <option value="first-language-english" disabled>First Language: English</option>
             <option value="first-language-welsh" disabled>First Language: Welsh</option>
             <option value="likely-conservative" disabled>Likely Conservative</option>
@@ -1292,6 +1293,10 @@
               if (!electorVotedAtLeastOnceSinceYear(elector, 2015)) {
                 return false;
               }
+            }
+
+            if (wantedFilterType === "anti-plaid") {
+              return hasAntiPlaidFlag(electorProgress);
             }
 
             if (hasAntiPlaidFlag(electorProgress)) {
