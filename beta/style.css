@@ -513,6 +513,10 @@ body.mobile-mode .elector-list {
   font-size: 0.95rem;
 }
 
+.divisions-toggle-button.divisions-toggle-button--show {
+  color: var(--plaid-red);
+}
+
 
 .filter-grid label {
   margin-bottom: 0;

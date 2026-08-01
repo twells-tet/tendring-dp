@@ -348,8 +348,9 @@
 
     }
 
-    // The "NEWSPAPERS" tab holds a SUBSCRIPTION column ("Y" for active
-    // subscribers) keyed by Household ID, mirroring the main list.
+    // The "NEWSPAPERS" tab holds authoritative Walk/Subroad/Sort Order
+    // and Subscription data, keyed by Household ID — mirrors index.html's
+    // loadNewspapersDataByHouseholdId/applyNewspapersDataToElectors.
     function toNewspapersCsvUrl(rawUrl) {
 
       const match =
@@ -367,14 +368,14 @@
 
     }
 
-    async function loadNewspaperSubscriptionByHouseholdId(sheetUrl) {
+    async function loadNewspapersDataByHouseholdId(sheetUrl) {
 
-      const subscribedByHouseholdId = {};
+      const dataByHouseholdId = {};
 
       const newspapersUrl = toNewspapersCsvUrl(sheetUrl);
 
       if (!newspapersUrl) {
-        return subscribedByHouseholdId;
+        return dataByHouseholdId;
       }
 
       try {
@@ -382,7 +383,7 @@
         const response = await fetch(newspapersUrl);
 
         if (!response.ok) {
-          return subscribedByHouseholdId;
+          return dataByHouseholdId;
         }
 
         const rows = parseCsv(await response.text());
@@ -390,14 +391,17 @@
         rows.slice(1).forEach(row => {
 
           const householdId = (row[1] || "").trim();
-          const subscription = (row[2] || "").trim();
 
           if (!householdId) {
             return;
           }
 
-          subscribedByHouseholdId[householdId] =
-            subscription.toUpperCase() === "Y";
+          dataByHouseholdId[householdId] = {
+            subscription: (row[2] || "").trim(),
+            walk: (row[9] || "").trim(),
+            subRoad: (row[10] || "").trim(),
+            sortOrder: (row[11] || "").trim()
+          };
 
         });
 
@@ -405,7 +409,36 @@
         // NEWSPAPERS tab is supplementary — ignore failures.
       }
 
-      return subscribedByHouseholdId;
+      return dataByHouseholdId;
+
+    }
+
+    function applyNewspapersDataToElectors(electors, dataByHouseholdId) {
+
+      electors.forEach(elector => {
+
+        const entry = dataByHouseholdId[elector.householdId];
+
+        if (!entry) {
+          return;
+        }
+
+        if (entry.walk) {
+          elector.deliveryWalk = entry.walk;
+        }
+
+        if (entry.subRoad) {
+          elector.subRoad = entry.subRoad;
+        }
+
+        if (entry.sortOrder) {
+          elector.deliveryOrder = entry.sortOrder;
+        }
+
+        elector.newspaperSubscribed =
+          String(entry.subscription || "").trim().toUpperCase() === "Y";
+
+      });
 
     }
 
@@ -1017,14 +1050,14 @@
           dobById[CHRIS_GREEN_ELECTOR_ID] = CHRIS_GREEN_DOB;
         }
 
-        const subscribedByHouseholdId =
-          await loadNewspaperSubscriptionByHouseholdId(sheetUrl);
-
         electors.forEach(elector => {
           elector.sheetDob = dobById[elector.id] || elector.sheetDob || "";
-          elector.newspaperSubscribed =
-            Boolean(subscribedByHouseholdId[elector.householdId]);
         });
+
+        const newspapersDataByHouseholdId =
+          await loadNewspapersDataByHouseholdId(sheetUrl);
+
+        applyNewspapersDataToElectors(electors, newspapersDataByHouseholdId);
 
         // Initialise the Filter dropdown from whatever filter was active on
         // the main list when "View Households on Map" was clicked, so the
