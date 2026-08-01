@@ -257,6 +257,7 @@
         <select id="filter-type">
           <option value="" selected>No filter</option>
           <option value="age-known">Age Known</option>
+          <option value="anti-plaid">Anti Plaid</option>
           <option value="first-language-english" disabled>First Language: English</option>
           <option value="first-language-welsh" disabled>First Language: Welsh</option>
           <option value="likely-conservative" disabled>Likely Conservative</option>
@@ -2491,7 +2492,7 @@ function renderElectorList() {
 
   const householdHasAntiPlaid =
     household.electors.some(
-      e => hasAntiPlaidFlag(getElectorProgress(e.id))
+      e => hasAntiPlaidFlag(getElectorProgress(e.id, e.name, e))
     );
 
 
@@ -2578,7 +2579,8 @@ function renderElectorList() {
       const progress =
         getElectorProgress(
           elector.id,
-          elector.name
+          elector.name,
+          elector
         );
 
 
@@ -2832,7 +2834,8 @@ function renderElectorList() {
             type="checkbox"
             class="do-not-deliver-checkbox"
             data-id="${escapeHtmlAttr(elector.id)}"
-            ${progress.doNotDeliver ? "checked" : ""}>
+            ${progress.doNotDeliver ? "checked" : ""}
+            ${progress.masterDoNotDeliver ? "disabled title=\"Sourced from NEWSPAPERS (master data) - cannot be changed here\"" : ""}>
             DO NOT DELIVER
           </label>
 
@@ -2841,7 +2844,8 @@ function renderElectorList() {
             type="checkbox"
             class="do-not-contact-checkbox"
             data-id="${escapeHtmlAttr(elector.id)}"
-            ${progress.doNotContact ? "checked" : ""}>
+            ${progress.doNotContact ? "checked" : ""}
+            ${progress.masterDoNotContact ? "disabled title=\"Sourced from NEWSPAPERS (master data) - cannot be changed here\"" : ""}>
             DO NOT CONTACT
           </label>
 
@@ -4588,7 +4592,7 @@ function buildAiComments(household) {
 
   electors.forEach(elector => {
 
-    const progress = getElectorProgress(elector.id);
+    const progress = getElectorProgress(elector.id, elector.name, elector);
 
     if (!hasAntiPlaidFlag(progress)) {
       return;
@@ -5013,7 +5017,7 @@ function isKnownVolunteer(electorName, electorId) {
   );
 }
 
-function getElectorProgress(electorId, electorName) {
+function getElectorProgress(electorId, electorName, elector) {
 
   const existing = state.progress[electorId] || {};
 
@@ -5060,8 +5064,10 @@ function getElectorProgress(electorId, electorName) {
       ? Boolean(existing.volunteer)
       : isKnownVolunteer(electorName, electorId);
   const askToVolunteer = volunteer ? false : Boolean(existing.askToVolunteer);
-  const doNotDeliver = Boolean(existing.doNotDeliver);
-  const doNotContact = Boolean(existing.doNotContact);
+  const doNotDeliver = Boolean(existing.doNotDeliver) || Boolean(elector && elector.masterDoNotDeliver);
+  const doNotContact = Boolean(existing.doNotContact) || Boolean(elector && elector.masterDoNotContact);
+  const masterDoNotDeliver = Boolean(elector && elector.masterDoNotDeliver);
+  const masterDoNotContact = Boolean(elector && elector.masterDoNotContact);
   const canvassId = applyCanvassAffinityRules(
     baseCanvassId,
     partyMember,
@@ -5085,7 +5091,9 @@ function getElectorProgress(electorId, electorName) {
     volunteer,
     askToVolunteer,
     doNotDeliver,
-    doNotContact
+    doNotContact,
+    masterDoNotDeliver,
+    masterDoNotContact
   };
 
 }
@@ -5415,6 +5423,14 @@ function getFilteredActiveElectors() {
 
     }
 
+    if (filterType === "anti-plaid") {
+
+      if (!hasAntiPlaidFlag(getElectorProgress(elector.id, elector.name, elector))) {
+        return false;
+      }
+
+    }
+
     if (addressSearch) {
 
       const electorAddress =
@@ -5704,7 +5720,9 @@ async function loadNewspapersDataByHouseholdId(sheetUrl) {
         walk: (row[8] || "").trim(),
         subRoad: (row[9] || "").trim(),
         pollingDistrict: (row[10] || "").trim(),
-        sortOrder: (row[11] || "").trim()
+        sortOrder: (row[11] || "").trim(),
+        doNotCanvass: Boolean((row[15] || "").trim()),
+        doNotDeliver: Boolean((row[16] || "").trim())
       };
 
     });
@@ -5789,6 +5807,13 @@ function applyNewspapersDataToElectors(electors, dataByHouseholdId) {
 
     elector.newspaperSubscribed =
       String(entry.subscription || "").trim().toUpperCase() === "Y";
+
+    // NEWSPAPERS is the master source for Do Not Canvass ("DO NOT
+    // CANVASS", column P) and Do Not Deliver ("DO NOT DELIVER", column
+    // Q). These override/force the household's Anti-Plaid checkboxes
+    // and cannot be unset from the elector's own progress data.
+    elector.masterDoNotContact = Boolean(entry.doNotCanvass);
+    elector.masterDoNotDeliver = Boolean(entry.doNotDeliver);
 
   });
 

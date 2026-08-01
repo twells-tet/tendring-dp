@@ -476,7 +476,9 @@
             addressLine1: (row[3] || "").trim(),
             walk: (row[8] || "").trim(),
             subRoad: (row[9] || "").trim(),
-            sortOrder: (row[11] || "").trim()
+            sortOrder: (row[11] || "").trim(),
+            doNotCanvass: Boolean((row[15] || "").trim()),
+            doNotDeliver: Boolean((row[16] || "").trim())
           };
 
         });
@@ -517,6 +519,10 @@
 
         elector.newspaperSubscribed =
           String(entry.subscription || "").trim().toUpperCase() === "Y";
+
+        // NEWSPAPERS is the master source for Do Not Canvass/Deliver.
+        elector.masterDoNotContact = Boolean(entry.doNotCanvass);
+        elector.masterDoNotDeliver = Boolean(entry.doNotDeliver);
 
       });
 
@@ -800,7 +806,7 @@
 
     }
 
-    function getElectorProgress(electorId, progress) {
+    function getElectorProgress(electorId, progress, elector) {
 
       const existing = progress[electorId] || {};
 
@@ -811,8 +817,8 @@
         phone: existing.phone || "",
         email: existing.email || "",
         dob: existing.dob || "",
-        doNotDeliver: Boolean(existing.doNotDeliver),
-        doNotContact: Boolean(existing.doNotContact)
+        doNotDeliver: Boolean(existing.doNotDeliver) || Boolean(elector && elector.masterDoNotDeliver),
+        doNotContact: Boolean(existing.doNotContact) || Boolean(elector && elector.masterDoNotContact)
       };
 
     }
@@ -1199,7 +1205,7 @@
             }
 
             const electorProgress =
-              getElectorProgress(elector.id, progress);
+              getElectorProgress(elector.id, progress, elector);
 
             if (wantedFilterType === "age-known") {
               const knownDob = electorProgress.dob || elector.sheetDob || "";

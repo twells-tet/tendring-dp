@@ -711,7 +711,9 @@
             walk: (row[8] || "").trim(),
             subRoad: (row[9] || "").trim(),
             pollingDistrict: (row[10] || "").trim(),
-            sortOrder: (row[11] || "").trim()
+            sortOrder: (row[11] || "").trim(),
+            doNotCanvass: Boolean((row[15] || "").trim()),
+            doNotDeliver: Boolean((row[16] || "").trim())
           };
         });
       } catch (error) {
@@ -752,6 +754,8 @@
       if (entry.sortOrder) {
         elector.deliveryOrder = entry.sortOrder;
       }
+      elector.masterDoNotContact = Boolean(entry.doNotCanvass);
+      elector.masterDoNotDeliver = Boolean(entry.doNotDeliver);
     }
 
     function parseCsv(csvText) {
@@ -1228,7 +1232,7 @@
       );
     }
 
-    function getElectorProgress(electorId, electorName, sheetDob, sheetPreferredName) {
+    function getElectorProgress(electorId, electorName, sheetDob, sheetPreferredName, elector) {
       const existing = loadFromStorage(STORAGE_KEYS.progress, {})[electorId] || {};
       const isDemoPlaidElector = DEMO_PLAID_ELECTOR_NAMES.includes(String(electorName || "").trim().toLowerCase());
       const isDemoProbablePlaidElector = DEMO_PROBABLE_PLAID_ELECTOR_NAMES.includes(String(electorName || "").trim().toLowerCase());
@@ -1271,8 +1275,10 @@
         volunteer,
         askToVolunteer,
         postalVoteRequested: postalVoteOptions.includes(existing.postalVoteRequested || "None") ? (existing.postalVoteRequested || "None") : "None",
-        doNotDeliver: Boolean(existing.doNotDeliver),
-        doNotContact: Boolean(existing.doNotContact)
+        doNotDeliver: Boolean(existing.doNotDeliver) || Boolean(elector && elector.masterDoNotDeliver),
+        doNotContact: Boolean(existing.doNotContact) || Boolean(elector && elector.masterDoNotContact),
+        masterDoNotDeliver: Boolean(elector && elector.masterDoNotDeliver),
+        masterDoNotContact: Boolean(elector && elector.masterDoNotContact)
       };
     }
 
@@ -1433,7 +1439,7 @@
     }
 
     function renderProfile(elector) {
-      const progress = getElectorProgress(elector.id, elector.name, elector.sheetDob, elector.sheetPreferredName);
+      const progress = getElectorProgress(elector.id, elector.name, elector.sheetDob, elector.sheetPreferredName, elector);
       const walkNumber = getEffectiveWalkNumberForElector(elector);
       const walkDescription = getWalkDescription(elector.pollingDistrict, walkNumber);
       const assignedDeliverer = getAssignedDelivererName(elector.pollingDistrict, walkNumber);
@@ -1631,6 +1637,14 @@
       const doNotDoorstepEl = document.getElementById("profile-do-not-doorstep");
       doNotDeliverEl.checked = progress.doNotDeliver;
       doNotDoorstepEl.checked = progress.doNotContact;
+      doNotDeliverEl.disabled = progress.masterDoNotDeliver;
+      doNotDoorstepEl.disabled = progress.masterDoNotContact;
+      doNotDeliverEl.title = progress.masterDoNotDeliver
+        ? "Sourced from NEWSPAPERS (master data) - cannot be changed here"
+        : "";
+      doNotDoorstepEl.title = progress.masterDoNotContact
+        ? "Sourced from NEWSPAPERS (master data) - cannot be changed here"
+        : "";
       doNotDeliverEl.addEventListener("change", () => {
         saveProgressField(elector.id, "doNotDeliver", doNotDeliverEl.checked);
       });
