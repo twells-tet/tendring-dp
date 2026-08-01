@@ -53,10 +53,7 @@
 
       <h3 class="choose-district-heading">Choose District</h3>
 
-      <label class="checkbox-label divisions-toggle-label" for="toggle-divisions-above-ward">
-        <input type="checkbox" id="toggle-divisions-above-ward">
-        View/hide districts above ward level
-      </label>
+      <button type="button" id="toggle-divisions-above-ward" class="map-toggle-button divisions-toggle-button">Enable districts above ward level</button>
 
       <div class="filter-grid">
 
@@ -803,21 +800,23 @@ const toggleDivisionsAboveWardEl =
   document.getElementById("toggle-divisions-above-ward");
 
 const DIVISIONS_ABOVE_WARD_HIDDEN_KEY = "tarian-divisions-above-ward-hidden";
+let divisionsAboveWardHidden = true;
 
 function applyDivisionsAboveWardVisibility() {
-  const hidden = toggleDivisionsAboveWardEl.checked;
-  ["local-authority-label", "senedd-label", "westminster-label"].forEach(
-    (labelId) => {
-      const labelEl = document.getElementById(labelId);
-      if (labelEl) {
-        labelEl.hidden = hidden;
-      }
+  [localAuthorityEl, seneddEl, westminsterEl].forEach((selectEl) => {
+    if (selectEl) {
+      selectEl.disabled = divisionsAboveWardHidden;
     }
-  );
+  });
+  if (toggleDivisionsAboveWardEl) {
+    toggleDivisionsAboveWardEl.textContent = divisionsAboveWardHidden
+      ? "Enable districts above ward level"
+      : "Disable districts above ward level";
+  }
   try {
     localStorage.setItem(
       DIVISIONS_ABOVE_WARD_HIDDEN_KEY,
-      hidden ? "true" : "false"
+      divisionsAboveWardHidden ? "true" : "false"
     );
   } catch (err) {
     // Ignore storage errors (e.g. private browsing)
@@ -826,16 +825,16 @@ function applyDivisionsAboveWardVisibility() {
 
 if (toggleDivisionsAboveWardEl) {
   try {
-    toggleDivisionsAboveWardEl.checked =
-      localStorage.getItem(DIVISIONS_ABOVE_WARD_HIDDEN_KEY) === "true";
+    const stored = localStorage.getItem(DIVISIONS_ABOVE_WARD_HIDDEN_KEY);
+    divisionsAboveWardHidden = stored === null ? true : stored === "true";
   } catch (err) {
     // Ignore storage errors
   }
   applyDivisionsAboveWardVisibility();
-  toggleDivisionsAboveWardEl.addEventListener(
-    "change",
-    applyDivisionsAboveWardVisibility
-  );
+  toggleDivisionsAboveWardEl.addEventListener("click", () => {
+    divisionsAboveWardHidden = !divisionsAboveWardHidden;
+    applyDivisionsAboveWardVisibility();
+  });
 }
 
 const pollingDistrictEl =

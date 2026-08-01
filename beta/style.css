@@ -507,9 +507,10 @@ body.mobile-mode .elector-list {
   font-size: 1rem;
 }
 
-.divisions-toggle-label {
+.divisions-toggle-button {
   margin: -0.35rem 0 0.75rem;
   white-space: normal;
+  font-size: 0.95rem;
 }
 
 
