@@ -118,18 +118,21 @@
             <option value="anti-plaid">Anti Plaid</option>
             <option value="first-language-english" disabled>First Language: English</option>
             <option value="first-language-welsh" disabled>First Language: Welsh</option>
+            <option value="first-time-voter-may-2027">May 2027 will be their first election</option>
             <option value="likely-conservative" disabled>Likely Conservative</option>
             <option value="likely-labour" disabled>Likely Labour</option>
             <option value="likely-reform" disabled>Likely Reform</option>
             <option value="newspaper-subscription">Subscription</option>
             <option value="no-canvass-since-2020" disabled>No canvass data since 1 January 2020</option>
             <option value="never-voted" disabled>No record of ever voting</option>
+            <option value="poster-any-description">Poster: Any Description</option>
             <option value="postal-proxy">Postal Voters</option>
             <option value="proxy-voters">Proxy Voters</option>
             <option value="squeeze" disabled>Squeeze</option>
             <option value="stay-at-home" disabled>Stay At Home</option>
             <option value="supporters">Supporters</option>
             <option value="switch" disabled>Switch</option>
+            <option value="too-young-may-2027">Too Young To Vote in May 2027</option>
             <option value="voted-since-2015">Voted at least once since 1 January 2015</option>
             <option value="voted-leave-2016" disabled>Voted Leave 2016</option>
             <option value="voted-remain-2016" disabled>Voted Remain 2016</option>
@@ -888,6 +891,169 @@
 
     }
 
+    // Best-effort DOB comparison used by the "Too Young To Vote" filter.
+    // DOB values may be a full date ("YYYY-MM-DD"), a year-and-month
+    // ("YYYY-MM"), or just a year ("YYYY") depending on how much detail
+    // is known, so this only reports a match when the available
+    // precision is enough to be confident the elector was born strictly
+    // after the cutoff date - anything ambiguous (e.g. only the cutoff
+    // year is known) is treated as not matching rather than guessing.
+    function isBornAfterCutoffDate(dobValue, cutoffIso) {
+
+      const cleaned = String(dobValue || "").trim();
+
+      if (!cleaned) {
+        return false;
+      }
+
+      const cutoffMatch = cutoffIso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      const cutoffYear = parseInt(cutoffMatch[1], 10);
+      const cutoffMonth = parseInt(cutoffMatch[2], 10);
+      const cutoffDay = parseInt(cutoffMatch[3], 10);
+
+      const dayMonthYearMatch = cleaned.match(/^(\d{1,2})[\s/.-](\d{1,2})[\s/.-](\d{4})$/);
+      if (dayMonthYearMatch) {
+        const day = parseInt(dayMonthYearMatch[1], 10);
+        const month = parseInt(dayMonthYearMatch[2], 10);
+        const year = parseInt(dayMonthYearMatch[3], 10);
+        if (year !== cutoffYear) {
+          return year > cutoffYear;
+        }
+        if (month !== cutoffMonth) {
+          return month > cutoffMonth;
+        }
+        return day > cutoffDay;
+      }
+
+      const fullMatch = cleaned.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+      if (fullMatch) {
+        const year = parseInt(fullMatch[1], 10);
+        const month = parseInt(fullMatch[2], 10);
+        const day = parseInt(fullMatch[3], 10);
+        if (year !== cutoffYear) {
+          return year > cutoffYear;
+        }
+        if (month !== cutoffMonth) {
+          return month > cutoffMonth;
+        }
+        return day > cutoffDay;
+      }
+
+      const yearMonthMatch = cleaned.match(/^(\d{4})-(\d{1,2})$/);
+      if (yearMonthMatch) {
+        const year = parseInt(yearMonthMatch[1], 10);
+        const month = parseInt(yearMonthMatch[2], 10);
+        if (year !== cutoffYear) {
+          return year > cutoffYear;
+        }
+        if (month !== cutoffMonth) {
+          return month > cutoffMonth;
+        }
+        return false;
+      }
+
+      const yearOnlyMatch = cleaned.match(/^(\d{4})$/);
+      if (yearOnlyMatch) {
+        const year = parseInt(yearOnlyMatch[1], 10);
+        return year > cutoffYear;
+      }
+
+      return false;
+
+    }
+
+    // Parses a DOB value into {year, month, day} at whatever precision
+    // is available (day/month may be null), supporting the same
+    // formats as isBornAfterCutoffDate above. Returns null if nothing
+    // could be parsed.
+    function parseDobPrecisionParts(dobValue) {
+
+      const cleaned = String(dobValue || "").trim();
+
+      if (!cleaned) {
+        return null;
+      }
+
+      const isoMatch = cleaned.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+      if (isoMatch) {
+        return { year: parseInt(isoMatch[1], 10), month: parseInt(isoMatch[2], 10), day: parseInt(isoMatch[3], 10) };
+      }
+
+      const dayMonthYearMatch = cleaned.match(/^(\d{1,2})[\s/.-](\d{1,2})[\s/.-](\d{4})$/);
+      if (dayMonthYearMatch) {
+        return { year: parseInt(dayMonthYearMatch[3], 10), month: parseInt(dayMonthYearMatch[2], 10), day: parseInt(dayMonthYearMatch[1], 10) };
+      }
+
+      const yearMonthMatch = cleaned.match(/^(\d{4})-(\d{1,2})$/);
+      if (yearMonthMatch) {
+        return { year: parseInt(yearMonthMatch[1], 10), month: parseInt(yearMonthMatch[2], 10), day: null };
+      }
+
+      const yearOnlyMatch = cleaned.match(/^(\d{4})$/);
+      if (yearOnlyMatch) {
+        return { year: parseInt(yearOnlyMatch[1], 10), month: null, day: null };
+      }
+
+      return null;
+
+    }
+
+    // Compares parsed DOB parts against a {year, month, day} cutoff.
+    // Returns true/false only when the available precision is enough
+    // to be confident of the answer; returns null when it's ambiguous
+    // (e.g. only the cutoff year is known, so month/day can't compare).
+    function isDobPartsAfterCutoff(parts, cutoff) {
+
+      if (!parts) {
+        return null;
+      }
+
+      if (parts.year !== cutoff.year) {
+        return parts.year > cutoff.year;
+      }
+
+      if (parts.month === null) {
+        return null;
+      }
+
+      if (parts.month !== cutoff.month) {
+        return parts.month > cutoff.month;
+      }
+
+      if (parts.day === null) {
+        return null;
+      }
+
+      return parts.day > cutoff.day;
+
+    }
+
+    // Matches electors for whom May 2027 will be their first election -
+    // i.e. they were younger than 16 on 7 May 2026 (the previous
+    // election) but will have turned 16 by 6 May 2027. Only matches
+    // when the DOB is known precisely enough to be sure of both
+    // bounds.
+    function isFirstTimeVoterMay2027(dobValue) {
+
+      const parts = parseDobPrecisionParts(dobValue);
+
+      if (!parts) {
+        return false;
+      }
+
+      const afterPrevElectionCutoff = isDobPartsAfterCutoff(parts, { year: 2010, month: 5, day: 7 });
+      const afterNextElectionCutoff = isDobPartsAfterCutoff(parts, { year: 2011, month: 5, day: 6 });
+
+      if (afterPrevElectionCutoff !== true || afterNextElectionCutoff === null) {
+        return false;
+      }
+
+      // Old enough to vote by 6 May 2027 means born on or before that
+      // date, i.e. NOT born after it.
+      return afterNextElectionCutoff === false;
+
+    }
+
     function getElectorProgress(electorId, progress, elector) {
 
       const existing = progress[electorId] || {};
@@ -1226,6 +1392,18 @@
           electors.push(buildChrisGreenDemoElector());
         }
 
+        // Electors marked "Left Electoral Register" on their profile get
+        // their Polling District overridden to the invented "XX9" code so
+        // they never match a real RA1/QB6 district filter even if some
+        // other code path forgets to check the leftElectoralRegister flag
+        // directly - belt and braces alongside the exclusion applied in
+        // computeBaseFiltered() below.
+        electors.forEach(elector => {
+          if ((progress[elector.id] || {}).leftElectoralRegister) {
+            elector.pollingDistrict = "XX9";
+          }
+        });
+
         const { dobById, senedd2026ById } = await loadSheet5DobById(sheetUrl);
 
         if (!dobById[CHRIS_GREEN_ELECTOR_ID]) {
@@ -1292,6 +1470,13 @@
 
           return electors.filter(elector => {
 
+            // Electors marked "Left Electoral Register" (e.g. deceased,
+            // moved away) are hidden from the map entirely, regardless
+            // of any other filter.
+            if ((progress[elector.id] || {}).leftElectoralRegister) {
+              return false;
+            }
+
             if (wantedFilterType === "postal-proxy") {
               if (elector.postalProxy !== "Postal") {
                 return false;
@@ -1314,8 +1499,33 @@
               }
             }
 
+            if (wantedFilterType === "too-young-may-2027") {
+              const knownDob = electorProgress.dob || elector.sheetDob || "";
+              if (!isBornAfterCutoffDate(knownDob, "2011-05-06")) {
+                return false;
+              }
+            }
+
+            if (wantedFilterType === "first-time-voter-may-2027") {
+              const knownDob = electorProgress.dob || elector.sheetDob || "";
+              if (!isFirstTimeVoterMay2027(knownDob)) {
+                return false;
+              }
+            }
+
             if (wantedFilterType === "newspaper-subscription") {
               if (!elector.newspaperSubscribed) {
+                return false;
+              }
+            }
+
+            if (wantedFilterType === "poster-any-description") {
+              const posterValue = electorProgress.poster;
+              if (
+                posterValue !== "Poster: Window" &&
+                posterValue !== "Poster: Garden" &&
+                posterValue !== "Poster: Both"
+              ) {
                 return false;
               }
             }

@@ -508,13 +508,28 @@ body.mobile-mode .elector-list {
 }
 
 .map-toggle-button.divisions-toggle-button {
-  margin: -0.35rem 0 0.75rem;
+  display: flex;
+  width: fit-content;
+  margin: 0 0 0.75rem auto;
+  padding: 0.4rem 0.75rem;
+  border: none;
+  border-radius: 0.4rem;
   white-space: normal;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--plaid-green);
+}
+
+.map-toggle-button.divisions-toggle-button:hover {
+  filter: brightness(0.92);
+  text-decoration: none;
 }
 
 .divisions-toggle-button.divisions-toggle-button--show {
-  color: var(--plaid-red);
+  color: #fff;
+  background: var(--plaid-green);
 }
 
 
@@ -1812,6 +1827,14 @@ body.mobile-mode .elector-list {
   margin-top: 0.15rem;
   font-size: 0.8rem;
   color: var(--text-muted);
+}
+
+.elector-profile-link {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.8rem;
+  color: var(--plaid-green);
+  font-weight: 600;
 }
 
 .not-registered-label {
