@@ -5284,20 +5284,24 @@ function populateSubroadFilterOptions() {
       return;
     }
 
-    const subRoadKey = normalizeText(effectiveSubRoad);
     const walkNumber = getEffectiveWalkNumberForElector(elector);
+
+    // Group by Subroad name AND Walk number - a Subroad that spans more
+    // than one Walk (e.g. a long road split between deliverers) should
+    // appear as a separate option per Walk, e.g. "1 - Lon Engan (12)" and
+    // "5 - Lon Engan (12)", rather than being collapsed into a single
+    // entry.
+    const subRoadKey = normalizeText(effectiveSubRoad) + "::" + walkNumber;
     const existing = subRoadEntriesByKey.get(subRoadKey);
 
     if (!existing) {
       subRoadEntriesByKey.set(subRoadKey, {
         name: effectiveSubRoad,
-        walkNumber
+        walkNumber,
+        propertyCount: 1
       });
-      return;
-    }
-
-    if (walkNumber < existing.walkNumber) {
-      existing.walkNumber = walkNumber;
+    } else {
+      existing.propertyCount += 1;
     }
   });
 
@@ -5309,18 +5313,46 @@ function populateSubroadFilterOptions() {
       return a.name.localeCompare(b.name);
     });
 
-  const subRoadNames = subRoadEntries.map(entry => entry.name);
+  const optionValues =
+    subRoadEntries.map(entry => buildSubroadOptionValue(entry.name, entry.walkNumber));
 
   subroadFilterSubroadEl.innerHTML =
     "<option value=\"\">All Subroads</option>" +
     subRoadEntries.map(entry =>
-      "<option value=\"" + escapeHtmlAttr(entry.name) + "\">" +
-      escapeHtml(entry.name) + " [" + entry.walkNumber + "]</option>"
+      "<option value=\"" + escapeHtmlAttr(buildSubroadOptionValue(entry.name, entry.walkNumber)) + "\">" +
+      entry.walkNumber + " - " + escapeHtml(entry.name) + " (" + entry.propertyCount + ")</option>"
     ).join("");
 
-  if (subRoadNames.includes(previousSelection)) {
+  if (optionValues.includes(previousSelection)) {
     subroadFilterSubroadEl.value = previousSelection;
   }
+
+}
+
+
+// Encodes a Subroad name + Walk number pair into a single <option>
+// value so a Subroad spanning multiple Walks can have one distinct,
+// selectable option per Walk (see populateSubroadFilterOptions above).
+function buildSubroadOptionValue(name, walkNumber) {
+  return String(walkNumber) + "::" + String(name || "");
+}
+
+
+// Splits a Subroad filter <option> value back into its Subroad name and
+// Walk number parts.
+function parseSubroadOptionValue(value) {
+
+  const raw = String(value || "");
+  const separatorIndex = raw.indexOf("::");
+
+  if (separatorIndex === -1) {
+    return { name: raw, walkNumber: null };
+  }
+
+  return {
+    name: raw.slice(separatorIndex + 2),
+    walkNumber: parseInt(raw.slice(0, separatorIndex), 10)
+  };
 
 }
 
@@ -5336,8 +5368,17 @@ function getFilteredActiveElectors() {
   const nameSearch =
     normalizeText(nameSearchInputEl.value).trim();
 
+  const subroadFilterValue =
+    subroadFilterSubroadEl.value;
+
+  const subroadFilterParsed =
+    subroadFilterValue ? parseSubroadOptionValue(subroadFilterValue) : null;
+
   const subroadFilter =
-    normalizeText(subroadFilterSubroadEl.value).trim();
+    subroadFilterParsed ? normalizeText(subroadFilterParsed.name).trim() : "";
+
+  const subroadFilterWalkNumber =
+    subroadFilterParsed ? subroadFilterParsed.walkNumber : null;
 
   const subroadFilterDistrict =
     normalizeText(subroadFilterDistrictEl.value).trim();
@@ -5399,6 +5440,14 @@ function getFilteredActiveElectors() {
     if (subroadFilter) {
 
       if (normalizeText(elector.subRoad) !== subroadFilter) {
+        return false;
+      }
+
+      if (
+        subroadFilterWalkNumber !== null &&
+        !Number.isNaN(subroadFilterWalkNumber) &&
+        getEffectiveWalkNumberForElector(elector) !== subroadFilterWalkNumber
+      ) {
         return false;
       }
 
@@ -5652,9 +5701,9 @@ async function loadNewspapersDataByHouseholdId(sheetUrl) {
         addressLine3: (row[5] || "").trim(),
         postTown: (row[6] || "").trim(),
         postcode: (row[7] || "").trim(),
-        pollingDistrict: (row[8] || "").trim(),
-        walk: (row[9] || "").trim(),
-        subRoad: (row[10] || "").trim(),
+        walk: (row[8] || "").trim(),
+        subRoad: (row[9] || "").trim(),
+        pollingDistrict: (row[10] || "").trim(),
         sortOrder: (row[11] || "").trim()
       };
 
