@@ -271,7 +271,7 @@
           <option value="stay-at-home" disabled>Stay At Home</option>
           <option value="supporters" disabled>Supporters</option>
           <option value="switch" disabled>Switch</option>
-          <option value="voted-since-2021" disabled>Voted at least once since 1 January 2021</option>
+          <option value="voted-since-2015">Voted at least once since 1 January 2015</option>
           <option value="voted-leave-2016" disabled>Voted Leave 2016</option>
           <option value="voted-remain-2016" disabled>Voted Remain 2016</option>
         </select>
@@ -4502,6 +4502,33 @@ function getElectorMaxAgeForVotingHistory(elector) {
   return Math.max.apply(null, parts);
 }
 
+// The Voting History table is currently demo-only data (see
+// updateVotingHistory): no real per-election voting record exists in
+// the sheet yet, so only the Chris Green demo elector shows any "voted"
+// history. This mirrors that same demo logic for the "Voted at least
+// once since <cutoff>" filter, matching on year only (election dates
+// aren't tracked precisely enough for a day-level cutoff).
+function electorVotedAtLeastOnceSinceYear(elector, cutoffYear) {
+
+  const isDemoVoter =
+    String(elector.id || "").trim() === CHRIS_GREEN_ELECTOR_ID;
+
+  if (!isDemoVoter) {
+    return false;
+  }
+
+  return VOTING_HISTORY_YEARS.some(year => {
+    if (year === "2027 (Local)") {
+      // Hasn't happened yet - never counts as "voted".
+      return false;
+    }
+    const match = year.match(/\d{4}/);
+    const yearNumber = match ? parseInt(match[0], 10) : null;
+    return yearNumber !== null && yearNumber >= cutoffYear;
+  });
+
+}
+
 // Parses a DOB string into an exact JS Date, but only when the value
 // specifies a full day/month/year (either ISO "YYYY-MM-DD" or the
 // sheet's "DD MM YYYY" / "DD/MM/YYYY" / "DD-MM-YYYY" format) — a bare
@@ -5434,6 +5461,14 @@ function getFilteredActiveElectors() {
     if (filterType === "anti-plaid") {
 
       if (!hasAntiPlaidFlag(getElectorProgress(elector.id, elector.name, elector))) {
+        return false;
+      }
+
+    }
+
+    if (filterType === "voted-since-2015") {
+
+      if (!electorVotedAtLeastOnceSinceYear(elector, 2015)) {
         return false;
       }
 

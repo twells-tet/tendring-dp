@@ -128,7 +128,7 @@
             <option value="stay-at-home" disabled>Stay At Home</option>
             <option value="supporters">Supporters</option>
             <option value="switch" disabled>Switch</option>
-            <option value="voted-since-2021" disabled>Voted at least once since 1 January 2021</option>
+            <option value="voted-since-2015">Voted at least once since 1 January 2015</option>
             <option value="voted-leave-2016" disabled>Voted Leave 2016</option>
             <option value="voted-remain-2016" disabled>Voted Remain 2016</option>
           </select>
@@ -691,6 +691,46 @@
     const CHRIS_GREEN_HOUSEHOLD_ID = "12345678";
     const CHRIS_GREEN_DOB = "1991-06-14";
 
+    // Mirrors index.html's VOTING_HISTORY_YEARS list, used only to
+    // evaluate the "Voted at least once since <cutoff>" filter (which,
+    // like the Voting History table itself, is currently demo-only data
+    // - only the Chris Green demo elector has any "voted" history).
+    const VOTING_HISTORY_YEARS = [
+      "2027 (Local)",
+      "2026 (Senedd)",
+      "2024 (PCC)",
+      "2024 (General)",
+      "2022 (Local)",
+      "2021 (Senedd)",
+      "2019 (General)",
+      "2019 (European)",
+      "2017 (General)",
+      "2017 (Local)",
+      "2016 (Referendum)",
+      "2016 (Senedd)",
+      "2015 (General)"
+    ];
+
+    function electorVotedAtLeastOnceSinceYear(elector, cutoffYear) {
+
+      const isDemoVoter =
+        String(elector.id || "").trim() === CHRIS_GREEN_ELECTOR_ID;
+
+      if (!isDemoVoter) {
+        return false;
+      }
+
+      return VOTING_HISTORY_YEARS.some(year => {
+        if (year === "2027 (Local)") {
+          return false;
+        }
+        const match = year.match(/\d{4}/);
+        const yearNumber = match ? parseInt(match[0], 10) : null;
+        return yearNumber !== null && yearNumber >= cutoffYear;
+      });
+
+    }
+
     function buildChrisGreenDemoElector() {
       return {
         id: CHRIS_GREEN_ELECTOR_ID,
@@ -1227,6 +1267,12 @@
               const supportsIndependence =
                 electorProgress.supportIndependence === "Yes";
               if (!isDefiniteOrProbablePlaid && !supportsIndependence) {
+                return false;
+              }
+            }
+
+            if (wantedFilterType === "voted-since-2015") {
+              if (!electorVotedAtLeastOnceSinceYear(elector, 2015)) {
                 return false;
               }
             }
