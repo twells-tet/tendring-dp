@@ -661,6 +661,93 @@
       return result;
     }
 
+    // The "NEWSPAPERS" tab holds authoritative address data (Address
+    // Line 1/2/3, Post Town, Postcode) plus master WALK/SUBROAD/SORT
+    // ORDER columns, keyed by Household ID — used to override the main
+    // sheet's own (often less complete) address/walk/subroad fields.
+    function toNewspapersCsvUrl(rawUrl) {
+      const match = rawUrl.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+      if (!match) {
+        return null;
+      }
+      return "https://docs.google.com/spreadsheets/d/" + match[1] + "/gviz/tq?tqx=out:csv&sheet=NEWSPAPERS";
+    }
+
+    function buildNewspapersAddress(entry) {
+      return [entry.addressLine1, entry.addressLine2, entry.addressLine3, entry.postTown]
+        .filter(part => part && !/^\d+$/.test(part) && part.toLowerCase() !== "gwynedd")
+        .join(", ");
+    }
+
+    async function loadNewspapersDataByHouseholdId(sheetUrl) {
+      const dataByHouseholdId = {};
+      const newspapersUrl = toNewspapersCsvUrl(sheetUrl);
+      if (!newspapersUrl) {
+        return dataByHouseholdId;
+      }
+      try {
+        const response = await fetch(newspapersUrl);
+        if (!response.ok) {
+          return dataByHouseholdId;
+        }
+        const rows = parseCsv(await response.text());
+        rows.slice(1).forEach(row => {
+          const householdId = (row[1] || "").trim();
+          if (!householdId) {
+            return;
+          }
+          dataByHouseholdId[householdId] = {
+            addressLine1: (row[2] || "").trim(),
+            addressLine2: (row[3] || "").trim(),
+            addressLine3: (row[4] || "").trim(),
+            postTown: (row[5] || "").trim(),
+            postcode: (row[6] || "").trim(),
+            pollingDistrict: (row[7] || "").trim(),
+            walk: (row[8] || "").trim(),
+            subRoad: (row[9] || "").trim(),
+            sortOrder: (row[10] || "").trim()
+          };
+        });
+      } catch (error) {
+        // NEWSPAPERS tab is supplementary — ignore failures.
+      }
+      return dataByHouseholdId;
+    }
+
+    function applyNewspapersDataToElector(elector, dataByHouseholdId) {
+      const entry = dataByHouseholdId[elector.uprn];
+      if (!entry) {
+        return;
+      }
+      if (entry.addressLine1) {
+        elector.addressLine1 = entry.addressLine1;
+      }
+      if (entry.addressLine2) {
+        elector.addressLine2 = entry.addressLine2;
+      }
+      if (entry.addressLine3) {
+        elector.addressLine3 = entry.addressLine3;
+      }
+      if (entry.postTown) {
+        elector.postTown = entry.postTown;
+      }
+      if (entry.postcode) {
+        elector.postcode = entry.postcode;
+      }
+      if (entry.addressLine1 || entry.addressLine2 || entry.addressLine3 || entry.postTown) {
+        elector.address = buildNewspapersAddress(entry);
+      }
+      if (entry.walk) {
+        elector.deliveryWalk = entry.walk;
+      }
+      if (entry.subRoad) {
+        elector.subRoad = entry.subRoad;
+      }
+      if (entry.sortOrder) {
+        elector.deliveryOrder = entry.sortOrder;
+      }
+    }
+
     function parseCsv(csvText) {
       const rows = [];
       let row = [];
@@ -1592,6 +1679,9 @@
         // and default preferred name when present.
         elector.name = sheet5Data.legalNameById[elector.id] || elector.name;
         elector.sheetPreferredName = sheet5Data.legalNameById[elector.id] || sheet5Data.preferredNameById[elector.id] || "";
+
+        const newspapersDataByHouseholdId = await loadNewspapersDataByHouseholdId(sheetUrl);
+        applyNewspapersDataToElector(elector, newspapersDataByHouseholdId);
 
         renderProfile(elector);
       } catch (error) {

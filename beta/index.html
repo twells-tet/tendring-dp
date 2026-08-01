@@ -53,9 +53,14 @@
 
       <h3 class="choose-district-heading">Choose District</h3>
 
+      <label class="divisions-toggle-label" for="toggle-divisions-above-ward">
+        <input type="checkbox" id="toggle-divisions-above-ward">
+        View/hide divisions above ward level
+      </label>
+
       <div class="filter-grid">
 
-        <label for="local-authority">
+        <label for="local-authority" id="local-authority-label">
           Local Authority
           <select id="local-authority">
             <option value="anglesey" disabled>Anglesey / Ynys Môn</option>
@@ -84,7 +89,7 @@
         </label>
 
 
-        <label for="senedd">
+        <label for="senedd" id="senedd-label">
           Senedd Constituency
           <select id="senedd">
             <option value="afan ogwr rhondda" disabled>Afan Ogwr Rhondda</option>
@@ -107,7 +112,7 @@
         </label>
 
 
-        <label for="westminster">
+        <label for="westminster" id="westminster-label">
           Westminster Constituency
           <select id="westminster">
             <option value="aberafan maesteg" disabled>Aberafan Maesteg</option>
@@ -793,6 +798,45 @@ const seneddEl =
 
 const westminsterEl =
   document.getElementById("westminster");
+
+const toggleDivisionsAboveWardEl =
+  document.getElementById("toggle-divisions-above-ward");
+
+const DIVISIONS_ABOVE_WARD_HIDDEN_KEY = "tarian-divisions-above-ward-hidden";
+
+function applyDivisionsAboveWardVisibility() {
+  const hidden = toggleDivisionsAboveWardEl.checked;
+  ["local-authority-label", "senedd-label", "westminster-label"].forEach(
+    (labelId) => {
+      const labelEl = document.getElementById(labelId);
+      if (labelEl) {
+        labelEl.hidden = hidden;
+      }
+    }
+  );
+  try {
+    localStorage.setItem(
+      DIVISIONS_ABOVE_WARD_HIDDEN_KEY,
+      hidden ? "true" : "false"
+    );
+  } catch (err) {
+    // Ignore storage errors (e.g. private browsing)
+  }
+}
+
+if (toggleDivisionsAboveWardEl) {
+  try {
+    toggleDivisionsAboveWardEl.checked =
+      localStorage.getItem(DIVISIONS_ABOVE_WARD_HIDDEN_KEY) === "true";
+  } catch (err) {
+    // Ignore storage errors
+  }
+  applyDivisionsAboveWardVisibility();
+  toggleDivisionsAboveWardEl.addEventListener(
+    "change",
+    applyDivisionsAboveWardVisibility
+  );
+}
 
 const pollingDistrictEl =
   document.getElementById("polling-district");
@@ -1818,6 +1862,18 @@ async function loadElectorsFromSheet(inputUrl) {
         // when present, overriding the main sheet's ELECTOR NAME.
         elector.name = legalNameById[elector.id] || elector.name;
       });
+
+      renderElectorList();
+
+    });
+
+
+
+    loadNewspapersDataByHouseholdId(inputUrl).then(dataByHouseholdId => {
+
+      applyNewspapersDataToElectors(state.electors, dataByHouseholdId);
+
+      populateSubroadFilterOptions();
 
       renderElectorList();
 
@@ -5227,6 +5283,149 @@ async function loadSheet5DobById(sheetUrl) {
   }
 
   return { dobById, legalNameById };
+
+}
+
+
+// The "NEWSPAPERS" tab holds authoritative address data (Address Line
+// 1/2/3, Post Town, Postcode) plus master WALK/SUBROAD/SORT ORDER
+// columns, keyed by Household ID — used to override the main sheet's
+// own (often less complete) address/walk/subroad fields.
+function toNewspapersCsvUrl(rawUrl) {
+
+  const match =
+    rawUrl.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+
+  if (!match) {
+    return null;
+  }
+
+  return (
+    "https://docs.google.com/spreadsheets/d/" +
+    match[1] +
+    "/gviz/tq?tqx=out:csv&sheet=NEWSPAPERS"
+  );
+
+}
+
+
+async function loadNewspapersDataByHouseholdId(sheetUrl) {
+
+  const dataByHouseholdId = {};
+
+  const newspapersUrl = toNewspapersCsvUrl(sheetUrl);
+
+  if (!newspapersUrl) {
+    return dataByHouseholdId;
+  }
+
+  try {
+
+    const response = await fetch(newspapersUrl);
+
+    if (!response.ok) {
+      return dataByHouseholdId;
+    }
+
+    const rows = parseCsv(await response.text());
+
+    rows.slice(1).forEach(row => {
+
+      const householdId = (row[1] || "").trim();
+
+      if (!householdId) {
+        return;
+      }
+
+      dataByHouseholdId[householdId] = {
+        addressLine1: (row[2] || "").trim(),
+        addressLine2: (row[3] || "").trim(),
+        addressLine3: (row[4] || "").trim(),
+        postTown: (row[5] || "").trim(),
+        postcode: (row[6] || "").trim(),
+        pollingDistrict: (row[7] || "").trim(),
+        walk: (row[8] || "").trim(),
+        subRoad: (row[9] || "").trim(),
+        sortOrder: (row[10] || "").trim()
+      };
+
+    });
+
+  } catch (error) {
+    // NEWSPAPERS tab is supplementary — ignore failures.
+  }
+
+  return dataByHouseholdId;
+
+}
+
+
+function buildNewspapersAddress(newspapersEntry) {
+
+  return [
+    newspapersEntry.addressLine1,
+    newspapersEntry.addressLine2,
+    newspapersEntry.addressLine3,
+    newspapersEntry.postTown
+  ]
+    .filter(
+      part =>
+        part &&
+        !/^\d+$/.test(part) &&
+        part.toLowerCase() !== "gwynedd"
+    )
+    .join(", ");
+
+}
+
+
+function applyNewspapersDataToElectors(electors, dataByHouseholdId) {
+
+  electors.forEach(elector => {
+
+    const entry = dataByHouseholdId[elector.householdId];
+
+    if (!entry) {
+      return;
+    }
+
+    if (entry.addressLine1) {
+      elector.addressLine1 = entry.addressLine1;
+    }
+
+    if (entry.addressLine2) {
+      elector.addressLine2 = entry.addressLine2;
+    }
+
+    if (entry.addressLine3) {
+      elector.addressLine3 = entry.addressLine3;
+    }
+
+    if (entry.postTown) {
+      elector.postTown = entry.postTown;
+    }
+
+    if (entry.postcode) {
+      elector.postcode = entry.postcode;
+    }
+
+    if (entry.addressLine1 || entry.addressLine2 || entry.addressLine3 || entry.postTown) {
+      elector.address = buildNewspapersAddress(entry);
+    }
+
+    if (entry.walk) {
+      elector.deliveryWalk = entry.walk;
+    }
+
+    if (entry.subRoad) {
+      elector.subRoad = entry.subRoad;
+    }
+
+    if (entry.sortOrder) {
+      elector.deliveryOrder = entry.sortOrder;
+    }
+
+  });
 
 }
 
