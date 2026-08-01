@@ -261,7 +261,7 @@
           <option value="likely-conservative" disabled>Likely Conservative</option>
           <option value="likely-labour" disabled>Likely Labour</option>
           <option value="likely-reform" disabled>Likely Reform</option>
-          <option value="newspaper-subscription">Newspaper Subscription</option>
+          <option value="newspaper-subscription">Subscription</option>
           <option value="no-canvass-since-2020" disabled>No canvass data since 1 January 2020</option>
           <option value="" selected>No filter</option>
           <option value="never-voted" disabled>No record of ever voting</option>
@@ -438,9 +438,12 @@
             <dt><a href="manage-deliverers.html" id="deliverer-link">Manage Deliverers</a></dt>
             <dd id="delivery-deliverer">—</dd>
 
-            <dt>Newspaper Subscription</dt>
+            <dt>Subscription</dt>
             <dd>
-              <input type="checkbox" id="newspaper-subscription-checkbox">
+              <select id="newspaper-subscription-select" disabled>
+                <option value=""></option>
+                <option value="Y">Y</option>
+              </select>
             </dd>
           </dl>
 
@@ -961,8 +964,8 @@ const sortOrderLinkEl =
 const deliveryDelivererEl =
   document.getElementById("delivery-deliverer");
 
-const newspaperSubscriptionCheckboxEl =
-  document.getElementById("newspaper-subscription-checkbox");
+const newspaperSubscriptionSelectEl =
+  document.getElementById("newspaper-subscription-select");
 
 const deliveryPollingDistrictEl =
   document.getElementById("delivery-polling-district");
@@ -1569,20 +1572,6 @@ function initControls() {
     () => {
       roadAreaHelpTextEl.hidden =
         !roadAreaHelpTextEl.hidden;
-    }
-  );
-
-
-  newspaperSubscriptionCheckboxEl.addEventListener(
-    "change",
-    event => {
-      const householdId = event.target.dataset.householdId;
-      propagateFlagToHousehold(
-        householdId,
-        "newspaperSubscription",
-        event.target.checked
-      );
-      renderElectorList();
     }
   );
 
@@ -4177,16 +4166,8 @@ function updateDeliveryDetails(elector) {
       ? getAssignedDelivererName(districtForLink, effectiveWalk)
       : "—";
 
-  newspaperSubscriptionCheckboxEl.dataset.householdId =
-    householdId || "";
-
-  newspaperSubscriptionCheckboxEl.checked =
-    elector
-      ? !!getElectorProgress(elector.id).newspaperSubscription
-      : false;
-
-  newspaperSubscriptionCheckboxEl.disabled =
-    !elector;
+  newspaperSubscriptionSelectEl.value =
+    elector && elector.newspaperSubscribed ? "Y" : "";
 
 }
 
@@ -5207,7 +5188,7 @@ function getFilteredActiveElectors() {
 
     if (filterType === "newspaper-subscription") {
 
-      if (!getElectorProgress(elector.id).newspaperSubscription) {
+      if (!elector.newspaperSubscribed) {
         return false;
       }
 
@@ -5405,15 +5386,16 @@ async function loadNewspapersDataByHouseholdId(sheetUrl) {
       }
 
       dataByHouseholdId[householdId] = {
-        addressLine1: (row[2] || "").trim(),
-        addressLine2: (row[3] || "").trim(),
-        addressLine3: (row[4] || "").trim(),
-        postTown: (row[5] || "").trim(),
-        postcode: (row[6] || "").trim(),
-        pollingDistrict: (row[7] || "").trim(),
-        walk: (row[8] || "").trim(),
-        subRoad: (row[9] || "").trim(),
-        sortOrder: (row[10] || "").trim()
+        subscription: (row[2] || "").trim(),
+        addressLine1: (row[3] || "").trim(),
+        addressLine2: (row[4] || "").trim(),
+        addressLine3: (row[5] || "").trim(),
+        postTown: (row[6] || "").trim(),
+        postcode: (row[7] || "").trim(),
+        pollingDistrict: (row[8] || "").trim(),
+        walk: (row[9] || "").trim(),
+        subRoad: (row[10] || "").trim(),
+        sortOrder: (row[11] || "").trim()
       };
 
     });
@@ -5495,6 +5477,9 @@ function applyNewspapersDataToElectors(electors, dataByHouseholdId) {
     if (entry.sortOrder) {
       elector.deliveryOrder = entry.sortOrder;
     }
+
+    elector.newspaperSubscribed =
+      String(entry.subscription || "").trim().toUpperCase() === "Y";
 
   });
 
