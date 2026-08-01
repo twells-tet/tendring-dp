@@ -1919,9 +1919,9 @@ async function loadElectorsFromSheet(inputUrl) {
         if (!entry) {
           return;
         }
-        if (entry.pollingDistrict) {
-          elector.pollingDistrict = entry.pollingDistrict;
-        }
+        // Sheet1 (main sheet) is the master source for Polling District
+        // and ENO/Polling Number — COORDINATES is not applied to
+        // elector.pollingDistrict here.
         if (entry.lat !== null && entry.lng !== null) {
           elector.lat = entry.lat;
           elector.lng = entry.lng;
@@ -2093,6 +2093,21 @@ function mapRowToElector(row, headers, index) {
 
 
     pollingDistrict:
+      data.pollingdistrict ||
+      data.pollingdist ||
+      data.district ||
+      data.pd ||
+      row[15] ||
+      "",
+
+
+    // Snapshot of Sheet1's own Polling District (Column P), captured
+    // before any later COORDINATES-tab override is applied to
+    // elector.pollingDistrict. The Polling Number (e.g. "QB6-3") is
+    // assigned per this original column + ENO (Column Q), so sorting
+    // by Polling Number must always use this raw value, not whatever
+    // elector.pollingDistrict later becomes.
+    sheetPollingDistrict:
       data.pollingdistrict ||
       data.pollingdist ||
       data.district ||
@@ -2865,7 +2880,61 @@ function renderElectorList() {
 }
 
 
+// True when the only active narrowing is the Polling District selector
+// (plus the always-on Ward/Community scope) — i.e. Filter is "No filter"
+// and the Address/Name/Subroad search boxes are empty. In that case the
+// household list is sorted by Polling Number (ENO) instead of sheet order.
+function isOnlyPollingDistrictFilterActive() {
+
+  const filterType =
+    filterTypeEl.value;
+
+  const addressSearch =
+    normalizeText(addressSearchInputEl.value).trim();
+
+  const nameSearch =
+    normalizeText(nameSearchInputEl.value).trim();
+
+  const subroadFilter =
+    normalizeText(subroadFilterSubroadEl.value).trim();
+
+  return (
+    !filterType &&
+    !addressSearch &&
+    !nameSearch &&
+    !subroadFilter
+  );
+
+}
+
+
+// Builds a sortable Polling Number key from a household's Polling
+// District (e.g. "QB6", "RA1") and elector number (e.g. "18"), so
+// households sort by district first (QB6 before RA1) then numerically
+// by elector number (RA1-1 before RA1-10 before RA1-2).
+function buildPollingNumberSortKey(pollingDistrict, pollingElectorNumber) {
+
+  const district =
+    String(pollingDistrict || "").trim().toUpperCase();
+
+  const electorNo =
+    parseInt(
+      String(pollingElectorNumber || "").trim(),
+      10
+    );
+
+  return {
+    district,
+    electorNo: Number.isNaN(electorNo) ? Number.MAX_SAFE_INTEGER : electorNo
+  };
+
+}
+
+
 function buildVisibleHouseholds(electors) {
+
+  const subroadFilterActive =
+    Boolean(normalizeText(subroadFilterSubroadEl.value).trim());
 
   const groups = new Map();
 
@@ -2878,19 +2947,77 @@ function buildVisibleHouseholds(electors) {
         householdNumber:
           elector.householdNumber ||
           Number.MAX_SAFE_INTEGER,
+        pollingNumberKey:
+          buildPollingNumberSortKey(
+            elector.sheetPollingDistrict,
+            elector.pollingElectorNumber
+          ),
+        deliveryOrder:
+          (() => {
+            const order = parseInt(String(elector.deliveryOrder || "").trim(), 10);
+            return Number.isNaN(order) ? Number.MAX_SAFE_INTEGER : order;
+          })(),
         electors: []
       });
     }
 
-    groups.get(key).electors.push(elector);
+    // Households can hold multiple electors whose ENOs are not
+    // necessarily in ascending sheet order (e.g. spouses added at
+    // different times) — always keep the lowest ENO seen so far as
+    // the household's Polling Number for sorting purposes.
+    const group = groups.get(key);
+    const electorKey =
+      buildPollingNumberSortKey(
+        elector.sheetPollingDistrict,
+        elector.pollingElectorNumber
+      );
+
+    if (electorKey.electorNo < group.pollingNumberKey.electorNo) {
+      group.pollingNumberKey = electorKey;
+    }
+
+    group.electors.push(elector);
 
   });
 
-  return Array.from(groups.values())
-    .sort(
+  const households =
+    Array.from(groups.values());
+
+  if (subroadFilterActive) {
+
+    // When narrowed to a single Subroad (sourced from NEWSPAPERS), the
+    // delivery walk order should drive the household order — this is the
+    // sequence a deliverer would actually walk the round in.
+    return households.sort(
       (a, b) =>
-        a.householdNumber - b.householdNumber
+        a.deliveryOrder - b.deliveryOrder
     );
+
+  }
+
+  if (isOnlyPollingDistrictFilterActive()) {
+
+    return households.sort((a, b) => {
+
+      const districtCompare =
+        a.pollingNumberKey.district.localeCompare(
+          b.pollingNumberKey.district
+        );
+
+      if (districtCompare !== 0) {
+        return districtCompare;
+      }
+
+      return a.pollingNumberKey.electorNo - b.pollingNumberKey.electorNo;
+
+    });
+
+  }
+
+  return households.sort(
+    (a, b) =>
+      a.householdNumber - b.householdNumber
+  );
 
 }
 
