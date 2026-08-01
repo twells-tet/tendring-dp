@@ -1884,7 +1884,7 @@ async function loadElectorsFromSheet(inputUrl) {
 
 
 
-    loadSheet5DobById(inputUrl).then(({ dobById, legalNameById, senedd2026ById }) => {
+    loadSheet5DobById(inputUrl).then(({ dobById, senedd2026ById }) => {
 
       // Chris Green's DOB isn't recorded in the live Sheet5 (he's a
       // demo volunteer record), so apply his known demo DOB as a
@@ -1896,9 +1896,8 @@ async function loadElectorsFromSheet(inputUrl) {
 
       state.electors.forEach(elector => {
         elector.sheetDob = dobById[elector.id] || elector.sheetDob || "";
-        // Legal Name (Sheet5 col K) is the authoritative elector name
-        // when present, overriding the main sheet's ELECTOR NAME.
-        elector.name = legalNameById[elector.id] || elector.name;
+        // Elector Name always comes from Sheet1 column A — Sheet5's
+        // Legal Name is no longer used to override it.
         // Sheet5 col M: real 2026 Senedd voting record ("Y"/"A").
         elector.senedd2026Vote = senedd2026ById[elector.id] || "";
       });
@@ -5606,13 +5605,12 @@ function toSheet5CsvUrl(rawUrl) {
 async function loadSheet5DobById(sheetUrl) {
 
   const dobById = {};
-  const legalNameById = {};
   const senedd2026ById = {};
 
   const sheet5Url = toSheet5CsvUrl(sheetUrl);
 
   if (!sheet5Url) {
-    return { dobById, legalNameById, senedd2026ById };
+    return { dobById, senedd2026ById };
   }
 
   try {
@@ -5620,7 +5618,7 @@ async function loadSheet5DobById(sheetUrl) {
     const response = await fetch(sheet5Url);
 
     if (!response.ok) {
-      return { dobById, legalNameById, senedd2026ById };
+      return { dobById, senedd2026ById };
     }
 
     const rows = parseCsv(await response.text());
@@ -5629,17 +5627,12 @@ async function loadSheet5DobById(sheetUrl) {
 
       const electorId = (row[2] || "").trim();
       const rawDob = (row[9] || "").trim();
-      const legalName = (row[10] || "").trim();
       // Column M: "SENEDD 2026" - "Y" (voted on the day) or "A" (voted
       // by post). Exact text is copied as-is, no normalisation.
       const senedd2026 = (row[12] || "").trim();
 
       if (electorId && rawDob) {
         dobById[electorId] = rawDob;
-      }
-
-      if (electorId && legalName) {
-        legalNameById[electorId] = legalName;
       }
 
       if (electorId && senedd2026) {
@@ -5652,7 +5645,7 @@ async function loadSheet5DobById(sheetUrl) {
     // Sheet5 is supplementary — ignore failures.
   }
 
-  return { dobById, legalNameById, senedd2026ById };
+  return { dobById, senedd2026ById };
 
 }
 
