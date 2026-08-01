@@ -124,6 +124,7 @@
             <option value="no-canvass-since-2020" disabled>No canvass data since 1 January 2020</option>
             <option value="never-voted" disabled>No record of ever voting</option>
             <option value="postal-proxy">Postal Voters</option>
+            <option value="proxy-voters">Proxy Voters</option>
             <option value="squeeze" disabled>Squeeze</option>
             <option value="stay-at-home" disabled>Stay At Home</option>
             <option value="supporters">Supporters</option>
@@ -1249,10 +1250,13 @@
           return electors.filter(elector => {
 
             if (wantedFilterType === "postal-proxy") {
-              if (
-                elector.postalProxy !== "Postal" &&
-                elector.postalProxy !== "Proxy"
-              ) {
+              if (elector.postalProxy !== "Postal") {
+                return false;
+              }
+            }
+
+            if (wantedFilterType === "proxy-voters") {
+              if (elector.postalProxy !== "Proxy") {
                 return false;
               }
             }
