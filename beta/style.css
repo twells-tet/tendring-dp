@@ -508,17 +508,8 @@ body.mobile-mode .elector-list {
 }
 
 .divisions-toggle-label {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
   margin: -0.35rem 0 0.75rem;
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  cursor: pointer;
-}
-
-.divisions-toggle-label input[type="checkbox"] {
-  cursor: pointer;
+  white-space: normal;
 }
 
 
