@@ -1289,6 +1289,21 @@
       return "<dt>" + escapeHtml(label) + "</dt><dd>" + escapeHtml(String(value)) + "</dd>";
     }
 
+    // Turns "lat, lng" text into a clickable Google Maps search link,
+    // e.g. "52.7915804, -4.5263449".
+    function dlRowCoordinates(label, lat, lng) {
+      if (lat === null || lat === undefined || lat === "" ||
+          lng === null || lng === undefined || lng === "") {
+        return "";
+      }
+      const text = lat + ", " + lng;
+      const mapsUrl =
+        "https://www.google.com/maps/search/" +
+        encodeURIComponent(lat) + ",+" + encodeURIComponent(lng) +
+        "?sa=X&ved=1t:242&ictx=111";
+      return "<dt>" + escapeHtml(label) + "</dt><dd><a href=\"" + escapeHtml(mapsUrl) + "\" target=\"_blank\" rel=\"noopener noreferrer\">" + escapeHtml(text) + "</a></dd>";
+    }
+
     function setSelectOptions(selectEl, options, selectedValue) {
       selectEl.innerHTML = options.map(option =>
         "<option" + (option === selectedValue ? " selected" : "") + ">" + escapeHtml(option) + "</option>"
@@ -1470,7 +1485,7 @@
         dlRow("Assigned Deliverer", assignedDeliverer) +
         dlRow("Subroad", elector.subRoad) +
         dlRow("Sort Order", elector.deliveryOrder) +
-        dlRow("Coordinates", [elector.lat, elector.lng].filter(value => value !== null && value !== "").join(", "));
+        dlRowCoordinates("Coordinates", elector.lat, elector.lng);
 
       document.getElementById("profile-canvass-dl").innerHTML =
         dlRow("Phone", progress.phone) +
