@@ -510,7 +510,7 @@ body.mobile-mode .elector-list {
 .divisions-toggle-button {
   margin: -0.35rem 0 0.75rem;
   white-space: normal;
-  font-size: 0.95rem;
+  font-size: 0.7rem;
 }
 
 .divisions-toggle-button.divisions-toggle-button--show {

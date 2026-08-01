@@ -703,15 +703,15 @@
             return;
           }
           dataByHouseholdId[householdId] = {
-            addressLine1: (row[2] || "").trim(),
-            addressLine2: (row[3] || "").trim(),
-            addressLine3: (row[4] || "").trim(),
-            postTown: (row[5] || "").trim(),
-            postcode: (row[6] || "").trim(),
-            pollingDistrict: (row[7] || "").trim(),
-            walk: (row[8] || "").trim(),
-            subRoad: (row[9] || "").trim(),
-            sortOrder: (row[10] || "").trim()
+            addressLine1: (row[3] || "").trim(),
+            addressLine2: (row[4] || "").trim(),
+            addressLine3: (row[5] || "").trim(),
+            postTown: (row[6] || "").trim(),
+            postcode: (row[7] || "").trim(),
+            pollingDistrict: (row[8] || "").trim(),
+            walk: (row[9] || "").trim(),
+            subRoad: (row[10] || "").trim(),
+            sortOrder: (row[11] || "").trim()
           };
         });
       } catch (error) {

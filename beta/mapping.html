@@ -1147,9 +1147,9 @@
           if (!entry) {
             return;
           }
-          if (entry.pollingDistrict) {
-            elector.pollingDistrict = entry.pollingDistrict;
-          }
+          // Sheet1 (main sheet) is the master source for Polling
+          // District and ENO/Polling Number — COORDINATES is not
+          // applied to elector.pollingDistrict here.
           if (entry.lat !== null && entry.lng !== null) {
             elector.lat = entry.lat;
             elector.lng = entry.lng;
