@@ -53,7 +53,7 @@
 
       <h3 class="choose-district-heading">Choose District</h3>
 
-      <button type="button" id="toggle-divisions-above-ward" class="map-toggle-button divisions-toggle-button">Enable districts above ward level</button>
+      <button type="button" id="toggle-divisions-above-ward" class="map-toggle-button divisions-toggle-button">Show districts above ward level</button>
 
       <div class="filter-grid">
 
@@ -261,6 +261,7 @@
           <option value="likely-conservative" disabled>Likely Conservative</option>
           <option value="likely-labour" disabled>Likely Labour</option>
           <option value="likely-reform" disabled>Likely Reform</option>
+          <option value="newspaper-subscription">Newspaper Subscription</option>
           <option value="no-canvass-since-2020" disabled>No canvass data since 1 January 2020</option>
           <option value="" selected>No filter</option>
           <option value="never-voted" disabled>No record of ever voting</option>
@@ -436,6 +437,11 @@
 
             <dt><a href="manage-deliverers.html" id="deliverer-link">Manage Deliverers</a></dt>
             <dd id="delivery-deliverer">—</dd>
+
+            <dt>Newspaper Subscription</dt>
+            <dd>
+              <input type="checkbox" id="newspaper-subscription-checkbox">
+            </dd>
           </dl>
 
         </div>
@@ -805,13 +811,23 @@ let divisionsAboveWardHidden = true;
 function applyDivisionsAboveWardVisibility() {
   [localAuthorityEl, seneddEl, westminsterEl].forEach((selectEl) => {
     if (selectEl) {
-      selectEl.disabled = divisionsAboveWardHidden;
+      // Always disabled — only one non-disabled option exists per select
+      // anyway, but this keeps them non-interactive even while visible.
+      selectEl.disabled = true;
     }
   });
+  ["local-authority-label", "senedd-label", "westminster-label"].forEach(
+    (labelId) => {
+      const labelEl = document.getElementById(labelId);
+      if (labelEl) {
+        labelEl.style.display = divisionsAboveWardHidden ? "none" : "";
+      }
+    }
+  );
   if (toggleDivisionsAboveWardEl) {
     toggleDivisionsAboveWardEl.textContent = divisionsAboveWardHidden
-      ? "Enable districts above ward level"
-      : "Disable districts above ward level";
+      ? "Show districts above ward level"
+      : "Hide districts above ward level";
   }
   try {
     localStorage.setItem(
@@ -944,6 +960,9 @@ const sortOrderLinkEl =
 
 const deliveryDelivererEl =
   document.getElementById("delivery-deliverer");
+
+const newspaperSubscriptionCheckboxEl =
+  document.getElementById("newspaper-subscription-checkbox");
 
 const deliveryPollingDistrictEl =
   document.getElementById("delivery-polling-district");
@@ -1550,6 +1569,20 @@ function initControls() {
     () => {
       roadAreaHelpTextEl.hidden =
         !roadAreaHelpTextEl.hidden;
+    }
+  );
+
+
+  newspaperSubscriptionCheckboxEl.addEventListener(
+    "change",
+    event => {
+      const householdId = event.target.dataset.householdId;
+      propagateFlagToHousehold(
+        householdId,
+        "newspaperSubscription",
+        event.target.checked
+      );
+      renderElectorList();
     }
   );
 
@@ -3615,8 +3648,20 @@ function propagateAntiPlaidFlag(electorId, field, value) {
     return;
   }
 
+  propagateFlagToHousehold(source.householdGroupKey, field, value);
+
+}
+
+// Generic helper: applies a progress field/value to every elector in the
+// given household (used for anti-plaid flags and Newspaper Subscription).
+function propagateFlagToHousehold(householdGroupKey, field, value) {
+
+  if (!householdGroupKey) {
+    return;
+  }
+
   const household =
-    getFullHousehold(source.householdGroupKey);
+    getFullHousehold(householdGroupKey);
 
   household.electors.forEach(elector => {
 
@@ -4131,6 +4176,17 @@ function updateDeliveryDetails(elector) {
     elector
       ? getAssignedDelivererName(districtForLink, effectiveWalk)
       : "—";
+
+  newspaperSubscriptionCheckboxEl.dataset.householdId =
+    householdId || "";
+
+  newspaperSubscriptionCheckboxEl.checked =
+    elector
+      ? !!getElectorProgress(elector.id).newspaperSubscription
+      : false;
+
+  newspaperSubscriptionCheckboxEl.disabled =
+    !elector;
 
 }
 
@@ -5144,6 +5200,14 @@ function getFilteredActiveElectors() {
       const knownDob = progressDob || elector.sheetDob || "";
 
       if (!knownDob) {
+        return false;
+      }
+
+    }
+
+    if (filterType === "newspaper-subscription") {
+
+      if (!getElectorProgress(elector.id).newspaperSubscription) {
         return false;
       }
 
