@@ -266,6 +266,7 @@
           <option value="newspaper-subscription">Subscription</option>
           <option value="no-canvass-since-2020" disabled>No canvass data since 1 January 2020</option>
           <option value="never-voted" disabled>No record of ever voting</option>
+          <option value="poster-any-description">Poster: Any Description</option>
           <option value="postal-proxy">Postal Voters</option>
           <option value="proxy-voters">Proxy Voters</option>
           <option value="squeeze" disabled>Squeeze</option>
@@ -738,7 +739,8 @@ const partyMemberOptions = [
 const posterOptions = [
   "No Poster",
   "Poster: Window",
-  "Poster: Garden"
+  "Poster: Garden",
+  "Poster: Both"
 ];
 
 const VOTING_HISTORY_YEARS = [
@@ -2244,7 +2246,51 @@ function mapRowToElector(row, headers, index) {
 
     electorNumber:null,
 
-    displayId:String(id)
+    displayId:String(id),
+
+    // Master data from Sheet1 columns AS:AZ (Phone, Email, Canvass ID,
+    // Independence, First Language, Party Member, Volunteer, Poster).
+    // Sourced verbatim from the sheet — takes priority over any
+    // per-browser localStorage override in getElectorProgress().
+    masterPhone:
+      data.phone ||
+      row[44] ||
+      "",
+
+    masterEmail:
+      data.email ||
+      row[45] ||
+      "",
+
+    masterCanvassId:
+      data.canvassid ||
+      row[46] ||
+      "",
+
+    masterSupportIndependence:
+      data.independence ||
+      row[47] ||
+      "",
+
+    masterFirstLanguage:
+      data.firstlanguage ||
+      row[48] ||
+      "",
+
+    masterPartyMemberRaw:
+      data.partymember ||
+      row[49] ||
+      "",
+
+    masterVolunteerRaw:
+      data.volunteer ||
+      row[50] ||
+      "",
+
+    masterPosterRaw:
+      data.poster ||
+      row[51] ||
+      ""
 
   };
 
@@ -2666,7 +2712,8 @@ function renderElectorList() {
 
           <select
           class="canvass-select"
-          data-id="${escapeHtmlAttr(elector.id)}">
+          data-id="${escapeHtmlAttr(elector.id)}"
+          ${progress.canvassIdLocked ? "disabled title=\"Sourced from Sheet1 (master data) - cannot be changed here\"" : ""}>
 
           ${
             canvassIdOptions.map(option =>
@@ -2690,7 +2737,8 @@ function renderElectorList() {
 
           <select
           class="independence-select"
-          data-id="${escapeHtmlAttr(elector.id)}">
+          data-id="${escapeHtmlAttr(elector.id)}"
+          ${progress.supportIndependenceLocked ? "disabled title=\"Sourced from Sheet1 (master data) - cannot be changed here\"" : ""}>
 
           ${
             independenceOptions.map(option =>
@@ -2714,7 +2762,8 @@ function renderElectorList() {
 
           <select
           class="language-select"
-          data-id="${escapeHtmlAttr(elector.id)}">
+          data-id="${escapeHtmlAttr(elector.id)}"
+          ${progress.firstLanguageLocked ? "disabled title=\"Sourced from Sheet1 (master data) - cannot be changed here\"" : ""}>
 
           ${
             languageOptions.map(option =>
@@ -2741,7 +2790,8 @@ function renderElectorList() {
           class="phone-input"
           data-id="${escapeHtmlAttr(elector.id)}"
           placeholder="07700 111222"
-          value="${escapeHtmlAttr(progress.phone)}">
+          value="${escapeHtmlAttr(progress.phone)}"
+          ${progress.phoneLocked ? "disabled title=\"Sourced from Sheet1 (master data) - cannot be changed here\"" : ""}>
 
         </label>
 
@@ -2754,7 +2804,8 @@ function renderElectorList() {
           class="email-input"
           data-id="${escapeHtmlAttr(elector.id)}"
           placeholder="elector@email.com"
-          value="${escapeHtmlAttr(progress.email)}">
+          value="${escapeHtmlAttr(progress.email)}"
+          ${progress.emailLocked ? "disabled title=\"Sourced from Sheet1 (master data) - cannot be changed here\"" : ""}>
 
         </label>
 
@@ -2814,7 +2865,8 @@ function renderElectorList() {
 
           <select
           class="poster-select"
-          data-id="${escapeHtmlAttr(elector.id)}">
+          data-id="${escapeHtmlAttr(elector.id)}"
+          ${progress.posterLocked ? "disabled title=\"Sourced from Sheet1 (master data) - cannot be changed here\"" : ""}>
 
           ${
             posterOptions.map(option =>
@@ -5084,7 +5136,41 @@ function getElectorProgress(electorId, electorName, elector) {
   const demoSupportIndependence =
     DEMO_SUPPORT_INDEPENDENCE_BY_ELECTOR_ID[String(electorId)];
 
+  // Master data from Sheet1 (columns AS:AZ) always wins over any
+  // per-browser localStorage override or demo value when present.
+  // "No Data" (the sheet's own placeholder) is treated the same as
+  // empty, so those electors keep falling back to local edits/demo data.
+  const masterCanvassId =
+    (elector && elector.masterCanvassId && elector.masterCanvassId !== "No Data")
+      ? elector.masterCanvassId
+      : "";
+  const masterSupportIndependenceRaw =
+    (elector && elector.masterSupportIndependence && elector.masterSupportIndependence !== "No Data")
+      ? elector.masterSupportIndependence
+      : "";
+  const masterSupportIndependence =
+    masterSupportIndependenceRaw === "Support" ? "Yes" : masterSupportIndependenceRaw;
+  const masterFirstLanguage =
+    (elector && elector.masterFirstLanguage) || "";
+  const masterPartyMemberRaw =
+    (elector && elector.masterPartyMemberRaw) || "";
+  const masterPartyMember =
+    masterPartyMemberRaw === "Yes" ? "Current" :
+    (masterPartyMemberRaw === "No" ? "No" : "");
+  const masterVolunteerRaw =
+    (elector && elector.masterVolunteerRaw) || "";
+  const masterVolunteerKnown =
+    masterVolunteerRaw !== "" && masterVolunteerRaw !== "No Data";
+  const masterVolunteer = masterVolunteerRaw === "Active Volunteer";
+  // Sheet's Poster dropdown now uses the app's own option set directly
+  // (including "No Poster" as a real, selectable answer rather than a
+  // placeholder), so any non-empty sheet value is authoritative.
+  const masterPoster = (elector && elector.masterPosterRaw) || "";
+  const masterPhone = (elector && elector.masterPhone) || "";
+  const masterEmail = (elector && elector.masterEmail) || "";
+
   const legacyCanvassId =
+    masterCanvassId ||
     existing.canvassId ||
     existing.status ||
     demoCanvassId ||
@@ -5096,22 +5182,25 @@ function getElectorProgress(electorId, electorName, elector) {
 
   const baseCanvassId = normalizeCanvassId(legacyCanvassId);
   const supportIndependence =
+    masterSupportIndependence ||
     existing.supportIndependence ||
     demoSupportIndependence ||
     "No Data";
-  const firstLanguage = existing.firstLanguage || "English";
-  const phone = existing.phone || "";
-  const email = existing.email || "";
-  const rawPartyMember = existing.partyMember || "No";
+  const firstLanguage = masterFirstLanguage || existing.firstLanguage || "English";
+  const phone = masterPhone || existing.phone || "";
+  const email = masterEmail || existing.email || "";
+  const rawPartyMember = masterPartyMember || existing.partyMember || "No";
   const partyMember =
     partyMemberOptions.includes(rawPartyMember) ? rawPartyMember : "No";
-  const poster = existing.poster || "No Poster";
+  const poster = masterPoster || existing.poster || "No Poster";
   const normalizedPoster =
     posterOptions.includes(poster) ? poster : "No Poster";
   const volunteer =
-    existing.volunteer !== undefined
-      ? Boolean(existing.volunteer)
-      : isKnownVolunteer(electorName, electorId);
+    masterVolunteerKnown
+      ? masterVolunteer
+      : (existing.volunteer !== undefined
+          ? Boolean(existing.volunteer)
+          : isKnownVolunteer(electorName, electorId));
   const askToVolunteer = volunteer ? false : Boolean(existing.askToVolunteer);
   const doNotDeliver = Boolean(existing.doNotDeliver) || Boolean(elector && elector.masterDoNotDeliver);
   const doNotContact = Boolean(existing.doNotContact) || Boolean(elector && elector.masterDoNotContact);
@@ -5142,7 +5231,13 @@ function getElectorProgress(electorId, electorName, elector) {
     doNotDeliver,
     doNotContact,
     masterDoNotDeliver,
-    masterDoNotContact
+    masterDoNotContact,
+    canvassIdLocked: Boolean(masterCanvassId),
+    supportIndependenceLocked: Boolean(masterSupportIndependence),
+    firstLanguageLocked: Boolean(masterFirstLanguage),
+    phoneLocked: Boolean(masterPhone),
+    emailLocked: Boolean(masterEmail),
+    posterLocked: Boolean(masterPoster)
   };
 
 }
@@ -5153,7 +5248,8 @@ function applyCanvassAffinityRules(canvassId, partyMember, volunteer, askToVolun
     partyMember === "Current" ||
     volunteer ||
     poster === "Poster: Window" ||
-    poster === "Poster: Garden"
+    poster === "Poster: Garden" ||
+    poster === "Poster: Both"
   ) {
     return "Definite Plaid";
   }
@@ -5480,6 +5576,20 @@ function getFilteredActiveElectors() {
     if (filterType === "anti-plaid") {
 
       if (!hasAntiPlaidFlag(getElectorProgress(elector.id, elector.name, elector))) {
+        return false;
+      }
+
+    }
+
+    if (filterType === "poster-any-description") {
+
+      const posterValue = getElectorProgress(elector.id, elector.name, elector).poster;
+
+      if (
+        posterValue !== "Poster: Window" &&
+        posterValue !== "Poster: Garden" &&
+        posterValue !== "Poster: Both"
+      ) {
         return false;
       }
 
