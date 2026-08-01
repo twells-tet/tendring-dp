@@ -119,7 +119,7 @@
             <option value="likely-conservative" disabled>Likely Conservative</option>
             <option value="likely-labour" disabled>Likely Labour</option>
             <option value="likely-reform" disabled>Likely Reform</option>
-            <option value="newspaper-subscription">Newspaper Subscription</option>
+            <option value="newspaper-subscription">Subscription</option>
             <option value="no-canvass-since-2020" disabled>No canvass data since 1 January 2020</option>
             <option value="" selected>No filter</option>
             <option value="never-voted" disabled>No record of ever voting</option>
@@ -345,6 +345,67 @@
       }
 
       return dobById;
+
+    }
+
+    // The "NEWSPAPERS" tab holds a SUBSCRIPTION column ("Y" for active
+    // subscribers) keyed by Household ID, mirroring the main list.
+    function toNewspapersCsvUrl(rawUrl) {
+
+      const match =
+        rawUrl.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+
+      if (!match) {
+        return null;
+      }
+
+      return (
+        "https://docs.google.com/spreadsheets/d/" +
+        match[1] +
+        "/gviz/tq?tqx=out:csv&sheet=NEWSPAPERS"
+      );
+
+    }
+
+    async function loadNewspaperSubscriptionByHouseholdId(sheetUrl) {
+
+      const subscribedByHouseholdId = {};
+
+      const newspapersUrl = toNewspapersCsvUrl(sheetUrl);
+
+      if (!newspapersUrl) {
+        return subscribedByHouseholdId;
+      }
+
+      try {
+
+        const response = await fetch(newspapersUrl);
+
+        if (!response.ok) {
+          return subscribedByHouseholdId;
+        }
+
+        const rows = parseCsv(await response.text());
+
+        rows.slice(1).forEach(row => {
+
+          const householdId = (row[1] || "").trim();
+          const subscription = (row[2] || "").trim();
+
+          if (!householdId) {
+            return;
+          }
+
+          subscribedByHouseholdId[householdId] =
+            subscription.toUpperCase() === "Y";
+
+        });
+
+      } catch (error) {
+        // NEWSPAPERS tab is supplementary — ignore failures.
+      }
+
+      return subscribedByHouseholdId;
 
     }
 
@@ -638,8 +699,7 @@
         email: existing.email || "",
         dob: existing.dob || "",
         doNotDeliver: Boolean(existing.doNotDeliver),
-        doNotContact: Boolean(existing.doNotContact),
-        newspaperSubscription: Boolean(existing.newspaperSubscription)
+        doNotContact: Boolean(existing.doNotContact)
       };
 
     }
@@ -957,8 +1017,13 @@
           dobById[CHRIS_GREEN_ELECTOR_ID] = CHRIS_GREEN_DOB;
         }
 
+        const subscribedByHouseholdId =
+          await loadNewspaperSubscriptionByHouseholdId(sheetUrl);
+
         electors.forEach(elector => {
           elector.sheetDob = dobById[elector.id] || elector.sheetDob || "";
+          elector.newspaperSubscribed =
+            Boolean(subscribedByHouseholdId[elector.householdId]);
         });
 
         // Initialise the Filter dropdown from whatever filter was active on
@@ -1009,7 +1074,7 @@
             }
 
             if (wantedFilterType === "newspaper-subscription") {
-              if (!electorProgress.newspaperSubscription) {
+              if (!elector.newspaperSubscribed) {
                 return false;
               }
             }
