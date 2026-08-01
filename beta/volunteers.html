@@ -322,6 +322,7 @@
           headers.indexOf("pollingdistrictdescription");
         const phoneIdx = headers.indexOf("phone");
         const emailIdx = headers.indexOf("email");
+        const posterIdx = headers.indexOf("poster");
 
         rows.slice(1).forEach(row => {
 
@@ -375,7 +376,12 @@
             address,
             pollingDistrict,
             phone: (row[phoneIdx] || "").trim(),
-            email: (row[emailIdx] || "").trim()
+            email: (row[emailIdx] || "").trim(),
+            // Sheet1 (master data) Poster column - locked/read-only on
+            // the profile & main pages, so it's never written back to
+            // localStorage progress. Poster Sites here must read it
+            // directly from the sheet, same as index.html/profile.html do.
+            masterPosterRaw: (row[posterIdx] || "").trim()
           });
 
         });
@@ -599,26 +605,33 @@
 
     }
 
-    // Groups every elector with an active Poster selection (read from the
-    // main page's shared progress storage) by address, so a household
-    // with several posters appears as a single Poster Sites row.
+    // Groups every elector with an active Poster selection by address, so
+    // a household with several posters appears as a single Poster Sites
+    // row. Poster comes from Sheet1 (master data) when present there -
+    // same "master wins" rule as index.html/profile.html - falling back
+    // to the shared progress storage for electors without a sheet value
+    // (e.g. manually set before Poster became a locked, sheet-sourced
+    // field). Iterates every known elector (not just ones with saved
+    // progress) so sheet-only Poster values are never missed.
     function collectPosterSiteGroups() {
 
       const progress = loadElectorProgress();
       const groupsByAddress = new Map();
 
-      Object.keys(progress).forEach(electorId => {
+      electorsById.forEach((elector, electorId) => {
 
-        const posterType =
-          getPosterTypeFromProgress(progress[electorId] && progress[electorId].poster);
+        const masterPosterRaw = elector.masterPosterRaw || "";
+        const masterPoster =
+          masterPosterRaw && masterPosterRaw !== "No Poster"
+            ? "Poster: " + masterPosterRaw
+            : masterPosterRaw;
+
+        const rawPoster =
+          masterPoster || (progress[electorId] && progress[electorId].poster) || "";
+
+        const posterType = getPosterTypeFromProgress(rawPoster);
 
         if (!posterType) {
-          return;
-        }
-
-        const elector = electorsById.get(electorId);
-
-        if (!elector) {
           return;
         }
 
