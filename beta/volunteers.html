@@ -1269,11 +1269,38 @@
 
     }
 
+    // Scrolls to and briefly highlights a specific member/activist row
+    // when arriving via a deep link, e.g. profile.html's "Volunteer
+    // Record" link (?rowKey=member-3).
+    function highlightRowFromQueryString() {
+
+      const rowKey = new URLSearchParams(location.search).get("rowKey");
+
+      if (!rowKey) {
+        return;
+      }
+
+      const row = document.querySelector("[data-row-key=\"" + CSS.escape(rowKey) + "\"]");
+
+      if (!row) {
+        return;
+      }
+
+      row.scrollIntoView({ behavior: "smooth", block: "center" });
+      row.classList.add("elector-item-highlight");
+
+      window.setTimeout(() => {
+        row.classList.remove("elector-item-highlight");
+      }, 1500);
+
+    }
+
     (async function init() {
       await loadElectorsForLookup();
       initVolunteerRows();
       renderPosterSites();
       initAddActivistControls();
+      highlightRowFromQueryString();
     })();
 
   </script>

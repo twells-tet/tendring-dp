@@ -1295,6 +1295,15 @@
       return "<dt>" + escapeHtml(label) + "</dt><dd>" + escapeHtml(String(value)) + "</dd>";
     }
 
+    // Same as dlRow, but the value is rendered as a same-tab link to
+    // another page (e.g. a volunteer's row on Members & Activists).
+    function dlRowLink(label, value, href) {
+      if (!value && value !== 0) {
+        return "";
+      }
+      return "<dt>" + escapeHtml(label) + "</dt><dd><a href=\"" + escapeHtml(href) + "\">" + escapeHtml(String(value)) + "</a></dd>";
+    }
+
     // Turns "lat, lng" text into a clickable Google Maps search link,
     // e.g. "52.7915804, -4.5263449".
     function dlRowCoordinates(label, lat, lng) {
@@ -1507,7 +1516,9 @@
       document.getElementById("profile-voting-history").innerHTML = renderVotingHistory(elector, progress.dob);
 
       document.getElementById("profile-membership-dl").innerHTML =
-        dlRow("Volunteer Record", volunteerRecord ? (volunteerRecord.firstName + " " + volunteerRecord.lastName).trim() : "Volunteer - No") +
+        (volunteerRecord
+          ? dlRowLink("Volunteer Record", (volunteerRecord.firstName + " " + volunteerRecord.lastName).trim(), "volunteers.html?rowKey=" + encodeURIComponent(volunteerRecord.rowKey))
+          : dlRow("Volunteer Record", "Volunteer - No")) +
         dlRow("Regular Deliverer", volunteerRecord ? (volunteerRecord.regularDeliverer ? "Yes" : "No") : "No") +
         dlRow("Volunteer Elector ID", volunteerRecord && volunteerRecord.electorId ? volunteerRecord.electorId : "");
 
