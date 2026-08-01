@@ -623,7 +623,7 @@
     }
 
     async function loadSheet5DataById(sheetUrl) {
-      const result = { dobById: {}, preferredNameById: {}, legalNameById: {}, senedd2026ById: {} };
+      const result = { dobById: {}, preferredNameById: {}, senedd2026ById: {} };
       const sheet5Url = toSheet5CsvUrl(sheetUrl);
       if (!sheet5Url) {
         return result;
@@ -643,14 +643,8 @@
           if (iso) {
             result.dobById[electorId] = iso;
           }
-          const legalName = (row[10] || "").trim();
-          if (legalName) {
-            result.legalNameById[electorId] = legalName;
-          }
-          const preferredName = [row[3], row[4], row[5]]
-            .map(part => (part || "").trim())
-            .filter(Boolean)
-            .join(" ");
+          // Column L: "SHORTENED NAME" - the elector's Preferred Name.
+          const preferredName = (row[11] || "").trim();
           if (preferredName) {
             result.preferredNameById[electorId] = preferredName;
           }
@@ -1744,10 +1738,9 @@
           sheet5Data.dobById[CHRIS_GREEN_ELECTOR_ID] = CHRIS_GREEN_DOB;
         }
         elector.sheetDob = sheet5Data.dobById[elector.id] || elector.sheetDob || "";
-        // Legal Name (Sheet5 col K) is the authoritative elector name
-        // and default preferred name when present.
-        elector.name = sheet5Data.legalNameById[elector.id] || elector.name;
-        elector.sheetPreferredName = sheet5Data.legalNameById[elector.id] || sheet5Data.preferredNameById[elector.id] || "";
+        // Elector Name always comes from Sheet1 column A. Preferred
+        // Name comes from Sheet5 column L ("SHORTENED NAME").
+        elector.sheetPreferredName = sheet5Data.preferredNameById[elector.id] || "";
         // Sheet5 col M: real 2026 Senedd voting record ("Y"/"A").
         elector.senedd2026Vote = sheet5Data.senedd2026ById[elector.id] || "";
 
