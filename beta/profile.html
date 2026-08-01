@@ -673,8 +673,14 @@
       return "https://docs.google.com/spreadsheets/d/" + match[1] + "/gviz/tq?tqx=out:csv&sheet=NEWSPAPERS";
     }
 
+    function properCaseWord(value) {
+      return String(value || "")
+        .toLowerCase()
+        .replace(/\b[a-z]/g, ch => ch.toUpperCase());
+    }
+
     function buildNewspapersAddress(entry) {
-      return [entry.addressLine1, entry.addressLine2, entry.addressLine3, entry.postTown]
+      return [entry.addressLine1, entry.addressLine2, entry.addressLine3, entry.postTown && properCaseWord(entry.postTown)]
         .filter(part => part && !/^\d+$/.test(part) && part.toLowerCase() !== "gwynedd")
         .join(", ");
     }

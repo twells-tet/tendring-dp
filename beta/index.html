@@ -55,7 +55,7 @@
 
       <label class="checkbox-label divisions-toggle-label" for="toggle-divisions-above-ward">
         <input type="checkbox" id="toggle-divisions-above-ward">
-        View/hide divisions above ward level
+        View/hide districts above ward level
       </label>
 
       <div class="filter-grid">
@@ -3208,10 +3208,14 @@ function formatHouseholdAddress(elector) {
 
   if (elector.address) {
 
+    // Address data now comes straight from the up-to-date NEWSPAPERS
+    // tab, already in correct sentence case, so no further
+    // re-casing is needed here (unlike the post town, which is
+    // proper-cased separately in buildNewspapersAddress).
     const normalised =
       elector.address.replace(/,(?!\s)/g, ", ");
 
-    segments.push(welshProperCase(normalised));
+    segments.push(normalised);
 
   }
 
@@ -5366,7 +5370,11 @@ function buildNewspapersAddress(newspapersEntry) {
     newspapersEntry.addressLine1,
     newspapersEntry.addressLine2,
     newspapersEntry.addressLine3,
-    newspapersEntry.postTown
+    // Post town is always stored ALL CAPS in the sheet (e.g.
+    // "PWLLHELI"), so it still needs proper-casing. The address lines
+    // themselves are already correctly cased in the NEWSPAPERS tab, so
+    // they're used as-is.
+    newspapersEntry.postTown && welshProperCase(newspapersEntry.postTown)
   ]
     .filter(
       part =>
