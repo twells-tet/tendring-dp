@@ -126,7 +126,7 @@
             <option value="postal-proxy">Postal Voters</option>
             <option value="squeeze" disabled>Squeeze</option>
             <option value="stay-at-home" disabled>Stay At Home</option>
-            <option value="supporters" disabled>Supporters</option>
+            <option value="supporters">Supporters</option>
             <option value="switch" disabled>Switch</option>
             <option value="voted-since-2021" disabled>Voted at least once since 1 January 2021</option>
             <option value="voted-leave-2016" disabled>Voted Leave 2016</option>
@@ -1161,9 +1161,13 @@
         // the main list when "View Households on Map" was clicked, so the
         // map opens showing the same "current list". Falls back to "No
         // filter" (default) if that value doesn't match an enabled option,
-        // e.g. when opening the map page directly.
+        // e.g. when opening the map page directly. A "filter" URL
+        // parameter (e.g. from the Shuttleworth page's "View supporters
+        // on map" link) takes priority over the saved filter state.
         const requestedFilterType =
-          filterState.filterType || "";
+          (params.get("filter") || "").trim() ||
+          filterState.filterType ||
+          "";
 
         if (
           [...mappingFilterTypeEl.options].some(
@@ -1206,6 +1210,17 @@
 
             if (wantedFilterType === "newspaper-subscription") {
               if (!elector.newspaperSubscribed) {
+                return false;
+              }
+            }
+
+            if (wantedFilterType === "supporters") {
+              const isDefiniteOrProbablePlaid =
+                electorProgress.canvassId === "Definite Plaid" ||
+                electorProgress.canvassId === "Probable Plaid";
+              const supportsIndependence =
+                electorProgress.supportIndependence === "Yes";
+              if (!isDefiniteOrProbablePlaid && !supportsIndependence) {
                 return false;
               }
             }
