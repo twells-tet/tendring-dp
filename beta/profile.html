@@ -623,7 +623,7 @@
     }
 
     async function loadSheet5DataById(sheetUrl) {
-      const result = { dobById: {}, preferredNameById: {}, legalNameById: {} };
+      const result = { dobById: {}, preferredNameById: {}, legalNameById: {}, senedd2026ById: {} };
       const sheet5Url = toSheet5CsvUrl(sheetUrl);
       if (!sheet5Url) {
         return result;
@@ -653,6 +653,12 @@
             .join(" ");
           if (preferredName) {
             result.preferredNameById[electorId] = preferredName;
+          }
+          // Column M: "SENEDD 2026" - "Y" (voted on the day) or "A"
+          // (voted by post). Exact text is copied as-is.
+          const senedd2026 = (row[12] || "").trim();
+          if (senedd2026) {
+            result.senedd2026ById[electorId] = senedd2026;
           }
         });
       } catch (error) {
@@ -1327,7 +1333,13 @@
       }
       const alwaysVotes = String(elector.id || "").trim() === CHRIS_GREEN_ELECTOR_ID;
       const rows = VOTING_HISTORY_YEARS.map(year => {
-        const voted = alwaysVotes;
+        // 2026 (Senedd) now has real data from Sheet5 column M ("Y" =
+        // voted on the day, "A" = voted by post) - shown as exact text
+        // when present, taking priority over the demo placeholder.
+        if (year === "2026 (Senedd)" && elector.senedd2026Vote) {
+          return "<tr><th scope=\"row\">" + escapeHtml(year) + "</th><td class=\"voting-history-disabled-cell\">" + escapeHtml(elector.senedd2026Vote) + "</td></tr>";
+        }
+        const voted = year !== "2027 (Local)" && alwaysVotes;
         return "<tr><th scope=\"row\">" + escapeHtml(year) + "</th><td class=\"voting-history-disabled-cell\">" + (voted ? "X" : "—") + "</td></tr>";
       }).join("");
       return "<table class=\"voting-history-table\"><thead><tr><th scope=\"col\">Year</th><th scope=\"col\">" + escapeHtml(elector.name || "Elector") + "</th></tr></thead><tbody>" + rows + "</tbody></table>";
@@ -1725,6 +1737,8 @@
         // and default preferred name when present.
         elector.name = sheet5Data.legalNameById[elector.id] || elector.name;
         elector.sheetPreferredName = sheet5Data.legalNameById[elector.id] || sheet5Data.preferredNameById[elector.id] || "";
+        // Sheet5 col M: real 2026 Senedd voting record ("Y"/"A").
+        elector.senedd2026Vote = sheet5Data.senedd2026ById[elector.id] || "";
 
         const newspapersDataByHouseholdId = await loadNewspapersDataByHouseholdId(sheetUrl);
         applyNewspapersDataToElector(elector, newspapersDataByHouseholdId);
