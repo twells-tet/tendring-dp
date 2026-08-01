@@ -2088,6 +2088,15 @@ body.mobile-mode .elector-list {
   cursor: pointer;
 }
 
+.postcode-centre-note {
+  margin: 0.4rem 0 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-align: center;
+  color: var(--plaid-red);
+}
+
 .map-attribution {
   margin: 0.25rem 0 0;
   font-size: 0.7rem;
