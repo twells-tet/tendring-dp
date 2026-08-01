@@ -1820,9 +1820,13 @@
 
       const leftRegisterEl = document.getElementById("profile-left-register-checkbox");
       leftRegisterEl.checked = progress.leftElectoralRegister;
-      leftRegisterEl.addEventListener("change", () => {
+      leftRegisterEl.addEventListener("change", async () => {
         if (leftRegisterEl.checked) {
-          const confirmed = window.confirm(
+          // window.confirm() is overridden with an async dialog-plugin
+          // call in the Tauri app shell (it returns a Promise, not a
+          // boolean, there) but stays a normal synchronous boolean in a
+          // regular browser — awaiting it works correctly in both cases.
+          const confirmed = await window.confirm(
             "This will remove " + (elector.name || "this elector") +
             " from every list, filter, and map in the app (e.g. they may have died or moved away). " +
             "Their profile page will stay reachable directly by this Elector ID if needed. Continue?"
