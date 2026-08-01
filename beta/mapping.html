@@ -854,7 +854,35 @@
             data.key ||
             row[11] ||
             ""
-          )
+          ),
+
+        // Master data from Sheet1 columns AS:AZ, sourced verbatim -
+        // takes priority over any localStorage override in
+        // getElectorProgress() below.
+        masterPhone:
+          data.phone ||
+          row[44] ||
+          "",
+
+        masterEmail:
+          data.email ||
+          row[45] ||
+          "",
+
+        masterCanvassId:
+          data.canvassid ||
+          row[46] ||
+          "",
+
+        masterSupportIndependence:
+          data.independence ||
+          row[47] ||
+          "",
+
+        masterFirstLanguage:
+          data.firstlanguage ||
+          row[48] ||
+          ""
 
       };
 
@@ -864,12 +892,26 @@
 
       const existing = progress[electorId] || {};
 
+      const masterCanvassId =
+        (elector && elector.masterCanvassId && elector.masterCanvassId !== "No Data")
+          ? elector.masterCanvassId
+          : "";
+      const masterSupportIndependenceRaw =
+        (elector && elector.masterSupportIndependence && elector.masterSupportIndependence !== "No Data")
+          ? elector.masterSupportIndependence
+          : "";
+      const masterSupportIndependence =
+        masterSupportIndependenceRaw === "Support" ? "Yes" : masterSupportIndependenceRaw;
+      const masterFirstLanguage = (elector && elector.masterFirstLanguage) || "";
+      const masterPhone = (elector && elector.masterPhone) || "";
+      const masterEmail = (elector && elector.masterEmail) || "";
+
       return {
-        canvassId: existing.canvassId || existing.status || "No Data",
-        supportIndependence: existing.supportIndependence || "No Data",
-        firstLanguage: existing.firstLanguage || "English",
-        phone: existing.phone || "",
-        email: existing.email || "",
+        canvassId: masterCanvassId || existing.canvassId || existing.status || "No Data",
+        supportIndependence: masterSupportIndependence || existing.supportIndependence || "No Data",
+        firstLanguage: masterFirstLanguage || existing.firstLanguage || "English",
+        phone: masterPhone || existing.phone || "",
+        email: masterEmail || existing.email || "",
         dob: existing.dob || "",
         doNotDeliver: Boolean(existing.doNotDeliver) || Boolean(elector && elector.masterDoNotDeliver),
         doNotContact: Boolean(existing.doNotContact) || Boolean(elector && elector.masterDoNotContact)

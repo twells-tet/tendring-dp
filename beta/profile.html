@@ -295,27 +295,35 @@
         <p id="profile-electors-in-household" class="profile-meta"></p>
         <div id="profile-canvass-badge" class="profile-canvass-badge"></div>
 
-        <div class="profile-field-row identity-field-row" style="margin-bottom:0.15rem">
-          <span class="profile-field-label">Preferred Name</span>
-          <input type="text" id="profile-preferred-name" class="profile-field-input" placeholder="Enter preferred name">
-        </div>
-        <p class="profile-field-note">N.B. This is the name that will be displayed on letters addressed to the Elector</p>
+        <div class="profile-section">
+          <h3>Vital Stats</h3>
 
-        <div class="profile-field-row identity-field-row" style="margin-bottom:0.25rem">
-          <span class="profile-field-label">Date of Birth</span>
-          <div class="profile-dob-inputs">
-            <select id="profile-dob-year" class="profile-field-select profile-dob-select" aria-label="Birth year">
-              <option value="">Year</option>
-            </select>
-            <select id="profile-dob-month" class="profile-field-select profile-dob-select" aria-label="Birth month" disabled>
-              <option value="">Month</option>
-            </select>
-            <select id="profile-dob-day" class="profile-field-select profile-dob-select" aria-label="Birth day" disabled>
-              <option value="">Day</option>
-            </select>
+          <div class="profile-field-row identity-field-row" style="margin-bottom:0.15rem">
+            <span class="profile-field-label">Preferred Name</span>
+            <input type="text" id="profile-preferred-name" class="profile-field-input" placeholder="Enter preferred name">
+          </div>
+          <p class="profile-field-note">N.B. This is the name that will be displayed on letters addressed to the Elector</p>
+
+          <div class="profile-field-row identity-field-row" style="margin-bottom:0.25rem">
+            <span class="profile-field-label">Date of Birth</span>
+            <div class="profile-dob-inputs">
+              <select id="profile-dob-year" class="profile-field-select profile-dob-select" aria-label="Birth year">
+                <option value="">Year</option>
+              </select>
+              <select id="profile-dob-month" class="profile-field-select profile-dob-select" aria-label="Birth month" disabled>
+                <option value="">Month</option>
+              </select>
+              <select id="profile-dob-day" class="profile-field-select profile-dob-select" aria-label="Birth day" disabled>
+                <option value="">Day</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="profile-field-row identity-field-row">
+            <span class="profile-field-label">Age</span>
+            <input type="text" id="profile-age-display" class="profile-field-input" disabled>
           </div>
         </div>
-        <p id="profile-age-display" style="margin:0 0 0.75rem;font-size:0.9rem;color:var(--text);display:none"></p>
 
         <div class="profile-section">
           <h3>Household Data</h3>
@@ -344,6 +352,7 @@
           <div class="profile-field-row" id="profile-postal-vote-row" style="display:none">
             <span class="profile-field-label">Postal Vote Status</span>
             <select id="profile-postal-vote-select" class="profile-field-select"></select>
+            <input type="text" id="profile-postal-vote-display" class="profile-field-input" disabled style="display:none">
           </div>
           <dl class="profile-dl" id="profile-canvass-dl" style="margin-top:0.4rem"></dl>
         </div>
@@ -1046,7 +1055,15 @@
         electorsInHousehold: parseInt(data.numberofelectors || data.electors || data.householdcount || row[14] || "", 10) || null,
         householdNumber: null,
         electorNumber: null,
-        displayId: String(id)
+        displayId: String(id),
+        masterPhone: data.phone || row[44] || "",
+        masterEmail: data.email || row[45] || "",
+        masterCanvassId: data.canvassid || row[46] || "",
+        masterSupportIndependence: data.independence || row[47] || "",
+        masterFirstLanguage: data.firstlanguage || row[48] || "",
+        masterPartyMemberRaw: data.partymember || row[49] || "",
+        masterVolunteerRaw: data.volunteer || row[50] || "",
+        masterPosterRaw: data.poster || row[51] || ""
       };
     }
 
@@ -1241,36 +1258,61 @@
       const demoSupportIndependence = DEMO_SUPPORT_INDEPENDENCE_BY_ELECTOR_ID[String(electorId)];
       const demoPartyMember = DEMO_PARTY_MEMBER_BY_ELECTOR_ID[String(electorId)];
       const demoPoster = DEMO_POSTER_BY_ELECTOR_ID[String(electorId)];
+
+      // Master data from Sheet1 (columns AS:AZ) always wins over any
+      // per-browser localStorage override or demo value when present.
+      // "No Data" (the sheet's own placeholder) is treated as absent.
+      const masterCanvassId =
+        (elector && elector.masterCanvassId && elector.masterCanvassId !== "No Data")
+          ? elector.masterCanvassId
+          : "";
+      const masterSupportIndependenceRaw =
+        (elector && elector.masterSupportIndependence && elector.masterSupportIndependence !== "No Data")
+          ? elector.masterSupportIndependence
+          : "";
+      const masterSupportIndependence =
+        masterSupportIndependenceRaw === "Support" ? "Yes" : masterSupportIndependenceRaw;
+      const masterFirstLanguage = (elector && elector.masterFirstLanguage) || "";
+      const masterPartyMemberRaw = (elector && elector.masterPartyMemberRaw) || "";
+      const masterPartyMember =
+        masterPartyMemberRaw === "Yes" ? "Current" :
+        (masterPartyMemberRaw === "No" ? "No" : "");
+      const masterVolunteerRaw = (elector && elector.masterVolunteerRaw) || "";
+      const masterVolunteerKnown = masterVolunteerRaw !== "" && masterVolunteerRaw !== "No Data";
+      const masterVolunteer = masterVolunteerRaw === "Active Volunteer";
+      const masterPoster = (elector && elector.masterPosterRaw) || "";
+
       const legacyCanvassId =
+        masterCanvassId ||
         existing.canvassId ||
         existing.status ||
         demoCanvassId ||
         (isDemoPlaidElector ? "Definite Plaid" : (isDemoProbablePlaidElector ? "Probable Plaid" : "No Data"));
       const baseCanvassId = normalizeCanvassId(legacyCanvassId);
-      const partyMember = partyMemberOptions.includes(existing.partyMember || demoPartyMember || "No")
-        ? (existing.partyMember || demoPartyMember || "No")
-        : "No";
-      const poster = posterOptions.includes(existing.poster || demoPoster || "No Poster")
-        ? (existing.poster || demoPoster || "No Poster")
-        : "No Poster";
+      const rawPartyMember = masterPartyMember || existing.partyMember || demoPartyMember || "No";
+      const partyMember = partyMemberOptions.includes(rawPartyMember) ? rawPartyMember : "No";
+      const rawPoster = masterPoster || existing.poster || demoPoster || "No Poster";
+      const poster = posterOptions.includes(rawPoster) ? rawPoster : "No Poster";
       const volunteer =
-        existing.volunteer !== undefined
-          ? Boolean(existing.volunteer)
-          : isKnownVolunteer(electorName, electorId);
+        masterVolunteerKnown
+          ? masterVolunteer
+          : (existing.volunteer !== undefined
+              ? Boolean(existing.volunteer)
+              : isKnownVolunteer(electorName, electorId));
       const askToVolunteer = volunteer ? false : Boolean(existing.askToVolunteer);
-      const supportIndependence = independenceOptions.includes(existing.supportIndependence || demoSupportIndependence || "No Data")
-        ? (existing.supportIndependence || demoSupportIndependence || "No Data")
-        : "No Data";
+      const rawSupportIndependence = masterSupportIndependence || existing.supportIndependence || demoSupportIndependence || "No Data";
+      const supportIndependence = independenceOptions.includes(rawSupportIndependence) ? rawSupportIndependence : "No Data";
       const canvassId = applyCanvassAffinityRules(baseCanvassId, partyMember, volunteer, askToVolunteer, poster, supportIndependence);
+      const firstLanguage = masterFirstLanguage || existing.firstLanguage || "English";
 
       return {
         preferredName: existing.preferredName || sheetPreferredName || "",
         dob: existing.dob || sheetDob || "",
         canvassId: canvassIdOptions.includes(canvassId) ? canvassId : "No Data",
         supportIndependence,
-        firstLanguage: languageOptions.includes(existing.firstLanguage || "English") ? (existing.firstLanguage || "English") : "English",
-        phone: existing.phone || "",
-        email: existing.email || "",
+        firstLanguage: languageOptions.includes(firstLanguage) ? firstLanguage : "English",
+        phone: (elector && elector.masterPhone) || existing.phone || "",
+        email: (elector && elector.masterEmail) || existing.email || "",
         partyMember,
         poster,
         volunteer,
@@ -1279,7 +1321,15 @@
         doNotDeliver: Boolean(existing.doNotDeliver) || Boolean(elector && elector.masterDoNotDeliver),
         doNotContact: Boolean(existing.doNotContact) || Boolean(elector && elector.masterDoNotContact),
         masterDoNotDeliver: Boolean(elector && elector.masterDoNotDeliver),
-        masterDoNotContact: Boolean(elector && elector.masterDoNotContact)
+        masterDoNotContact: Boolean(elector && elector.masterDoNotContact),
+        canvassIdLocked: Boolean(masterCanvassId),
+        supportIndependenceLocked: Boolean(masterSupportIndependence),
+        firstLanguageLocked: Boolean(masterFirstLanguage),
+        phoneLocked: Boolean(elector && elector.masterPhone),
+        emailLocked: Boolean(elector && elector.masterEmail),
+        partyMemberLocked: Boolean(masterPartyMember),
+        posterLocked: Boolean(masterPoster),
+        volunteerLocked: masterVolunteerKnown
       };
     }
 
@@ -1501,12 +1551,11 @@
         dlRow("Assigned Deliverer", assignedDeliverer) +
         dlRow("Subroad", elector.subRoad) +
         dlRow("Sort Order", elector.deliveryOrder) +
-        dlRowCoordinates("Coordinates", elector.lat, elector.lng);
-
-      document.getElementById("profile-canvass-dl").innerHTML =
+        dlRowCoordinates("Coordinates", elector.lat, elector.lng) +
         dlRow("Phone", progress.phone) +
-        dlRow("Email", progress.email) +
-        (elector.postalProxy ? dlRow("Postal Vote Status", elector.postalProxy) : "");
+        dlRow("Email", progress.email);
+
+      document.getElementById("profile-canvass-dl").innerHTML = "";
 
       document.getElementById("profile-voting-history").innerHTML = renderVotingHistory(elector, progress.dob);
 
@@ -1582,13 +1631,7 @@
 
       function updateAgeDisplay(value) {
         const age = calculateAgeDisplay(value);
-        if (age) {
-          ageDisplayEl.textContent = "Age: " + age;
-          ageDisplayEl.style.display = "";
-        } else {
-          ageDisplayEl.textContent = "";
-          ageDisplayEl.style.display = "none";
-        }
+        ageDisplayEl.value = age || "Unknown";
       }
 
       const canvassSelectEl = document.getElementById("profile-canvass-select");
@@ -1612,10 +1655,15 @@
 
       const postalVoteRowEl = document.getElementById("profile-postal-vote-row");
       const postalVoteSelectEl = document.getElementById("profile-postal-vote-select");
+      const postalVoteDisplayEl = document.getElementById("profile-postal-vote-display");
+      postalVoteRowEl.style.display = "";
       if (elector.postalProxy) {
-        postalVoteRowEl.style.display = "none";
+        postalVoteSelectEl.style.display = "none";
+        postalVoteDisplayEl.style.display = "";
+        postalVoteDisplayEl.value = elector.postalProxy;
       } else {
-        postalVoteRowEl.style.display = "";
+        postalVoteSelectEl.style.display = "";
+        postalVoteDisplayEl.style.display = "none";
         setSelectOptions(postalVoteSelectEl, postalVoteOptions, progress.postalVoteRequested);
       }
       postalVoteSelectEl.addEventListener("change", () => {
