@@ -120,7 +120,6 @@
               <input type="text" class="elector-id-input read-only-input" value="12345679" placeholder="Elector ID" readonly title="Elector ID cannot be changed">
               <div class="elector-address-display"></div>
               <div class="elector-polling-district-display"></div>
-              <div class="elector-local-authority-display">Gwynedd</div>
               <a class="elector-profile-link" style="display:none"></a>
             </td>
             <td class="placeholder-cell"><input type="tel" class="placeholder-input phone-input" placeholder="07700 111222"></td>
@@ -296,12 +295,88 @@
 
     const electorsById = new Map();
 
+    function toNewspapersCsvUrl(rawUrl) {
+
+      const match = rawUrl.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+
+      if (!match) {
+        return null;
+      }
+
+      return (
+        "https://docs.google.com/spreadsheets/d/" +
+        match[1] +
+        "/gviz/tq?tqx=out:csv&sheet=NEWSPAPERS"
+      );
+
+    }
+
+    // NEWSPAPERS tab stores its Address Line 1/2 already correctly cased
+    // (e.g. "Awel y Mor"), unlike Sheet1's ALL CAPS address columns which
+    // need forcing through toTitleCaseAddress (and that regex incorrectly
+    // capitalises short Welsh words like "y"). So prefer the NEWSPAPERS
+    // address, keyed by Household ID, over the Sheet1 fallback.
+    async function loadNewspapersAddressesByHouseholdId() {
+
+      const addressesByHouseholdId = new Map();
+
+      try {
+
+        const newspapersUrl = toNewspapersCsvUrl(DEFAULT_SHEET_URL);
+
+        if (!newspapersUrl) {
+          return addressesByHouseholdId;
+        }
+
+        const response = await fetch(newspapersUrl);
+
+        if (!response.ok) {
+          return addressesByHouseholdId;
+        }
+
+        const rows = parseCsv(await response.text());
+
+        rows.slice(1).forEach(row => {
+
+          const householdId = (row[1] || "").trim();
+
+          if (!householdId) {
+            return;
+          }
+
+          const addressLine =
+            [row[3], row[4]]
+              .map(part => (part || "").trim())
+              .filter(part => part && part.toLowerCase() !== "gwynedd")
+              .join(", ");
+
+          const postcode = (row[7] || "").trim().toUpperCase();
+
+          if (addressLine) {
+            addressesByHouseholdId.set(householdId, { addressLine, postcode });
+          }
+
+        });
+
+      } catch (error) {
+        // NEWSPAPERS tab is supplementary — fall back to Sheet1 address.
+      }
+
+      return addressesByHouseholdId;
+
+    }
+
     async function loadElectorsForLookup() {
 
       try {
 
         const csvUrl = toGoogleCsvUrl(DEFAULT_SHEET_URL);
-        const response = await fetch(csvUrl);
+
+        const [response, newspapersAddressesByHouseholdId] =
+          await Promise.all([
+            fetch(csvUrl),
+            loadNewspapersAddressesByHouseholdId()
+          ]);
 
         if (!response.ok) {
           return;
@@ -317,6 +392,7 @@
         const address2Idx = headers.indexOf("address2");
         const address3Idx = headers.indexOf("address3");
         const postcodeIdx = headers.indexOf("postcode");
+        const householdIdIdx = headers.indexOf("householdid");
         const pollingDistrictIdx = headers.indexOf("pollingdistrict");
         const pollingDistrictDescIdx =
           headers.indexOf("pollingdistrictdescription");
@@ -341,8 +417,13 @@
           const lastName =
             spaceIdx === -1 ? "" : fullName.slice(spaceIdx + 1);
 
-          const addressLine =
-            [row[address1Idx], row[address2Idx], row[address3Idx]]
+          const householdId = (row[householdIdIdx] || "").trim();
+
+          const newspapersEntry =
+            newspapersAddressesByHouseholdId.get(householdId);
+
+          const sheetAddressLine =
+            [row[address1Idx], row[address2Idx]]
               .map(part => (part || "").trim())
               // Address fields sometimes contain an embedded comma
               // (e.g. "BODORWEL,BWLCH"), so re-split on every comma
@@ -354,10 +435,20 @@
               .map(part => toTitleCaseAddress(part))
               .join(", ");
 
-          const postcode = (row[postcodeIdx] || "").trim().toUpperCase();
+          const address = newspapersEntry
+            ? newspapersEntry.addressLine
+            : sheetAddressLine;
 
-          const address =
-            [addressLine, postcode].filter(Boolean).join(", ");
+          const postcode =
+            (newspapersEntry && newspapersEntry.postcode) ||
+            (row[postcodeIdx] || "").trim().toUpperCase();
+
+          // Slightly longer address (with postcode) for contexts like
+          // Poster Sites where the extra detail is useful; the plain
+          // "address" (line 1/2 only) is used for the compact Members
+          // table display.
+          const addressWithPostcode =
+            [address, postcode].filter(Boolean).join(", ");
 
           const pollingDistrictCode =
             (row[pollingDistrictIdx] || "").trim();
@@ -374,6 +465,7 @@
             firstName,
             lastName,
             address,
+            addressWithPostcode,
             pollingDistrict,
             phone: (row[phoneIdx] || "").trim(),
             email: (row[emailIdx] || "").trim(),
@@ -422,9 +514,7 @@
 
       if (pollingDistrictDisplay) {
         pollingDistrictDisplay.textContent =
-          match && match.pollingDistrict
-            ? "Polling District: " + match.pollingDistrict
-            : "";
+          match && match.pollingDistrict ? match.pollingDistrict : "";
       }
 
       if (phoneInput) {
@@ -640,7 +730,7 @@
 
         if (!groupsByAddress.has(addressKey)) {
           groupsByAddress.set(addressKey, {
-            address: elector.address || "—",
+            address: elector.addressWithPostcode || elector.address || "—",
             members: []
           });
         }
@@ -665,13 +755,11 @@
       ul.className = "activist-options";
 
       const types = new Set(group.members.map(member => member.posterType));
-      const isMixed = types.has("Garden") && types.has("Window");
+      const isMixed =
+        types.has("Both") ||
+        (types.has("Garden") && types.has("Window"));
 
-      const options = ["Garden", "Window"];
-
-      if (isMixed) {
-        options.push("Both");
-      }
+      const options = ["Garden", "Window", "Both"];
 
       options.forEach(optionLabel => {
 
@@ -683,7 +771,8 @@
         radio.disabled = true;
 
         // When both a Garden and a Window poster exist at the same
-        // address, only "Both" is selectable/checked and the individual
+        // address (or an elector's own Poster value is already "Both"),
+        // only "Both" is selectable/checked and the individual
         // Garden/Window options are greyed out (still shown for context).
         if (isMixed) {
           radio.checked = optionLabel === "Both";
@@ -956,10 +1045,6 @@
       const pollingDistrictDisplay = document.createElement("div");
       pollingDistrictDisplay.className = "elector-polling-district-display";
 
-      const localAuthorityDisplay = document.createElement("div");
-      localAuthorityDisplay.className = "elector-local-authority-display";
-      localAuthorityDisplay.textContent = "Gwynedd";
-
       const profileLink = document.createElement("a");
       profileLink.className = "elector-profile-link";
       profileLink.style.display = "none";
@@ -967,7 +1052,6 @@
       td.appendChild(input);
       td.appendChild(addressDisplay);
       td.appendChild(pollingDistrictDisplay);
-      td.appendChild(localAuthorityDisplay);
       td.appendChild(profileLink);
 
       return td;
