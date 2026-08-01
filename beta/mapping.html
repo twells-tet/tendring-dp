@@ -109,6 +109,30 @@
             <option value="QB6">QB6 (Llanengan)</option>
           </select>
         </div>
+
+        <div class="manage-walks-picker-row" id="mapping-filter-row">
+          <label for="mapping-filter-type">Filter</label>
+          <select id="mapping-filter-type">
+            <option value="age-known">Age Known</option>
+            <option value="first-language-english" disabled>First Language: English</option>
+            <option value="first-language-welsh" disabled>First Language: Welsh</option>
+            <option value="likely-conservative" disabled>Likely Conservative</option>
+            <option value="likely-labour" disabled>Likely Labour</option>
+            <option value="likely-reform" disabled>Likely Reform</option>
+            <option value="newspaper-subscription">Newspaper Subscription</option>
+            <option value="no-canvass-since-2020" disabled>No canvass data since 1 January 2020</option>
+            <option value="" selected>No filter</option>
+            <option value="never-voted" disabled>No record of ever voting</option>
+            <option value="postal-proxy">Postal Voters</option>
+            <option value="squeeze" disabled>Squeeze</option>
+            <option value="stay-at-home" disabled>Stay At Home</option>
+            <option value="supporters" disabled>Supporters</option>
+            <option value="switch" disabled>Switch</option>
+            <option value="voted-since-2021" disabled>Voted at least once since 1 January 2021</option>
+            <option value="voted-leave-2016" disabled>Voted Leave 2016</option>
+            <option value="voted-remain-2016" disabled>Voted Remain 2016</option>
+          </select>
+        </div>
       </div>
 
       <div id="walk-key" class="walk-key" hidden></div>
@@ -216,6 +240,9 @@
     const walkKeyEl =
       document.getElementById("walk-key");
 
+    const mappingFilterTypeEl =
+      document.getElementById("mapping-filter-type");
+
     function loadFromStorage(key, fallback) {
 
       try {
@@ -259,6 +286,65 @@
         "/export?format=csv&gid=" +
         gid
       );
+
+    }
+
+    // Sheet5 (col J = DOB, keyed by Electoral Number in col C) is the
+    // authoritative source for whether an elector's age/DOB is known,
+    // mirroring the main list's "Age Known" filter.
+    function toSheet5CsvUrl(rawUrl) {
+
+      const match =
+        rawUrl.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+
+      if (!match) {
+        return null;
+      }
+
+      return (
+        "https://docs.google.com/spreadsheets/d/" +
+        match[1] +
+        "/gviz/tq?tqx=out:csv&sheet=Sheet5"
+      );
+
+    }
+
+    async function loadSheet5DobById(sheetUrl) {
+
+      const dobById = {};
+
+      const sheet5Url = toSheet5CsvUrl(sheetUrl);
+
+      if (!sheet5Url) {
+        return dobById;
+      }
+
+      try {
+
+        const response = await fetch(sheet5Url);
+
+        if (!response.ok) {
+          return dobById;
+        }
+
+        const rows = parseCsv(await response.text());
+
+        rows.slice(1).forEach(row => {
+
+          const electorId = (row[2] || "").trim();
+          const rawDob = (row[9] || "").trim();
+
+          if (electorId && rawDob) {
+            dobById[electorId] = rawDob;
+          }
+
+        });
+
+      } catch (error) {
+        // Sheet5 is supplementary — ignore failures.
+      }
+
+      return dobById;
 
     }
 
@@ -417,6 +503,35 @@
 
     }
 
+    // Chris Green isn't a real row in the live Google Sheet — he's a
+    // fictional demo volunteer (see beta/index.html) used to showcase the
+    // volunteer/canvass features. Mirrored here so he also appears on the
+    // map when a matching Filter (e.g. Age Known) is applied.
+    const CHRIS_GREEN_ELECTOR_ID = "12345679";
+    const CHRIS_GREEN_HOUSEHOLD_ID = "12345678";
+    const CHRIS_GREEN_DOB = "1991-06-14";
+
+    function buildChrisGreenDemoElector() {
+      return {
+        id: CHRIS_GREEN_ELECTOR_ID,
+        name: "Christopher Green",
+        address: "12 Lôn Garmon, Abersoch, Pwllheli",
+        addressLine1: "12 Lôn Garmon",
+        addressLine2: "Abersoch",
+        postcode: "LL53 7AE",
+        householdId: CHRIS_GREEN_HOUSEHOLD_ID,
+        pollingDistrict: "QB6",
+        deliveryWalk: "1",
+        deliveryOrder: "1",
+        subRoad: "Lôn Garmon",
+        lat: 52.8202,
+        lng: -4.5117,
+        postalProxy: formatPostalProxy(""),
+        householdGroupKey: "chris-green-household",
+        sheetDob: CHRIS_GREEN_DOB
+      };
+    }
+
     function mapRowToElector(row, headers, index) {
 
       const data = {};
@@ -521,8 +636,10 @@
         firstLanguage: existing.firstLanguage || "English",
         phone: existing.phone || "",
         email: existing.email || "",
+        dob: existing.dob || "",
         doNotDeliver: Boolean(existing.doNotDeliver),
-        doNotContact: Boolean(existing.doNotContact)
+        doNotContact: Boolean(existing.doNotContact),
+        newspaperSubscription: Boolean(existing.newspaperSubscription)
       };
 
     }
@@ -830,14 +947,47 @@
             .map((row, index) => mapRowToElector(row, headers, index))
             .filter(e => e.name);
 
-        const wantedFilterType =
+        if (!electors.some(e => e.id === CHRIS_GREEN_ELECTOR_ID)) {
+          electors.push(buildChrisGreenDemoElector());
+        }
+
+        const dobById = await loadSheet5DobById(sheetUrl);
+
+        if (!dobById[CHRIS_GREEN_ELECTOR_ID]) {
+          dobById[CHRIS_GREEN_ELECTOR_ID] = CHRIS_GREEN_DOB;
+        }
+
+        electors.forEach(elector => {
+          elector.sheetDob = dobById[elector.id] || elector.sheetDob || "";
+        });
+
+        // Initialise the Filter dropdown from whatever filter was active on
+        // the main list when "View Households on Map" was clicked, so the
+        // map opens showing the same "current list". Falls back to "No
+        // filter" (default) if that value doesn't match an enabled option,
+        // e.g. when opening the map page directly.
+        const requestedFilterType =
           filterState.filterType || "";
 
-        // Shared across both display modes: Anti-Plaid and Postal/Proxy
-        // filters always apply. Polling District filtering differs
-        // between the two modes (see below), so it is applied later.
-        const baseFiltered =
-          electors.filter(elector => {
+        if (
+          [...mappingFilterTypeEl.options].some(
+            option => option.value === requestedFilterType && !option.disabled
+          )
+        ) {
+          mappingFilterTypeEl.value = requestedFilterType;
+        }
+
+        // Shared across both display modes: the selected Filter and
+        // Anti-Plaid flags always apply. Polling District filtering
+        // differs between the two modes (see below), so it is applied
+        // later. Recomputed on every render so changing the Filter
+        // dropdown live-updates the map ("View All" is just "No filter").
+        function computeBaseFiltered() {
+
+          const wantedFilterType =
+            mappingFilterTypeEl.value || "";
+
+          return electors.filter(elector => {
 
             if (wantedFilterType === "postal-proxy") {
               if (
@@ -851,6 +1001,19 @@
             const electorProgress =
               getElectorProgress(elector.id, progress);
 
+            if (wantedFilterType === "age-known") {
+              const knownDob = electorProgress.dob || elector.sheetDob || "";
+              if (!knownDob) {
+                return false;
+              }
+            }
+
+            if (wantedFilterType === "newspaper-subscription") {
+              if (!electorProgress.newspaperSubscription) {
+                return false;
+              }
+            }
+
             if (hasAntiPlaidFlag(electorProgress)) {
               return false;
             }
@@ -858,6 +1021,8 @@
             return true;
 
           });
+
+        }
 
         function renderWalksLegend(households, walkOverridesMap, pollingDistrict, walkDescriptionsMap, hiddenWalksSet) {
 
@@ -956,15 +1121,21 @@
           // never crosses a Polling District boundary, and the same Walk
           // number/colour is reused in each district), so selecting it
           // disables the "Show Delivery Walks" toggle entirely. The
-          // Polling District picker itself always stays visible.
+          // Polling District picker itself always stays visible. A
+          // selected Filter also disables it, since Walk colouring is
+          // meant to show a whole district's delivery routes, not a
+          // filtered subset of it.
           const isAllDistrictsSelected =
             walkDistrictSelectEl.value === "";
 
-          if (isAllDistrictsSelected) {
+          const isFilterSelected =
+            Boolean(mappingFilterTypeEl.value);
+
+          if (isAllDistrictsSelected || isFilterSelected) {
             showWalksActive = false;
           }
 
-          showWalksToggleEl.disabled = isAllDistrictsSelected;
+          showWalksToggleEl.disabled = isAllDistrictsSelected || isFilterSelected;
 
           const showWalks = showWalksActive;
 
@@ -985,7 +1156,7 @@
               : normalizeText(walkDistrictSelectEl.value || "RA1");
 
           const filtered =
-            baseFiltered.filter(elector => {
+            computeBaseFiltered().filter(elector => {
 
               if (
                 wantedPollingDistrict &&
@@ -1098,6 +1269,7 @@
           applyAndRender();
         });
         walkDistrictSelectEl.addEventListener("change", applyAndRender);
+        mappingFilterTypeEl.addEventListener("change", applyAndRender);
 
         // Event delegation: the Walk Key's contents are fully replaced on
         // every render, so a single listener on the (stable) container
