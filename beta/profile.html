@@ -323,6 +323,12 @@
             <span class="profile-field-label">Age</span>
             <input type="text" id="profile-age-display" class="profile-field-input" disabled>
           </div>
+
+          <div class="profile-checkboxes">
+            <label class="checkbox-label">
+              <input type="checkbox" id="profile-left-register-checkbox"> Dropped off Electoral Register?
+            </label>
+          </div>
         </div>
 
         <div class="profile-section">
@@ -340,14 +346,17 @@
           <div class="profile-field-row">
             <span class="profile-field-label">Canvass ID</span>
             <select id="profile-canvass-select" class="profile-field-select"></select>
+            <input type="text" id="profile-canvass-display" class="profile-field-input" disabled style="display:none">
           </div>
           <div class="profile-field-row">
             <span class="profile-field-label">Support Independence</span>
             <select id="profile-independence-select" class="profile-field-select"></select>
+            <input type="text" id="profile-independence-display" class="profile-field-input" disabled style="display:none">
           </div>
           <div class="profile-field-row">
             <span class="profile-field-label">First Language</span>
             <select id="profile-language-select" class="profile-field-select"></select>
+            <input type="text" id="profile-language-display" class="profile-field-input" disabled style="display:none">
           </div>
           <div class="profile-field-row" id="profile-postal-vote-row" style="display:none">
             <span class="profile-field-label">Postal Vote Status</span>
@@ -363,7 +372,7 @@
         </div>
 
         <div class="profile-section canvassing-section">
-          <h3>Membership</h3>
+          <h3>Membership / Volunteering</h3>
           <div class="profile-field-row">
             <span class="profile-field-label">Party Member</span>
             <select id="profile-party-member-select" class="profile-field-select"></select>
@@ -372,6 +381,7 @@
             <span class="profile-field-label">Poster</span>
             <select id="profile-poster-select" class="profile-field-select"></select>
           </div>
+          <dl class="profile-dl" id="profile-membership-dl" style="margin-top:0.4rem"></dl>
           <div class="profile-checkboxes">
             <label class="checkbox-label">
               <input type="checkbox" id="profile-volunteer-checkbox"> Active Volunteer
@@ -380,7 +390,6 @@
               <input type="checkbox" id="profile-ask-volunteer-checkbox"> Ask to Volunteer
             </label>
           </div>
-          <dl class="profile-dl" id="profile-membership-dl" style="margin-top:0.4rem"></dl>
         </div>
 
         <div class="profile-section">
@@ -541,7 +550,7 @@
     const languageOptions = ["English", "Cymraeg", "Other"];
     const postalVoteOptions = ["None", "Requested"];
     const partyMemberOptions = ["No", "Current", "Former", "Lapsed", "Supporter", "Ask to Join"];
-    const posterOptions = ["No Poster", "Poster: Window", "Poster: Garden"];
+    const posterOptions = ["No Poster", "Poster: Window", "Poster: Garden", "Poster: Both"];
 
     const VOTING_HISTORY_YEARS = [
       "2027 (Local)",
@@ -1139,6 +1148,20 @@
       return ((override.firstName || volunteer.firstName) + " " + (override.lastName || volunteer.lastName)).trim() || "No Assigned Deliverer";
     }
 
+    function getWalksCoveredByVolunteer(rowKey) {
+      const walkDeliverers = loadFromStorage(STORAGE_KEYS.walkDeliverers, DEFAULT_WALK_DELIVERERS);
+      return Object.keys(walkDeliverers)
+        .filter(key => walkDeliverers[key] === rowKey)
+        .map(key => {
+          const [district, walkNumber] = key.split("|");
+          const description = getWalkDescription(district, walkNumber);
+          return district.toUpperCase() + "-" + walkNumber + (description ? " (" + description + ")" : "");
+        })
+        .sort()
+        .map(escapeHtml)
+        .join(";<br>");
+    }
+
     function getVolunteerRecordForElector(elector) {
       const volunteerOverrides = loadFromStorage(STORAGE_KEYS.volunteerOverrides, {});
       const regularDelivererOverrides = loadFromStorage(STORAGE_KEYS.regularDelivererOverrides, {});
@@ -1274,13 +1297,20 @@
         masterSupportIndependenceRaw === "Support" ? "Yes" : masterSupportIndependenceRaw;
       const masterFirstLanguage = (elector && elector.masterFirstLanguage) || "";
       const masterPartyMemberRaw = (elector && elector.masterPartyMemberRaw) || "";
-      const masterPartyMember =
-        masterPartyMemberRaw === "Yes" ? "Current" :
-        (masterPartyMemberRaw === "No" ? "No" : "");
+      // Sheet's Party Member dropdown now uses the app's own option
+      // vocabulary directly (No/Current/Former/Lapsed/Supporter/Ask to
+      // Join), so pass it straight through.
+      const masterPartyMember = masterPartyMemberRaw;
       const masterVolunteerRaw = (elector && elector.masterVolunteerRaw) || "";
       const masterVolunteerKnown = masterVolunteerRaw !== "" && masterVolunteerRaw !== "No Data";
       const masterVolunteer = masterVolunteerRaw === "Active Volunteer";
-      const masterPoster = (elector && elector.masterPosterRaw) || "";
+      // Sheet's Poster dropdown now uses "No Poster"/"Window"/"Garden"/"Both" -
+      // map to the app's "Poster: X" vocabulary (leaving "No Poster" as-is).
+      const masterPosterRaw = (elector && elector.masterPosterRaw) || "";
+      const masterPoster =
+        masterPosterRaw && masterPosterRaw !== "No Poster"
+          ? "Poster: " + masterPosterRaw
+          : masterPosterRaw;
 
       const legacyCanvassId =
         masterCanvassId ||
@@ -1329,7 +1359,9 @@
         emailLocked: Boolean(elector && elector.masterEmail),
         partyMemberLocked: Boolean(masterPartyMember),
         posterLocked: Boolean(masterPoster),
-        volunteerLocked: masterVolunteerKnown
+        volunteerLocked: masterVolunteerKnown,
+        masterVolunteerRaw,
+        leftElectoralRegister: Boolean(existing.leftElectoralRegister)
       };
     }
 
@@ -1347,6 +1379,15 @@
         return "";
       }
       return "<dt>" + escapeHtml(label) + "</dt><dd><a href=\"" + escapeHtml(href) + "\">" + escapeHtml(String(value)) + "</a></dd>";
+    }
+
+    // Same as dlRow, but the value is pre-built HTML (already escaped
+    // by the caller) rather than plain text, e.g. multi-line lists.
+    function dlRowHtml(label, html) {
+      if (!html) {
+        return "";
+      }
+      return "<dt>" + escapeHtml(label) + "</dt><dd>" + html + "</dd>";
     }
 
     // Turns "lat, lng" text into a clickable Google Maps search link,
@@ -1532,8 +1573,20 @@
       document.getElementById("profile-elector-identifiers").textContent =
         "Elector ID: " + (elector.electorIdValue || "—") +
         " · Household ID: " + (elector.uprn || "—");
-      document.getElementById("profile-electors-in-household").textContent =
-        "Electors in Household: " + (elector.electorsInHousehold || "—");
+      document.getElementById("profile-electors-in-household").innerHTML =
+        "Electors in Household: " + escapeHtml(String(elector.electorsInHousehold || "—")) +
+        (elector.otherHouseholdElectors && elector.otherHouseholdElectors.length
+          ? " (" +
+            elector.otherHouseholdElectors
+              .map(other =>
+                "<a href=\"profile.html?id=" + encodeURIComponent(other.id) + "\">" +
+                escapeHtml(other.name || "Unnamed elector") +
+                "</a>" +
+                (other.ageDisplay ? " [Age " + escapeHtml(other.ageDisplay) + "]" : "")
+              )
+              .join(", ") +
+            ")"
+          : "");
       updateCanvassBadge(progress.canvassId);
 
       document.getElementById("profile-household-dl").innerHTML =
@@ -1559,12 +1612,31 @@
 
       document.getElementById("profile-voting-history").innerHTML = renderVotingHistory(elector, progress.dob);
 
+      const regularDelivererWalksHtml =
+        volunteerRecord && volunteerRecord.regularDeliverer
+          ? getWalksCoveredByVolunteer(volunteerRecord.rowKey)
+          : "";
+
+      const volunteerStatus = progress.volunteerLocked
+        ? progress.masterVolunteerRaw
+        : (volunteerRecord || progress.volunteer
+            ? "Active Volunteer"
+            : progress.askToVolunteer
+              ? "Ask to Volunteer"
+              : "");
+
+      const volunteerStatusDisplay =
+        !volunteerStatus || volunteerStatus === "No Data" ? "\u2014" : volunteerStatus;
+
       document.getElementById("profile-membership-dl").innerHTML =
         (volunteerRecord
           ? dlRowLink("Volunteer Record", (volunteerRecord.firstName + " " + volunteerRecord.lastName).trim(), "volunteers.html?rowKey=" + encodeURIComponent(volunteerRecord.rowKey))
           : dlRow("Volunteer Record", "Volunteer - No")) +
-        dlRow("Regular Deliverer", volunteerRecord ? (volunteerRecord.regularDeliverer ? "Yes" : "No") : "No") +
-        dlRow("Volunteer Elector ID", volunteerRecord && volunteerRecord.electorId ? volunteerRecord.electorId : "");
+        (regularDelivererWalksHtml
+          ? dlRowHtml("Regular Deliverer", regularDelivererWalksHtml)
+          : dlRow("Regular Deliverer", volunteerRecord && volunteerRecord.regularDeliverer ? "Yes" : "No")
+        ) +
+        dlRow("Volunteer Status", volunteerStatusDisplay);
 
       // Every elector record originated from the same initial data
       // import, so a "Created" entry is shown as the default last
@@ -1635,20 +1707,41 @@
       }
 
       const canvassSelectEl = document.getElementById("profile-canvass-select");
+      const canvassDisplayEl = document.getElementById("profile-canvass-display");
       setSelectOptions(canvassSelectEl, canvassIdOptions, progress.canvassId);
+      if (progress.canvassIdLocked) {
+        canvassSelectEl.style.display = "none";
+        canvassDisplayEl.style.display = "";
+        canvassDisplayEl.value = progress.canvassId;
+        canvassDisplayEl.title = "Sourced from Sheet1 (master data) - cannot be changed here";
+      }
       canvassSelectEl.addEventListener("change", () => {
         saveProgressField(elector.id, "canvassId", canvassSelectEl.value);
         updateCanvassBadge(getElectorProgress(elector.id, elector.name).canvassId);
       });
 
       const independenceSelectEl = document.getElementById("profile-independence-select");
+      const independenceDisplayEl = document.getElementById("profile-independence-display");
       setSelectOptions(independenceSelectEl, independenceOptions, progress.supportIndependence);
+      if (progress.supportIndependenceLocked) {
+        independenceSelectEl.style.display = "none";
+        independenceDisplayEl.style.display = "";
+        independenceDisplayEl.value = progress.supportIndependence;
+        independenceDisplayEl.title = "Sourced from Sheet1 (master data) - cannot be changed here";
+      }
       independenceSelectEl.addEventListener("change", () => {
         saveProgressField(elector.id, "supportIndependence", independenceSelectEl.value);
       });
 
       const languageSelectEl = document.getElementById("profile-language-select");
+      const languageDisplayEl = document.getElementById("profile-language-display");
       setSelectOptions(languageSelectEl, languageOptions, progress.firstLanguage);
+      if (progress.firstLanguageLocked) {
+        languageSelectEl.style.display = "none";
+        languageDisplayEl.style.display = "";
+        languageDisplayEl.value = progress.firstLanguage;
+        languageDisplayEl.title = "Sourced from Sheet1 (master data) - cannot be changed here";
+      }
       languageSelectEl.addEventListener("change", () => {
         saveProgressField(elector.id, "firstLanguage", languageSelectEl.value);
       });
@@ -1672,6 +1765,10 @@
 
       const partyMemberSelectEl = document.getElementById("profile-party-member-select");
       setSelectOptions(partyMemberSelectEl, partyMemberOptions, progress.partyMember);
+      if (progress.partyMemberLocked) {
+        partyMemberSelectEl.disabled = true;
+        partyMemberSelectEl.title = "Sourced from Sheet1 (master data) - cannot be changed here";
+      }
       partyMemberSelectEl.addEventListener("change", () => {
         saveProgressField(elector.id, "partyMember", partyMemberSelectEl.value);
         updateCanvassBadge(getElectorProgress(elector.id, elector.name).canvassId);
@@ -1679,6 +1776,10 @@
 
       const posterSelectEl = document.getElementById("profile-poster-select");
       setSelectOptions(posterSelectEl, posterOptions, progress.poster);
+      if (progress.posterLocked) {
+        posterSelectEl.disabled = true;
+        posterSelectEl.title = "Sourced from Sheet1 (master data) - cannot be changed here";
+      }
       posterSelectEl.addEventListener("change", () => {
         saveProgressField(elector.id, "poster", posterSelectEl.value);
         updateCanvassBadge(getElectorProgress(elector.id, elector.name).canvassId);
@@ -1686,33 +1787,17 @@
 
       const volunteerCheckboxEl = document.getElementById("profile-volunteer-checkbox");
       const askVolunteerCheckboxEl = document.getElementById("profile-ask-volunteer-checkbox");
-      if (volunteerRecord) {
-        // Already listed as a volunteer on the Members & Activists page -
-        // that record is the source of truth, so pull it through here
-        // instead of allowing an independent, conflicting toggle.
-        volunteerCheckboxEl.checked = true;
-        volunteerCheckboxEl.disabled = true;
-        askVolunteerCheckboxEl.checked = false;
-        askVolunteerCheckboxEl.disabled = true;
-      } else {
-        volunteerCheckboxEl.disabled = false;
-        volunteerCheckboxEl.checked = progress.volunteer;
-        askVolunteerCheckboxEl.checked = progress.askToVolunteer;
-        askVolunteerCheckboxEl.disabled = progress.volunteer;
-        volunteerCheckboxEl.addEventListener("change", () => {
-          saveProgressField(elector.id, "volunteer", volunteerCheckboxEl.checked);
-          if (volunteerCheckboxEl.checked) {
-            askVolunteerCheckboxEl.checked = false;
-            saveProgressField(elector.id, "askToVolunteer", false);
-          }
-          askVolunteerCheckboxEl.disabled = volunteerCheckboxEl.checked;
-          updateCanvassBadge(getElectorProgress(elector.id, elector.name).canvassId);
-        });
-        askVolunteerCheckboxEl.addEventListener("change", () => {
-          saveProgressField(elector.id, "askToVolunteer", askVolunteerCheckboxEl.checked);
-          updateCanvassBadge(getElectorProgress(elector.id, elector.name).canvassId);
-        });
-      }
+      // Volunteer status is now sourced from Sheet1 column AY for every
+      // elector, so this toggle is always a read-only reflection of it.
+      volunteerCheckboxEl.checked = Boolean(volunteerRecord) || progress.volunteer;
+      volunteerCheckboxEl.disabled = true;
+      askVolunteerCheckboxEl.checked = !volunteerCheckboxEl.checked && progress.askToVolunteer;
+      askVolunteerCheckboxEl.disabled = true;
+      const volunteerLockTitle = volunteerRecord
+        ? "Sourced from the Members & Activists page - cannot be changed here"
+        : "Sourced from Sheet1 (master data) - cannot be changed here";
+      volunteerCheckboxEl.title = volunteerLockTitle;
+      askVolunteerCheckboxEl.title = volunteerLockTitle;
 
       const doNotDeliverEl = document.getElementById("profile-do-not-deliver");
       const doNotDoorstepEl = document.getElementById("profile-do-not-doorstep");
@@ -1731,6 +1816,23 @@
       });
       doNotDoorstepEl.addEventListener("change", () => {
         saveProgressField(elector.id, "doNotContact", doNotDoorstepEl.checked);
+      });
+
+      const leftRegisterEl = document.getElementById("profile-left-register-checkbox");
+      leftRegisterEl.checked = progress.leftElectoralRegister;
+      leftRegisterEl.addEventListener("change", () => {
+        if (leftRegisterEl.checked) {
+          const confirmed = window.confirm(
+            "This will remove " + (elector.name || "this elector") +
+            " from every list, filter, and map in the app (e.g. they may have died or moved away). " +
+            "Their profile page will stay reachable directly by this Elector ID if needed. Continue?"
+          );
+          if (!confirmed) {
+            leftRegisterEl.checked = false;
+            return;
+          }
+        }
+        saveProgressField(elector.id, "leftElectoralRegister", leftRegisterEl.checked);
       });
 
       document.getElementById("profile-content").hidden = false;
@@ -1773,9 +1875,18 @@
         // sometimes left blank, so always recompute it by counting how
         // many electors share this Household ID — that's authoritative
         // and never leaves a "—" gap when the count is simply missing.
+        const allProgress = loadFromStorage(STORAGE_KEYS.progress, {});
+        const isStillOnRegister = candidate => !(allProgress[candidate.id] || {}).leftElectoralRegister;
         if (elector.uprn) {
-          elector.electorsInHousehold =
-            allElectors.filter(candidate => candidate.uprn === elector.uprn).length || elector.electorsInHousehold;
+          const activeHouseholdElectors = allElectors.filter(
+            candidate => candidate.uprn === elector.uprn && isStillOnRegister(candidate)
+          );
+          elector.electorsInHousehold = activeHouseholdElectors.length || elector.electorsInHousehold;
+          elector.otherHouseholdElectors = activeHouseholdElectors.filter(
+            candidate => candidate.id !== elector.id
+          );
+        } else {
+          elector.otherHouseholdElectors = [];
         }
 
         const sheet5Data = await loadSheet5DataById(sheetUrl);
@@ -1787,6 +1898,17 @@
           sheet5Data.dobById[CHRIS_GREEN_ELECTOR_ID] = CHRIS_GREEN_DOB;
         }
         elector.sheetDob = sheet5Data.dobById[elector.id] || elector.sheetDob || "";
+        // Compute a display age for each other household member so the
+        // "Electors in Household" line can show it alongside their name,
+        // e.g. "Ffion Jones (Age 35)". Uses the same DOB source
+        // (Sheet5, falling back to any locally-saved override) and the
+        // same age calculation as the main profile's Age field.
+        if (elector.otherHouseholdElectors && elector.otherHouseholdElectors.length) {
+          elector.otherHouseholdElectors.forEach(other => {
+            const otherDob = getElectorProgress(other.id, other.name, sheet5Data.dobById[other.id] || "").dob;
+            other.ageDisplay = calculateAgeDisplay(otherDob);
+          });
+        }
         // Elector Name always comes from Sheet1 column A. Preferred
         // Name comes from Sheet5 column L ("SHORTENED NAME").
         elector.sheetPreferredName = sheet5Data.preferredNameById[elector.id] || "";

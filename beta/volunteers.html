@@ -121,9 +121,10 @@
               <div class="elector-address-display"></div>
               <div class="elector-polling-district-display"></div>
               <div class="elector-local-authority-display">Gwynedd</div>
+              <a class="elector-profile-link" style="display:none"></a>
             </td>
-            <td class="placeholder-cell"><input type="tel" class="placeholder-input" placeholder="07700 111222"></td>
-            <td class="placeholder-cell"><input type="email" class="placeholder-input" placeholder="elector@email.com"></td>
+            <td class="placeholder-cell"><input type="tel" class="placeholder-input phone-input" placeholder="07700 111222"></td>
+            <td class="placeholder-cell"><input type="email" class="placeholder-input email-input" placeholder="elector@email.com"></td>
             <td>
               <ul class="activist-options">
                 <li><label><input type="checkbox" checked> Attend Action Days</label></li>
@@ -319,6 +320,8 @@
         const pollingDistrictIdx = headers.indexOf("pollingdistrict");
         const pollingDistrictDescIdx =
           headers.indexOf("pollingdistrictdescription");
+        const phoneIdx = headers.indexOf("phone");
+        const emailIdx = headers.indexOf("email");
 
         rows.slice(1).forEach(row => {
 
@@ -366,7 +369,14 @@
               ? pollingDistrictCode + " (" + pollingDistrictDesc + ")"
               : pollingDistrictCode || pollingDistrictDesc;
 
-          electorsById.set(id, { firstName, lastName, address, pollingDistrict });
+          electorsById.set(id, {
+            firstName,
+            lastName,
+            address,
+            pollingDistrict,
+            phone: (row[phoneIdx] || "").trim(),
+            email: (row[emailIdx] || "").trim()
+          });
 
         });
 
@@ -384,6 +394,9 @@
       const addressDisplay = row.querySelector(".elector-address-display");
       const pollingDistrictDisplay =
         row.querySelector(".elector-polling-district-display");
+      const profileLink = row.querySelector(".elector-profile-link");
+      const phoneInput = row.querySelector(".phone-input");
+      const emailInput = row.querySelector(".email-input");
 
       if (!electorIdInput) {
         return;
@@ -406,6 +419,26 @@
           match && match.pollingDistrict
             ? "Polling District: " + match.pollingDistrict
             : "";
+      }
+
+      if (phoneInput) {
+        phoneInput.value = match ? (match.phone || "") : "";
+      }
+
+      if (emailInput) {
+        emailInput.value = match ? (match.email || "") : "";
+      }
+
+      if (profileLink) {
+        if (match && id) {
+          profileLink.href = "profile.html?id=" + encodeURIComponent(id);
+          profileLink.textContent = "View Elector's Profile \u2192";
+          profileLink.style.display = "";
+        } else {
+          profileLink.removeAttribute("href");
+          profileLink.textContent = "";
+          profileLink.style.display = "none";
+        }
       }
 
       if (save) {
@@ -914,10 +947,15 @@
       localAuthorityDisplay.className = "elector-local-authority-display";
       localAuthorityDisplay.textContent = "Gwynedd";
 
+      const profileLink = document.createElement("a");
+      profileLink.className = "elector-profile-link";
+      profileLink.style.display = "none";
+
       td.appendChild(input);
       td.appendChild(addressDisplay);
       td.appendChild(pollingDistrictDisplay);
       td.appendChild(localAuthorityDisplay);
+      td.appendChild(profileLink);
 
       return td;
 
@@ -1093,7 +1131,7 @@
       phoneTd.className = "placeholder-cell";
       const phoneInput = document.createElement("input");
       phoneInput.type = "tel";
-      phoneInput.className = "placeholder-input";
+      phoneInput.className = "placeholder-input phone-input";
       phoneInput.placeholder = "07700 111222";
       phoneTd.appendChild(phoneInput);
 
@@ -1101,7 +1139,7 @@
       emailTd.className = "placeholder-cell";
       const emailInput = document.createElement("input");
       emailInput.type = "email";
-      emailInput.className = "placeholder-input";
+      emailInput.className = "placeholder-input email-input";
       emailInput.placeholder = "elector@email.com";
       emailTd.appendChild(emailInput);
 
