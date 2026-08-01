@@ -28,7 +28,14 @@
                 <select id="lottery-winnings">
                     <option value="500000">£500,000</option>
                     <option value="1000000">£1,000,000</option>
+                    <option value="5900000">£5.9 million</option>
+                    <option value="other">Other&hellip;</option>
                 </select>
+            </label>
+
+            <label class="signup-field lottery-winnings-other-field" id="lottery-winnings-other-field" hidden>
+                Enter your own amount
+                <input type="number" step="any" id="lottery-winnings-other" placeholder="Amount">
             </label>
 
             <div class="signup-days">
@@ -58,11 +65,14 @@
 
         const STORAGE_KEYS = {
             winnings: "tarian-lottery-winnings-v1",
+            winningsOther: "tarian-lottery-winnings-other-v1",
             outgoings: "tarian-lottery-outgoings-v1",
             saved: "tarian-lottery-saved-v1"
         };
 
         const winningsSelectEl = document.getElementById("lottery-winnings");
+        const winningsOtherFieldEl = document.getElementById("lottery-winnings-other-field");
+        const winningsOtherInputEl = document.getElementById("lottery-winnings-other");
         const rowsContainerEl = document.getElementById("lottery-outgoings-rows");
         const addRowButtonEl = document.getElementById("lottery-add-row");
         const totaliseButtonEl = document.getElementById("lottery-totalise");
@@ -113,7 +123,37 @@
 
         function persistState() {
             saveToStorage(STORAGE_KEYS.winnings, winningsSelectEl.value);
+            saveToStorage(STORAGE_KEYS.winningsOther, winningsOtherInputEl.value);
             saveToStorage(STORAGE_KEYS.outgoings, readRows());
+        }
+
+        function updateWinningsOtherVisibility() {
+            winningsOtherFieldEl.hidden = winningsSelectEl.value !== "other";
+        }
+
+        function getWinningsAmount() {
+            if (winningsSelectEl.value === "other") {
+                return Number(winningsOtherInputEl.value) || 0;
+            }
+            return Number(winningsSelectEl.value) || 0;
+        }
+
+        function applyWinningsValue(amount) {
+
+            const matchingOption = Array.from(winningsSelectEl.options).find(
+                option => option.value !== "other" && Number(option.value) === Number(amount)
+            );
+
+            if (matchingOption) {
+                winningsSelectEl.value = matchingOption.value;
+                winningsOtherInputEl.value = "";
+            } else {
+                winningsSelectEl.value = "other";
+                winningsOtherInputEl.value = amount === undefined || amount === null ? "" : amount;
+            }
+
+            updateWinningsOtherVisibility();
+
         }
 
         function addRow(description, amount) {
@@ -172,6 +212,13 @@
         });
 
         winningsSelectEl.addEventListener("change", () => {
+            updateWinningsOtherVisibility();
+            persistState();
+            resultEl.hidden = true;
+            saveButtonEl.hidden = true;
+        });
+
+        winningsOtherInputEl.addEventListener("input", () => {
             persistState();
             resultEl.hidden = true;
             saveButtonEl.hidden = true;
@@ -181,7 +228,7 @@
 
             sortRowsByAmountDescending();
 
-            const winnings = Number(winningsSelectEl.value) || 0;
+            const winnings = getWinningsAmount();
 
             const outgoingRows = readRows();
 
@@ -247,7 +294,7 @@
                         return;
                     }
 
-                    winningsSelectEl.value = String(scenario.winnings);
+                    applyWinningsValue(scenario.winnings);
                     rowsContainerEl.innerHTML = "";
                     scenario.outgoings.forEach(row => addRow(row.description, row.amount));
 
@@ -308,7 +355,20 @@
         (function init() {
 
             const savedWinnings = loadFromStorage(STORAGE_KEYS.winnings, "500000");
-            winningsSelectEl.value = savedWinnings;
+            const savedWinningsOther = loadFromStorage(STORAGE_KEYS.winningsOther, "");
+
+            const hasMatchingOption = Array.from(winningsSelectEl.options).some(
+                option => option.value === savedWinnings
+            );
+
+            if (hasMatchingOption) {
+                winningsSelectEl.value = savedWinnings;
+                winningsOtherInputEl.value = savedWinnings === "other" ? savedWinningsOther : "";
+            } else {
+                winningsSelectEl.value = "500000";
+            }
+
+            updateWinningsOtherVisibility();
 
             const savedOutgoings = loadFromStorage(STORAGE_KEYS.outgoings, []);
 
