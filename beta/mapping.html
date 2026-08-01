@@ -113,6 +113,7 @@
         <div class="manage-walks-picker-row" id="mapping-filter-row">
           <label for="mapping-filter-type">Filter</label>
           <select id="mapping-filter-type">
+            <option value="" selected>No filter</option>
             <option value="age-known">Age Known</option>
             <option value="first-language-english" disabled>First Language: English</option>
             <option value="first-language-welsh" disabled>First Language: Welsh</option>
@@ -121,7 +122,6 @@
             <option value="likely-reform" disabled>Likely Reform</option>
             <option value="newspaper-subscription">Subscription</option>
             <option value="no-canvass-since-2020" disabled>No canvass data since 1 January 2020</option>
-            <option value="" selected>No filter</option>
             <option value="never-voted" disabled>No record of ever voting</option>
             <option value="postal-proxy">Postal Voters</option>
             <option value="squeeze" disabled>Squeeze</option>
@@ -473,6 +473,7 @@
 
           dataByHouseholdId[householdId] = {
             subscription: (row[2] || "").trim(),
+            addressLine1: (row[3] || "").trim(),
             walk: (row[9] || "").trim(),
             subRoad: (row[10] || "").trim(),
             sortOrder: (row[11] || "").trim()
@@ -496,6 +497,10 @@
 
         if (!entry) {
           return;
+        }
+
+        if (entry.addressLine1) {
+          elector.addressLine1 = entry.addressLine1;
         }
 
         if (entry.walk) {
