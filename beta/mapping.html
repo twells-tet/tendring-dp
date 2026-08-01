@@ -387,11 +387,12 @@
     async function loadSheet5DobById(sheetUrl) {
 
       const dobById = {};
+      const senedd2026ById = {};
 
       const sheet5Url = toSheet5CsvUrl(sheetUrl);
 
       if (!sheet5Url) {
-        return dobById;
+        return { dobById, senedd2026ById };
       }
 
       try {
@@ -399,7 +400,7 @@
         const response = await fetch(sheet5Url);
 
         if (!response.ok) {
-          return dobById;
+          return { dobById, senedd2026ById };
         }
 
         const rows = parseCsv(await response.text());
@@ -408,9 +409,16 @@
 
           const electorId = (row[2] || "").trim();
           const rawDob = (row[9] || "").trim();
+          // Column M: "SENEDD 2026" - "Y" (voted on the day) or "A"
+          // (voted by post). Exact text is copied as-is.
+          const senedd2026 = (row[12] || "").trim();
 
           if (electorId && rawDob) {
             dobById[electorId] = rawDob;
+          }
+
+          if (electorId && senedd2026) {
+            senedd2026ById[electorId] = senedd2026;
           }
 
         });
@@ -419,7 +427,7 @@
         // Sheet5 is supplementary — ignore failures.
       }
 
-      return dobById;
+      return { dobById, senedd2026ById };
 
     }
 
@@ -713,6 +721,10 @@
 
     function electorVotedAtLeastOnceSinceYear(elector, cutoffYear) {
 
+      if (elector.senedd2026Vote && 2026 >= cutoffYear) {
+        return true;
+      }
+
       const isDemoVoter =
         String(elector.id || "").trim() === CHRIS_GREEN_ELECTOR_ID;
 
@@ -721,7 +733,7 @@
       }
 
       return VOTING_HISTORY_YEARS.some(year => {
-        if (year === "2027 (Local)") {
+        if (year === "2027 (Local)" || year === "2026 (Senedd)") {
           return false;
         }
         const match = year.match(/\d{4}/);
@@ -1170,7 +1182,7 @@
           electors.push(buildChrisGreenDemoElector());
         }
 
-        const dobById = await loadSheet5DobById(sheetUrl);
+        const { dobById, senedd2026ById } = await loadSheet5DobById(sheetUrl);
 
         if (!dobById[CHRIS_GREEN_ELECTOR_ID]) {
           dobById[CHRIS_GREEN_ELECTOR_ID] = CHRIS_GREEN_DOB;
@@ -1178,6 +1190,7 @@
 
         electors.forEach(elector => {
           elector.sheetDob = dobById[elector.id] || elector.sheetDob || "";
+          elector.senedd2026Vote = senedd2026ById[elector.id] || "";
         });
 
         const newspapersDataByHouseholdId =

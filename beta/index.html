@@ -1884,7 +1884,7 @@ async function loadElectorsFromSheet(inputUrl) {
 
 
 
-    loadSheet5DobById(inputUrl).then(({ dobById, legalNameById }) => {
+    loadSheet5DobById(inputUrl).then(({ dobById, legalNameById, senedd2026ById }) => {
 
       // Chris Green's DOB isn't recorded in the live Sheet5 (he's a
       // demo volunteer record), so apply his known demo DOB as a
@@ -1899,6 +1899,8 @@ async function loadElectorsFromSheet(inputUrl) {
         // Legal Name (Sheet5 col K) is the authoritative elector name
         // when present, overriding the main sheet's ELECTOR NAME.
         elector.name = legalNameById[elector.id] || elector.name;
+        // Sheet5 col M: real 2026 Senedd voting record ("Y"/"A").
+        elector.senedd2026Vote = senedd2026ById[elector.id] || "";
       });
 
       renderElectorList();
@@ -4049,13 +4051,15 @@ function updateVotingHistory(household) {
           const rawName = String(elector.name || "Unnamed elector");
           return {
             displayName: escapeHtml(rawName),
-            alwaysVotesDemo: String(elector.id || "").trim() === CHRIS_GREEN_ELECTOR_ID
+            alwaysVotesDemo: String(elector.id || "").trim() === CHRIS_GREEN_ELECTOR_ID,
+            senedd2026Vote: elector.senedd2026Vote || ""
           };
         })
       : [
           {
             displayName: "—",
-            alwaysVotesDemo: false
+            alwaysVotesDemo: false,
+            senedd2026Vote: ""
           }
         ];
 
@@ -4068,6 +4072,12 @@ function updateVotingHistory(household) {
       "<tr>" +
       "<th scope=\"row\">" + escapeHtml(year) + "</th>" +
       electorEntries.map(entry => {
+        // 2026 (Senedd) now has real data from Sheet5 column M ("Y" =
+        // voted on the day, "A" = voted by post) - shown as exact text
+        // when present, taking priority over the demo placeholder.
+        if (year === "2026 (Senedd)" && entry.senedd2026Vote) {
+          return "<td class=\"voting-history-disabled-cell\">" + escapeHtml(entry.senedd2026Vote) + "</td>";
+        }
         // 2027 (Local) hasn't happened yet, so it's always blank — even
         // for the Chris Green demo elector, who otherwise always "voted".
         const voted = year !== "2027 (Local)" && entry.alwaysVotesDemo;
@@ -4502,13 +4512,16 @@ function getElectorMaxAgeForVotingHistory(elector) {
   return Math.max.apply(null, parts);
 }
 
-// The Voting History table is currently demo-only data (see
-// updateVotingHistory): no real per-election voting record exists in
-// the sheet yet, so only the Chris Green demo elector shows any "voted"
-// history. This mirrors that same demo logic for the "Voted at least
-// once since <cutoff>" filter, matching on year only (election dates
-// aren't tracked precisely enough for a day-level cutoff).
+// 2026 (Senedd) now has real per-elector voting data (Sheet5 column M:
+// "Y"/"A"). Every other year in the Voting History table is still
+// demo-only data (see updateVotingHistory), so only the Chris Green
+// demo elector "voted" in those. Matching is by year only (election
+// dates aren't tracked precisely enough for a day-level cutoff).
 function electorVotedAtLeastOnceSinceYear(elector, cutoffYear) {
+
+  if (elector.senedd2026Vote && 2026 >= cutoffYear) {
+    return true;
+  }
 
   const isDemoVoter =
     String(elector.id || "").trim() === CHRIS_GREEN_ELECTOR_ID;
@@ -4518,8 +4531,9 @@ function electorVotedAtLeastOnceSinceYear(elector, cutoffYear) {
   }
 
   return VOTING_HISTORY_YEARS.some(year => {
-    if (year === "2027 (Local)") {
-      // Hasn't happened yet - never counts as "voted".
+    if (year === "2027 (Local)" || year === "2026 (Senedd)") {
+      // 2027 hasn't happened yet; 2026 is now driven by real data above,
+      // not the demo placeholder.
       return false;
     }
     const match = year.match(/\d{4}/);
@@ -5593,11 +5607,12 @@ async function loadSheet5DobById(sheetUrl) {
 
   const dobById = {};
   const legalNameById = {};
+  const senedd2026ById = {};
 
   const sheet5Url = toSheet5CsvUrl(sheetUrl);
 
   if (!sheet5Url) {
-    return { dobById, legalNameById };
+    return { dobById, legalNameById, senedd2026ById };
   }
 
   try {
@@ -5605,7 +5620,7 @@ async function loadSheet5DobById(sheetUrl) {
     const response = await fetch(sheet5Url);
 
     if (!response.ok) {
-      return { dobById, legalNameById };
+      return { dobById, legalNameById, senedd2026ById };
     }
 
     const rows = parseCsv(await response.text());
@@ -5615,6 +5630,9 @@ async function loadSheet5DobById(sheetUrl) {
       const electorId = (row[2] || "").trim();
       const rawDob = (row[9] || "").trim();
       const legalName = (row[10] || "").trim();
+      // Column M: "SENEDD 2026" - "Y" (voted on the day) or "A" (voted
+      // by post). Exact text is copied as-is, no normalisation.
+      const senedd2026 = (row[12] || "").trim();
 
       if (electorId && rawDob) {
         dobById[electorId] = rawDob;
@@ -5624,13 +5642,17 @@ async function loadSheet5DobById(sheetUrl) {
         legalNameById[electorId] = legalName;
       }
 
+      if (electorId && senedd2026) {
+        senedd2026ById[electorId] = senedd2026;
+      }
+
     });
 
   } catch (error) {
     // Sheet5 is supplementary — ignore failures.
   }
 
-  return { dobById, legalNameById };
+  return { dobById, legalNameById, senedd2026ById };
 
 }
 
