@@ -1474,7 +1474,7 @@
       document.getElementById("profile-voting-history").innerHTML = renderVotingHistory(elector, progress.dob);
 
       document.getElementById("profile-membership-dl").innerHTML =
-        dlRow("Volunteer Record", volunteerRecord ? (volunteerRecord.firstName + " " + volunteerRecord.lastName).trim() : "Not listed") +
+        dlRow("Volunteer Record", volunteerRecord ? (volunteerRecord.firstName + " " + volunteerRecord.lastName).trim() : "Volunteer - No") +
         dlRow("Regular Deliverer", volunteerRecord ? (volunteerRecord.regularDeliverer ? "Yes" : "No") : "No") +
         dlRow("Volunteer Elector ID", volunteerRecord && volunteerRecord.electorId ? volunteerRecord.electorId : "");
 
@@ -1599,22 +1599,33 @@
 
       const volunteerCheckboxEl = document.getElementById("profile-volunteer-checkbox");
       const askVolunteerCheckboxEl = document.getElementById("profile-ask-volunteer-checkbox");
-      volunteerCheckboxEl.checked = progress.volunteer;
-      askVolunteerCheckboxEl.checked = progress.askToVolunteer;
-      askVolunteerCheckboxEl.disabled = progress.volunteer;
-      volunteerCheckboxEl.addEventListener("change", () => {
-        saveProgressField(elector.id, "volunteer", volunteerCheckboxEl.checked);
-        if (volunteerCheckboxEl.checked) {
-          askVolunteerCheckboxEl.checked = false;
-          saveProgressField(elector.id, "askToVolunteer", false);
-        }
-        askVolunteerCheckboxEl.disabled = volunteerCheckboxEl.checked;
-        updateCanvassBadge(getElectorProgress(elector.id, elector.name).canvassId);
-      });
-      askVolunteerCheckboxEl.addEventListener("change", () => {
-        saveProgressField(elector.id, "askToVolunteer", askVolunteerCheckboxEl.checked);
-        updateCanvassBadge(getElectorProgress(elector.id, elector.name).canvassId);
-      });
+      if (volunteerRecord) {
+        // Already listed as a volunteer on the Members & Activists page -
+        // that record is the source of truth, so pull it through here
+        // instead of allowing an independent, conflicting toggle.
+        volunteerCheckboxEl.checked = true;
+        volunteerCheckboxEl.disabled = true;
+        askVolunteerCheckboxEl.checked = false;
+        askVolunteerCheckboxEl.disabled = true;
+      } else {
+        volunteerCheckboxEl.disabled = false;
+        volunteerCheckboxEl.checked = progress.volunteer;
+        askVolunteerCheckboxEl.checked = progress.askToVolunteer;
+        askVolunteerCheckboxEl.disabled = progress.volunteer;
+        volunteerCheckboxEl.addEventListener("change", () => {
+          saveProgressField(elector.id, "volunteer", volunteerCheckboxEl.checked);
+          if (volunteerCheckboxEl.checked) {
+            askVolunteerCheckboxEl.checked = false;
+            saveProgressField(elector.id, "askToVolunteer", false);
+          }
+          askVolunteerCheckboxEl.disabled = volunteerCheckboxEl.checked;
+          updateCanvassBadge(getElectorProgress(elector.id, elector.name).canvassId);
+        });
+        askVolunteerCheckboxEl.addEventListener("change", () => {
+          saveProgressField(elector.id, "askToVolunteer", askVolunteerCheckboxEl.checked);
+          updateCanvassBadge(getElectorProgress(elector.id, elector.name).canvassId);
+        });
+      }
 
       const doNotDeliverEl = document.getElementById("profile-do-not-deliver");
       const doNotDoorstepEl = document.getElementById("profile-do-not-doorstep");
