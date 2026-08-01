@@ -1413,8 +1413,19 @@
               !isNaN(household.lat) && !isNaN(household.lng)
             );
 
+          const unplottable =
+            shownHouseholds.filter(household =>
+              isNaN(household.lat) || isNaN(household.lng)
+            );
+
           const missingCoords =
-            shownHouseholds.length - plottable.length;
+            unplottable.length;
+
+          const missingCoordsElectors =
+            unplottable.reduce(
+              (sum, household) => sum + (household.electorCount || 0),
+              0
+            );
 
           if (plottable.length > MAX_MARKERS) {
 
@@ -1473,7 +1484,9 @@
             " shown on the map" +
             (
               missingCoords
-                ? " (" + missingCoords + " could not be plotted due to missing latitude and longitude)."
+                ? " (" + missingCoords + " household" + (missingCoords === 1 ? "" : "s") +
+                  " / " + missingCoordsElectors + " elector" + (missingCoordsElectors === 1 ? "" : "s") +
+                  " could not be plotted due to missing latitude and longitude)."
                 : "."
             ) +
             (
