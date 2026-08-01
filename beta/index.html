@@ -354,6 +354,8 @@
           </p>
         </div>
 
+        <p id="postcode-centre-note" class="postcode-centre-note" hidden>WARNING - MARKER SHOWS CENTRE OF POSTCODE ONLY</p>
+
         <p class="map-coords">
           <span id="ward-preview-coords">—</span>
           <a
@@ -884,6 +886,9 @@ const editCoordinatesBoxEl =
 
 const wardPreviewCoordsEl =
   document.getElementById("ward-preview-coords");
+
+const postcodeCentreNoteEl =
+  document.getElementById("postcode-centre-note");
 
 const propertyFullAddressEl =
   document.getElementById("property-full-address-text");
@@ -1907,16 +1912,30 @@ async function loadElectorsFromSheet(inputUrl) {
 
 
 
-    loadCoordinatesPollingDistrictByHouseholdId(inputUrl).then(pollingDistrictByHouseholdId => {
+    loadCoordinatesDataByHouseholdId(inputUrl).then(coordinatesDataByHouseholdId => {
 
       state.electors.forEach(elector => {
-        const pd = pollingDistrictByHouseholdId[elector.householdId];
-        if (pd) {
-          elector.pollingDistrict = pd;
+        const entry = coordinatesDataByHouseholdId[elector.householdId];
+        if (!entry) {
+          return;
         }
+        if (entry.pollingDistrict) {
+          elector.pollingDistrict = entry.pollingDistrict;
+        }
+        if (entry.lat !== null && entry.lng !== null) {
+          elector.lat = entry.lat;
+          elector.lng = entry.lng;
+        }
+        elector.isPostcodeCentreOnly = Boolean(entry.isPostcodeCentreOnly);
       });
 
       renderElectorList();
+
+      // Refresh the Property Location panel note in case the currently
+      // displayed elector's postcode-centre status just came in.
+      if (state.currentMapElector) {
+        updatePropertyMap(state.currentMapElector);
+      }
 
     });
 
@@ -3717,6 +3736,10 @@ function updatePropertyMap(elector) {
     editLocationLinkEl.hidden = true;
     wardBoundaryErrorEl.hidden = true;
 
+    if (postcodeCentreNoteEl) {
+      postcodeCentreNoteEl.hidden = true;
+    }
+
     wardPreviewCoordsEl.textContent =
       "Ward boundary: Abersoch gyda Llanengan (W05001509)";
 
@@ -3749,6 +3772,9 @@ function updatePropertyMap(elector) {
   ) {
     wardPreviewEl.removeAttribute("src");
     wardPreviewCoordsEl.textContent = "GPS coordinates —";
+    if (postcodeCentreNoteEl) {
+      postcodeCentreNoteEl.hidden = true;
+    }
     return;
   }
 
@@ -3769,6 +3795,10 @@ function updatePropertyMap(elector) {
 
   wardPreviewCoordsEl.textContent =
     "GPS coordinates " + lat + ", " + lng;
+
+  if (postcodeCentreNoteEl) {
+    postcodeCentreNoteEl.hidden = !elector.isPostcodeCentreOnly;
+  }
 
 }
 
@@ -5378,14 +5408,14 @@ function toCoordinatesCsvUrl(rawUrl) {
 }
 
 
-async function loadCoordinatesPollingDistrictByHouseholdId(sheetUrl) {
+async function loadCoordinatesDataByHouseholdId(sheetUrl) {
 
-  const pollingDistrictByHouseholdId = {};
+  const dataByHouseholdId = {};
 
   const coordinatesUrl = toCoordinatesCsvUrl(sheetUrl);
 
   if (!coordinatesUrl) {
-    return pollingDistrictByHouseholdId;
+    return dataByHouseholdId;
   }
 
   try {
@@ -5393,7 +5423,7 @@ async function loadCoordinatesPollingDistrictByHouseholdId(sheetUrl) {
     const response = await fetch(coordinatesUrl);
 
     if (!response.ok) {
-      return pollingDistrictByHouseholdId;
+      return dataByHouseholdId;
     }
 
     const rows = parseCsv(await response.text());
@@ -5401,13 +5431,30 @@ async function loadCoordinatesPollingDistrictByHouseholdId(sheetUrl) {
     rows.slice(1).forEach(row => {
 
       const householdId = (row[0] || "").trim();
-      const pd = (row[11] || "").trim();
 
-      if (!householdId || !pd) {
+      if (!householdId) {
         return;
       }
 
-      pollingDistrictByHouseholdId[householdId] = pd;
+      const uprn = (row[2] || "").trim();
+      const xCoordinate = (row[3] || "").trim();
+      const yCoordinate = (row[4] || "").trim();
+      const rawLat = (row[5] || "").trim();
+      const rawLng = (row[6] || "").trim();
+      const pd = (row[11] || "").trim();
+
+      const lat = rawLat && !Number.isNaN(Number(rawLat)) ? Number(rawLat) : null;
+      const lng = rawLng && !Number.isNaN(Number(rawLng)) ? Number(rawLng) : null;
+
+      dataByHouseholdId[householdId] = {
+        pollingDistrict: pd,
+        lat,
+        lng,
+        // If UPRN, X_COORDINATE and Y_COORDINATE (cols C/D/E) are all
+        // blank, the Lat/Long on this row is only a postcode centroid,
+        // not a true property-level fix.
+        isPostcodeCentreOnly: !uprn && !xCoordinate && !yCoordinate
+      };
 
     });
 
@@ -5415,7 +5462,7 @@ async function loadCoordinatesPollingDistrictByHouseholdId(sheetUrl) {
     // COORDINATES tab is supplementary — ignore failures.
   }
 
-  return pollingDistrictByHouseholdId;
+  return dataByHouseholdId;
 
 }
 
