@@ -309,6 +309,66 @@
 
     }
 
+    // The "COORDINATES" tab holds the authoritative Polling District
+    // ("PD", column L) keyed by Household ID, mirroring the main list.
+    function toCoordinatesCsvUrl(rawUrl) {
+
+      const match =
+        rawUrl.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+
+      if (!match) {
+        return null;
+      }
+
+      return (
+        "https://docs.google.com/spreadsheets/d/" +
+        match[1] +
+        "/gviz/tq?tqx=out:csv&sheet=COORDINATES"
+      );
+
+    }
+
+    async function loadCoordinatesPollingDistrictByHouseholdId(sheetUrl) {
+
+      const pollingDistrictByHouseholdId = {};
+
+      const coordinatesUrl = toCoordinatesCsvUrl(sheetUrl);
+
+      if (!coordinatesUrl) {
+        return pollingDistrictByHouseholdId;
+      }
+
+      try {
+
+        const response = await fetch(coordinatesUrl);
+
+        if (!response.ok) {
+          return pollingDistrictByHouseholdId;
+        }
+
+        const rows = parseCsv(await response.text());
+
+        rows.slice(1).forEach(row => {
+
+          const householdId = (row[0] || "").trim();
+          const pd = (row[11] || "").trim();
+
+          if (!householdId || !pd) {
+            return;
+          }
+
+          pollingDistrictByHouseholdId[householdId] = pd;
+
+        });
+
+      } catch (error) {
+        // COORDINATES tab is supplementary — ignore failures.
+      }
+
+      return pollingDistrictByHouseholdId;
+
+    }
+
     async function loadSheet5DobById(sheetUrl) {
 
       const dobById = {};
@@ -1058,6 +1118,16 @@
           await loadNewspapersDataByHouseholdId(sheetUrl);
 
         applyNewspapersDataToElectors(electors, newspapersDataByHouseholdId);
+
+        const pollingDistrictByHouseholdId =
+          await loadCoordinatesPollingDistrictByHouseholdId(sheetUrl);
+
+        electors.forEach(elector => {
+          const pd = pollingDistrictByHouseholdId[elector.householdId];
+          if (pd) {
+            elector.pollingDistrict = pd;
+          }
+        });
 
         // Initialise the Filter dropdown from whatever filter was active on
         // the main list when "View Households on Map" was clicked, so the

@@ -1907,6 +1907,21 @@ async function loadElectorsFromSheet(inputUrl) {
 
 
 
+    loadCoordinatesPollingDistrictByHouseholdId(inputUrl).then(pollingDistrictByHouseholdId => {
+
+      state.electors.forEach(elector => {
+        const pd = pollingDistrictByHouseholdId[elector.householdId];
+        if (pd) {
+          elector.pollingDistrict = pd;
+        }
+      });
+
+      renderElectorList();
+
+    });
+
+
+
     populateSubroadFilterOptions();
 
 
@@ -5338,6 +5353,69 @@ async function loadSheet5DobById(sheetUrl) {
   }
 
   return { dobById, legalNameById };
+
+}
+
+
+// The "COORDINATES" tab holds the authoritative Polling District ("PD",
+// column L) keyed by Household ID — used to override the main sheet's
+// own Polling District column(s), which can drift out of date.
+function toCoordinatesCsvUrl(rawUrl) {
+
+  const match =
+    rawUrl.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+
+  if (!match) {
+    return null;
+  }
+
+  return (
+    "https://docs.google.com/spreadsheets/d/" +
+    match[1] +
+    "/gviz/tq?tqx=out:csv&sheet=COORDINATES"
+  );
+
+}
+
+
+async function loadCoordinatesPollingDistrictByHouseholdId(sheetUrl) {
+
+  const pollingDistrictByHouseholdId = {};
+
+  const coordinatesUrl = toCoordinatesCsvUrl(sheetUrl);
+
+  if (!coordinatesUrl) {
+    return pollingDistrictByHouseholdId;
+  }
+
+  try {
+
+    const response = await fetch(coordinatesUrl);
+
+    if (!response.ok) {
+      return pollingDistrictByHouseholdId;
+    }
+
+    const rows = parseCsv(await response.text());
+
+    rows.slice(1).forEach(row => {
+
+      const householdId = (row[0] || "").trim();
+      const pd = (row[11] || "").trim();
+
+      if (!householdId || !pd) {
+        return;
+      }
+
+      pollingDistrictByHouseholdId[householdId] = pd;
+
+    });
+
+  } catch (error) {
+    // COORDINATES tab is supplementary — ignore failures.
+  }
+
+  return pollingDistrictByHouseholdId;
 
 }
 
