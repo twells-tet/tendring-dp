@@ -741,6 +741,7 @@ const posterOptions = [
 ];
 
 const VOTING_HISTORY_YEARS = [
+  "2027 (Local)",
   "2026 (Senedd)",
   "2024 (PCC)",
   "2024 (General)",
@@ -831,6 +832,10 @@ function applyDivisionsAboveWardVisibility() {
     toggleDivisionsAboveWardEl.textContent = divisionsAboveWardHidden
       ? "Show districts above ward level"
       : "Hide districts above ward level";
+    toggleDivisionsAboveWardEl.classList.toggle(
+      "divisions-toggle-button--show",
+      divisionsAboveWardHidden
+    );
   }
   try {
     localStorage.setItem(
@@ -3880,7 +3885,9 @@ function updateVotingHistory(household) {
       "<tr>" +
       "<th scope=\"row\">" + escapeHtml(year) + "</th>" +
       electorEntries.map(entry => {
-        const voted = entry.alwaysVotesDemo;
+        // 2027 (Local) hasn't happened yet, so it's always blank — even
+        // for the Chris Green demo elector, who otherwise always "voted".
+        const voted = year !== "2027 (Local)" && entry.alwaysVotesDemo;
         return "<td class=\"voting-history-disabled-cell\">" + (voted ? "X" : "—") + "</td>";
       }).join("") +
       "</tr>"
