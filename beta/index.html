@@ -2776,22 +2776,23 @@ function renderElectorList() {
 
         <div class="volunteer-checkboxes">
 
-          <label class="checkbox-label">
+          <label class="checkbox-label" title="Edit from the elector's profile page">
             <input
             type="checkbox"
             class="volunteer-checkbox"
             data-id="${escapeHtmlAttr(elector.id)}"
-            ${progress.volunteer ? "checked" : ""}>
+            ${progress.volunteer ? "checked" : ""}
+            disabled>
             Active Volunteer
           </label>
 
-          <label class="checkbox-label">
+          <label class="checkbox-label" title="Edit from the elector's profile page">
             <input
             type="checkbox"
             class="ask-volunteer-checkbox"
             data-id="${escapeHtmlAttr(elector.id)}"
             ${progress.askToVolunteer ? "checked" : ""}
-            ${progress.volunteer ? "disabled" : ""}>
+            disabled>
             Ask to Volunteer
           </label>
 
