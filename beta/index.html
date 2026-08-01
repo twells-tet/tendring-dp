@@ -221,9 +221,9 @@
         <label for="polling-district">
           Polling District
           <select id="polling-district">
-            <option value="" id="polling-district-all-opt" hidden>ALL POLLING DISTRICTS</option>
+            <option value="" id="polling-district-all-opt" selected>ALL POLLING DISTRICTS</option>
             <option value="qb6">QB6 (Llanengan)</option>
-            <option value="ra1" selected>RA1 (Abersoch)</option>
+            <option value="ra1">RA1 (Abersoch)</option>
           </select>
         </label>
 
@@ -462,7 +462,7 @@
               type="text"
               id="address-search-input"
               class="address-search-input"
-              placeholder="Start typing an address...">
+              placeholder="Start typing an address or Household ID...">
           </div>
 
           <div class="address-search-row subroad-filter-row">
@@ -484,7 +484,7 @@
               type="text"
               id="name-search-input"
               class="address-search-input"
-              placeholder="Start typing a name...">
+              placeholder="Start typing a name or Elector ID...">
           </div>
 
           <div class="household-nav list-household-nav" id="list-household-nav">
@@ -1415,8 +1415,17 @@ function initControls() {
       option => option.value === savedPollingDistrict
     )
   ) {
+    // A specific district was previously chosen (narrowed) - restore it,
+    // leaving "View All Polling Districts" in its normal, inactive state.
     pollingDistrictEl.value = savedPollingDistrict;
     lastSelectedDistrict = savedPollingDistrict;
+    document.getElementById("polling-district-all-opt").hidden = true;
+  } else {
+    // Default (and no saved narrowed choice): "View All Polling
+    // Districts" is toggled on, showing every household regardless of
+    // Polling District.
+    pollingDistrictEl.value = "";
+    viewAllDistrictsButtonEl.textContent = "Narrow By Polling District";
   }
 
   pollingDistrictEl.addEventListener(
@@ -5435,7 +5444,13 @@ function getFilteredActiveElectors() {
       const electorAddress =
         normalizeText(elector.address);
 
-      if (!electorAddress.includes(addressSearch)) {
+      const householdIdText =
+        normalizeText(elector.householdId);
+
+      if (
+        !electorAddress.includes(addressSearch) &&
+        !householdIdText.includes(addressSearch)
+      ) {
         return false;
       }
 
@@ -5446,7 +5461,13 @@ function getFilteredActiveElectors() {
       const electorName =
         normalizeText(elector.name);
 
-      if (!electorName.includes(nameSearch)) {
+      const electorIdText =
+        normalizeText(elector.electorIdValue || elector.id);
+
+      if (
+        !electorName.includes(nameSearch) &&
+        !electorIdText.includes(nameSearch)
+      ) {
         return false;
       }
 
