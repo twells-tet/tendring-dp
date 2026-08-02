@@ -40,11 +40,21 @@
             flex-wrap: wrap;
         }
 
+        .floor-toggle-btn,
+        .property-title-link {
+            box-sizing: border-box;
+            width: 160px;
+            height: 48px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
         .floor-toggle-btn {
             font-family: Arial, Helvetica, sans-serif;
             font-size: 15px;
             font-weight: 700;
-            padding: 0.6rem 1.4rem;
             border-radius: 0.35rem;
             border: 1px solid var(--plaid-red, #da291c);
             background: #fff;
@@ -65,15 +75,12 @@
         }
 
         .property-title-link {
-            display: inline-block;
-            margin-top: 0.75rem;
             font-family: Arial, Helvetica, sans-serif;
-            font-size: 20px;
+            font-size: 15px;
             font-weight: 700;
             letter-spacing: 1px;
-            padding: 0.6rem 1.4rem;
             border-radius: 0.35rem;
-            border: 1px solid var(--plaid-green-dark, #0a5e49);
+            border: none;
             background: var(--plaid-green, #0aa77d);
             color: #fff;
             text-decoration: none;
@@ -89,7 +96,7 @@
 <body class="tarian-homepage">
 
     <header class="page-header tarian-homepage-header" id="top">
-        <a href="../index.html" class="page-header-logo-link" aria-label="Tarian Newspapers home">
+        <a href="https://www.tarian146.co.uk/beta/" class="page-header-logo-link" aria-label="Tarian Newspapers home">
             <img src="../tarian-shield.svg" alt="" class="page-header-logo">
         </a>
     </header>
@@ -287,15 +294,6 @@
                                 dominant-baseline: middle;
                                 fill: #333;
                             }
-
-                            .property-title {
-                                font-family: Arial, Helvetica, sans-serif;
-                                font-size: 26px;
-                                font-weight: 700;
-                                letter-spacing: 1px;
-                                text-anchor: middle;
-                                fill: #111;
-                            }
                         </style>
 
                         <marker
@@ -326,8 +324,6 @@
                     </defs>
 
                     <rect class="sheet" x="0" y="0" width="1060" height="730"/>
-
-                    <text x="530" y="28" class="property-title">52 STRYD FAWR</text>
 
                     <g class="compass" transform="translate(1015 700)">
                         <circle r="22" fill="#fff" stroke="#333" stroke-width="1.5"/>
@@ -392,9 +388,9 @@
                         <path class="furniture" d="M74 270 H216 V370 H176 V310 H74 Z"/>
                         <text x="145" y="294" class="furniture-label">ONYX BAR</text>
 
-                        <circle cx="0" cy="221" r="13" class="flue-marker"/>
-                        <circle cx="0" cy="221" r="3" class="flue-marker-dot"/>
-                        <text x="-26" y="225" class="flue-label">Flue</text>
+                        <circle cx="0" cy="227.5" r="13" class="flue-marker"/>
+                        <circle cx="0" cy="227.5" r="3" class="flue-marker-dot"/>
+                        <text x="-26" y="231.5" class="flue-label">Flue</text>
 
                         <line x1="0" y1="560" x2="0" y2="600" class="dimension-ext"/>
                         <line x1="260" y1="560" x2="260" y2="600" class="dimension-ext"/>
@@ -486,9 +482,9 @@
                         <text x="75" y="498" class="room-name">Bathroom</text>
                         <text x="-15" y="490" class="small-note" transform="rotate(-90 -15 490)">Extractor fan</text>
 
-                        <circle cx="0" cy="221" r="13" class="flue-marker"/>
-                        <circle cx="0" cy="221" r="3" class="flue-marker-dot"/>
-                        <text x="-26" y="225" class="flue-label">Flue</text>
+                        <circle cx="0" cy="227.5" r="13" class="flue-marker"/>
+                        <circle cx="0" cy="227.5" r="3" class="flue-marker-dot"/>
+                        <text x="-26" y="231.5" class="flue-label">Flue</text>
 
 
                         <text x="130" y="650" class="floor-label">First Floor</text>
@@ -586,7 +582,7 @@
                     </button>
                 </div>
 
-                <div style="display: flex; justify-content: center;">
+                <div class="floorplan-toggle">
                     <a href="../costings/" class="property-title-link">52 STRYD FAWR</a>
                 </div>
 
