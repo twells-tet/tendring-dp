@@ -528,7 +528,7 @@
 
                         <rect x="100" y="430" width="120" height="120" fill="url(#hatch-blue)"/>
 
-                        <path d="M10 300 H222 V410 H192 V345 H10 Z" class="stair-rail" fill="none"/>
+                        <path d="M10 300 H222 V410 H177 V345 H10 Z" class="stair-rail" fill="none"/>
                         <path d="M80 315 L72 327 H88 Z" fill="#888"/>
                         <text x="80" y="337" class="small-note">Stairs below</text>
 
@@ -593,6 +593,49 @@
     <script>
         (function () {
             var buttons = document.querySelectorAll('.floor-toggle-btn');
+            var svg = document.querySelector('.floorplan-svg');
+            var floorGroups = Array.prototype.slice.call(document.querySelectorAll('[id$="-floor-outline"]'));
+            var viewBox = svg.viewBox.baseVal;
+            var baseTransforms = {};
+
+            floorGroups.forEach(function (g) {
+                baseTransforms[g.id] = g.getAttribute('transform');
+            });
+
+            function resetTransforms() {
+                floorGroups.forEach(function (g) {
+                    g.setAttribute('transform', baseTransforms[g.id]);
+                });
+            }
+
+            function updateLayout() {
+                var visible = floorGroups.filter(function (g) {
+                    return g.style.display !== 'none';
+                });
+
+                resetTransforms();
+
+                if (visible.length === 1) {
+                    var g = visible[0];
+                    var bbox = g.getBBox();
+                    var cx = bbox.x + bbox.width / 2;
+                    var cy = bbox.y + bbox.height / 2;
+                    var padding = 40;
+                    var availW = viewBox.width - padding * 2;
+                    var availH = viewBox.height - padding * 2;
+                    var scale = Math.min(availW / bbox.height, availH / bbox.width);
+                    var targetCx = viewBox.x + viewBox.width / 2;
+                    var targetCy = viewBox.y + viewBox.height / 2;
+
+                    g.setAttribute(
+                        'transform',
+                        'translate(' + targetCx + ' ' + targetCy + ') ' +
+                        'scale(' + scale + ') ' +
+                        'rotate(-90) ' +
+                        'translate(' + (-cx) + ' ' + (-cy) + ')'
+                    );
+                }
+            }
 
             buttons.forEach(function (btn) {
                 var target = document.getElementById(btn.getAttribute('data-target'));
@@ -607,6 +650,7 @@
 
                     target.style.display = next ? '' : 'none';
                     btn.setAttribute('aria-pressed', next ? 'true' : 'false');
+                    updateLayout();
                 });
             });
         })();
