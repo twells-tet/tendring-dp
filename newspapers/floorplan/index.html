@@ -46,20 +46,42 @@
             font-weight: 700;
             padding: 0.6rem 1.4rem;
             border-radius: 0.35rem;
-            border: 1px solid #111;
+            border: 1px solid var(--plaid-red, #da291c);
             background: #fff;
-            color: #111;
+            color: var(--plaid-red, #da291c);
             cursor: pointer;
         }
 
         .floor-toggle-btn:hover {
-            background: #333;
+            background: var(--plaid-red-dark, #a31f16);
+            border-color: var(--plaid-red-dark, #a31f16);
             color: #fff;
         }
 
         .floor-toggle-btn[aria-pressed="true"] {
-            background: #111;
+            background: var(--plaid-red, #da291c);
+            border-color: var(--plaid-red, #da291c);
             color: #fff;
+        }
+
+        .property-title-link {
+            display: inline-block;
+            margin-top: 0.75rem;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            padding: 0.6rem 1.4rem;
+            border-radius: 0.35rem;
+            border: 1px solid var(--plaid-green-dark, #0a5e49);
+            background: var(--plaid-green, #0aa77d);
+            color: #fff;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .property-title-link:hover {
+            background: var(--plaid-green-dark, #0a5e49);
         }
     </style>
 </head>
@@ -273,7 +295,6 @@
                                 letter-spacing: 1px;
                                 text-anchor: middle;
                                 fill: #111;
-                                cursor: pointer;
                             }
                         </style>
 
@@ -306,9 +327,7 @@
 
                     <rect class="sheet" x="0" y="0" width="1060" height="730"/>
 
-                    <a href="../costings/" aria-label="View costings">
-                        <text x="530" y="28" class="property-title">52 STRYD FAWR</text>
-                    </a>
+                    <text x="530" y="28" class="property-title">52 STRYD FAWR</text>
 
                     <g class="compass" transform="translate(1015 700)">
                         <circle r="22" fill="#fff" stroke="#333" stroke-width="1.5"/>
@@ -388,7 +407,6 @@
                         <text x="312" y="280" class="dimension-text" transform="rotate(90 312 280)">≈ 9.5 m overall depth</text>
 
                         <text x="130" y="650" class="floor-label">Ground Floor</text>
-                        <text x="130" y="682" class="cost-label">£40,000</text>
                     </g>
 
                     <!-- FIRST FLOOR -->
@@ -474,7 +492,6 @@
 
 
                         <text x="130" y="650" class="floor-label">First Floor</text>
-                        <text x="130" y="682" class="cost-label">£30,000</text>
                     </g>
 
                     <!-- SECOND FLOOR -->
@@ -554,7 +571,6 @@
                         <text x="-50" y="547" class="plant-label">A/C Unit</text>
 
                         <text x="130" y="650" class="floor-label">Second Floor</text>
-                        <text x="130" y="682" class="cost-label">£30,000</text>
                     </g>
                 </svg>
 
@@ -568,6 +584,10 @@
                     <button type="button" class="floor-toggle-btn" data-target="second-floor-outline" aria-pressed="true">
                         Second Floor
                     </button>
+                </div>
+
+                <div style="display: flex; justify-content: center;">
+                    <a href="../costings/" class="property-title-link">52 STRYD FAWR</a>
                 </div>
 
             </div>
