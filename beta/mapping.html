@@ -531,7 +531,7 @@
         }
 
         elector.newspaperSubscribed =
-          String(entry.subscription || "").trim().toUpperCase() === "Y";
+          String(entry.subscription || "").trim().length > 0;
 
         // NEWSPAPERS is the master source for Do Not Canvass/Deliver.
         elector.masterDoNotContact = Boolean(entry.doNotCanvass);
