@@ -550,8 +550,9 @@
             if (!dueDate) return "";
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            const daysOverdue = Math.round((today.getTime() - dueDate.getTime()) / 86400000);
-            if (daysOverdue <= 0) return "<br><strong>DUE TODAY</strong>";
+            // Payment is due BEFORE delivery starts, so being on the due date
+            // itself already means 1 day of arrears.
+            const daysOverdue = Math.round((today.getTime() - dueDate.getTime()) / 86400000) + 1;
             return "<br><strong>IN ARREARS for " + daysOverdue + " DAY" + (daysOverdue === 1 ? "" : "S") + "</strong>";
           })();
 
