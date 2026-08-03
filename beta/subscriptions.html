@@ -49,11 +49,15 @@
     }
 
     .subscriptions-table td.subscriptions-customer-cell.subscriptions-overdue {
-      background: #f8d7da;
+      background: #fde3b8;
     }
 
     .subscriptions-table td.subscriptions-customer-cell.subscriptions-cancelled {
-      background: #fde3b8;
+      background: #f8d7da;
+    }
+
+    .subscriptions-table td.subscriptions-customer-cell.subscriptions-active {
+      background: #d4edda;
     }
 
     .subscriptions-table td.subscriptions-summary-cell {
@@ -538,7 +542,7 @@
 
           const statusClass = isCancelled(subscriber)
             ? " subscriptions-cancelled"
-            : (isOverdue(subscriber) ? " subscriptions-overdue" : "");
+            : (isOverdue(subscriber) ? " subscriptions-overdue" : " subscriptions-active");
 
           const subStartDate = parseUkDate(subscriber.subscriptionStartDate);
           const subStartDateLabel = subStartDate
