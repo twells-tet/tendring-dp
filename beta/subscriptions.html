@@ -44,6 +44,18 @@
       line-height: 1.3;
     }
 
+    .subscriptions-table td.subscriptions-customer-cell {
+      line-height: 2;
+    }
+
+    .subscriptions-table td.subscriptions-customer-cell.subscriptions-overdue {
+      background: #f8d7da;
+    }
+
+    .subscriptions-table td.subscriptions-customer-cell.subscriptions-cancelled {
+      background: #fde3b8;
+    }
+
     .subscriptions-table td.subscriptions-summary-cell {
       white-space: normal;
       line-height: 1.3;
@@ -115,7 +127,7 @@
     const ELECTORS_SHEET_URL =
       "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/export?format=csv&gid=0";
 
-    const WEEKS_AHEAD = 5;
+    const WEEKS_AHEAD = 6;
 
     const messageEl = document.getElementById("subscriptions-message");
     const headerRowEl = document.getElementById("subscriptions-header-row");
@@ -227,17 +239,38 @@
       return isNaN(num) ? 0 : num;
     }
 
+    const MONTH_NAMES = [
+      "january", "february", "march", "april", "may", "june",
+      "july", "august", "september", "october", "november", "december"
+    ];
+
     function parseUkDate(value) {
       if (!value) return null;
-      const match = value.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
-      if (!match) return null;
-      const day = parseInt(match[1], 10);
-      const month = parseInt(match[2], 10) - 1;
-      let year = parseInt(match[3], 10);
-      if (year < 100) year += 2000;
-      const date = new Date(year, month, day);
-      date.setHours(0, 0, 0, 0);
-      return date;
+      const trimmed = value.trim();
+
+      const slashMatch = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+      if (slashMatch) {
+        const day = parseInt(slashMatch[1], 10);
+        const month = parseInt(slashMatch[2], 10) - 1;
+        let year = parseInt(slashMatch[3], 10);
+        if (year < 100) year += 2000;
+        const date = new Date(year, month, day);
+        date.setHours(0, 0, 0, 0);
+        return date;
+      }
+
+      const wordMatch = trimmed.match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})$/);
+      if (wordMatch) {
+        const day = parseInt(wordMatch[1], 10);
+        const month = MONTH_NAMES.indexOf(wordMatch[2].toLowerCase());
+        const year = parseInt(wordMatch[3], 10);
+        if (month === -1) return null;
+        const date = new Date(year, month, day);
+        date.setHours(0, 0, 0, 0);
+        return date;
+      }
+
+      return null;
     }
 
     function formatDayMonth(date) {
@@ -266,11 +299,33 @@
       const startDateLabel = startDate
         ? formatDayMonth(startDate)
         : subscriber.subscriptionStartDate || "";
+      const cancellationDate = parseUkDate(subscriber.dateOfCancellation);
+      const lastDeliveryDate = cancellationDate
+        ? addDays(cancellationDate, -1)
+        : null;
+      const lastLine = lastDeliveryDate
+        ? "<strong>CANCELLED - Last Delivery Date: " +
+          formatDayMonth(lastDeliveryDate) +
+          "</strong>"
+        : "<strong>Next Payment Due Before: " + nextDue + "</strong>";
+      const weeklyCostValue = parseCurrency(subscriber.weeklyCost);
+      const annualRevenue = weeklyCostValue
+        ? "£" + (weeklyCostValue * 51.5).toFixed(2)
+        : "";
+      const next28Days = weeklyCostValue
+        ? "£" + (weeklyCostValue * 4).toFixed(2)
+        : "";
       return (
         "Subscription Start Date: " + startDateLabel + "<br>" +
         "Weekly Charge: " + subscriber.weeklyCost + "<br>" +
         "Funds Received: " + subscriber.fundsReceived + "<br>" +
-        "<strong>Next Payment Due Before: " + nextDue + "</strong>"
+        lastLine +
+        (annualRevenue
+          ? "<br><span style=\"font-size: 0.8em;\">ANNUAL: " + annualRevenue + "</span>"
+          : "") +
+        (next28Days
+          ? "<br><span style=\"font-size: 0.8em;\">NEXT 28 DAYS: " + next28Days + "</span>"
+          : "")
       );
     }
 
@@ -336,22 +391,41 @@
           }
         });
 
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
         const subscribers = newspapers
           .filter(sub => sub.subscription)
+          .filter(sub => {
+            const cancellationDate = parseUkDate(sub.dateofcancellation);
+            return !cancellationDate || today.getTime() < cancellationDate.getTime();
+          })
           .map(sub => {
             const elector = electorsByHousehold[sub.householdid] || {};
             return {
               householdId: sub.householdid,
               customerName: sub.customername,
               subscription: sub.subscription,
+              frequency: sub.whichdays || "",
+              accountNumber: sub.accountnumber || "",
               address: formatAddress(sub),
               phone: elector.phone || "",
               email: elector.email || "",
               weeklyCost: sub.weeklycost || "",
               fundsReceived: sub.fundsreceived || "",
-              subscriptionStartDate: sub.subscriptionstartdate || ""
+              subscriptionStartDate: sub.subscriptionstartdate || "",
+              dateOfCancellation: sub.dateofcancellation || ""
             };
           });
+
+        subscribers.sort((a, b) => {
+          const dueA = calculateNextPaymentDue(a);
+          const dueB = calculateNextPaymentDue(b);
+          if (!dueA && !dueB) return 0;
+          if (!dueA) return 1;
+          if (!dueB) return -1;
+          return dueA.getTime() - dueB.getTime();
+        });
 
         renderTable(subscribers);
 
@@ -376,6 +450,19 @@
       if (weeksCovered <= 0) return false;
       const paidUntil = addDays(startDate, weeksCovered * 7);
       return week.getTime() >= startDate.getTime() && week.getTime() < paidUntil.getTime();
+    }
+
+    function isCancelled(subscriber) {
+      return Boolean(parseUkDate(subscriber.dateOfCancellation));
+    }
+
+    function isOverdue(subscriber) {
+      if (isCancelled(subscriber)) return false;
+      const dueDate = calculateNextPaymentDue(subscriber);
+      if (!dueDate) return false;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return today.getTime() >= dueDate.getTime();
     }
 
     function renderTable(subscribers) {
@@ -413,10 +500,14 @@
             })
             .join("");
 
+          const statusClass = isCancelled(subscriber)
+            ? " subscriptions-cancelled"
+            : (isOverdue(subscriber) ? " subscriptions-overdue" : "");
+
           return (
             "<tr>" +
             "<td class=\"subscriptions-summary-cell\">" + formatPaymentSummary(subscriber, weeks) + "</td>" +
-            "<td>" + (subscriber.customerName || "") + "<br><strong>Publication:</strong> " + (subscriber.subscription || "") + "</td>" +
+            "<td class=\"subscriptions-customer-cell" + statusClass + "\">" + (subscriber.customerName || "") + "<br><strong>Account Number:</strong> " + (subscriber.accountNumber || "") + "<br><strong>Title:</strong> " + (subscriber.subscription || "") + "<br><strong>Frequency:</strong> " + (subscriber.frequency || "") + "</td>" +
             "<td class=\"subscriptions-address-cell\">" + (subscriber.address || "") + "</td>" +
             "<td>" + (subscriber.phone || "") + "</td>" +
             "<td>" + (subscriber.email || "") + "</td>" +
