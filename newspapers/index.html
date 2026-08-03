@@ -70,7 +70,7 @@
             </label>
 
             <label class="signup-field" for="signup-newspaper-other" id="signup-newspaper-other-field" hidden>
-                Please specify <span class="signup-required">*</span>
+                Which paper would you like? <span class="signup-required">*</span>
                 <input type="text" id="signup-newspaper-other" autocomplete="off">
             </label>
 
@@ -108,6 +108,7 @@
                     <label><input type="checkbox" class="signup-day" value="Friday" checked> Friday</label>
                     <label><input type="checkbox" class="signup-day" value="Saturday" checked> Saturday</label>
                     <label><input type="checkbox" class="signup-day" value="Sunday" checked> Sunday</label>
+                    <label class="signup-day-not-sure"><input type="checkbox" id="signup-days-not-sure"> I'm not sure yet</label>
                 </div>
                 <p id="signup-day-restriction-note" class="signup-day-restriction-note" hidden></p>
             </div>
@@ -160,11 +161,15 @@
         const newspaperOtherInputEl = document.getElementById("signup-newspaper-other");
         const dayRestrictionNoteEl = document.getElementById("signup-day-restriction-note");
         const deliveryDaysSectionEl = document.getElementById("signup-delivery-days-section");
+        const notSureCheckbox = document.getElementById("signup-days-not-sure");
 
         const NEWSPAPER_NO_SUNDAY = ["The i", "FT (Financial Times)"];
         const NEWSPAPER_WEEKLY_DAY = { "Cambrian News": "Wednesday" };
 
         function applyNewspaperDayRestrictions() {
+            if (notSureCheckbox.checked) {
+                return;
+            }
             const newspaper = newspaperSelect.value;
             let allowedDays = null;
             let note = "";
@@ -277,13 +282,15 @@
         function updateDeliveryDaysAvailability() {
             const durationChoice = durationRadios.find(radio => radio.checked).value;
             const isLater = durationChoice === "later";
+            const isNotSure = notSureCheckbox.checked;
+            const isDisabled = isLater || isNotSure;
 
-            deliveryDaysSectionEl.classList.toggle("is-disabled", isLater);
+            deliveryDaysSectionEl.classList.toggle("is-disabled", isDisabled);
             deliveryDaysSectionEl.querySelectorAll(".signup-shortcut-btn").forEach(button => {
-                button.disabled = isLater;
+                button.disabled = isDisabled;
             });
 
-            if (isLater) {
+            if (isDisabled) {
                 dayCheckboxes.forEach(checkbox => {
                     checkbox.disabled = true;
                     checkbox.checked = false;
@@ -295,6 +302,8 @@
         }
 
         updateDeliveryDaysAvailability();
+
+        notSureCheckbox.addEventListener("change", updateDeliveryDaysAvailability);
 
         document.querySelectorAll(".signup-shortcut-btn").forEach(button => {
             button.addEventListener("click", () => {
