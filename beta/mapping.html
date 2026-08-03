@@ -9,7 +9,28 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 </head>
-<body>
+<body class="pin-locked">
+
+  <div id="pin-gate" class="pin-gate">
+    <div class="pin-gate-box">
+      <img src="tarian-shield.svg" alt="" class="pin-gate-logo">
+      <h2>TARIAN</h2>
+      <p>Enter the 6-digit PIN to continue.</p>
+      <form id="pin-gate-form" autocomplete="off">
+        <input
+          type="password"
+          id="pin-gate-input"
+          class="pin-gate-input"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          maxlength="6"
+          autocomplete="off"
+          aria-label="6-digit PIN">
+        <button type="submit" class="pin-gate-button">Unlock</button>
+      </form>
+      <p id="pin-gate-error" class="pin-gate-error" hidden>Incorrect PIN. Please try again.</p>
+    </div>
+  </div>
 
   <header class="page-header">
     <a href="index.html" class="page-header-logo-link" aria-label="TARIAN home">
@@ -97,6 +118,7 @@
 
       <p id="mapping-message" class="message" role="status" aria-live="polite"></p>
       <p id="mapping-summary" class="current-list-summary"></p>
+      <p id="mapping-subscribers-link" class="back-link" hidden><a href="subscriptions.html">View Subscribers &rarr;</a></p>
 
       <div class="mapping-controls">
         <button type="button" id="show-walks-toggle" class="show-walks-toggle-button">Show Delivery Walks</button>
@@ -230,6 +252,9 @@
 
     const summaryEl =
       document.getElementById("mapping-summary");
+
+    const subscribersLinkEl =
+      document.getElementById("mapping-subscribers-link");
 
     const mapEl =
       document.getElementById("household-map");
@@ -1762,6 +1787,8 @@
           const isSubscriptionFilterSelected =
             mappingFilterTypeEl.value === "newspaper-subscription";
 
+          subscribersLinkEl.hidden = !isSubscriptionFilterSelected;
+
           const isLeftRegisterFilterSelected =
             mappingFilterTypeEl.value === "left-electoral-register";
 
@@ -2026,6 +2053,49 @@
     }
 
     init();
+
+  </script>
+
+  <script>
+
+    const PIN_GATE_CODE = "202705";
+    const PIN_GATE_SESSION_KEY = "vote2027PinUnlocked";
+
+    (function initPinGate() {
+
+      const gateEl = document.getElementById("pin-gate");
+      const formEl = document.getElementById("pin-gate-form");
+      const inputEl = document.getElementById("pin-gate-input");
+      const errorEl = document.getElementById("pin-gate-error");
+
+      function unlock() {
+        document.body.classList.remove("pin-locked");
+        gateEl.style.display = "none";
+        sessionStorage.setItem(PIN_GATE_SESSION_KEY, "true");
+      }
+
+      if (sessionStorage.getItem(PIN_GATE_SESSION_KEY) === "true") {
+        unlock();
+        return;
+      }
+
+      formEl.addEventListener("submit", event => {
+
+        event.preventDefault();
+
+        if (inputEl.value.trim() === PIN_GATE_CODE) {
+          unlock();
+        } else {
+          errorEl.hidden = false;
+          inputEl.value = "";
+          inputEl.focus();
+        }
+
+      });
+
+      inputEl.focus();
+
+    })();
 
   </script>
 
