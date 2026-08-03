@@ -89,7 +89,7 @@
           <thead>
             <tr id="subscriptions-header-row">
               <th>Payment Summary</th>
-              <th>Customer</th>
+              <th>Customer Details</th>
               <th>Address</th>
               <th>Phone</th>
               <th>Email</th>
@@ -262,8 +262,13 @@
       const nextDue = dueDate
         ? formatDayMonth(dueDate)
         : (weeks.length > 1 ? formatDayMonth(weeks[1]) : "");
+      const startDate = parseUkDate(subscriber.subscriptionStartDate);
+      const startDateLabel = startDate
+        ? formatDayMonth(startDate)
+        : subscriber.subscriptionStartDate || "";
       return (
-        "Weekly Cost: " + subscriber.weeklyCost + "<br>" +
+        "Subscription Start Date: " + startDateLabel + "<br>" +
+        "Weekly Charge: " + subscriber.weeklyCost + "<br>" +
         "Funds Received: " + subscriber.fundsReceived + "<br>" +
         "<strong>Next Payment Due Before: " + nextDue + "</strong>"
       );
@@ -411,7 +416,7 @@
           return (
             "<tr>" +
             "<td class=\"subscriptions-summary-cell\">" + formatPaymentSummary(subscriber, weeks) + "</td>" +
-            "<td>" + (subscriber.customerName || "") + "<br>" + (subscriber.subscription || "") + "</td>" +
+            "<td>" + (subscriber.customerName || "") + "<br><strong>Publication:</strong> " + (subscriber.subscription || "") + "</td>" +
             "<td class=\"subscriptions-address-cell\">" + (subscriber.address || "") + "</td>" +
             "<td>" + (subscriber.phone || "") + "</td>" +
             "<td>" + (subscriber.email || "") + "</td>" +
