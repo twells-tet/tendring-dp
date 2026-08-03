@@ -1040,6 +1040,19 @@ body.mobile-mode .elector-list {
   opacity: 0.7;
 }
 
+.view-subscribers-map-button {
+  display: inline-flex;
+  width: auto;
+  border-color: var(--plaid-green);
+  background: var(--plaid-green);
+  opacity: 1;
+  cursor: pointer;
+}
+
+.view-subscribers-map-button:hover {
+  opacity: 0.85;
+}
+
 .view-all-districts-button {
   border-color: var(--plaid-green);
   background: var(--plaid-green);
