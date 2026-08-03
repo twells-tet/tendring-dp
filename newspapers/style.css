@@ -2074,6 +2074,12 @@ body.printer-friendly-mode .exit-printer-friendly-link {
   pointer-events: none;
 }
 
+.signup-day-not-sure {
+  display: block;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
 .signup-days.is-disabled .signup-day-not-sure {
   opacity: 1;
   pointer-events: auto;
