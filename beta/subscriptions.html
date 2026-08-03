@@ -510,10 +510,18 @@
             ? formatDayMonth(subStartDate)
             : subscriber.subscriptionStartDate || "";
 
+          const subCancellationDate = parseUkDate(subscriber.dateOfCancellation);
+          const subLastDeliveryDate = subCancellationDate
+            ? addDays(subCancellationDate, -1)
+            : null;
+          const subCancelledLine = subLastDeliveryDate
+            ? "<br><strong>CANCELLED - Last Delivery Date: " + formatDayMonth(subLastDeliveryDate) + "</strong>"
+            : "";
+
           return (
             "<tr>" +
             "<td class=\"subscriptions-summary-cell\">" + formatPaymentSummary(subscriber, weeks) + "</td>" +
-            "<td class=\"subscriptions-customer-cell" + statusClass + "\">" + (subscriber.customerName || "") + "<br><strong>Title:</strong> " + (subscriber.subscription || "") + "<br><strong>Frequency:</strong> " + (subscriber.frequency || "") + "<br><strong>Subscription Start Date:</strong> " + subStartDateLabel + "</td>" +
+            "<td class=\"subscriptions-customer-cell" + statusClass + "\">" + (subscriber.customerName || "") + "<br><strong>Title:</strong> " + (subscriber.subscription || "") + "<br><strong>Frequency:</strong> " + (subscriber.frequency || "") + "<br><strong>Subscription Start Date:</strong> " + subStartDateLabel + subCancelledLine + "</td>" +
             "<td class=\"subscriptions-account-cell\">" + (subscriber.accountNumber || "") + "</td>" +
             "<td class=\"subscriptions-address-cell\">" + (subscriber.address || "") + "</td>" +
             "<td>" + (subscriber.phone || "") + "</td>" +
