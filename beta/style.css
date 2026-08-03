@@ -979,8 +979,8 @@ body.mobile-mode .elector-list {
 
 .polling-day-button {
   text-decoration: none;
-  border-color: var(--plaid-red);
-  background: var(--plaid-red);
+  border-color: var(--plaid-green);
+  background: var(--plaid-green);
   opacity: 0.55;
   cursor: pointer;
 }
@@ -991,8 +991,8 @@ body.mobile-mode .elector-list {
 
 .members-activists-button {
   text-decoration: none;
-  border-color: var(--plaid-red);
-  background: var(--plaid-red);
+  border-color: #2b6cb0;
+  background: #2b6cb0;
   opacity: 0.55;
   cursor: pointer;
 }
@@ -1048,8 +1048,8 @@ body.mobile-mode .elector-list {
 
 .data-button {
   text-decoration: none;
-  border-color: #2b6cb0;
-  background: #2b6cb0;
+  border-color: var(--plaid-red);
+  background: var(--plaid-red);
   opacity: 0.55;
   cursor: pointer;
 }
