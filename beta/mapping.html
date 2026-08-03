@@ -119,6 +119,7 @@
             <option value="first-language-english" disabled>First Language: English</option>
             <option value="first-language-welsh" disabled>First Language: Welsh</option>
             <option value="first-time-voter-may-2027">May 2027 will be their first election</option>
+            <option value="left-electoral-register">Left Electoral Register</option>
             <option value="likely-conservative" disabled>Likely Conservative</option>
             <option value="likely-labour" disabled>Likely Labour</option>
             <option value="likely-reform" disabled>Likely Reform</option>
@@ -653,6 +654,18 @@
         .toLowerCase()
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    // An elector is treated as "Left Electoral Register" either because a
+    // user has ticked that box on their profile (stored in local
+    // progress), or because Sheet1's own Polling District column already
+    // says "XX9" for that elector (per-elector, not per-household - e.g.
+    // one elector in a household may have left while others remain).
+    function isLeftElectoralRegisterElector(elector, progress) {
+      if ((progress[elector.id] || {}).leftElectoralRegister) {
+        return true;
+      }
+      return normalizeText(elector.pollingDistrict) === "xx9";
     }
 
     function formatPostalProxy(value) {
@@ -1516,10 +1529,16 @@
 
           return electors.filter(elector => {
 
+            const isLeftRegister = isLeftElectoralRegisterElector(elector, progress);
+
+            if (wantedFilterType === "left-electoral-register") {
+              return isLeftRegister;
+            }
+
             // Electors marked "Left Electoral Register" (e.g. deceased,
             // moved away) are hidden from the map entirely, regardless
             // of any other filter.
-            if ((progress[elector.id] || {}).leftElectoralRegister) {
+            if (isLeftRegister) {
               return false;
             }
 
@@ -1729,14 +1748,19 @@
           const isSubscriptionFilterSelected =
             mappingFilterTypeEl.value === "newspaper-subscription";
 
+          const isLeftRegisterFilterSelected =
+            mappingFilterTypeEl.value === "left-electoral-register";
+
           // Subscription list membership isn't captured by Polling
           // District at all (subscribers can live in either district),
-          // so when that Filter is active the Polling District picker is
-          // forced to "All Polling Districts" and disabled.
-          if (isSubscriptionFilterSelected) {
+          // and neither is "Left Electoral Register" (those electors are
+          // tagged XX9, not RA1/QB6) - so when either Filter is active
+          // the Polling District picker is forced to "All Polling
+          // Districts" and disabled.
+          if (isSubscriptionFilterSelected || isLeftRegisterFilterSelected) {
             walkDistrictSelectEl.value = "";
           }
-          walkDistrictSelectEl.disabled = isSubscriptionFilterSelected;
+          walkDistrictSelectEl.disabled = isSubscriptionFilterSelected || isLeftRegisterFilterSelected;
 
           const isAllDistrictsSelected =
             walkDistrictSelectEl.value === "";
@@ -1882,6 +1906,19 @@
               (
                 missingCoords
                   ? " (" + missingCoords + " subscriber" + (missingCoords === 1 ? "" : "s") +
+                    " could not be plotted due to missing latitude and longitude)."
+                  : "."
+              );
+
+          } else if (isLeftRegisterFilterSelected) {
+
+            summaryEl.textContent =
+              plottable.length +
+              " elector" + (plottable.length === 1 ? "" : "s") +
+              " who left the electoral register shown on the map" +
+              (
+                missingCoords
+                  ? " (" + missingCoords + " elector" + (missingCoords === 1 ? "" : "s") +
                     " could not be plotted due to missing latitude and longitude)."
                   : "."
               );
