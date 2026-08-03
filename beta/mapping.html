@@ -874,13 +874,24 @@
             ""
           ),
 
+        // Column P ("Polling District", index 15) is where XX9 is set to
+        // flag an individual elector as having left the electoral
+        // register. Its header text normalizes identically to the later
+        // "POLLING DISTRICT" column (index 35, the real RA1/QB6 value),
+        // so a plain header lookup would let the later column silently
+        // overwrite this one in the `data` object. Read row[15] directly
+        // and let it take priority whenever it says XX9.
         pollingDistrict:
-          data.pollingdistrict ||
-          data.pollingdist ||
-          data.district ||
-          data.pd ||
-          row[15] ||
-          "",
+          normalizeText(row[15]) === "xx9"
+            ? "XX9"
+            : (
+              data.pollingdistrict ||
+              data.pollingdist ||
+              data.district ||
+              data.pd ||
+              row[15] ||
+              ""
+            ),
 
         // The Sheet's own Walk column (AL), used as the default Walk
         // when no override has been saved on the Manage Walks page -
