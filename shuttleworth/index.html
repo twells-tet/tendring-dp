@@ -194,11 +194,7 @@
     // it must not be treated as a real canvass signal.
     const TARGET_DISTRICTS = ["QB6", "RA1"];
 
-    // Chris Green is the sole demo volunteer/deliverer whose record
-    // carries real canvass/support data left over from testing. His
-    // record is excluded from every canvass-category count on this
-    // page so the live totals reflect only genuine elector data.
-    const CHRIS_GREEN_ELECTOR_ID = "234421037";
+
 
     const wardSelectEl = document.getElementById("ward-select");
     const messageEl = document.getElementById("shuttleworth-message");
@@ -354,13 +350,7 @@
       const selectedWard = wardSelectEl.value;
       const supporterTotals = {};
       TARGET_DISTRICTS.forEach(district => {
-        // Chris Green's record carries real canvass/support data left
-        // over from testing, so it's excluded from this page entirely
-        // — from the Electors headcount as well as every canvass
-        // category — so "No Data + Independent" adds up to 100%.
-        const districtElectors = getDistrictElectors(selectedWard, district).filter(
-          elector => String(elector.id || "").trim() !== CHRIS_GREEN_ELECTOR_ID
-        );
+        const districtElectors = getDistrictElectors(selectedWard, district);
         const total = districtElectors.length;
         const turnout = Math.ceil(total * 0.6);
 
