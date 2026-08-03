@@ -7,7 +7,28 @@
   <link rel="icon" type="image/svg+xml" href="tarian-shield.svg">
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="pin-locked">
+
+  <div id="pin-gate" class="pin-gate">
+    <div class="pin-gate-box">
+      <img src="tarian-shield.svg" alt="" class="pin-gate-logo">
+      <h2>TARIAN</h2>
+      <p>Enter the 6-digit PIN to continue.</p>
+      <form id="pin-gate-form" autocomplete="off">
+        <input
+          type="password"
+          id="pin-gate-input"
+          class="pin-gate-input"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          maxlength="6"
+          autocomplete="off"
+          aria-label="6-digit PIN">
+        <button type="submit" class="pin-gate-button">Unlock</button>
+      </form>
+      <p id="pin-gate-error" class="pin-gate-error" hidden>Incorrect PIN. Please try again.</p>
+    </div>
+  </div>
 
   <header class="page-header no-print">
     <a href="index.html" class="page-header-logo-link" aria-label="TARIAN home">
@@ -852,6 +873,49 @@
     }
 
     init();
+
+  </script>
+
+  <script>
+
+    const PIN_GATE_CODE = "202705";
+    const PIN_GATE_SESSION_KEY = "vote2027PinUnlocked";
+
+    (function initPinGate() {
+
+      const gateEl = document.getElementById("pin-gate");
+      const formEl = document.getElementById("pin-gate-form");
+      const inputEl = document.getElementById("pin-gate-input");
+      const errorEl = document.getElementById("pin-gate-error");
+
+      function unlock() {
+        document.body.classList.remove("pin-locked");
+        gateEl.style.display = "none";
+        sessionStorage.setItem(PIN_GATE_SESSION_KEY, "true");
+      }
+
+      if (sessionStorage.getItem(PIN_GATE_SESSION_KEY) === "true") {
+        unlock();
+        return;
+      }
+
+      formEl.addEventListener("submit", event => {
+
+        event.preventDefault();
+
+        if (inputEl.value.trim() === PIN_GATE_CODE) {
+          unlock();
+        } else {
+          errorEl.hidden = false;
+          inputEl.value = "";
+          inputEl.focus();
+        }
+
+      });
+
+      inputEl.focus();
+
+    })();
 
   </script>
 
