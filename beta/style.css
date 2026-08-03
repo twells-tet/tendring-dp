@@ -1001,6 +1001,18 @@ body.mobile-mode .elector-list {
   opacity: 0.7;
 }
 
+.subscriptions-button {
+  text-decoration: none;
+  border-color: var(--plaid-red);
+  background: var(--plaid-red);
+  opacity: 0.55;
+  cursor: pointer;
+}
+
+.subscriptions-button:hover {
+  opacity: 0.7;
+}
+
 .run-search-button {
   border-color: var(--plaid-green);
   background: var(--plaid-green);

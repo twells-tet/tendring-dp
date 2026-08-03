@@ -489,9 +489,11 @@
             addressLine1: (row[3] || "").trim(),
             walk: (row[8] || "").trim(),
             subRoad: (row[9] || "").trim(),
+            pollingDistrict: (row[10] || "").trim(),
             sortOrder: (row[11] || "").trim(),
             doNotCanvass: Boolean((row[15] || "").trim()),
-            doNotDeliver: Boolean((row[16] || "").trim())
+            doNotDeliver: Boolean((row[16] || "").trim()),
+            customerName: (row[17] || "").trim()
           };
 
         });
@@ -506,6 +508,8 @@
 
     function applyNewspapersDataToElectors(electors, dataByHouseholdId) {
 
+      const matchedHouseholdIds = new Set();
+
       electors.forEach(elector => {
 
         const entry = dataByHouseholdId[elector.householdId];
@@ -513,6 +517,8 @@
         if (!entry) {
           return;
         }
+
+        matchedHouseholdIds.add(elector.householdId);
 
         if (entry.addressLine1) {
           elector.addressLine1 = entry.addressLine1;
@@ -536,6 +542,46 @@
         // NEWSPAPERS is the master source for Do Not Canvass/Deliver.
         elector.masterDoNotContact = Boolean(entry.doNotCanvass);
         elector.masterDoNotDeliver = Boolean(entry.doNotDeliver);
+
+      });
+
+      // Subscribers whose Household ID doesn't match any elector in the
+      // main sheet (e.g. they live outside the canvassed Polling
+      // Districts) still need to appear in "View All Subscribers on
+      // Map". Synthesize a minimal elector-like record for each,
+      // tagged with the invented "XX1" Polling District so it never
+      // collides with a real RA1/QB6 district filter.
+      Object.keys(dataByHouseholdId).forEach(householdId => {
+
+        if (matchedHouseholdIds.has(householdId)) {
+          return;
+        }
+
+        const entry = dataByHouseholdId[householdId];
+
+        if (!String(entry.subscription || "").trim().length) {
+          return;
+        }
+
+        electors.push({
+          id: "newspaper-" + householdId,
+          name: entry.customerName || "Newspaper Subscriber",
+          householdId,
+          addressLine1: entry.addressLine1 || "",
+          addressLine2: "",
+          postcode: "",
+          pollingDistrict: entry.pollingDistrict || "XX1",
+          deliveryWalk: entry.walk || "",
+          subRoad: entry.subRoad || "",
+          deliveryOrder: entry.sortOrder || "",
+          lat: NaN,
+          lng: NaN,
+          postalProxy: formatPostalProxy(""),
+          householdGroupKey: normalizeText(householdId),
+          newspaperSubscribed: true,
+          masterDoNotContact: Boolean(entry.doNotCanvass),
+          masterDoNotDeliver: Boolean(entry.doNotDeliver)
+        });
 
       });
 
@@ -1474,6 +1520,18 @@
             // moved away) are hidden from the map entirely, regardless
             // of any other filter.
             if ((progress[elector.id] || {}).leftElectoralRegister) {
+              return false;
+            }
+
+            // XX1 is the synthetic Polling District used for newspaper
+            // subscribers with no matching elector in the main sheet.
+            // It should only ever surface via the Subscription filter —
+            // everywhere else (including "No filter") it must behave as
+            // if these households don't exist.
+            if (
+              wantedFilterType !== "newspaper-subscription" &&
+              elector.pollingDistrict === "XX1"
+            ) {
               return false;
             }
 
