@@ -145,7 +145,7 @@
 
             <p id="signup-error" class="signup-error" hidden>Please choose a newspaper and fill in your name, mobile number and email.</p>
 
-            <button type="button" id="signup-submit" class="cta signup-submit-btn">Email my request</button>
+            <button type="button" id="signup-generate" class="cta signup-generate-btn">Generate Enquiry</button>
         </div>
     </main>
 
@@ -321,7 +321,7 @@
             });
         });
 
-        document.getElementById("signup-submit").addEventListener("click", () => {
+        function buildEnquiryData() {
             const newspaper = document.getElementById("signup-newspaper").value;
             const newspaperOther = newspaperOtherInputEl.value.trim();
             const newspaperText = newspaper === "Other" ? newspaperOther : newspaper;
@@ -337,18 +337,17 @@
             const email = document.getElementById("signup-email").value.trim();
             const notes = document.getElementById("signup-notes").value.trim();
 
-            if (
-                !newspaper ||
-                (newspaper === "Other" && !newspaperOther) ||
-                (durationChoice === "dates" && (!startDate || !endDate)) ||
-                !name ||
-                !phone ||
-                !email
-            ) {
-                signupErrorEl.hidden = false;
-                return;
+            const isValid =
+                newspaper &&
+                !(newspaper === "Other" && !newspaperOther) &&
+                !(durationChoice === "dates" && (!startDate || !endDate)) &&
+                name &&
+                phone &&
+                email;
+
+            if (!isValid) {
+                return null;
             }
-            signupErrorEl.hidden = true;
 
             const formatDate = (isoDate) => {
                 if (!isoDate) return isoDate;
@@ -363,7 +362,7 @@
                         ? "To be decided"
                         : "Until further notice (from " + formatDate(TOMORROW_ISO) + ")";
 
-            const subject = "Tarian Newspaper delivery sign-up";
+            const subject = "Tarian Newspapers delivery sign-up";
             const bodyLines = [
                 "Newspaper: " + newspaperText,
                 "Delivery days: " + (selectedDays.length ? selectedDays.join(", ") : "To be decided"),
@@ -375,13 +374,57 @@
                 "Email: " + (email || "-"),
                 "Notes: " + (notes || "-")
             ];
-            const mailtoUrl =
-                "mailto:chris@trinitystreetcomms.co.uk?subject=" +
-                encodeURIComponent(subject) +
-                "&body=" +
-                encodeURIComponent(bodyLines.join("\n"));
 
-            window.location.href = mailtoUrl;
+            return { subject, body: bodyLines.join("\n") };
+        }
+
+        document.getElementById("signup-generate").addEventListener("click", () => {
+            const enquiry = buildEnquiryData();
+            if (!enquiry) {
+                signupErrorEl.hidden = false;
+                return;
+            }
+            signupErrorEl.hidden = true;
+
+            const escapeHtml = (text) =>
+                text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+            const enquiryText = enquiry.subject + "\n\n" + enquiry.body;
+
+            const html =
+                "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\">" +
+                "<title>Your Tarian Newspaper Enquiry</title>" +
+                "<style>" +
+                "body{font-family:Arial,sans-serif;font-size:1.3rem;line-height:1.6;max-width:40rem;margin:2rem auto;padding:0 1rem;}" +
+                "h1{font-size:1.6rem;}" +
+                "pre{white-space:pre-wrap;font-size:1.15rem;background:#f4f4f4;border:1px solid #ccc;border-radius:0.5rem;padding:1rem;}" +
+                "button{font-size:1.1rem;padding:0.6rem 1.2rem;border-radius:0.4rem;border:1px solid #0a5e49;background:#0aa77d;color:#fff;cursor:pointer;}" +
+                "button:hover{background:#0a5e49;}" +
+                "#copy-confirm{margin-left:0.75rem;font-size:1rem;color:#0a5e49;}" +
+                "</style></head><body>" +
+                "<h1>Your delivery enquiry</h1>" +
+                "<p>Please copy the text below into an email and send it to " +
+                "<strong>chris@trinitystreetcomms.co.uk</strong>.</p>" +
+                "<pre id=\"enquiry-text\">" + escapeHtml(enquiryText) + "</pre>" +
+                "<button type=\"button\" id=\"copy-btn\">Copy to clipboard</button>" +
+                "<span id=\"copy-confirm\" hidden>Copied!</span>" +
+                "<script>" +
+                "document.getElementById('copy-btn').addEventListener('click', function () {" +
+                "var text = document.getElementById('enquiry-text').textContent;" +
+                "navigator.clipboard.writeText(text).then(function () {" +
+                "var confirmEl = document.getElementById('copy-confirm');" +
+                "confirmEl.hidden = false;" +
+                "setTimeout(function () { confirmEl.hidden = true; }, 2000);" +
+                "});" +
+                "});" +
+                "</" + "script>" +
+                "</body></html>";
+
+            const enquiryWindow = window.open("", "_blank");
+            if (enquiryWindow) {
+                enquiryWindow.document.write(html);
+                enquiryWindow.document.close();
+            }
         });
     </script>
 </body>
