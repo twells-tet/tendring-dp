@@ -874,6 +874,15 @@
             ""
           ),
 
+        // Column AJ ("POLLING DISTRICT", index 35 - next to Ward/
+        // Community/Walk) is authoritative for every elector's Polling
+        // District, including the XX9 "Left Electoral Register" marker.
+        // Its header text normalizes identically to the earlier "Polling
+        // District" column at index 15 (next to ENO/PV Status, a raw
+        // Electoral Register import field that isn't kept in sync), so
+        // this relies on the header-driven `data.pollingdistrict` lookup
+        // resolving to the later column (index 35) since it's assigned
+        // last when building `data`.
         pollingDistrict:
           data.pollingdistrict ||
           data.pollingdist ||
