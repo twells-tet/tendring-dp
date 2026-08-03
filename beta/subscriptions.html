@@ -455,9 +455,15 @@
 
         renderTable(subscribers);
 
+        const uniqueHouseholds = new Set(
+          subscribers.map(sub => sub.householdId).filter(Boolean)
+        ).size;
+
         countEl.textContent =
           subscribers.length +
-          " Active Subscriber" + (subscribers.length === 1 ? "" : "s");
+          " Active Subscriber" + (subscribers.length === 1 ? "" : "s") +
+          " (" + uniqueHouseholds +
+          " Unique Household" + (uniqueHouseholds === 1 ? "" : "s") + ")";
 
         messageEl.textContent = subscribers.length
           ? ""
