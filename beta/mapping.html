@@ -1809,24 +1809,41 @@
               0
             );
 
-          summaryEl.textContent =
-            plottable.length +
-            " household" + (plottable.length === 1 ? "" : "s") +
-            " (" + electorsShown + " elector" + (electorsShown === 1 ? "" : "s") + ")" +
-            " shown on the map" +
-            (
-              missingCoords
-                ? " (" + missingCoords + " household" + (missingCoords === 1 ? "" : "s") +
-                  " / " + missingCoordsElectors + " elector" + (missingCoordsElectors === 1 ? "" : "s") +
-                  " could not be plotted due to missing latitude and longitude)."
-                : "."
-            ) +
-            (
-              truncated
-                ? " Only the first " + MAX_HOUSEHOLDS + " households are shown (" +
-                  totalHouseholds + " households, " + totalElectors + " electors matched)."
-                : ""
-            );
+          if (isSubscriptionFilterSelected) {
+
+            summaryEl.textContent =
+              plottable.length +
+              " Subscriber" + (plottable.length === 1 ? "" : "s") +
+              " shown on the map" +
+              (
+                missingCoords
+                  ? " (" + missingCoords + " subscriber" + (missingCoords === 1 ? "" : "s") +
+                    " could not be plotted due to missing latitude and longitude)."
+                  : "."
+              );
+
+          } else {
+
+            summaryEl.textContent =
+              plottable.length +
+              " household" + (plottable.length === 1 ? "" : "s") +
+              " (" + electorsShown + " elector" + (electorsShown === 1 ? "" : "s") + ")" +
+              " shown on the map" +
+              (
+                missingCoords
+                  ? " (" + missingCoords + " household" + (missingCoords === 1 ? "" : "s") +
+                    " / " + missingCoordsElectors + " elector" + (missingCoordsElectors === 1 ? "" : "s") +
+                    " could not be plotted due to missing latitude and longitude)."
+                  : "."
+              ) +
+              (
+                truncated
+                  ? " Only the first " + MAX_HOUSEHOLDS + " households are shown (" +
+                    totalHouseholds + " households, " + totalElectors + " electors matched)."
+                  : ""
+              );
+
+          }
 
         }
 
