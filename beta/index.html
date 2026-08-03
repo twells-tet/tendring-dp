@@ -261,6 +261,7 @@
           <option value="first-language-english" disabled>First Language: English</option>
           <option value="first-language-welsh" disabled>First Language: Welsh</option>
           <option value="first-time-voter-may-2027">May 2027 will be their first election</option>
+          <option value="left-electoral-register">Left Electoral Register</option>
           <option value="likely-conservative" disabled>Likely Conservative</option>
           <option value="likely-labour" disabled>Likely Labour</option>
           <option value="likely-reform" disabled>Likely Reform</option>
@@ -5358,7 +5359,25 @@ function normalizeCanvassId(value) {
 }
 
 
-function getActiveElectors() {
+// True when an elector should be treated as "Left Electoral Register"
+// (XX9) - either flagged manually via their profile's progress data, or
+// carrying the sheet's own XX9 Polling District value (Column AJ) -
+// mirroring the equivalent helper in mapping.html.
+function isLeftElectoralRegisterElector(elector) {
+
+  if ((state.progress[elector.id] || {}).leftElectoralRegister) {
+    return true;
+  }
+
+  return normalizeText(elector.pollingDistrict) === "xx9";
+
+}
+
+
+function getActiveElectors(options) {
+
+  const includeLeftRegister =
+    Boolean(options && options.includeLeftRegister);
 
   const authority = normalizeText(localAuthorityEl.value);
   const senedd = normalizeText(seneddEl.value);
@@ -5394,11 +5413,13 @@ function getActiveElectors() {
       return false;
     }
 
-    // Electors marked "Left Electoral Register" on their profile (e.g.
-    // deceased, moved away) are hidden from every list, filter, and map
-    // in the app - their profile page stays reachable directly by
-    // Elector ID if it's ever needed again.
-    if ((state.progress[elector.id] || {}).leftElectoralRegister) {
+    // Electors marked "Left Electoral Register" (either via their
+    // profile, or the sheet's own XX9 Polling District value) are
+    // hidden from every list, filter, and map in the app - their
+    // profile page stays reachable directly by Elector ID if it's ever
+    // needed again - unless the caller explicitly wants them included
+    // (the "Left Electoral Register" filter itself).
+    if (!includeLeftRegister && isLeftElectoralRegisterElector(elector)) {
       return false;
     }
 
@@ -5735,7 +5756,20 @@ function getFilteredActiveElectors() {
   const subroadFilterDistrict =
     normalizeText(subroadFilterDistrictEl.value).trim();
 
-  return getActiveElectors().filter(elector => {
+  const activeElectors =
+    filterType === "left-electoral-register"
+      ? getActiveElectors({ includeLeftRegister: true })
+      : getActiveElectors();
+
+  return activeElectors.filter(elector => {
+
+    if (filterType === "left-electoral-register") {
+
+      if (!isLeftElectoralRegisterElector(elector)) {
+        return false;
+      }
+
+    }
 
     if (filterType === "postal-proxy") {
 
