@@ -102,6 +102,7 @@
             <tr id="subscriptions-header-row">
               <th>Payment Summary</th>
               <th>Customer Details</th>
+              <th>Account Number</th>
               <th>Address</th>
               <th>Phone</th>
               <th>Email</th>
@@ -504,10 +505,16 @@
             ? " subscriptions-cancelled"
             : (isOverdue(subscriber) ? " subscriptions-overdue" : "");
 
+          const subStartDate = parseUkDate(subscriber.subscriptionStartDate);
+          const subStartDateLabel = subStartDate
+            ? formatDayMonth(subStartDate)
+            : subscriber.subscriptionStartDate || "";
+
           return (
             "<tr>" +
             "<td class=\"subscriptions-summary-cell\">" + formatPaymentSummary(subscriber, weeks) + "</td>" +
-            "<td class=\"subscriptions-customer-cell" + statusClass + "\">" + (subscriber.customerName || "") + "<br><strong>Account Number:</strong> " + (subscriber.accountNumber || "") + "<br><strong>Title:</strong> " + (subscriber.subscription || "") + "<br><strong>Frequency:</strong> " + (subscriber.frequency || "") + "</td>" +
+            "<td class=\"subscriptions-customer-cell" + statusClass + "\">" + (subscriber.customerName || "") + "<br><strong>Title:</strong> " + (subscriber.subscription || "") + "<br><strong>Frequency:</strong> " + (subscriber.frequency || "") + "<br><strong>Subscription Start Date:</strong> " + subStartDateLabel + "</td>" +
+            "<td class=\"subscriptions-account-cell\">" + (subscriber.accountNumber || "") + "</td>" +
             "<td class=\"subscriptions-address-cell\">" + (subscriber.address || "") + "</td>" +
             "<td>" + (subscriber.phone || "") + "</td>" +
             "<td>" + (subscriber.email || "") + "</td>" +
