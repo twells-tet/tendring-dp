@@ -1609,7 +1609,13 @@
               return hasAntiPlaidFlag(electorProgress);
             }
 
-            if (hasAntiPlaidFlag(electorProgress)) {
+            // The implicit anti-plaid exclusion below only applies when a
+            // specific filter is selected (it hides Do Not Deliver/Do Not
+            // Contact electors from canvassing target lists). "No filter"
+            // ("View All") must show every household in the selected
+            // Polling District(s), including those flagged Do Not
+            // Deliver/Do Not Contact.
+            if (wantedFilterType && hasAntiPlaidFlag(electorProgress)) {
               return false;
             }
 
