@@ -2074,6 +2074,11 @@ body.printer-friendly-mode .exit-printer-friendly-link {
   pointer-events: none;
 }
 
+.signup-days.is-disabled .signup-day-not-sure {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .signup-days-label {
   margin: 0 0 0.5rem;
   color: var(--text-muted);
@@ -2192,12 +2197,76 @@ body.printer-friendly-mode .exit-printer-friendly-link {
   text-align: center;
 }
 
+.signup-form-title {
+  text-transform: uppercase;
+}
+
 .signup-submit-btn {
   display: block;
   width: 100%;
   text-align: center;
   border: none;
   cursor: pointer;
+}
+
+.signup-generate-btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 1.3rem;
+  font-weight: 700;
+  padding: 0.9rem 1.5rem;
+  background: var(--plaid-green);
+  color: #ffffff;
+}
+
+.signup-generate-btn:hover {
+  background: var(--plaid-green-dark, #0a5e49);
+}
+
+.signup-enquiry-result {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.signup-enquiry-instructions {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  margin: 0 0 1rem;
+}
+
+#signup-enquiry-text {
+  white-space: pre-wrap;
+  font-size: 1.1rem;
+  text-align: left;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 0 0 1rem;
+}
+
+.signup-copy-btn {
+  font-size: 1.1rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.4rem;
+  border: none;
+  background: var(--plaid-green);
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.signup-copy-btn:hover {
+  background: var(--plaid-green-dark, #0a5e49);
+}
+
+.signup-copy-confirm {
+  margin-left: 0.75rem;
+  font-size: 1rem;
+  color: var(--plaid-green-dark, #0a5e49);
 }
 
 .scroll-hint {

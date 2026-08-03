@@ -22,21 +22,21 @@
 
             <div class="hero">
                 <h2>Delivery areas</h2>
-                <p class="areas">Abersoch • Llanbedrog • Llanengan • Mynytho • Penrhos • Pwllheli</p>
+                <p class="areas">Pwllheli • Abersoch • Bwlchtocyn • Cilan • Llanbedrog • Llanengan • Llangian • Mynytho • Sarn Bach</p>
             </div>
 
             <div class="intro">
                 <p>Enjoy your summer holiday while we bring the morning news straight to your door.</p>
-                <p>No need to miss your favourite newspaper while you’re away — simply choose the delivery days that suit you best.</p>
+                <p><strong>On holiday?</strong> No need to miss your favourite newspaper while you’re away — simply choose the delivery days that suit you best.</p>
             </div>
 
             <p class="scroll-hint">Scroll down to start your order</p>
 
             <ul>
-                <li>Only 75p per day plus cover price</li>
+                <li>Only 75p for delivery plus cover price</li>
+                <li>Discounts available if you pay monthly or quarterly</li>
                 <li>Cheaper if you have a pre-existing subscription</li>
                 <li>All deliveries completed by 8AM</li>
-                <li>You choose the days you want a paper</li>
                 <li>Opt out anytime — no long-term commitment</li>
             </ul>
 
@@ -46,7 +46,7 @@
         </div>
 
         <div id="signup-form" class="signup-form tarian-homepage-card">
-            <h2>Start your delivery</h2>
+            <h2 class="signup-form-title">Start your subscription</h2>
             <p class="signup-intro">Deliveries can start as soon as tomorrow. Tell us what you'd like and Chris will get you set up.</p>
 
             <label class="signup-field" for="signup-newspaper">
@@ -94,7 +94,8 @@
             </div>
 
             <div class="signup-days" id="signup-delivery-days-section">
-                <p class="signup-days-label">Delivery days (optional — let us know if you're not sure yet)</p>
+                <p class="signup-days-label">Delivery days (optional — tick here if you're not sure yet)</p>
+                <label class="signup-day-not-sure"><input type="checkbox" id="signup-days-not-sure"> I'm not sure yet</label>
                 <div class="signup-day-shortcuts">
                     <button type="button" class="signup-shortcut-btn" data-shortcut="sunday-only">Sundays Only</button>
                     <button type="button" class="signup-shortcut-btn" data-shortcut="no-sat">All except Saturday</button>
@@ -108,7 +109,6 @@
                     <label><input type="checkbox" class="signup-day" value="Friday" checked> Friday</label>
                     <label><input type="checkbox" class="signup-day" value="Saturday" checked> Saturday</label>
                     <label><input type="checkbox" class="signup-day" value="Sunday" checked> Sunday</label>
-                    <label class="signup-day-not-sure"><input type="checkbox" id="signup-days-not-sure"> I'm not sure yet</label>
                 </div>
                 <p id="signup-day-restriction-note" class="signup-day-restriction-note" hidden></p>
             </div>
@@ -145,7 +145,14 @@
 
             <p id="signup-error" class="signup-error" hidden>Please choose a newspaper and fill in your name, mobile number and email.</p>
 
-            <button type="button" id="signup-generate" class="cta signup-generate-btn">Generate Enquiry</button>
+            <button type="button" id="signup-generate" class="signup-generate-btn">Generate Enquiry</button>
+
+            <div id="signup-enquiry-result" class="signup-enquiry-result" hidden>
+                <p class="signup-enquiry-instructions">Please copy the text below into an email and send it to <strong>chris@trinitystreetcomms.co.uk</strong></p>
+                <pre id="signup-enquiry-text"></pre>
+                <button type="button" id="signup-copy-btn" class="signup-copy-btn">Copy to clipboard</button>
+                <span id="signup-copy-confirm" class="signup-copy-confirm" hidden>Copied!</span>
+            </div>
         </div>
     </main>
 
@@ -378,53 +385,30 @@
             return { subject, body: bodyLines.join("\n") };
         }
 
+        const enquiryResultEl = document.getElementById("signup-enquiry-result");
+        const enquiryTextEl = document.getElementById("signup-enquiry-text");
+        const copyBtn = document.getElementById("signup-copy-btn");
+        const copyConfirmEl = document.getElementById("signup-copy-confirm");
+
         document.getElementById("signup-generate").addEventListener("click", () => {
             const enquiry = buildEnquiryData();
             if (!enquiry) {
                 signupErrorEl.hidden = false;
+                enquiryResultEl.hidden = true;
                 return;
             }
             signupErrorEl.hidden = true;
 
-            const escapeHtml = (text) =>
-                text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            enquiryTextEl.textContent = enquiry.subject + "\n\n" + enquiry.body;
+            enquiryResultEl.hidden = false;
+            enquiryResultEl.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
 
-            const enquiryText = enquiry.subject + "\n\n" + enquiry.body;
-
-            const html =
-                "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\">" +
-                "<title>Your Tarian Newspaper Enquiry</title>" +
-                "<style>" +
-                "body{font-family:Arial,sans-serif;font-size:1.3rem;line-height:1.6;max-width:40rem;margin:2rem auto;padding:0 1rem;}" +
-                "h1{font-size:1.6rem;}" +
-                "pre{white-space:pre-wrap;font-size:1.15rem;background:#f4f4f4;border:1px solid #ccc;border-radius:0.5rem;padding:1rem;}" +
-                "button{font-size:1.1rem;padding:0.6rem 1.2rem;border-radius:0.4rem;border:1px solid #0a5e49;background:#0aa77d;color:#fff;cursor:pointer;}" +
-                "button:hover{background:#0a5e49;}" +
-                "#copy-confirm{margin-left:0.75rem;font-size:1rem;color:#0a5e49;}" +
-                "</style></head><body>" +
-                "<h1>Your delivery enquiry</h1>" +
-                "<p>Please copy the text below into an email and send it to " +
-                "<strong>chris@trinitystreetcomms.co.uk</strong></p>" +
-                "<pre id=\"enquiry-text\">" + escapeHtml(enquiryText) + "</pre>" +
-                "<button type=\"button\" id=\"copy-btn\">Copy to clipboard</button>" +
-                "<span id=\"copy-confirm\" hidden>Copied!</span>" +
-                "<script>" +
-                "document.getElementById('copy-btn').addEventListener('click', function () {" +
-                "var text = document.getElementById('enquiry-text').textContent;" +
-                "navigator.clipboard.writeText(text).then(function () {" +
-                "var confirmEl = document.getElementById('copy-confirm');" +
-                "confirmEl.hidden = false;" +
-                "setTimeout(function () { confirmEl.hidden = true; }, 2000);" +
-                "});" +
-                "});" +
-                "</" + "script>" +
-                "</body></html>";
-
-            const enquiryWindow = window.open("", "_blank");
-            if (enquiryWindow) {
-                enquiryWindow.document.write(html);
-                enquiryWindow.document.close();
-            }
+        copyBtn.addEventListener("click", () => {
+            navigator.clipboard.writeText(enquiryTextEl.textContent).then(() => {
+                copyConfirmEl.hidden = false;
+                setTimeout(() => { copyConfirmEl.hidden = true; }, 2000);
+            });
         });
     </script>
 </body>
