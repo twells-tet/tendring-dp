@@ -1922,12 +1922,13 @@
           } else if (isLeftRegisterFilterSelected) {
 
             summaryEl.textContent =
-              plottable.length +
-              " elector" + (plottable.length === 1 ? "" : "s") +
+              electorsShown +
+              " elector" + (electorsShown === 1 ? "" : "s") +
+              " (" + plottable.length + " household" + (plottable.length === 1 ? "" : "s") + ")" +
               " who left the electoral register shown on the map" +
               (
                 missingCoords
-                  ? " (" + missingCoords + " elector" + (missingCoords === 1 ? "" : "s") +
+                  ? " (" + missingCoords + " household" + (missingCoords === 1 ? "" : "s") +
                     " could not be plotted due to missing latitude and longitude)."
                   : "."
               );
