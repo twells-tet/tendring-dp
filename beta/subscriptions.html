@@ -94,6 +94,8 @@
 
       <p><a href="mapping.html?filter=newspaper-subscription" class="back-link">View All Subscribers on Map &rarr;</a></p>
 
+      <p id="subscriptions-count" class="message"></p>
+
       <p id="subscriptions-message" class="message" role="status" aria-live="polite"></p>
 
       <div class="subscriptions-table-wrapper">
@@ -131,6 +133,7 @@
     const WEEKS_AHEAD = 6;
 
     const messageEl = document.getElementById("subscriptions-message");
+    const countEl = document.getElementById("subscriptions-count");
     const headerRowEl = document.getElementById("subscriptions-header-row");
     const bodyEl = document.getElementById("subscriptions-body");
 
@@ -397,6 +400,7 @@
 
         const subscribers = newspapers
           .filter(sub => sub.subscription)
+          .filter(sub => !sub.subscriptioninactive)
           .filter(sub => {
             const cancellationDate = parseUkDate(sub.dateofcancellation);
             return !cancellationDate || today.getTime() < cancellationDate.getTime();
@@ -429,6 +433,10 @@
         });
 
         renderTable(subscribers);
+
+        countEl.textContent =
+          subscribers.length +
+          " Active Subscriber" + (subscribers.length === 1 ? "" : "s");
 
         messageEl.textContent = subscribers.length
           ? ""
