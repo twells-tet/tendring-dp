@@ -485,8 +485,13 @@
             return;
           }
 
+          const subscriptionInactive = Boolean((row[24] || "").trim());
+
           dataByHouseholdId[householdId] = {
-            subscription: (row[2] || "").trim(),
+            // Rows marked SUBSCRIPTION INACTIVE (column Y) are treated
+            // as having no subscription at all, mirroring the same
+            // exclusion applied on /subscriptions.
+            subscription: subscriptionInactive ? "" : (row[2] || "").trim(),
             addressLine1: (row[3] || "").trim(),
             walk: (row[8] || "").trim(),
             subRoad: (row[9] || "").trim(),
