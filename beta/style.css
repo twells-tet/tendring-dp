@@ -603,6 +603,11 @@ body.mobile-mode .elector-list {
   min-height: 1.25rem;
 }
 
+#subscriptions-count {
+  color: var(--plaid-green-dark);
+  font-weight: 600;
+}
+
 .warning {
   margin: 0.45rem 0 0;
   min-height: 1.25rem;
