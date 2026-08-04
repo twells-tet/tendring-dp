@@ -687,6 +687,13 @@
             return "<br><strong>IN ARREARS for " + daysOverdue + " DAY" + (daysOverdue === 1 ? "" : "S") + "</strong>";
           })();
 
+          const subUpToDateLine = (function() {
+            if (isCancelled(subscriber) || isOverdue(subscriber)) return "";
+            const dueDate = calculateNextPaymentDue(subscriber);
+            if (!dueDate) return "";
+            return "<br><strong>PAYMENTS UP TO DATE UNTIL " + formatDayMonthYear(dueDate).toUpperCase() + "</strong>";
+          })();
+
           const subStartDate = parseUkDate(subscriber.subscriptionStartDate);
           const subStartDateLabel = subStartDate
             ? formatDayMonthYear(subStartDate)
@@ -731,7 +738,7 @@
           return (
             "<tr>" +
             "<td class=\"subscriptions-summary-cell\">" + formatPaymentSummary(subscriber, weeks) + "</td>" +
-            "<td class=\"subscriptions-customer-cell" + statusClass + "\">" + "<strong>Customer Name:</strong> " + (subscriber.customerName || "") + priceSelectHtml + frequencySelectHtml + "<br><strong>Subscription Start Date:</strong> " + subStartDateLabel + subCancelledLine + subArrearsLine + "</td>" +
+            "<td class=\"subscriptions-customer-cell" + statusClass + "\">" + "<strong>Customer Name:</strong> " + (subscriber.customerName || "") + priceSelectHtml + frequencySelectHtml + "<br><strong>Subscription Start Date:</strong> " + subStartDateLabel + subCancelledLine + subArrearsLine + subUpToDateLine + "</td>" +
             "<td class=\"subscriptions-account-cell\">" + (subscriber.accountNumber || "") + "</td>" +
             "<td class=\"subscriptions-address-cell\">" + (subscriber.address || "") + "</td>" +
             "<td>" + (subscriber.phone || "") + "</td>" +
