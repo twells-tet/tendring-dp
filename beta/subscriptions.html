@@ -146,7 +146,8 @@
   <script>
 
     const STORAGE_KEYS = {
-      paidStatus: "abersoch-subscription-paid-status"
+      paidStatus: "abersoch-subscription-paid-status",
+      pricePoint: "abersoch-subscription-price-point"
     };
 
     const NEWSPAPERS_SHEET_URL =
@@ -154,6 +155,10 @@
 
     const ELECTORS_SHEET_URL =
       "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/export?format=csv&gid=0";
+
+    const PRICE_POINTS_SHEET_URL =
+      "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/gviz/tq?tqx=out:csv&sheet=" +
+      encodeURIComponent("PRICE POINTS");
 
     const WEEKS_AHEAD = 6;
 
@@ -165,8 +170,18 @@
     const paidStatus =
       JSON.parse(localStorage.getItem(STORAGE_KEYS.paidStatus) || "{}");
 
+    const pricePointSelections =
+      JSON.parse(localStorage.getItem(STORAGE_KEYS.pricePoint) || "{}");
+
     function savePaidStatus() {
       localStorage.setItem(STORAGE_KEYS.paidStatus, JSON.stringify(paidStatus));
+    }
+
+    function savePricePointSelections() {
+      localStorage.setItem(
+        STORAGE_KEYS.pricePoint,
+        JSON.stringify(pricePointSelections)
+      );
     }
 
     function normalizeHeader(value) {
@@ -268,6 +283,12 @@
       return isNaN(num) ? 0 : num;
     }
 
+    function escapeHtml(value) {
+      return (value || "").replace(/[&<>"]/g, char => (
+        { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[char]
+      ));
+    }
+
     const MONTH_NAMES = [
       "january", "february", "march", "april", "may", "june",
       "july", "august", "september", "october", "november", "december"
@@ -338,9 +359,9 @@
           "</strong>"
         : "<strong>Next Payment Due Before: " + nextDue + "</strong>";
       const weeklyCostValue = parseCurrency(subscriber.weeklyCost);
-      const annualRevenue = weeklyCostValue
-        ? "£" + (weeklyCostValue * 51.5).toFixed(2)
-        : "";
+      const annualRevenue = subscriber.annualCost
+        ? subscriber.annualCost
+        : (weeklyCostValue ? "£" + (weeklyCostValue * 51.5).toFixed(2) : "");
       const next28Days = weeklyCostValue
         ? "£" + (weeklyCostValue * 4).toFixed(2)
         : "";
@@ -398,19 +419,124 @@
       return weeks;
     }
 
+    let cachedNewspapers = [];
+    let cachedElectorsByHousehold = {};
+    let pricePoints = [];
+    let priceByTitle = {};
+
+    function normalizeTitleForMatch(value) {
+      return (value || "")
+        .toLowerCase()
+        .replace(/\(.*?\)/g, "")
+        .replace(/\bthe\b/g, "")
+        .replace(/\bdaily\b/g, "")
+        .replace(/[^a-z0-9]/g, "");
+    }
+
+    function findPriceMatch(subscriptionTitle) {
+      if (!subscriptionTitle) return null;
+      const exact = priceByTitle[subscriptionTitle.trim()];
+      if (exact) return exact;
+      const normalized = normalizeTitleForMatch(subscriptionTitle);
+      if (!normalized) return null;
+      return pricePoints.find(price => normalizeTitleForMatch(price.title) === normalized) || null;
+    }
+
+    function buildSubscribers() {
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const subscribers = cachedNewspapers
+        .filter(sub => sub.subscription)
+        .filter(sub => !sub.subscriptioninactive)
+        .filter(sub => {
+          const cancellationDate = parseUkDate(sub.dateofcancellation);
+          return !cancellationDate || today.getTime() < cancellationDate.getTime();
+        })
+        .map(sub => {
+          const elector = cachedElectorsByHousehold[sub.householdid] || {};
+          const manualTitle = pricePointSelections[sub.householdid] || "";
+          const manualPriceInfo = manualTitle ? priceByTitle[manualTitle] : null;
+          const autoPriceInfo = manualPriceInfo ? null : findPriceMatch(sub.subscription);
+          const priceInfo = manualPriceInfo || autoPriceInfo;
+          const selectedTitle = manualPriceInfo
+            ? manualTitle
+            : (autoPriceInfo ? autoPriceInfo.title : "");
+          const weeklyCost = priceInfo
+            ? "£" + (priceInfo.cost28 / 4).toFixed(2)
+            : (sub.weeklycost || "");
+          const annualCost = priceInfo
+            ? "£" + (priceInfo.cost28 * 13).toFixed(2)
+            : "";
+          return {
+            householdId: sub.householdid,
+            customerName: sub.customername,
+            subscription: sub.subscription,
+            frequency: sub.frequency || "",
+            accountNumber: sub.accountnumber || "",
+            address: formatAddress(sub),
+            phone: elector.phone || "",
+            email: elector.email || "",
+            weeklyCost: weeklyCost,
+            annualCost: annualCost,
+            pricePointTitle: selectedTitle,
+            fundsReceived: sub.fundsreceived || "",
+            subscriptionStartDate: sub.subscriptionstartdate || "",
+            dateOfCancellation: sub.dateofcancellation || ""
+          };
+        });
+
+      subscribers.sort((a, b) => {
+        const dueA = calculateNextPaymentDue(a);
+        const dueB = calculateNextPaymentDue(b);
+        if (!dueA && !dueB) return 0;
+        if (!dueA) return 1;
+        if (!dueB) return -1;
+        return dueA.getTime() - dueB.getTime();
+      });
+
+      return subscribers;
+
+    }
+
+    function refreshAndRender() {
+
+      const subscribers = buildSubscribers();
+
+      renderTable(subscribers);
+
+      const uniqueHouseholds = new Set(
+        subscribers.map(sub => sub.householdId).filter(Boolean)
+      ).size;
+
+      countEl.textContent =
+        subscribers.length +
+        " Active Subscriber" + (subscribers.length === 1 ? "" : "s") +
+        " (" + uniqueHouseholds +
+        " Unique Household" + (uniqueHouseholds === 1 ? "" : "s") + ")";
+
+      messageEl.textContent = subscribers.length
+        ? ""
+        : "No active subscribers found.";
+
+    }
+
     async function init() {
 
       messageEl.textContent = "Loading subscribers...";
 
       try {
 
-        const [newspapersRows, electorsRows] = await Promise.all([
+        const [newspapersRows, electorsRows, priceRows] = await Promise.all([
           fetchSheetRows(NEWSPAPERS_SHEET_URL),
-          fetchSheetRows(ELECTORS_SHEET_URL)
+          fetchSheetRows(ELECTORS_SHEET_URL),
+          fetchSheetRows(PRICE_POINTS_SHEET_URL)
         ]);
 
         const newspapers = rowsToObjects(newspapersRows);
         const electors = rowsToObjects(electorsRows);
+        const priceRowObjects = rowsToObjects(priceRows);
 
         const electorsByHousehold = {};
         electors.forEach(elector => {
@@ -420,58 +546,22 @@
           }
         });
 
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        pricePoints = priceRowObjects
+          .map(row => ({
+            title: (row.newspapertitle || "").trim(),
+            cost28: parseCurrency(row["28days"])
+          }))
+          .filter(price => price.title);
 
-        const subscribers = newspapers
-          .filter(sub => sub.subscription)
-          .filter(sub => !sub.subscriptioninactive)
-          .filter(sub => {
-            const cancellationDate = parseUkDate(sub.dateofcancellation);
-            return !cancellationDate || today.getTime() < cancellationDate.getTime();
-          })
-          .map(sub => {
-            const elector = electorsByHousehold[sub.householdid] || {};
-            return {
-              householdId: sub.householdid,
-              customerName: sub.customername,
-              subscription: sub.subscription,
-              frequency: sub.frequency || "",
-              accountNumber: sub.accountnumber || "",
-              address: formatAddress(sub),
-              phone: elector.phone || "",
-              email: elector.email || "",
-              weeklyCost: sub.weeklycost || "",
-              fundsReceived: sub.fundsreceived || "",
-              subscriptionStartDate: sub.subscriptionstartdate || "",
-              dateOfCancellation: sub.dateofcancellation || ""
-            };
-          });
-
-        subscribers.sort((a, b) => {
-          const dueA = calculateNextPaymentDue(a);
-          const dueB = calculateNextPaymentDue(b);
-          if (!dueA && !dueB) return 0;
-          if (!dueA) return 1;
-          if (!dueB) return -1;
-          return dueA.getTime() - dueB.getTime();
+        priceByTitle = {};
+        pricePoints.forEach(price => {
+          priceByTitle[price.title] = price;
         });
 
-        renderTable(subscribers);
+        cachedNewspapers = newspapers;
+        cachedElectorsByHousehold = electorsByHousehold;
 
-        const uniqueHouseholds = new Set(
-          subscribers.map(sub => sub.householdId).filter(Boolean)
-        ).size;
-
-        countEl.textContent =
-          subscribers.length +
-          " Active Subscriber" + (subscribers.length === 1 ? "" : "s") +
-          " (" + uniqueHouseholds +
-          " Unique Household" + (uniqueHouseholds === 1 ? "" : "s") + ")";
-
-        messageEl.textContent = subscribers.length
-          ? ""
-          : "No active subscribers found.";
+        refreshAndRender();
 
       } catch (error) {
         messageEl.textContent = "Unable to load sheet: " + error.message;
@@ -508,6 +598,8 @@
     function renderTable(subscribers) {
 
       const weeks = getUpcomingWeeks();
+
+      headerRowEl.querySelectorAll(".subscriptions-week-header").forEach(th => th.remove());
 
       weeks.forEach(week => {
         const th = document.createElement("th");
@@ -569,10 +661,27 @@
             ? "<br><strong>CANCELLED - Last Delivery Date: " + formatDayMonth(subLastDeliveryDate) + "</strong>"
             : "";
 
+          const priceOptionsHtml = ["<option value=\"\">— Select price point —</option>"]
+            .concat(
+              pricePoints.map(price => (
+                "<option value=\"" + escapeHtml(price.title) + "\"" +
+                (price.title === subscriber.pricePointTitle ? " selected" : "") +
+                ">" + escapeHtml(price.title) + " (£" + price.cost28.toFixed(2) + " / 28 days)</option>"
+              ))
+            )
+            .join("");
+
+          const priceSelectHtml =
+            "<br><strong>Price Point:</strong> " +
+            "<select class=\"subscriptions-price-select\" data-household=\"" +
+            escapeHtml(subscriber.householdId) + "\">" +
+            priceOptionsHtml +
+            "</select>";
+
           return (
             "<tr>" +
             "<td class=\"subscriptions-summary-cell\">" + formatPaymentSummary(subscriber, weeks) + "</td>" +
-            "<td class=\"subscriptions-customer-cell" + statusClass + "\">" + (subscriber.customerName || "") + "<br><strong>Title:</strong> " + (subscriber.subscription || "") + "<br><strong>Frequency:</strong> " + (subscriber.frequency || "") + "<br><strong>Subscription Start Date:</strong> " + subStartDateLabel + subCancelledLine + subArrearsLine + "</td>" +
+            "<td class=\"subscriptions-customer-cell" + statusClass + "\">" + (subscriber.customerName || "") + "<br><strong>Title:</strong> " + (subscriber.subscription || "") + "<br><strong>Frequency:</strong> " + (subscriber.frequency || "") + "<br><strong>Subscription Start Date:</strong> " + subStartDateLabel + subCancelledLine + subArrearsLine + priceSelectHtml + "</td>" +
             "<td class=\"subscriptions-account-cell\">" + (subscriber.accountNumber || "") + "</td>" +
             "<td class=\"subscriptions-address-cell\">" + (subscriber.address || "") + "</td>" +
             "<td>" + (subscriber.phone || "") + "</td>" +
@@ -598,6 +707,20 @@
             "subscriptions-week-paid",
             event.target.checked
           );
+        });
+      });
+
+      bodyEl.querySelectorAll(".subscriptions-price-select").forEach(select => {
+        select.addEventListener("change", event => {
+          const householdId = event.target.dataset.household;
+          const selectedTitle = event.target.value;
+          if (selectedTitle) {
+            pricePointSelections[householdId] = selectedTitle;
+          } else {
+            delete pricePointSelections[householdId];
+          }
+          savePricePointSelections();
+          refreshAndRender();
         });
       });
 
