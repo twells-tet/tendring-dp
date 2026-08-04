@@ -691,7 +691,7 @@
             if (isCancelled(subscriber) || isOverdue(subscriber)) return "";
             const dueDate = calculateNextPaymentDue(subscriber);
             if (!dueDate) return "";
-            return "<br><strong>PAYMENTS UP TO DATE UNTIL " + formatDayMonth(dueDate).toUpperCase() + "</strong>";
+            return "<br><strong>Next 28 day period begins: " + formatDayMonth(dueDate) + "</strong>";
           })();
 
           const subStartDate = parseUkDate(subscriber.subscriptionStartDate);
