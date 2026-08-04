@@ -281,10 +281,9 @@
     function formatAddress(sub) {
       const lines = [sub.addressline1, sub.addressline2, sub.addressline3]
         .filter(part => part);
-      const lastLine = [toSentenceCase(sub.posttown), sub.postcode]
-        .filter(part => part)
-        .join(" ");
-      if (lastLine) lines.push(lastLine);
+      const postTown = (sub.posttown || "").trim().toUpperCase();
+      if (postTown) lines.push(postTown);
+      if (sub.postcode) lines.push(sub.postcode);
       return lines.join("<br>");
     }
 
