@@ -341,6 +341,13 @@
       return formatDayMonth(date) + " " + date.getFullYear();
     }
 
+    function formatDDMMYYYY(date) {
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const year = date.getFullYear();
+      return day + "/" + month + "/" + year;
+    }
+
     function calculateNextPaymentDue(subscriber) {
       const startDate =
         parseUkDate(subscriber.subscriptionStartDate) ||
@@ -355,8 +362,8 @@
     function formatPaymentSummary(subscriber, weeks) {
       const dueDate = calculateNextPaymentDue(subscriber);
       const nextDue = dueDate
-        ? formatDayMonth(dueDate)
-        : (weeks.length > 1 ? formatDayMonth(weeks[1]) : "");
+        ? formatDDMMYYYY(dueDate)
+        : (weeks.length > 1 ? formatDDMMYYYY(weeks[1]) : "");
       const startDate = parseUkDate(subscriber.subscriptionStartDate);
       const startDateLabel = startDate
         ? formatDayMonth(startDate)
