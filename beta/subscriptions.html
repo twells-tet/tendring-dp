@@ -76,6 +76,25 @@
       height: 1.1rem;
       cursor: pointer;
     }
+
+    .subscriptions-inline-select {
+      display: inline-block;
+      max-width: 100%;
+      margin-top: 0.15rem;
+      padding: 0.3rem 0.5rem;
+      border: 1px solid var(--border-strong);
+      border-radius: 0.4rem;
+      background: var(--surface-soft);
+      color: var(--text);
+      font: inherit;
+      font-size: 0.85rem;
+      white-space: normal;
+      opacity: 1;
+      cursor: default;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+    }
   </style>
 </head>
 <body class="pin-locked">
@@ -146,8 +165,7 @@
   <script>
 
     const STORAGE_KEYS = {
-      paidStatus: "abersoch-subscription-paid-status",
-      pricePoint: "abersoch-subscription-price-point"
+      paidStatus: "abersoch-subscription-paid-status"
     };
 
     const NEWSPAPERS_SHEET_URL =
@@ -170,18 +188,8 @@
     const paidStatus =
       JSON.parse(localStorage.getItem(STORAGE_KEYS.paidStatus) || "{}");
 
-    const pricePointSelections =
-      JSON.parse(localStorage.getItem(STORAGE_KEYS.pricePoint) || "{}");
-
     function savePaidStatus() {
       localStorage.setItem(STORAGE_KEYS.paidStatus, JSON.stringify(paidStatus));
-    }
-
-    function savePricePointSelections() {
-      localStorage.setItem(
-        STORAGE_KEYS.pricePoint,
-        JSON.stringify(pricePointSelections)
-      );
     }
 
     function normalizeHeader(value) {
@@ -424,6 +432,14 @@
     let pricePoints = [];
     let priceByTitle = {};
 
+    const FREQUENCY_COLUMNS = [
+      { key: "everyday", label: "EVERY DAY" },
+      { key: "sundaysonly", label: "SUNDAYS ONLY" },
+      { key: "weekdaysonly", label: "WEEKDAYS ONLY" },
+      { key: "everydayexceptsaturday", label: "EVERY DAY EXCEPT SATURDAY" },
+      { key: "cambriannews", label: "CAMBRIAN NEWS (WEEKLY)" }
+    ];
+
     function normalizeTitleForMatch(value) {
       return (value || "")
         .toLowerCase()
@@ -442,6 +458,15 @@
       return pricePoints.find(price => normalizeTitleForMatch(price.title) === normalized) || null;
     }
 
+    function findFrequencyMatch(priceInfo, frequencyText) {
+      if (!priceInfo || !priceInfo.frequencies.length) return null;
+      const normalized = normalizeHeader(frequencyText);
+      const match = normalized
+        ? priceInfo.frequencies.find(freq => normalizeHeader(freq.label) === normalized)
+        : null;
+      return match || priceInfo.frequencies[0];
+    }
+
     function buildSubscribers() {
 
       const today = new Date();
@@ -456,18 +481,14 @@
         })
         .map(sub => {
           const elector = cachedElectorsByHousehold[sub.householdid] || {};
-          const manualTitle = pricePointSelections[sub.householdid] || "";
-          const manualPriceInfo = manualTitle ? priceByTitle[manualTitle] : null;
-          const autoPriceInfo = manualPriceInfo ? null : findPriceMatch(sub.subscription);
-          const priceInfo = manualPriceInfo || autoPriceInfo;
-          const selectedTitle = manualPriceInfo
-            ? manualTitle
-            : (autoPriceInfo ? autoPriceInfo.title : "");
-          const weeklyCost = priceInfo
-            ? "£" + (priceInfo.cost28 / 4).toFixed(2)
+          const priceInfo = findPriceMatch(sub.subscription);
+          const selectedTitle = priceInfo ? priceInfo.title : "";
+          const selectedFrequency = findFrequencyMatch(priceInfo, sub.frequency);
+          const weeklyCost = selectedFrequency
+            ? "£" + (selectedFrequency.cost28 / 4).toFixed(2)
             : (sub.weeklycost || "");
-          const annualCost = priceInfo
-            ? "£" + (priceInfo.cost28 * 13).toFixed(2)
+          const annualCost = selectedFrequency
+            ? "£" + (selectedFrequency.cost28 * 13).toFixed(2)
             : "";
           return {
             householdId: sub.householdid,
@@ -481,6 +502,8 @@
             weeklyCost: weeklyCost,
             annualCost: annualCost,
             pricePointTitle: selectedTitle,
+            priceInfo: priceInfo,
+            selectedFrequencyKey: selectedFrequency ? selectedFrequency.key : "",
             fundsReceived: sub.fundsreceived || "",
             subscriptionStartDate: sub.subscriptionstartdate || "",
             dateOfCancellation: sub.dateofcancellation || ""
@@ -547,11 +570,20 @@
         });
 
         pricePoints = priceRowObjects
-          .map(row => ({
-            title: (row.newspapertitle || "").trim(),
-            cost28: parseCurrency(row["28days"])
-          }))
-          .filter(price => price.title);
+          .map(row => {
+            const frequencies = FREQUENCY_COLUMNS
+              .map(col => ({
+                key: col.key,
+                label: col.label,
+                cost28: parseCurrency(row[col.key])
+              }))
+              .filter(freq => freq.cost28 > 0);
+            return {
+              title: (row.newspapertitle || "").trim(),
+              frequencies: frequencies
+            };
+          })
+          .filter(price => price.title && price.frequencies.length);
 
         priceByTitle = {};
         pricePoints.forEach(price => {
@@ -661,27 +693,38 @@
             ? "<br><strong>CANCELLED - Last Delivery Date: " + formatDayMonth(subLastDeliveryDate) + "</strong>"
             : "";
 
-          const priceOptionsHtml = ["<option value=\"\">— Select price point —</option>"]
-            .concat(
-              pricePoints.map(price => (
+          const priceOptionsHtml = pricePoints.length
+            ? pricePoints.map(price => (
                 "<option value=\"" + escapeHtml(price.title) + "\"" +
                 (price.title === subscriber.pricePointTitle ? " selected" : "") +
-                ">" + escapeHtml(price.title) + " (£" + price.cost28.toFixed(2) + " / 28 days)</option>"
-              ))
-            )
-            .join("");
+                ">" + escapeHtml(price.title) + "</option>"
+              )).join("")
+            : "<option value=\"\">" + escapeHtml(subscriber.subscription || "Not set") + "</option>";
 
           const priceSelectHtml =
-            "<br><strong>Price Point:</strong> " +
-            "<select class=\"subscriptions-price-select\" data-household=\"" +
-            escapeHtml(subscriber.householdId) + "\">" +
+            "<br><strong>Title:</strong> " +
+            "<select class=\"subscriptions-inline-select\" disabled>" +
             priceOptionsHtml +
+            "</select>";
+
+          const frequencyOptionsHtml = (subscriber.priceInfo && subscriber.priceInfo.frequencies.length)
+            ? subscriber.priceInfo.frequencies.map(freq => (
+                "<option value=\"" + escapeHtml(freq.key) + "\"" +
+                (freq.key === subscriber.selectedFrequencyKey ? " selected" : "") +
+                ">" + escapeHtml(freq.label) + "</option>"
+              )).join("")
+            : "<option value=\"\">" + escapeHtml(subscriber.frequency || "Not set") + "</option>";
+
+          const frequencySelectHtml =
+            "<br><strong>Frequency:</strong> " +
+            "<select class=\"subscriptions-inline-select\" disabled>" +
+            frequencyOptionsHtml +
             "</select>";
 
           return (
             "<tr>" +
             "<td class=\"subscriptions-summary-cell\">" + formatPaymentSummary(subscriber, weeks) + "</td>" +
-            "<td class=\"subscriptions-customer-cell" + statusClass + "\">" + (subscriber.customerName || "") + "<br><strong>Title:</strong> " + (subscriber.subscription || "") + "<br><strong>Frequency:</strong> " + (subscriber.frequency || "") + "<br><strong>Subscription Start Date:</strong> " + subStartDateLabel + subCancelledLine + subArrearsLine + priceSelectHtml + "</td>" +
+            "<td class=\"subscriptions-customer-cell" + statusClass + "\">" + "<strong>Customer Name:</strong> " + (subscriber.customerName || "") + priceSelectHtml + frequencySelectHtml + "<br><strong>Subscription Start Date:</strong> " + subStartDateLabel + subCancelledLine + subArrearsLine + "</td>" +
             "<td class=\"subscriptions-account-cell\">" + (subscriber.accountNumber || "") + "</td>" +
             "<td class=\"subscriptions-address-cell\">" + (subscriber.address || "") + "</td>" +
             "<td>" + (subscriber.phone || "") + "</td>" +
@@ -707,20 +750,6 @@
             "subscriptions-week-paid",
             event.target.checked
           );
-        });
-      });
-
-      bodyEl.querySelectorAll(".subscriptions-price-select").forEach(select => {
-        select.addEventListener("change", event => {
-          const householdId = event.target.dataset.household;
-          const selectedTitle = event.target.value;
-          if (selectedTitle) {
-            pricePointSelections[householdId] = selectedTitle;
-          } else {
-            delete pricePointSelections[householdId];
-          }
-          savePricePointSelections();
-          refreshAndRender();
         });
       });
 
