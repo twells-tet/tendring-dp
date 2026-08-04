@@ -186,6 +186,8 @@
       "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/gviz/tq?tqx=out:csv&sheet=" +
       encodeURIComponent("PRICE POINTS");
 
+    const TARGET_SUBSCRIBER_COUNT = 195;
+
     const messageEl = document.getElementById("subscriptions-message");
     const countEl = document.getElementById("subscriptions-count");
     const turnoverEl = document.getElementById("subscriptions-turnover");
@@ -565,7 +567,8 @@
         subscribers.length +
         " Active Subscriber" + (subscribers.length === 1 ? "" : "s") +
         " (" + uniqueHouseholds +
-        " Unique Household" + (uniqueHouseholds === 1 ? "" : "s") + ")";
+        " Unique Household" + (uniqueHouseholds === 1 ? "" : "s") + ")" +
+        " [" + ((subscribers.length / TARGET_SUBSCRIBER_COUNT) * 100).toFixed(1) + "%]";
 
       const projectedAnnualTurnover = subscribers.reduce((total, sub) => {
         return total + parseCurrency(sub.annualCost);
