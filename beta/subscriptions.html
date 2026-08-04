@@ -515,6 +515,9 @@
         });
 
       subscribers.sort((a, b) => {
+        const cancelledA = isCancelled(a);
+        const cancelledB = isCancelled(b);
+        if (cancelledA !== cancelledB) return cancelledA ? 1 : -1;
         const dueA = calculateNextPaymentDue(a);
         const dueB = calculateNextPaymentDue(b);
         if (!dueA && !dueB) return 0;
