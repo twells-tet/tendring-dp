@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Floorplan 2 | Tarian Newspapers</title>
+    <link rel="stylesheet" href="../style.css">
+
+    <style>
+        .floorplan-wrap {
+            width: 100%;
+            padding: clamp(1rem, 3vw, 2.5rem);
+            box-sizing: border-box;
+        }
+
+        .floorplan-card {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: clamp(0.75rem, 2vw, 1.5rem);
+            background: #fff;
+            border: 1px solid var(--border-strong, #333);
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .floorplan-svg {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+
+<body class="tarian-homepage">
+
+    <header class="page-header tarian-homepage-header" id="top">
+        <a href="https://www.tarian146.co.uk/beta/" class="page-header-logo-link" aria-label="Tarian Newspapers home">
+            <img src="../tarian-shield.svg" alt="" class="page-header-logo">
+        </a>
+    </header>
+
+    <main class="floorplan-wrap">
+        <div class="floorplan-card">
+            <svg
+              class="floorplan-svg"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 800 1600"
+              width="800"
+              height="1600"
+              role="img"
+              aria-labelledby="title desc"
+            >
+              <title id="title">Second-floor phased renovation plan</title>
+              <desc id="desc">
+                Floor plan showing the en suite, master bedroom and landing in green
+                hatching; temporarily closed rooms in orange hatching; sealed orange
+                door openings; and one retained green door.
+              </desc>
+
+              <defs>
+                <!-- Green diagonal hatching -->
+                <pattern
+                  id="greenHatch"
+                  width="16"
+                  height="16"
+                  patternUnits="userSpaceOnUse"
+                  patternTransform="rotate(45)"
+                >
+                  <line
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="16"
+                    stroke="#42d83e"
+                    stroke-width="3"
+                  />
+                </pattern>
+
+                <!-- Orange diagonal hatching -->
+                <pattern
+                  id="orangeHatch"
+                  width="16"
+                  height="16"
+                  patternUnits="userSpaceOnUse"
+                  patternTransform="rotate(45)"
+                >
+                  <line
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="16"
+                    stroke="#f28c00"
+                    stroke-width="3"
+                  />
+                </pattern>
+
+                <style>
+                  .outer-wall {
+                    fill: none;
+                    stroke: #000;
+                    stroke-width: 18;
+                    stroke-linejoin: miter;
+                  }
+
+                  .wall {
+                    fill: none;
+                    stroke: #000;
+                    stroke-width: 12;
+                    stroke-linecap: square;
+                    stroke-linejoin: miter;
+                  }
+
+                  .thin {
+                    fill: none;
+                    stroke: #000;
+                    stroke-width: 3;
+                  }
+
+                  .window {
+                    fill: #fff;
+                    stroke: #777;
+                    stroke-width: 2;
+                  }
+
+                  .sealed-door {
+                    stroke: #f28c00;
+                    stroke-width: 8;
+                    stroke-linecap: square;
+                  }
+
+                  .open-door {
+                    fill: none;
+                    stroke: #39b83a;
+                    stroke-width: 6;
+                  }
+
+                  .door-arc {
+                    fill: none;
+                    stroke: #777;
+                    stroke-width: 2;
+                  }
+
+                  .label {
+                    font-family: Arial, Helvetica, sans-serif;
+                    font-weight: 700;
+                    text-anchor: middle;
+                    fill: #111;
+                  }
+                </style>
+              </defs>
+
+              <!-- =========================================================
+                   ROOM FILLS
+                   ========================================================= -->
+
+              <!-- En suite -->
+              <path
+                d="
+                  M110 40
+                  L555 195
+                  L555 405
+                  L445 405
+                  L445 415
+                  L110 415
+                  Z
+                "
+                fill="url(#greenHatch)"
+              />
+
+              <!-- Master bedroom -->
+              <path
+                d="
+                  M110 415
+                  L445 415
+                  L445 1095
+                  L110 1095
+                  Z
+                "
+                fill="url(#greenHatch)"
+              />
+
+              <!-- Landing and circulation, excluding staircase -->
+              <path
+                d="
+                  M445 415
+                  L615 415
+                  L615 720
+                  L615 1095
+                  L445 1095
+                  Z
+                "
+                fill="url(#greenHatch)"
+              />
+
+              <path
+                d="
+                  M615 825
+                  L780 825
+                  L780 1095
+                  L615 1095
+                  Z
+                "
+                fill="url(#greenHatch)"
+              />
+
+              <!-- Top-right room -->
+              <path
+                d="
+                  M555 195
+                  L720 250
+                  L720 590
+                  L615 590
+                  L615 415
+                  L555 415
+                  Z
+                "
+                fill="url(#orangeHatch)"
+              />
+
+              <!-- Right-hand cupboard / storage -->
+              <path
+                d="
+                  M615 590
+                  L720 590
+                  L720 720
+                  L615 720
+                  Z
+                "
+                fill="url(#orangeHatch)"
+              />
+
+              <!-- Lower temporarily closed room -->
+              <path
+                d="
+                  M110 1095
+                  L780 1095
+                  L780 1545
+                  L205 1545
+                  L110 1460
+                  Z
+                "
+                fill="url(#orangeHatch)"
+              />
+
+              <!-- =========================================================
+                   EXTERNAL WALLS
+                   ========================================================= -->
+
+              <path
+                class="outer-wall"
+                d="
+                  M110 40
+                  L720 250
+                  L720 825
+                  L780 825
+                  L780 1545
+                  L205 1545
+                  L110 1460
+                  Z
+                "
+              />
+
+              <!-- =========================================================
+                   INTERNAL WALLS
+                   ========================================================= -->
+
+              <!-- En suite / master-bedroom wall -->
+              <path class="wall" d="M110 415 H340" />
+              <path class="wall" d="M405 415 H445" />
+
+              <!-- En suite / landing wall -->
+              <path class="wall" d="M555 195 V325" />
+              <path class="wall" d="M555 385 V415" />
+
+              <!-- Master-bedroom right wall -->
+              <path class="wall" d="M445 415 V665" />
+              <path class="wall" d="M445 745 V1095" />
+
+              <!-- Top-right room / landing wall -->
+              <path class="wall" d="M555 415 H615" />
+              <path class="wall" d="M615 415 V470" />
+              <path class="wall" d="M615 500 V590" />
+
+              <!-- Storage / landing wall -->
+              <path class="wall" d="M615 590 H720" />
+              <path class="wall" d="M615 590 V625" />
+              <path class="wall" d="M615 655 V720" />
+              <path class="wall" d="M615 720 H720" />
+
+              <!-- Stair / landing boundary -->
+              <path class="wall" d="M615 720 V825" />
+              <path class="wall" d="M720 720 V825" />
+
+              <!-- Landing / lower-room wall -->
+              <path class="wall" d="M110 1095 H495" />
+              <path class="wall" d="M555 1095 H780" />
+
+              <!-- =========================================================
+                   DOORS
+                   ========================================================= -->
+
+              <!-- Green open door between en suite and master bedroom -->
+              <path class="open-door" d="M340 415 L405 475" />
+              <path
+                class="door-arc"
+                d="M340 415 A85 85 0 0 1 405 480"
+              />
+
+              <!-- Green open door from master bedroom to landing -->
+              <path class="open-door" d="M445 665 L390 720" />
+              <path
+                class="door-arc"
+                d="M445 665 A80 80 0 0 0 390 720"
+              />
+
+              <!-- Sealed orange doorway: en suite to landing (top boundary) -->
+              <line
+                class="sealed-door"
+                x1="555"
+                y1="325"
+                x2="555"
+                y2="385"
+              />
+
+              <!-- Sealed orange doorway: en suite notch to landing -->
+              <line
+                class="sealed-door"
+                x1="405"
+                y1="415"
+                x2="445"
+                y2="415"
+              />
+
+              <!-- Sealed orange doorway: top-right room to landing -->
+              <line
+                class="sealed-door"
+                x1="615"
+                y1="470"
+                x2="615"
+                y2="500"
+              />
+
+              <!-- Sealed orange doorway: cupboard/storage to landing -->
+              <line
+                class="sealed-door"
+                x1="615"
+                y1="625"
+                x2="615"
+                y2="655"
+              />
+
+              <!-- Sealed orange doorway: landing to lower room -->
+              <line
+                class="sealed-door"
+                x1="495"
+                y1="1095"
+                x2="555"
+                y2="1095"
+              />
+
+              <!-- =========================================================
+                   STAIRCASE — intentionally not hatched
+                   ========================================================= -->
+
+              <rect
+                x="620"
+                y="725"
+                width="95"
+                height="245"
+                fill="#fff"
+                stroke="#000"
+                stroke-width="4"
+              />
+
+              <g class="thin">
+                <line x1="620" y1="750" x2="715" y2="750" />
+                <line x1="620" y1="775" x2="715" y2="775" />
+                <line x1="620" y1="800" x2="715" y2="800" />
+                <line x1="620" y1="825" x2="715" y2="825" />
+                <line x1="620" y1="850" x2="715" y2="850" />
+                <line x1="620" y1="875" x2="715" y2="875" />
+                <line x1="620" y1="900" x2="715" y2="900" />
+                <line x1="620" y1="925" x2="715" y2="925" />
+                <line x1="620" y1="950" x2="715" y2="950" />
+              </g>
+
+              <path
+                d="M668 945 V865"
+                stroke="#000"
+                stroke-width="12"
+                fill="none"
+              />
+              <path
+                d="M668 845 L645 885 H691 Z"
+                fill="#000"
+              />
+
+              <!-- =========================================================
+                   WINDOWS
+                   ========================================================= -->
+
+              <!-- Left-side windows -->
+              <rect class="window" x="98" y="155" width="24" height="105" />
+              <rect class="window" x="98" y="470" width="24" height="105" />
+              <rect class="window" x="98" y="820" width="24" height="105" />
+              <rect class="window" x="98" y="1210" width="24" height="105" />
+
+              <!-- Shutters in master bedroom windows -->
+              <line x1="122" y1="470" x2="122" y2="575" stroke="#d40000" stroke-width="4" />
+              <line x1="122" y1="820" x2="122" y2="925" stroke="#d40000" stroke-width="4" />
+
+              <!-- Right-side upper window -->
+              <rect class="window" x="708" y="300" width="24" height="90" />
+
+              <!-- Bottom window -->
+              <rect class="window" x="350" y="1533" width="190" height="24" />
+
+              <!-- =========================================================
+                   LABELS
+                   ========================================================= -->
+
+              <text class="label" x="300" y="250" font-size="34">
+                EN SUITE
+              </text>
+
+              <text class="label" x="270" y="745" font-size="32">
+                <tspan x="270" dy="0">MASTER</tspan>
+                <tspan x="270" dy="38">BEDROOM</tspan>
+              </text>
+
+              <text x="150" y="145" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" fill="#d40000">
+                Replace window with plate glass
+              </text>
+            </svg>
+
+            <ol class="floorplan-notes" style="font-family: Arial, Helvetica, sans-serif; font-size: 1rem; line-height: 1.6; margin-top: 1.5rem; padding-left: 1.5rem;">
+                <li>Demolish wall between the two bedrooms.</li>
+                <li>Rip out kitchen and turn it into en suite.</li>
+                <li>Install shutters on inside of bedroom windows.</li>
+                <li>Seal all other rooms to improve heat retention.</li>
+                <li>Install door at bottom of stairs, to retain heat.</li>
+            </ol>
+        </div>
+    </main>
+
+</body>
+</html>
