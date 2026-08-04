@@ -148,6 +148,8 @@
 
       <p id="subscriptions-count" class="message"></p>
 
+      <p id="subscriptions-turnover" class="message"></p>
+
       <p id="subscriptions-message" class="message" role="status" aria-live="polite"></p>
 
       <div class="subscriptions-table-wrapper">
@@ -186,6 +188,7 @@
 
     const messageEl = document.getElementById("subscriptions-message");
     const countEl = document.getElementById("subscriptions-count");
+    const turnoverEl = document.getElementById("subscriptions-turnover");
     const headerRowEl = document.getElementById("subscriptions-header-row");
     const bodyEl = document.getElementById("subscriptions-body");
 
@@ -563,6 +566,13 @@
         " Active Subscriber" + (subscribers.length === 1 ? "" : "s") +
         " (" + uniqueHouseholds +
         " Unique Household" + (uniqueHouseholds === 1 ? "" : "s") + ")";
+
+      const projectedAnnualTurnover = subscribers.reduce((total, sub) => {
+        return total + parseCurrency(sub.annualCost);
+      }, 0);
+
+      turnoverEl.textContent =
+        "Projected Annual Turnover: £" + projectedAnnualTurnover.toFixed(2);
 
       messageEl.textContent = subscribers.length
         ? ""
