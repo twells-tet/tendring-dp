@@ -337,6 +337,10 @@
       return day + " " + month;
     }
 
+    function formatDayMonthYear(date) {
+      return formatDayMonth(date) + " " + date.getFullYear();
+    }
+
     function calculateNextPaymentDue(subscriber) {
       const startDate =
         parseUkDate(subscriber.subscriptionStartDate) ||
@@ -682,7 +686,7 @@
 
           const subStartDate = parseUkDate(subscriber.subscriptionStartDate);
           const subStartDateLabel = subStartDate
-            ? formatDayMonth(subStartDate)
+            ? formatDayMonthYear(subStartDate)
             : subscriber.subscriptionStartDate || "";
 
           const subCancellationDate = parseUkDate(subscriber.dateOfCancellation);
@@ -702,7 +706,7 @@
             : "<option value=\"\">" + escapeHtml(subscriber.subscription || "Not set") + "</option>";
 
           const priceSelectHtml =
-            "<br><strong>Title:</strong> " +
+            "<br>" +
             "<select class=\"subscriptions-inline-select\" disabled>" +
             priceOptionsHtml +
             "</select>";
@@ -716,7 +720,7 @@
             : "<option value=\"\">" + escapeHtml(subscriber.frequency || "Not set") + "</option>";
 
           const frequencySelectHtml =
-            "<br><strong>Frequency:</strong> " +
+            "<br>" +
             "<select class=\"subscriptions-inline-select\" disabled>" +
             frequencyOptionsHtml +
             "</select>";
