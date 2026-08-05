@@ -784,7 +784,7 @@
             "<td class=\"subscriptions-account-cell\">" + (subscriber.accountNumber ? "<a href=\"subscriber_account.html?account=" + encodeURIComponent(subscriber.accountNumber) + "\">" + escapeHtml(subscriber.accountNumber) + "</a>" : "") + "</td>" +
             "<td class=\"subscriptions-address-cell\">" + (subscriber.address || "") + "</td>" +
             "<td>" + (subscriber.phone || "") + "</td>" +
-            "<td>" + (subscriber.email || "") + "</td>" +
+            "<td>" + (subscriber.email || "").toLowerCase() + "</td>" +
             dayCells +
             "</tr>"
           );
