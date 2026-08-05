@@ -603,14 +603,22 @@ body.mobile-mode .elector-list {
   min-height: 1.25rem;
 }
 
-#subscriptions-count {
+#subscriptions-count,
+#subscriptions-turnover-annual,
+#subscriptions-turnover-monthly {
   color: var(--plaid-green-dark);
-  font-weight: 600;
+  font-weight: 400;
+  font-size: 0.85rem;
 }
 
-#subscriptions-turnover {
-  color: var(--plaid-green-dark);
-  font-weight: 600;
+.subscriptions-summary-list {
+  margin: 0.65rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.subscriptions-summary-list li {
+  margin: 0.3rem 0;
+  min-height: 1.1rem;
 }
 
 .warning {
@@ -1052,6 +1060,7 @@ body.mobile-mode .elector-list {
   background: var(--plaid-green);
   opacity: 1;
   cursor: pointer;
+  text-decoration: none;
 }
 
 .view-subscribers-map-button:hover {

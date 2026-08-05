@@ -144,11 +144,13 @@
 
       <p><a href="index.html" class="back-link">&larr; back to main list</a></p>
 
-      <p><a href="mapping.html?filter=newspaper-subscription" class="export-button view-subscribers-map-button">View All Subscribers on Map &rarr;</a></p>
+      <p><a href="mapping.html?filter=newspaper-subscription" class="export-button view-subscribers-map-button">View All Subscribers on Map</a></p>
 
-      <p id="subscriptions-count" class="message"></p>
-
-      <p id="subscriptions-turnover" class="message"></p>
+      <ul class="subscriptions-summary-list">
+        <li id="subscriptions-count" class="message"></li>
+        <li id="subscriptions-turnover-annual" class="message"></li>
+        <li id="subscriptions-turnover-monthly" class="message"></li>
+      </ul>
 
       <p id="subscriptions-message" class="message" role="status" aria-live="polite"></p>
 
@@ -190,7 +192,8 @@
 
     const messageEl = document.getElementById("subscriptions-message");
     const countEl = document.getElementById("subscriptions-count");
-    const turnoverEl = document.getElementById("subscriptions-turnover");
+    const turnoverAnnualEl = document.getElementById("subscriptions-turnover-annual");
+    const turnoverMonthlyEl = document.getElementById("subscriptions-turnover-monthly");
     const headerRowEl = document.getElementById("subscriptions-header-row");
     const bodyEl = document.getElementById("subscriptions-body");
 
@@ -350,9 +353,19 @@
     }
 
     function calculateNextPaymentDue(subscriber) {
+      const paidUntilDate = parseUkDate(subscriber.accountPaidUntil);
+      if (paidUntilDate) {
+        // Renewal/payment is due the day after the account is paid until.
+        return addDays(paidUntilDate, 1);
+      }
       const startDate =
         parseUkDate(subscriber.subscriptionStartDate) ||
         new Date(new Date().getFullYear(), 7, 10);
+      if (startDate.getDay() !== 1) {
+        // Mid-week joiner: a one-off pro rata fee (Column V) covers the
+        // partial first cycle, then the normal 28 day cycle follows.
+        return addDays(startDate, (subscriber.extraDays || 0) + 28);
+      }
       const weeklyCost = parseCurrency(subscriber.weeklyCost);
       const fundsReceived = parseCurrency(subscriber.fundsReceived);
       if (!weeklyCost) return null;
@@ -374,10 +387,10 @@
         ? addDays(cancellationDate, -1)
         : null;
       const lastLine = lastDeliveryDate
-        ? "<strong>CANCELLED - Last Delivery Date: " +
+        ? "<strong>CANCELLED - Last Delivery: " +
           formatDayMonth(lastDeliveryDate) +
           "</strong>"
-        : "<strong>Next Payment Due Before: " + nextDue + "</strong>";
+        : "<strong>" + (isOverdue(subscriber) ? "Payment Was Due Before: " : "Next Payment Due Before: ") + nextDue + "</strong>";
       const weeklyCostValue = parseCurrency(subscriber.weeklyCost);
       const annualRevenue = subscriber.annualCost
         ? subscriber.annualCost
@@ -388,7 +401,7 @@
       return (
         "Subscription Start Date: " + startDateLabel + "<br>" +
         "Weekly Charge: " + subscriber.weeklyCost + "<br>" +
-        "Funds Received: " + subscriber.fundsReceived + "<br>" +
+        "Account Paid Until: " + (subscriber.accountPaidUntil || "") + "<br>" +
         lastLine +
         (annualRevenue
           ? "<br><span style=\"font-size: 0.8em;\">ANNUAL: " + annualRevenue + "</span>"
@@ -448,6 +461,8 @@
     };
 
     function isDeliveryDay(subscriber, date) {
+      const startDate = parseUkDate(subscriber.subscriptionStartDate);
+      if (startDate && date.getTime() < startDate.getTime()) return false;
       const key = normalizeHeader(subscriber.frequency) || "everyday";
       const days = FREQUENCY_DELIVERY_DAYS[key] || FREQUENCY_DELIVERY_DAYS.everyday;
       return days.indexOf(date.getDay()) !== -1;
@@ -463,7 +478,7 @@
       { key: "sundaysonly", label: "SUNDAYS ONLY" },
       { key: "weekdaysonly", label: "WEEKDAYS ONLY" },
       { key: "everydayexceptsaturday", label: "EVERY DAY EXCEPT SATURDAY" },
-      { key: "cambriannews", label: "CAMBRIAN NEWS (WEEKLY)" }
+      { key: "cambriannews", label: "CAMBRIAN NEWS" }
     ];
 
     function normalizeTitleForMatch(value) {
@@ -531,7 +546,9 @@
             priceInfo: priceInfo,
             selectedFrequencyKey: selectedFrequency ? selectedFrequency.key : "",
             fundsReceived: sub.fundsreceived || "",
+            accountPaidUntil: sub.accountpaiduntil || "",
             subscriptionStartDate: sub.subscriptionstartdate || "",
+            extraDays: parseInt(sub.extradaysincycleone, 10) || 0,
             dateOfCancellation: sub.dateofcancellation || ""
           };
         });
@@ -566,15 +583,19 @@
         subscribers.length +
         " Active Subscriber" + (subscribers.length === 1 ? "" : "s") +
         " (" + uniqueHouseholds +
-        " Unique Household" + (uniqueHouseholds === 1 ? "" : "s") + ")" +
+        " Household" + (uniqueHouseholds === 1 ? "" : "s") + ")" +
         " [" + ((subscribers.length / TARGET_SUBSCRIBER_COUNT) * 100).toFixed(1) + "%]";
 
       const projectedAnnualTurnover = subscribers.reduce((total, sub) => {
         return total + parseCurrency(sub.annualCost);
       }, 0);
 
-      turnoverEl.textContent =
+      const projectedMonthlyTurnover = projectedAnnualTurnover / 12;
+
+      turnoverAnnualEl.textContent =
         "Projected Annual Turnover: £" + projectedAnnualTurnover.toFixed(2);
+      turnoverMonthlyEl.textContent =
+        "Projected Monthly Turnover: £" + projectedMonthlyTurnover.toFixed(2);
 
       messageEl.textContent = subscribers.length
         ? ""
@@ -702,13 +723,23 @@
             if (isCancelled(subscriber) || isOverdue(subscriber)) return "";
             const dueDate = calculateNextPaymentDue(subscriber);
             if (!dueDate) return "";
-            return "<br><strong>Next 28 day period begins: " + formatDayMonth(dueDate) + "</strong>";
+            return "<br><strong>Renewal Date:</strong> " + formatDayMonth(dueDate) +
+              " (ends " + formatDayMonth(addDays(dueDate, 27)) + ")";
           })();
 
           const subStartDate = parseUkDate(subscriber.subscriptionStartDate);
           const subStartDateLabel = subStartDate
             ? formatDayMonthYear(subStartDate)
             : subscriber.subscriptionStartDate || "";
+
+          const subProRataLabel = (function() {
+            if (!subStartDate || !subscriber.extraDays) return "";
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const daysSinceStart = Math.round((today.getTime() - subStartDate.getTime()) / 86400000);
+            if (daysSinceStart >= 7) return "";
+            return " (" + subscriber.extraDays + " day" + (subscriber.extraDays === 1 ? "" : "s") + " extra)";
+          })();
 
           const subCancellationDate = parseUkDate(subscriber.dateOfCancellation);
           const subLastDeliveryDate = subCancellationDate
@@ -749,8 +780,8 @@
           return (
             "<tr>" +
             "<td class=\"subscriptions-summary-cell\">" + formatPaymentSummary(subscriber) + "</td>" +
-            "<td class=\"subscriptions-customer-cell" + statusClass + "\">" + "<strong>Customer Name:</strong> " + (subscriber.customerName || "") + priceSelectHtml + frequencySelectHtml + "<br><strong>Subscription Start Date:</strong> " + subStartDateLabel + subCancelledLine + subArrearsLine + subUpToDateLine + "</td>" +
-            "<td class=\"subscriptions-account-cell\">" + (subscriber.accountNumber || "") + "</td>" +
+            "<td class=\"subscriptions-customer-cell" + statusClass + "\">" + "<strong>Customer Name:</strong> " + (subscriber.customerName || "") + priceSelectHtml + frequencySelectHtml + "<br><strong>Subscription Start Date:</strong> " + subStartDateLabel + subProRataLabel + subCancelledLine + subArrearsLine + subUpToDateLine + "</td>" +
+            "<td class=\"subscriptions-account-cell\">" + (subscriber.accountNumber ? "<a href=\"subscriber_account.html?account=" + encodeURIComponent(subscriber.accountNumber) + "\">" + escapeHtml(subscriber.accountNumber) + "</a>" : "") + "</td>" +
             "<td class=\"subscriptions-address-cell\">" + (subscriber.address || "") + "</td>" +
             "<td>" + (subscriber.phone || "") + "</td>" +
             "<td>" + (subscriber.email || "") + "</td>" +
