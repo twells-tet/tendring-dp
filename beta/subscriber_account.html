@@ -90,6 +90,10 @@
     const ELECTORS_SHEET_URL =
       "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/export?format=csv&gid=0";
 
+    const COORDINATES_SHEET_URL =
+      "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/gviz/tq?tqx=out:csv&sheet=" +
+      encodeURIComponent("COORDINATES");
+
     const messageEl = document.getElementById("account-message");
     const listEl = document.getElementById("account-details-list");
 
@@ -219,7 +223,14 @@
           e => (e.householdid || "").trim() === (subscriber.householdid || "").trim()
         );
 
+        const coordinateRows = await fetchSheetRows(COORDINATES_SHEET_URL);
+        const coordinateRecords = rowsToObjects(coordinateRows);
+        const coordinateRecord = coordinateRecords.find(
+          c => (c.householdid || "").trim() === (subscriber.householdid || "").trim()
+        );
+
         addDetail("Account Number", subscriber.accountnumber);
+        addDetail("Household ID", subscriber.householdid);
         addDetail("Customer Name", subscriber.customername);
         addDetail("Subscription", subscriber.subscription);
         addDetail("Frequency", subscriber.frequency);
@@ -243,7 +254,18 @@
             "https://www.google.com/maps?q=" + lat + "," + lng,
             lat + ", " + lng
           );
+        } else if (coordinateRecord && coordinateRecord.latitude && coordinateRecord.longitude) {
+          const lat = coordinateRecord.latitude.trim();
+          const lng = coordinateRecord.longitude.trim();
+          addLinkDetail(
+            "Latitude, Longitude",
+            "https://www.google.com/maps?q=" + lat + "," + lng,
+            lat + ", " + lng
+          );
         }
+
+        addDetail("Email", coordinateRecord ? coordinateRecord.subscriberemail : "");
+        addDetail("Phone", coordinateRecord ? coordinateRecord.subscriberphone : "");
 
       } catch (error) {
         messageEl.textContent = "Unable to load sheet: " + error.message;
