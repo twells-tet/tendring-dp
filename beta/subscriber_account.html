@@ -264,7 +264,7 @@
           );
         }
 
-        addDetail("Email", coordinateRecord ? coordinateRecord.subscriberemail : "");
+        addDetail("Email", coordinateRecord ? (coordinateRecord.subscriberemail || "").toLowerCase() : "");
         addDetail("Phone", coordinateRecord ? coordinateRecord.subscriberphone : "");
 
       } catch (error) {
