@@ -4993,6 +4993,14 @@ function buildAiComments(household) {
   // 2026 Senedd participation sentence(s), sourced from Sheet5 column M.
   electors.forEach(elector => {
 
+    if (String(elector.id || "").trim() === CHRIS_GREEN_ELECTOR_ID) {
+      sentences.push(
+        getBoldDisplayName(elector) +
+        " votes at every election, most recently the 2026 Senedd election."
+      );
+      return;
+    }
+
     const senedd2026Vote =
       String(elector.senedd2026Vote || "").trim().toUpperCase();
 
