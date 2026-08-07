@@ -1,0 +1,103 @@
+<svg
+              class="floorplan-svg"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 800 1600"
+              width="800"
+              height="1600"
+              role="img"
+              aria-labelledby="title-existing desc-existing"
+            >
+              <title id="title-existing">Second-floor existing layout</title>
+              <desc id="desc-existing">
+                Existing floor plan showing the kitchen, two separate bedrooms and
+                landing, all in green hatching with no sealed doorways.
+              </desc>
+
+              <defs><style>.outer-wall{fill:none;stroke:#000;stroke-width:18;stroke-linejoin:miter}.wall{fill:none;stroke:#000;stroke-width:12;stroke-linecap:square;stroke-linejoin:miter}.thin{fill:none;stroke:#000;stroke-width:3}.window{fill:#fff;stroke:#777;stroke-width:2}.open-door{fill:none;stroke:#39b83a;stroke-width:6}.door-arc{fill:none;stroke:#777;stroke-width:2}.label{font-family:Arial,Helvetica,sans-serif;font-weight:700;text-anchor:middle;fill:#111}.allocation{font-family:Arial,Helvetica,sans-serif;font-size:22px;font-weight:700;text-anchor:middle;fill:#0a5e49}</style></defs>
+
+              <!-- EXTERNAL WALLS -->
+              <path class="outer-wall" d="M110 40 L720 250 L720 825 L780 825 L780 1545 L205 1545 L110 1460 Z" />
+
+              <!-- INTERNAL WALLS -->
+              <path class="wall" d="M325 1095 V1545" />
+              <path class="wall" d="M110 415 H340" />
+              <path class="wall" d="M405 415 H555" />
+              <path class="wall" d="M445 40 V415" />
+              <path class="wall" d="M555 195 V235" />
+              <path class="wall" d="M555 295 V415" />
+              <path class="wall" d="M445 415 V485" />
+              <path class="wall" d="M445 545 V835" />
+              <path class="wall" d="M445 895 V1095" />
+              <path class="wall" d="M110 755 H340" />
+              <path class="wall" d="M405 755 H445" />
+              <path class="wall" d="M555 415 H720" />
+              <path class="wall" d="M615 720 H720" />
+              <path class="wall" d="M615 720 V825" />
+              <path class="wall" d="M720 720 V825" />
+              <path class="wall" d="M110 1095 H495" />
+              <path class="wall" d="M555 1095 H780" />
+
+              <!-- DOORS -->
+              <path class="open-door" d="M555 235 L615 295" />
+              <path class="door-arc" d="M555 235 A60 60 0 0 1 615 295" />
+              <path class="open-door" d="M445 485 L505 545" />
+              <path class="door-arc" d="M445 485 A60 60 0 0 1 505 545" />
+              <path class="open-door" d="M445 835 L505 895" />
+              <path class="door-arc" d="M445 835 A60 60 0 0 1 505 895" />
+              <path class="open-door" d="M495 1095 L555 1095" />
+              <path class="door-arc" d="M495 1095 A60 60 0 0 0 555 1035" />
+
+              <!-- STAIRCASE -->
+              <rect x="620" y="725" width="95" height="245" fill="#fff" stroke="#000" stroke-width="4" />
+              <g class="thin">
+                <line x1="620" y1="750" x2="715" y2="750" />
+                <line x1="620" y1="775" x2="715" y2="775" />
+                <line x1="620" y1="800" x2="715" y2="800" />
+                <line x1="620" y1="825" x2="715" y2="825" />
+                <line x1="620" y1="850" x2="715" y2="850" />
+                <line x1="620" y1="875" x2="715" y2="875" />
+                <line x1="620" y1="900" x2="715" y2="900" />
+                <line x1="620" y1="925" x2="715" y2="925" />
+                <line x1="620" y1="950" x2="715" y2="950" />
+              </g>
+              <path d="M668 945 V865" stroke="#000" stroke-width="12" fill="none" />
+              <path d="M668 845 L645 885 H691 Z" fill="#000" />
+
+              <!-- WINDOWS -->
+              <rect class="window" x="98" y="155" width="24" height="105" />
+              <rect class="window" x="98" y="470" width="24" height="105" />
+              <rect class="window" x="98" y="820" width="24" height="105" />
+              <rect class="window" x="98" y="1210" width="24" height="105" />
+              <rect class="window" x="708" y="300" width="24" height="90" />
+              <rect class="window" x="350" y="1533" width="190" height="24" />
+
+              <!-- LABELS -->
+              <text class="label" x="280" y="220" font-size="30">EN-SUITE</text>
+              <text x="280" y="252" font-family="Arial, Helvetica, sans-serif" font-size="16" text-anchor="middle" fill="#333">12.5 mÂ² estimated</text>
+              <text class="allocation" x="280" y="290">Â£5,000</text>
+
+              <text class="label" x="275" y="570" font-size="26">BEDROOM 1</text>
+              <text x="275" y="602" font-family="Arial, Helvetica, sans-serif" font-size="16" text-anchor="middle" fill="#333">12.9 mÂ² estimated</text>
+              <text class="allocation" x="275" y="640">Â£2,000</text>
+
+              <text class="label" x="275" y="910" font-size="26">BEDROOM 2</text>
+              <text x="275" y="942" font-family="Arial, Helvetica, sans-serif" font-size="16" text-anchor="middle" fill="#333">9.0 mÂ² estimated</text>
+              <text class="allocation" x="275" y="980">Â£2,000</text>
+
+              <text class="label" x="535" y="920" font-size="22">LANDING</text>
+              <text x="535" y="950" font-family="Arial, Helvetica, sans-serif" font-size="15" text-anchor="middle" fill="#333">5.2 mÂ² estimated</text>
+
+              <text class="label" x="220" y="1315" font-size="25">FITTING ROOM</text>
+              <text x="220" y="1347" font-family="Arial, Helvetica, sans-serif" font-size="16" text-anchor="middle" fill="#333">8.3 mÂ² estimated</text>
+              <text class="allocation" x="220" y="1385">Â£1,000</text>
+
+              <text class="label" x="550" y="1315" font-size="28">STUDY</text>
+              <text x="550" y="1347" font-family="Arial, Helvetica, sans-serif" font-size="16" text-anchor="middle" fill="#333">13.9 mÂ² estimated</text>
+
+              <text class="label" x="635" y="520" font-size="17">
+                <tspan x="635" dy="0">KITCHEN /</tspan>
+                <tspan x="635" dy="22">PLANT ROOM</tspan>
+              </text>
+              <text x="635" y="575" font-family="Arial, Helvetica, sans-serif" font-size="14" text-anchor="middle" fill="#333">7.2 mÂ² estimated</text>
+              <text class="allocation" x="635" y="610" font-size="18">Â£10,000</text>
+            </svg>
