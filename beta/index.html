@@ -4990,6 +4990,27 @@ function buildAiComments(household) {
   }
 
 
+  // 2026 Senedd participation sentence(s), sourced from Sheet5 column M.
+  electors.forEach(elector => {
+
+    const senedd2026Vote =
+      String(elector.senedd2026Vote || "").trim().toUpperCase();
+
+    if (senedd2026Vote === "A") {
+      sentences.push(
+        getBoldDisplayName(elector) +
+        " returned postal ballot in 2026 (Senedd)."
+      );
+    } else if (senedd2026Vote === "Y") {
+      sentences.push(
+        getBoldDisplayName(elector) +
+        " voted in person in 2026 (Senedd)."
+      );
+    }
+
+  });
+
+
   // Party membership / support status sentence
   const PARTY_MEMBER_SENTENCES = {
     "Current": "is a current party member",
