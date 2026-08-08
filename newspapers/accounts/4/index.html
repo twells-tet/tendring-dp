@@ -5,6 +5,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Business Bank Statements | ACCOUNTING</title>
     <link rel="stylesheet" href="../../style.css">
+    <style>
+        .statement-summary {
+            display: flex;
+            gap: 0.75rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .statement-summary span {
+            padding: 0.45rem 0.75rem;
+            border-radius: 999px;
+            background: var(--surface-soft);
+            font-weight: 700;
+        }
+
+        .statement-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .statement-table th,
+        .statement-table td {
+            padding: 0.55rem 0.65rem;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .statement-table th {
+            color: var(--plaid-green-dark);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .statement-table .amount {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        .direction-in {
+            color: var(--plaid-green-dark);
+            font-weight: 700;
+        }
+
+        .direction-out {
+            color: var(--plaid-red-dark);
+            font-weight: 700;
+        }
+
+        @media (max-width: 700px) {
+            .statement-table th:nth-child(2),
+            .statement-table td:nth-child(2) {
+                display: none;
+            }
+
+            .statement-table th,
+            .statement-table td {
+                padding: 0.45rem 0.35rem;
+            }
+        }
+    </style>
 </head>
 <body class="tarian-homepage">
     <header class="page-header tarian-homepage-header" id="top">
@@ -16,7 +79,24 @@
         <div class="tarian-homepage-card">
             <p class="eyebrow">ACCOUNTING</p>
             <p class="subheading">Previous 3 months' business bank statements</p>
+            <div class="statement-summary">
+                <span>8 May 2026 - 7 August 2026</span>
+                <span>70 transactions</span>
+            </div>
+            <table class="statement-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Direction</th>
+                        <th>Description</th>
+                        <th class="amount">Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="statement-body"></tbody>
+            </table>
         </div>
     </main>
+    <script src="transactions.js"></script>
 </body>
 </html>
