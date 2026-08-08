@@ -232,7 +232,9 @@
                 rows.forEach(row => {
                     const direction = String(row[2] || "").trim();
                     const outgoing =
+                        direction.toLowerCase() === "out" ||
                         direction.toLowerCase() === "outgoing" ||
+                        String(row[1] || "").trim().toLowerCase() === "out" ||
                         String(row[1] || "").trim().toLowerCase() === "outgoing";
                     const amount = parseAmount(row[3]);
                     const signedAmount = outgoing ? -amount : amount;
