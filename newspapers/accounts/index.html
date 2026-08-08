@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accounts | Tarian Newspapers</title>
+    <link rel="stylesheet" href="../style.css">
+
+    <style>
+        .accounts-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.25rem;
+        }
+
+        .accounts-table th,
+        .accounts-table td {
+            padding: 0.65rem 0.75rem;
+            text-align: left;
+            vertical-align: top;
+            border-bottom: 1px solid var(--border-strong, #333);
+        }
+
+        .accounts-table th {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .accounts-table .amount {
+            text-align: right;
+        }
+
+        .accounts-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 0.75rem;
+            margin: 1.5rem 0 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .accounts-links a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 3rem;
+            padding: 0.7rem 1rem;
+            border: 1px solid var(--plaid-green-dark);
+            border-radius: 0.5rem;
+            background: var(--plaid-green);
+            color: #fff;
+            font-weight: 700;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .accounts-links a:hover,
+        .accounts-links a:focus-visible {
+            background: var(--plaid-green-dark);
+        }
+
+        .accounts-links .draft-accounts-link {
+            border-color: var(--plaid-red-dark);
+            background: var(--plaid-red);
+        }
+
+        .accounts-links .draft-accounts-link:hover,
+        .accounts-links .draft-accounts-link:focus-visible {
+            background: var(--plaid-red-dark);
+        }
+    </style>
+</head>
+<body class="tarian-homepage">
+
+    <header class="page-header tarian-homepage-header" id="top">
+        <a href="/beta/" class="page-header-logo-link" aria-label="Tarian home">
+            <img src="../tarian-shield.svg" alt="" class="page-header-logo">
+        </a>
+    </header>
+
+    <main class="app-shell">
+        <div class="tarian-homepage-card">
+            <p class="eyebrow">Business Accounts</p>
+
+            <table class="accounts-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Accounts</th>
+                        <th class="amount">Turnover</th>
+                        <th class="amount">Profit / Loss</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>31 Jan 2023</td>
+                        <td>Company Incorporated</td>
+                        <td class="amount">—</td>
+                        <td class="amount">—</td>
+                    </tr>
+                    <tr>
+                        <td>31 March 2024</td>
+                        <td>Micro company accounts submitted</td>
+                        <td class="amount">£13,696.77</td>
+                        <td class="amount">−£103.23</td>
+                    </tr>
+                    <tr>
+                        <td>31 March 2025</td>
+                        <td>Micro company accounts submitted</td>
+                        <td class="amount">£135,922.91</td>
+                        <td class="amount">£27,435.81</td>
+                    </tr>
+                    <tr>
+                        <td>31 March 2026</td>
+                        <td>Draft company accounts (8 August 2026)</td>
+                        <td class="amount">£43,580.05</td>
+                        <td class="amount">£5,730.01</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <ul class="accounts-links">
+                <li><a href="1/">Business Plan Summary</a></li>
+                <li><a href="2/">Director CV</a></li>
+                <li><a href="3/">12-month cashflow forecast</a></li>
+                <li><a href="4/">Previous 3 months' business bank statements</a></li>
+                <li><a href="5/">Statement of Assets &amp; Liabilities</a></li>
+                <li><a href="6/">£7,750 use-of-funds explanation</a></li>
+                <li><a href="7/">Loan application financial fields</a></li>
+                <li><a href="8/" class="draft-accounts-link">Draft Company Accounts to 31 March 2026</a></li>
+            </ul>
+        </div>
+    </main>
+
+</body>
+</html>
