@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Draft Company Accounts | Business Accounts</title>
+    <title>Personal Accounts | Business Accounts</title>
     <link rel="stylesheet" href="../../style.css">
 
     <style>
@@ -64,7 +64,7 @@
     <main class="app-shell">
         <div class="tarian-homepage-card">
             <p class="eyebrow">Business Accounts</p>
-            <p class="subheading">Draft Company Accounts to 31 March 2026</p>
+            <p class="subheading">Personal Accounts to 31 March 2026</p>
             <p id="accounts-status" class="accounts-status">Loading accounts...</p>
             <table id="accounts-data-table" class="accounts-data-table" hidden>
                 <thead>
@@ -91,7 +91,6 @@
                     </tr>
                 </tfoot>
             </table>
-            <p><a href="../9/">Personal Accounts to 31 March 2026</a></p>
         </div>
     </main>
 
@@ -128,7 +127,7 @@
         })();
 
         const ACCOUNTS_CSV_URL =
-            "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/gviz/tq?tqx=out:csv&sheet=ACCOUNTS%20TO%2031%20MARCH%202026";
+            "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/gviz/tq?tqx=out:csv&sheet=ACCOUNTS%20TO%2031%20MARCH%202026&range=H:K";
 
         function parseCsv(text) {
             const rows = [];
@@ -200,11 +199,18 @@
         function formatUkDate(value) {
             const text = String(value || "").trim();
             const match = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-            if (!match) {
+            if (match) {
+                return match[3].padStart(2, "0") + "/" +
+                    match[2].padStart(2, "0") + "/" + match[1];
+            }
+
+            const namedDate = new Date(text);
+            if (Number.isNaN(namedDate.getTime())) {
                 return text;
             }
-            return match[3].padStart(2, "0") + "/" +
-                match[2].padStart(2, "0") + "/" + match[1];
+            return String(namedDate.getDate()).padStart(2, "0") + "/" +
+                String(namedDate.getMonth() + 1).padStart(2, "0") + "/" +
+                namedDate.getFullYear();
         }
 
         fetch(ACCOUNTS_CSV_URL)
