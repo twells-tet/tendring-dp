@@ -293,4 +293,41 @@
        fill="#0a5e49"
        transform="rotate(-90 92 238)">SMALL KITCHEN</text>
   </g>
+  <g id="stairs" stroke="#7a4c28" fill="#d7b184">
+    <rect x="215" y="520" width="130" height="72" stroke-width="4" />
+    <rect x="305" y="590" width="40" height="142" stroke-width="4" />
+    <line x1="235" y1="520" x2="235" y2="592" />
+    <line x1="255" y1="520" x2="255" y2="592" />
+    <line x1="275" y1="520" x2="275" y2="592" />
+    <line x1="295" y1="520" x2="295" y2="592" />
+    <line x1="305" y1="615" x2="345" y2="615" />
+    <line x1="305" y1="640" x2="345" y2="640" />
+    <line x1="305" y1="665" x2="345" y2="665" />
+    <line x1="305" y1="690" x2="345" y2="690" />
+    <line x1="305" y1="715" x2="345" y2="715" />
+  </g>
+  <text class="feature-label" x="270" y="570" fill="#5f371b">STAIRS</text>
+  <g id="workshop-stairs" stroke="#7a4c28" fill="#d7b184">
+    <rect x="680" y="45" width="58" height="250" stroke-width="4" />
+    <line x1="680" y1="76" x2="738" y2="76" />
+    <line x1="680" y1="107" x2="738" y2="107" />
+    <line x1="680" y1="138" x2="738" y2="138" />
+    <line x1="680" y1="169" x2="738" y2="169" />
+    <line x1="680" y1="200" x2="738" y2="200" />
+    <line x1="680" y1="231" x2="738" y2="231" />
+    <line x1="680" y1="262" x2="738" y2="262" />
+  </g>
+  <text class="feature-label" x="709" y="320" fill="#5f371b">STAIRS</text>
+
+  <g id="wc-doors" class="door">
+    <line x1="100" y1="508" x2="100" y2="448" />
+    <path d="M100 448 A60 60 0 0 1 160 508" />
+    <line x1="230" y1="508" x2="230" y2="448" />
+    <path d="M230 448 A60 60 0 0 1 290 508" />
+  </g>
+
+  <g id="garage-one-side-door" class="door">
+    <line x1="0" y1="660" x2="72" y2="660" />
+    <path d="M72 660 A72 72 0 0 1 0 588" />
+  </g>
 </svg>
