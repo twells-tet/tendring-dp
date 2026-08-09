@@ -64,6 +64,10 @@
                     style="font-family:Arial,Helvetica,sans-serif; font-size:15px; font-weight:700; border-radius:0.35rem; border:1px solid var(--plaid-red,#da291c); background:#fff; color:var(--plaid-red,#da291c); cursor:pointer; padding:0.5rem 1.25rem;">
                     FLOORPLAN SVG
                 </button>
+                <button type="button" class="floor-toggle-btn" data-plan="garage" aria-pressed="false"
+                    style="font-family:Arial,Helvetica,sans-serif; font-size:15px; font-weight:700; border-radius:0.35rem; border:1px solid var(--plaid-red,#da291c); background:#fff; color:var(--plaid-red,#da291c); cursor:pointer; padding:0.5rem 1.25rem;">
+                    GARAGE SKETCH
+                </button>
             </div>
 
             <img
@@ -79,6 +83,13 @@
               alt="Proposed floor plan outlining walls, windows, stairs and doors"
               style="display:none;"
             >
+            <img
+              id="plan-garage"
+              class="floorplan-image"
+              src="garage.svg"
+              alt="Garage floor plan showing six parking spaces and a central manoeuvring area"
+              style="display:none;"
+            >
 
         </div>
     </main>
@@ -89,6 +100,7 @@
                 var plan = btn.getAttribute('data-plan');
                 document.getElementById('plan-existing').style.display = plan === 'existing' ? 'block' : 'none';
                 document.getElementById('plan-proposed').style.display = plan === 'proposed' ? 'block' : 'none';
+                document.getElementById('plan-garage').style.display = plan === 'garage' ? 'block' : 'none';
 
                 document.querySelectorAll('.floor-toggle-btn[data-plan]').forEach(function (b) {
                     var active = b === btn;
