@@ -33,6 +33,13 @@
         .accounts-status {
             margin: 1rem 0 0;
         }
+
+        .transaction-count {
+            margin: 0.4rem 0 0;
+            font-size: 0.8rem;
+            text-align: right;
+            color: #555;
+        }
     </style>
 </head>
 <body class="tarian-homepage pin-locked">
@@ -81,6 +88,7 @@
                     </tr>
                 </tbody>
             </table>
+            <p id="transaction-count" class="transaction-count">0 transactions</p>
             <p id="accounts-status" class="accounts-status">Loading accounts...</p>
             <table id="accounts-data-table" class="accounts-data-table" hidden>
                 <thead>
@@ -130,7 +138,7 @@
         })();
 
         const ACCOUNTS_CSV_URL =
-            "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/gviz/tq?tqx=out:csv&sheet=ACCOUNTS%20TO%2031%20MARCH%202026&range=H:K";
+            "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/gviz/tq?tqx=out:csv&sheet=ACCOUNTS%20TO%2031%20MARCH%202026&range=G3:J";
 
         function parseCsv(text) {
             const rows = [];
@@ -201,6 +209,9 @@
 
         function formatUkDate(value) {
             const text = String(value || "").trim();
+            if (!text || text.toLowerCase() === "n/a") {
+                return "Not Dated";
+            }
             const match = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
             if (match) {
                 return match[3].padStart(2, "0") + "/" +
@@ -224,21 +235,27 @@
                 return response.text();
             })
             .then(text => {
-                const rows = parseCsv(text).slice(1).filter(row =>
-                    !row.some(cell => String(cell || "").trim().toLowerCase() === "cancelled")
-                );
-                rows.sort((first, second) => {
-                    const firstDirection = String(first[2] || "").trim().toLowerCase();
-                    const secondDirection = String(second[2] || "").trim().toLowerCase();
-                    const firstIncoming = firstDirection === "in";
-                    const secondIncoming = secondDirection === "in";
-
-                    if (firstIncoming !== secondIncoming) {
-                        return firstIncoming ? -1 : 1;
-                    }
-
-                    return new Date(first[0]).getTime() - new Date(second[0]).getTime();
+                const rows = parseCsv(text)
+                    .filter(row =>
+                        !row.some(cell =>
+                            String(cell || "").trim().toLowerCase() === "cancelled"
+                        )
+                    )
+                    .map(row => [
+                        row[0],
+                        row[1],
+                        row[2],
+                        row[3]
+                    ]);
+                const datedRows = [];
+                const undatedRows = [];
+                rows.forEach(row => {
+                    const firstUnavailable =
+                        !String(row[0] || "").trim() ||
+                        String(row[0] || "").trim().toLowerCase() === "n/a";
+                    (firstUnavailable ? undatedRows : datedRows).push(row);
                 });
+                rows.splice(0, rows.length, ...datedRows, ...undatedRows);
                 const body = document.getElementById("accounts-data-body");
                 let totalIn = 0;
                 let totalOut = 0;
@@ -273,6 +290,9 @@
                     formatCurrency(-totalOut);
                 document.getElementById("profit-loss").textContent =
                     formatCurrency(totalIn - totalOut);
+                document.getElementById("transaction-count").textContent =
+                    rows.length.toLocaleString("en-GB") +
+                    (rows.length === 1 ? " transaction" : " transactions");
 
                 const status = document.getElementById("accounts-status");
                 if (rows.length) {
