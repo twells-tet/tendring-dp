@@ -108,6 +108,12 @@
                         <td class="amount">39,976.31</td>
                         <td class="amount">6,395.73</td>
                     </tr>
+                    <tr>
+                        <td>31 March 2027</td>
+                        <td>Draft company accounts (to 31 March 2027)</td>
+                        <td id="accounts-2027-turnover" class="amount">Loading...</td>
+                        <td id="accounts-2027-profit" class="amount">Loading...</td>
+                    </tr>
                 </tbody>
             </table>
 
@@ -126,6 +132,84 @@
                 day: "numeric",
                 month: "long",
                 year: "numeric"
+            });
+
+        const accounts2027Url =
+            "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/gviz/tq?tqx=out:csv&sheet=ACCOUNTS%20TO%2031%20MARCH%202026&range=Q:T";
+
+        function parseCsvRows(text) {
+            const rows = [];
+            let row = [];
+            let value = "";
+            let quoted = false;
+
+            for (let index = 0; index < text.length; index++) {
+                const character = text[index];
+                if (character === '"') {
+                    if (quoted && text[index + 1] === '"') {
+                        value += '"';
+                        index++;
+                    } else {
+                        quoted = !quoted;
+                    }
+                } else if (character === "," && !quoted) {
+                    row.push(value);
+                    value = "";
+                } else if ((character === "\n" || character === "\r") && !quoted) {
+                    if (character === "\r" && text[index + 1] === "\n") index++;
+                    row.push(value);
+                    if (row.some(cell => cell !== "")) rows.push(row);
+                    row = [];
+                    value = "";
+                } else {
+                    value += character;
+                }
+            }
+            if (value || row.length) {
+                row.push(value);
+                rows.push(row);
+            }
+            return rows;
+        }
+
+        fetch(accounts2027Url)
+            .then(response => {
+                if (!response.ok) throw new Error("Unable to load accounts.");
+                return response.text();
+            })
+            .then(text => {
+                const rows = parseCsvRows(text).slice(1).filter(row =>
+                    !row.some(cell =>
+                        String(cell || "").trim().toLowerCase() === "cancelled"
+                    )
+                );
+                let totalIn = 0;
+                let totalOut = 0;
+
+                rows.forEach(row => {
+                    const direction = String(row[2] || "").trim().toLowerCase();
+                    const amount = Math.abs(
+                        Number(String(row[3] || "").replace(/[^0-9.-]/g, "")) || 0
+                    );
+                    if (direction === "out" || direction === "outgoing") {
+                        totalOut += amount;
+                    } else {
+                        totalIn += amount;
+                    }
+                });
+
+                const format = value => value.toLocaleString("en-GB", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                document.getElementById("accounts-2027-turnover").textContent =
+                    format(totalIn);
+                document.getElementById("accounts-2027-profit").textContent =
+                    format(totalIn - totalOut);
+            })
+            .catch(() => {
+                document.getElementById("accounts-2027-turnover").textContent = "-";
+                document.getElementById("accounts-2027-profit").textContent = "-";
             });
     </script>
 </body>
