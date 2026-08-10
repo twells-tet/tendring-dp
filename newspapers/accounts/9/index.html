@@ -255,6 +255,20 @@
                         String(row[0] || "").trim().toLowerCase() === "n/a";
                     (firstUnavailable ? undatedRows : datedRows).push(row);
                 });
+                datedRows.sort((first, second) => {
+                    function dateValue(value) {
+                        const parts = String(value || "").trim().split("/");
+                        if (parts.length === 3) {
+                            return new Date(
+                                Number(parts[2]),
+                                Number(parts[1]) - 1,
+                                Number(parts[0])
+                            ).getTime();
+                        }
+                        return new Date(value).getTime();
+                    }
+                    return dateValue(first[0]) - dateValue(second[0]);
+                });
                 rows.splice(0, rows.length, ...datedRows, ...undatedRows);
                 const body = document.getElementById("accounts-data-body");
                 let totalIn = 0;
