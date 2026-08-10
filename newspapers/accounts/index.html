@@ -52,22 +52,13 @@
             color: #fff;
             font-weight: 700;
             text-align: center;
+            text-transform: uppercase;
             text-decoration: none;
         }
 
         .accounts-links a:hover,
         .accounts-links a:focus-visible {
             background: var(--plaid-green-dark);
-        }
-
-        .accounts-links .draft-accounts-link {
-            border-color: var(--plaid-red-dark);
-            background: var(--plaid-red);
-        }
-
-        .accounts-links .draft-accounts-link:hover,
-        .accounts-links .draft-accounts-link:focus-visible {
-            background: var(--plaid-red-dark);
         }
     </style>
 </head>
@@ -113,25 +104,29 @@
                     </tr>
                     <tr>
                         <td>31 March 2026</td>
-                        <td>Draft company accounts (8 August 2026)</td>
-                        <td class="amount">43,580.05</td>
-                        <td class="amount">5,730.01</td>
+                        <td>Draft company accounts (<span id="draft-accounts-date"></span>)</td>
+                        <td class="amount">39,976.31</td>
+                        <td class="amount">6,395.73</td>
                     </tr>
                 </tbody>
             </table>
 
             <ul class="accounts-links">
-                <li><a href="1/">Business Plan Summary</a></li>
-                <li><a href="2/">Director CV</a></li>
-                <li><a href="3/">12-month cashflow forecast</a></li>
-                <li><a href="4/">Previous 3 months' business bank statements</a></li>
-                <li><a href="5/">Statement of Assets &amp; Liabilities</a></li>
-                <li><a href="6/">7,750 use-of-funds explanation</a></li>
-                <li><a href="7/">Loan application financial fields</a></li>
-                <li><a href="8/" class="draft-accounts-link">Draft Company Accounts to 31 March 2026</a></li>
+                <li><a href="8/">Business Accounts 2025/26</a></li>
+                <li><a href="9/">Personal Accounts 2025/26</a></li>
+                <li><a href="10/">Business Accounts 2026/27</a></li>
+                <li><a href="11/">Personal Accounts 2026/27</a></li>
             </ul>
         </div>
     </main>
 
+    <script>
+        document.getElementById("draft-accounts-date").textContent =
+            new Date().toLocaleDateString("en-GB", {
+                day: "numeric",
+                month: "long",
+                year: "numeric"
+            });
+    </script>
 </body>
 </html>
