@@ -212,6 +212,11 @@
             if (!text || text.toLowerCase() === "n/a") {
                 return "Not Dated";
             }
+            const ukMatch = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+            if (ukMatch) {
+                return ukMatch[1].padStart(2, "0") + "/" +
+                    ukMatch[2].padStart(2, "0") + "/" + ukMatch[3];
+            }
             const match = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
             if (match) {
                 return match[3].padStart(2, "0") + "/" +
