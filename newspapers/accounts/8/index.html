@@ -202,11 +202,19 @@
         function formatUkDate(value) {
             const text = String(value || "").trim();
             const match = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-            if (!match) {
+            if (match) {
+                return match[3].padStart(2, "0") + "/" +
+                    match[2].padStart(2, "0") + "/" + match[1];
+            }
+
+            const namedDate = new Date(text);
+            if (Number.isNaN(namedDate.getTime())) {
                 return text;
             }
-            return match[3].padStart(2, "0") + "/" +
-                match[2].padStart(2, "0") + "/" + match[1];
+
+            return String(namedDate.getDate()).padStart(2, "0") + "/" +
+                String(namedDate.getMonth() + 1).padStart(2, "0") + "/" +
+                namedDate.getFullYear();
         }
 
         fetch(ACCOUNTS_CSV_URL)
@@ -217,7 +225,21 @@
                 return response.text();
             })
             .then(text => {
-                const rows = parseCsv(text).slice(1);
+                const rows = parseCsv(text).slice(1).filter(row =>
+                    !row.some(cell => String(cell || "").trim().toLowerCase() === "cancelled")
+                );
+                rows.sort((first, second) => {
+                    const firstDirection = String(first[2] || "").trim().toLowerCase();
+                    const secondDirection = String(second[2] || "").trim().toLowerCase();
+                    const firstIncoming = firstDirection === "in";
+                    const secondIncoming = secondDirection === "in";
+
+                    if (firstIncoming !== secondIncoming) {
+                        return firstIncoming ? -1 : 1;
+                    }
+
+                    return new Date(first[0]).getTime() - new Date(second[0]).getTime();
+                });
                 const body = document.getElementById("accounts-data-body");
                 let totalIn = 0;
                 let totalOut = 0;
