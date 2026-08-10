@@ -103,6 +103,20 @@
       -moz-appearance: none;
       appearance: none;
     }
+
+    .subscriptions-summary-list li {
+      margin: 0.3rem 0;
+      min-height: 1.1rem;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.9rem;
+      line-height: normal;
+      font-weight: 400;
+    }
+
+    .subscriptions-summary-list li:first-child {
+      font-weight: 700;
+    }
   </style>
 </head>
 <body class="pin-locked">
@@ -148,6 +162,7 @@
 
       <ul class="subscriptions-summary-list">
         <li id="subscriptions-count" class="message"></li>
+        <li>Target: 277 subscribers by 29 Oct 2026</li>
         <li id="subscriptions-turnover-annual" class="message"></li>
         <li id="subscriptions-turnover-monthly" class="message"></li>
       </ul>
@@ -188,7 +203,7 @@
       "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/gviz/tq?tqx=out:csv&sheet=" +
       encodeURIComponent("PRICE POINTS");
 
-    const TARGET_SUBSCRIBER_COUNT = 200;
+    const TARGET_SUBSCRIBER_COUNT = 277;
 
     const messageEl = document.getElementById("subscriptions-message");
     const countEl = document.getElementById("subscriptions-count");
@@ -590,12 +605,12 @@
         return total + parseCurrency(sub.annualCost);
       }, 0);
 
-      const projectedMonthlyTurnover = projectedAnnualTurnover / 12;
+      const projectedMonthlyTurnover = projectedAnnualTurnover / 13;
 
       turnoverAnnualEl.textContent =
         "Projected Annual Turnover: £" + projectedAnnualTurnover.toFixed(2);
       turnoverMonthlyEl.textContent =
-        "Projected Monthly Turnover: £" + projectedMonthlyTurnover.toFixed(2);
+        "28 Day Turnover: £" + projectedMonthlyTurnover.toFixed(2);
 
       messageEl.textContent = subscribers.length
         ? ""
