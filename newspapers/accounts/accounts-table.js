@@ -99,7 +99,7 @@ function initAccountsPage(range) {
             return response.text();
         })
         .then(text => {
-            const rows = parseCsv(text).slice(1).filter(row =>
+            const rows = parseCsv(text).filter(row =>
                 !row.some(cell => String(cell || "").trim().toLowerCase() === "cancelled")
             );
             const dated = rows.filter(row => String(row[0] || "").trim() && String(row[0]).trim().toLowerCase() !== "n/a");

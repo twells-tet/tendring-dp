@@ -60,6 +60,16 @@
         .accounts-links a:focus-visible {
             background: var(--plaid-green-dark);
         }
+
+        .accounts-links .personal-tax-link {
+            border-color: var(--plaid-red-dark);
+            background: var(--plaid-red);
+        }
+
+        .accounts-links .personal-tax-link:hover,
+        .accounts-links .personal-tax-link:focus-visible {
+            background: var(--plaid-red-dark);
+        }
     </style>
 </head>
 <body class="tarian-homepage">
@@ -119,9 +129,9 @@
 
             <ul class="accounts-links">
                 <li><a href="8/">Business Accounts 2025/26</a></li>
-                <li><a href="9/">Personal Accounts 2025/26</a></li>
+                <li><a href="9/" class="personal-tax-link">Personal Tax 2025/26</a></li>
                 <li><a href="10/">Business Accounts 2026/27</a></li>
-                <li><a href="11/">Personal Accounts 2026/27</a></li>
+                <li><a href="11/" class="personal-tax-link">Personal Tax 2026/27</a></li>
             </ul>
         </div>
     </main>
@@ -135,7 +145,7 @@
             });
 
         const accounts2027Url =
-            "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/gviz/tq?tqx=out:csv&sheet=ACCOUNTS%20TO%2031%20MARCH%202026&range=Q:T";
+            "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/gviz/tq?tqx=out:csv&sheet=ACCOUNTS%20TO%2031%20MARCH%202026&range=Q3:T";
 
         function parseCsvRows(text) {
             const rows = [];
@@ -178,7 +188,7 @@
                 return response.text();
             })
             .then(text => {
-                const rows = parseCsvRows(text).slice(1).filter(row =>
+                const rows = parseCsvRows(text).filter(row =>
                     !row.some(cell =>
                         String(cell || "").trim().toLowerCase() === "cancelled"
                     )
