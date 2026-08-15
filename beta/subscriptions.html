@@ -376,7 +376,7 @@
       const startDate =
         parseUkDate(subscriber.subscriptionStartDate) ||
         new Date(new Date().getFullYear(), 7, 10);
-      if (startDate.getDay() !== 1) {
+      if (startDate.getDay() !== 0) {
         // Mid-week joiner: a one-off pro rata fee (Column V) covers the
         // partial first cycle, then the normal 28 day cycle follows.
         return addDays(startDate, (subscriber.extraDays || 0) + 28);
@@ -392,7 +392,7 @@
       const dueDate = calculateNextPaymentDue(subscriber);
       const nextDue = dueDate
         ? formatDDMMYYYY(dueDate)
-        : formatDDMMYYYY(addDays(getMonday(new Date()), 7));
+        : formatDDMMYYYY(addDays(getSunday(new Date()), 7));
       const startDate = parseUkDate(subscriber.subscriptionStartDate);
       const startDateLabel = startDate
         ? formatDayMonth(startDate)
@@ -427,11 +427,10 @@
       );
     }
 
-    function getMonday(date) {
+    function getSunday(date) {
       const result = new Date(date);
       const day = result.getDay();
-      const diffToMonday = (day + 6) % 7;
-      result.setDate(result.getDate() - diffToMonday);
+      result.setDate(result.getDate() - day);
       result.setHours(0, 0, 0, 0);
       return result;
     }
@@ -443,23 +442,23 @@
     }
 
     const DAY_NAMES = [
-      "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+      "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
     ];
 
     function formatDayHeader(date) {
       const day = date.getDate();
       const month = date.toLocaleString("en-GB", { month: "long" });
-      return DAY_NAMES[(date.getDay() + 6) % 7] + "<br>" + day + " " + month;
+      return DAY_NAMES[date.getDay()] + "<br>" + day + " " + month;
     }
 
     function getCurrentWeekDays() {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      const monday = getMonday(today);
+      const sunday = getSunday(today);
 
       const days = [];
       for (let i = 0; i < 7; i += 1) {
-        days.push(addDays(monday, i));
+        days.push(addDays(sunday, i));
       }
       return days;
     }
