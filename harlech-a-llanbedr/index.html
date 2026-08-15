@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Harlech a Llanbedr | TARIAN</title>
+  <link rel="icon" type="image/svg+xml" href="/beta/tarian-shield.svg">
+  <link rel="stylesheet" href="/beta/style.css">
+  <style>
+    .ward-boundary-map {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      aspect-ratio: 783 / 687;
+      height: auto;
+      object-fit: contain;
+      object-position: center;
+      background: #fff;
+      border-radius: 0.5rem;
+    }
+
+    .ward-panel {
+      padding: 1rem;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .ward-data {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .ward-panel,
+    .ward-data {
+      position: relative;
+      z-index: 0;
+    }
+
+    .ward-data th,
+    .ward-data td {
+      padding: 0.65rem 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border-strong);
+    }
+
+    .ward-data th {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .ward-data td:not(:first-child) {
+      text-align: right;
+    }
+
+    .ward-data tfoot td {
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <header class="page-header">
+    <a href="/beta/" class="page-header-logo-link" aria-label="TARIAN home">
+      <img src="/beta/tarian-shield.svg" alt="" class="page-header-logo">
+    </a>
+    <h1>TARIAN</h1>
+    <p class="page-subtitle">Harlech a Llanbedr</p>
+  </header>
+  <main class="app-shell">
+    <section class="panel">
+      <h2>Harlech a Llanbedr</h2>
+      <p><a href="/beta/" class="back-link">&larr; Back to elector list</a></p>
+    </section>
+    <section class="panel">
+      <h2>Data</h2>
+      <table class="ward-data">
+        <thead>
+          <tr>
+            <th>Polling District</th>
+            <th>Electors</th>
+            <th>Households</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Harlech (N1) [48.4%]</td>
+            <td>1,130</td>
+            <td>678</td>
+          </tr>
+          <tr>
+            <td>Talsarnau (AF1) [18.9%]</td>
+            <td>468</td>
+            <td>264</td>
+          </tr>
+          <tr>
+            <td>Llanbedr (AE1) [17.9%]</td>
+            <td>449</td>
+            <td>250</td>
+          </tr>
+          <tr>
+            <td>Llanfair (AU1) [10.1%]</td>
+            <td>238</td>
+            <td>141</td>
+          </tr>
+          <tr>
+            <td>Llanfair (N2) [4.8%]</td>
+            <td>102</td>
+            <td>67</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td>Total</td>
+            <td>2,387</td>
+            <td>1,400</td>
+          </tr>
+        </tfoot>
+      </table>
+    </section>
+    <section class="panel ward-panel">
+      <h2>Ward Boundary</h2>
+      <img
+        class="ward-boundary-map"
+        src="ward-boundary.png"
+        alt="Map showing the Harlech a Llanbedr ward boundary"
+      >
+    </section>
+  </main>
+</body>
+</html>

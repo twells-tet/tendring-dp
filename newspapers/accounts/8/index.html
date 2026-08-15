@@ -138,7 +138,7 @@
         })();
 
         const ACCOUNTS_CSV_URL =
-            "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/gviz/tq?tqx=out:csv&sheet=ACCOUNTS%20TO%2031%20MARCH%202026";
+            "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/gviz/tq?tqx=out:csv&sheet=ACCOUNTS%20TO%2031%20MARCH%202026&range=A3:D";
 
         function parseCsv(text) {
             const rows = [];
@@ -241,7 +241,7 @@
                 return response.text();
             })
             .then(text => {
-                const rows = parseCsv(text).slice(1).filter(row =>
+                const rows = parseCsv(text).filter(row =>
                     !row.some(cell => String(cell || "").trim().toLowerCase() === "cancelled")
                 );
                 const datedRows = [];

@@ -185,7 +185,7 @@
             <option value="gogledd pwllheli" disabled>Gogledd Pwllheli</option>
             <option value="gorllewin porthmadog" disabled>Gorllewin Porthmadog</option>
             <option value="gorllewin tywyn" disabled>Gorllewin Tywyn</option>
-            <option value="harlech a llanbedr" disabled>Harlech a Llanbedr</option>
+            <option value="harlech a llanbedr">Harlech a Llanbedr</option>
             <option value="llanbedrog gyda mynytho" disabled>Llanbedrog gyda Mynytho</option>
             <option value="llanberis" disabled>Llanberis</option>
             <option value="llandderfel" disabled>Llandderfel</option>
@@ -1330,7 +1330,13 @@ function initControls() {
 
   wardEl.addEventListener(
     "change",
-    handleFilterChange
+    () => {
+      if (wardEl.value === "harlech a llanbedr") {
+        window.location.href = "/harlech-a-llanbedr/";
+        return;
+      }
+      handleFilterChange();
+    }
   );
 
 
