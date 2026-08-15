@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Harlech a Llanbedr | TARIAN</title>
   <link rel="icon" type="image/svg+xml" href="/beta/tarian-shield.svg">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
   <link rel="stylesheet" href="/beta/style.css">
   <style>
     .ward-boundary-map {
-      display: block;
       width: 100%;
-      max-width: 100%;
-      height: auto;
+      height: min(68vw, 620px);
+      min-height: 380px;
       border-radius: 0.5rem;
     }
 
@@ -114,12 +114,31 @@
     </section>
     <section class="panel ward-panel">
       <h2>Ward Boundary</h2>
-      <img
-        class="ward-boundary-map"
-        src="ward-boundary.png"
-        alt="Map showing the Harlech a Llanbedr ward boundary"
-      >
+      <div id="ward-boundary-map" class="ward-boundary-map" aria-label="Harlech a Llanbedr ward boundary map"></div>
     </section>
   </main>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script>
+    const map = L.map("ward-boundary-map", { attributionControl: false });
+
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 18
+    }).addTo(map);
+
+    fetch("https://mapit.mysociety.org/area/165915.geojson?simplify_tolerance=0.0001")
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("Unable to load ward boundary.");
+        }
+        return response.json();
+      })
+      .then(geojson => {
+        const boundary = L.geoJSON(geojson, {
+          style: { color: "#215fff", weight: 3, fillColor: "#215fff", fillOpacity: 0.12 }
+        }).addTo(map);
+        map.fitBounds(boundary.getBounds(), { padding: [24, 24] });
+      })
+      .catch(() => map.setView([52.856, -4.108], 12));
+  </script>
 </body>
 </html>
