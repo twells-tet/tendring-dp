@@ -70,6 +70,26 @@
         .accounts-links .personal-tax-link:focus-visible {
             background: var(--plaid-red-dark);
         }
+
+        .bus-links {
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            margin-top: 0.75rem;
+        }
+
+        .accounts-links .bus-link {
+            border-color: #164a8a;
+            background: #2167b5;
+        }
+
+        .accounts-links .bus-link:hover,
+        .accounts-links .bus-link:focus-visible {
+            background: #164a8a;
+        }
+
+        .ward-dashboard-link {
+            margin: 1.5rem 0 0;
+            font-size: 0.8rem;
+        }
     </style>
 </head>
 <body class="tarian-homepage">
@@ -133,10 +153,20 @@
                 <li><a href="10/">Business 2026/27</a></li>
                 <li><a href="11/" class="personal-tax-link">Personal Tax 2026/27</a></li>
             </ul>
-            <p>
-                <a href="https://diogel.gwynedd.llyw.cymru/GwasanaethauGwe/FfeiliauSystemau.Allanol/AmserlenBws/Ffeil?iaith=en&amp;llwybr=%5B17_17B%5D-%5BPwllheli_-_Aberdaron%5D-%5BPwllheli_-_Aberdaron%5D%2Epdf">
-                    BUS 17/17B
-                </a>
+            <ul class="accounts-links bus-links">
+                <li>
+                    <a class="bus-link" href="https://diogel.gwynedd.llyw.cymru/GwasanaethauGwe/FfeiliauSystemau.Allanol/AmserlenBws/Ffeil?iaith=en&amp;llwybr=%5B17_17B%5D-%5BPwllheli_-_Aberdaron%5D-%5BPwllheli_-_Aberdaron%5D%2Epdf">
+                        BUS 17/17B
+                    </a>
+                </li>
+                <li>
+                    <a class="bus-link" href="https://diogel.gwynedd.llyw.cymru/GwasanaethauGwe/FfeiliauSystemau.Allanol/AmserlenBws/Ffeil?iaith=en&amp;llwybr=%5B18%5D-%5BPwllheli_-_Y_Warren_-_Mynytho_-_Abersoch%5D-%5BPwllheli_-_Y_Warren_-_Mynytho_-_Abersoch%5D%2Epdf">
+                        BUS 18
+                    </a>
+                </li>
+            </ul>
+            <p class="ward-dashboard-link">
+                <a href="/beta/harlech-a-llanbedr/">HARLECH A LLANBEDR</a>
             </p>
         </div>
     </main>
