@@ -1340,6 +1340,67 @@
 
     let leafletMap = null;
     let markersLayer = null;
+    let communityBoundariesLoaded = false;
+    const COMMUNITY_BOUNDARIES = [
+      {
+        name: "Abersoch gyda Llanengan",
+        url: "https://mapit.mysociety.org/area/166295.geojson",
+        color: "#2167b5"
+      },
+      {
+        name: "Llanbedrog gyda Mynytho",
+        url: "https://mapit.mysociety.org/area/166115.geojson",
+        color: "#1b8a5a"
+      },
+      {
+        name: "Gogledd Pwllheli",
+        url: "https://mapit.mysociety.org/area/166271.geojson",
+        color: "#d76a17"
+      },
+      {
+        name: "De Pwllheli",
+        url: "https://mapit.mysociety.org/area/166269.geojson",
+        color: "#7a4fb3"
+      }
+    ];
+
+    function addCommunityBoundaries() {
+
+      if (communityBoundariesLoaded) return;
+      communityBoundariesLoaded = true;
+
+      COMMUNITY_BOUNDARIES.forEach(community => {
+
+        fetch(community.url)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error("Could not load " + community.name + " boundary.");
+            }
+            return response.json();
+          })
+          .then(geojson => {
+            const boundary = L.geoJSON(geojson, {
+              style: {
+                color: community.color,
+                weight: 4,
+                opacity: 0.95,
+                fillColor: community.color,
+                fillOpacity: 0.06,
+                pane: "communityBoundaries"
+              }
+            }).addTo(leafletMap);
+
+            boundary.bindTooltip(community.name, {
+              permanent: true,
+              direction: "center",
+              className: "community-label"
+            });
+          })
+          .catch(error => console.error(error));
+
+      });
+
+    }
 
     function renderMap(households, colorForHousehold) {
 
@@ -1354,6 +1415,9 @@
             attribution: "&copy; OpenStreetMap contributors"
           }
         ).addTo(leafletMap);
+        leafletMap.createPane("communityBoundaries");
+        leafletMap.getPane("communityBoundaries").style.zIndex = 650;
+        addCommunityBoundaries();
 
       }
 
@@ -1408,24 +1472,25 @@
 
       markersLayer = L.layerGroup(markers).addTo(leafletMap);
 
-      if (markers.length) {
-
-        const group = L.featureGroup(markers);
-
-        leafletMap.fitBounds(
-          group.getBounds().pad(0.15)
-        );
-
-      } else {
-
-        // No plottable households - fall back to a view centred on
-        // Abersoch gyda Llanengan so the map isn't blank.
-        leafletMap.setView([52.8168, -4.4855], 13);
-
-      }
-
       setTimeout(
-        () => leafletMap.invalidateSize(),
+        () => {
+
+          leafletMap.invalidateSize();
+
+          if (markers.length) {
+
+            const group = L.featureGroup(markers);
+            leafletMap.fitBounds(group.getBounds().pad(0.15));
+
+          } else {
+
+            // No plottable households - fall back to a view centred on
+            // Abersoch gyda Llanengan so the map isn't blank.
+            leafletMap.setView([52.8168, -4.4855], 13);
+
+          }
+
+        },
         0
       );
 
