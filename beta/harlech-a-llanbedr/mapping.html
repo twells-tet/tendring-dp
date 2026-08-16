@@ -101,6 +101,13 @@
       AU1: "Llanfair",
       N2: "Llanfair"
     };
+    const DISTRICT_HOUSEHOLDS = {
+      N1: 678,
+      AF1: 264,
+      AE1: 250,
+      AU1: 141,
+      N2: 67
+    };
     const FALLBACK_COLORS = ["#2167b5", "#1b8a5a", "#d76a17", "#7a4fb3", "#bf3c69"];
 
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -214,7 +221,8 @@
           "<span class=\"district-key-item\"><span class=\"district-key-swatch\" style=\"background:" +
           districtColors.get(district) +
           ";\"></span>" +
-          district + " (" + (DISTRICT_NAMES[district] || district) + ")" +
+          district + " (" + (DISTRICT_NAMES[district] || district) + ") [" +
+          (DISTRICT_HOUSEHOLDS[district] || 0).toLocaleString("en-GB") + "]" +
           "</span>"
         ).join("");
 
