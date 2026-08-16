@@ -1473,27 +1473,29 @@
 
       markersLayer = L.layerGroup(markers).addTo(leafletMap);
 
-      setTimeout(
-        () => {
+      function fitInitialMapView() {
 
-          leafletMap.invalidateSize();
+        leafletMap.invalidateSize();
 
-          if (markers.length) {
+        if (markers.length) {
 
-            const group = L.featureGroup(markers);
-            leafletMap.fitBounds(group.getBounds().pad(0.15));
+          const group = L.featureGroup(markers);
+          leafletMap.fitBounds(group.getBounds().pad(0.15));
 
-          } else {
+        } else {
 
-            // No plottable households - fall back to a view centred on
-            // Abersoch gyda Llanengan so the map isn't blank.
-            leafletMap.setView([52.8168, -4.4855], 13);
+          // No plottable households - fall back to a view centred on
+          // Abersoch gyda Llanengan so the map isn't blank.
+          leafletMap.setView([52.8168, -4.4855], 13);
 
-          }
+        }
 
-        },
-        0
-      );
+      }
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(fitInitialMapView);
+      });
+      setTimeout(fitInitialMapView, 250);
 
     }
 
