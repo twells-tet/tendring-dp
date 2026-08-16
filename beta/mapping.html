@@ -1344,22 +1344,22 @@
     const COMMUNITY_BOUNDARIES = [
       {
         name: "Abersoch gyda Llanengan",
-        url: "https://mapit.mysociety.org/area/166295.geojson",
+        url: "/beta/boundaries/electoral-divisions/abersoch-gydal-lanengan.geojson",
         color: "#2167b5"
       },
       {
         name: "Llanbedrog gyda Mynytho",
-        url: "https://mapit.mysociety.org/area/166115.geojson",
+        url: "/beta/boundaries/electoral-divisions/llanbedrog-gydal-mynytho.geojson",
         color: "#1b8a5a"
       },
       {
         name: "Gogledd Pwllheli",
-        url: "https://mapit.mysociety.org/area/166271.geojson",
+        url: "/beta/boundaries/electoral-divisions/gogledd-pwllheli.geojson",
         color: "#d76a17"
       },
       {
         name: "De Pwllheli",
-        url: "https://mapit.mysociety.org/area/166269.geojson",
+        url: "/beta/boundaries/electoral-divisions/de-pwllheli.geojson",
         color: "#7a4fb3"
       }
     ];
@@ -1390,11 +1390,6 @@
               }
             }).addTo(leafletMap);
 
-            boundary.bindTooltip(community.name, {
-              permanent: true,
-              direction: "center",
-              className: "community-label"
-            });
           })
           .catch(error => console.error(error));
 
@@ -1416,7 +1411,8 @@
           }
         ).addTo(leafletMap);
         leafletMap.createPane("communityBoundaries");
-        leafletMap.getPane("communityBoundaries").style.zIndex = 650;
+        leafletMap.getPane("communityBoundaries").style.zIndex = 450;
+        leafletMap.getPane("communityBoundaries").style.pointerEvents = "none";
         addCommunityBoundaries();
 
       }
