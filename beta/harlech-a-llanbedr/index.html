@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Harlech a Llanbedr | TARIAN</title>
+  <link rel="icon" type="image/svg+xml" href="/beta/tarian-shield.svg">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <link rel="stylesheet" href="/beta/style.css">
+  <style>
+    .ward-boundary-map {
+      width: 100%;
+      height: min(68vw, 620px);
+      min-height: 380px;
+      border-radius: 0.5rem;
+    }
+
+    .ward-panel {
+      padding: 1rem;
+      isolation: isolate;
+    }
+
+    .ward-data {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .ward-panel,
+    .ward-data {
+      position: relative;
+      z-index: 0;
+    }
+
+    .ward-data th,
+    .ward-data td {
+      padding: 0.65rem 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border-strong);
+    }
+
+    .ward-data th {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .ward-data td:not(:first-child) {
+      text-align: right;
+    }
+
+    .ward-data tfoot td {
+      font-weight: 700;
+    }
+
+    .mapping-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 2.75rem;
+      padding: 0.65rem 1rem;
+      border: 1px solid #164a8a;
+      border-radius: 0.5rem;
+      background: #2167b5;
+      color: #fff;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .mapping-link:hover,
+    .mapping-link:focus-visible {
+      background: #164a8a;
+    }
+  </style>
+</head>
+<body>
+  <header class="page-header">
+    <a href="/beta/" class="page-header-logo-link" aria-label="TARIAN home">
+      <img src="/beta/tarian-shield.svg" alt="" class="page-header-logo">
+    </a>
+    <h1>TARIAN</h1>
+    <p class="page-subtitle">Harlech a Llanbedr</p>
+  </header>
+  <main class="app-shell">
+    <section class="panel">
+      <h2>Harlech a Llanbedr</h2>
+      <p><a href="/beta/" class="back-link">&larr; Back to elector list</a></p>
+      <a class="mapping-link" href="mapping.html">Mapping</a>
+    </section>
+    <section class="panel">
+      <h2>Data</h2>
+      <table class="ward-data">
+        <thead>
+          <tr>
+            <th>Polling District</th>
+            <th>Electors</th>
+            <th>Households</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Harlech (N1) [48.4%]</td>
+            <td>1,130</td>
+            <td>678</td>
+          </tr>
+          <tr>
+            <td>Talsarnau (AF1) [18.9%]</td>
+            <td>468</td>
+            <td>264</td>
+          </tr>
+          <tr>
+            <td>Llanbedr (AE1) [17.9%]</td>
+            <td>449</td>
+            <td>250</td>
+          </tr>
+          <tr>
+            <td>Llanfair (AU1) [10.1%]</td>
+            <td>238</td>
+            <td>141</td>
+          </tr>
+          <tr>
+            <td>Llanfair (N2) [4.8%]</td>
+            <td>102</td>
+            <td>67</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td>Total</td>
+            <td>2,387</td>
+            <td>1,400</td>
+          </tr>
+        </tfoot>
+      </table>
+    </section>
+    <section class="panel ward-panel">
+      <h2>Ward Boundary</h2>
+      <div id="ward-boundary-map" class="ward-boundary-map" aria-label="Harlech a Llanbedr ward boundary map"></div>
+    </section>
+  </main>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script>
+    const map = L.map("ward-boundary-map", { attributionControl: false });
+
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 18
+    }).addTo(map);
+
+    fetch("https://mapit.mysociety.org/area/165915.geojson?simplify_tolerance=0.0001")
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("Unable to load ward boundary.");
+        }
+        return response.json();
+      })
+      .then(geojson => {
+        const boundary = L.geoJSON(geojson, {
+          style: { color: "#215fff", weight: 3, fillColor: "#215fff", fillOpacity: 0.12 }
+        }).addTo(map);
+        map.fitBounds(boundary.getBounds(), { padding: [24, 24] });
+      })
+      .catch(() => map.setView([52.856, -4.108], 12));
+  </script>
+</body>
+</html>

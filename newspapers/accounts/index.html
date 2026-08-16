@@ -52,6 +52,7 @@
             color: #fff;
             font-weight: 700;
             text-align: center;
+            text-transform: uppercase;
             text-decoration: none;
         }
 
@@ -60,14 +61,34 @@
             background: var(--plaid-green-dark);
         }
 
-        .accounts-links .draft-accounts-link {
+        .accounts-links .personal-tax-link {
             border-color: var(--plaid-red-dark);
             background: var(--plaid-red);
         }
 
-        .accounts-links .draft-accounts-link:hover,
-        .accounts-links .draft-accounts-link:focus-visible {
+        .accounts-links .personal-tax-link:hover,
+        .accounts-links .personal-tax-link:focus-visible {
             background: var(--plaid-red-dark);
+        }
+
+        .bus-links {
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            margin-top: 0.75rem;
+        }
+
+        .accounts-links .bus-link {
+            border-color: #164a8a;
+            background: #2167b5;
+        }
+
+        .accounts-links .bus-link:hover,
+        .accounts-links .bus-link:focus-visible {
+            background: #164a8a;
+        }
+
+        .ward-dashboard-link {
+            margin: 1.5rem 0 0;
+            font-size: 0.8rem;
         }
     </style>
 </head>
@@ -113,25 +134,128 @@
                     </tr>
                     <tr>
                         <td>31 March 2026</td>
-                        <td>Draft company accounts (8 August 2026)</td>
+                        <td>Draft company accounts (<span id="draft-accounts-date"></span>)</td>
                         <td class="amount">43,580.05</td>
                         <td class="amount">5,630.01</td>
+                    </tr>
+                    <tr>
+                        <td>31 March 2027</td>
+                        <td>Draft company accounts (to 31 March 2027)</td>
+                        <td id="accounts-2027-turnover" class="amount">Loading...</td>
+                        <td id="accounts-2027-profit" class="amount">Loading...</td>
                     </tr>
                 </tbody>
             </table>
 
             <ul class="accounts-links">
-                <li><a href="1/">Business Plan Summary</a></li>
-                <li><a href="2/">Director CV</a></li>
-                <li><a href="3/">12-month cashflow forecast</a></li>
-                <li><a href="4/">Previous 3 months' business bank statements</a></li>
-                <li><a href="5/">Statement of Assets &amp; Liabilities</a></li>
-                <li><a href="6/">7,750 use-of-funds explanation</a></li>
-                <li><a href="7/">Loan application financial fields</a></li>
-                <li><a href="8/" class="draft-accounts-link">Draft Company Accounts to 31 March 2026</a></li>
+                <li><a href="8/">Business 2025/26</a></li>
+                <li><a href="9/" class="personal-tax-link">Personal Tax 2025/26</a></li>
+                <li><a href="10/">Business 2026/27</a></li>
+                <li><a href="11/" class="personal-tax-link">Personal Tax 2026/27</a></li>
             </ul>
+            <ul class="accounts-links bus-links">
+                <li>
+                    <a class="bus-link" href="https://diogel.gwynedd.llyw.cymru/GwasanaethauGwe/FfeiliauSystemau.Allanol/AmserlenBws/Ffeil?iaith=en&amp;llwybr=%5B17_17B%5D-%5BPwllheli_-_Aberdaron%5D-%5BPwllheli_-_Aberdaron%5D%2Epdf">
+                        BUS 17/17B
+                    </a>
+                </li>
+                <li>
+                    <a class="bus-link" href="https://diogel.gwynedd.llyw.cymru/GwasanaethauGwe/FfeiliauSystemau.Allanol/AmserlenBws/Ffeil?iaith=en&amp;llwybr=%5B18%5D-%5BPwllheli_-_Y_Warren_-_Mynytho_-_Abersoch%5D-%5BPwllheli_-_Y_Warren_-_Mynytho_-_Abersoch%5D%2Epdf">
+                        BUS 18
+                    </a>
+                </li>
+            </ul>
+            <p class="ward-dashboard-link">
+                <a href="https://www.tarian146.co.uk/beta/harlech-a-llanbedr/mapping">HARLECH A LLANBEDR</a>
+            </p>
         </div>
     </main>
 
+    <script>
+        document.getElementById("draft-accounts-date").textContent =
+            new Date().toLocaleDateString("en-GB", {
+                day: "numeric",
+                month: "long",
+                year: "numeric"
+            });
+
+        const accounts2027Url =
+            "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/gviz/tq?tqx=out:csv&sheet=ACCOUNTS%20TO%2031%20MARCH%202026&range=Q3:T";
+
+        function parseCsvRows(text) {
+            const rows = [];
+            let row = [];
+            let value = "";
+            let quoted = false;
+
+            for (let index = 0; index < text.length; index++) {
+                const character = text[index];
+                if (character === '"') {
+                    if (quoted && text[index + 1] === '"') {
+                        value += '"';
+                        index++;
+                    } else {
+                        quoted = !quoted;
+                    }
+                } else if (character === "," && !quoted) {
+                    row.push(value);
+                    value = "";
+                } else if ((character === "\n" || character === "\r") && !quoted) {
+                    if (character === "\r" && text[index + 1] === "\n") index++;
+                    row.push(value);
+                    if (row.some(cell => cell !== "")) rows.push(row);
+                    row = [];
+                    value = "";
+                } else {
+                    value += character;
+                }
+            }
+            if (value || row.length) {
+                row.push(value);
+                rows.push(row);
+            }
+            return rows;
+        }
+
+        fetch(accounts2027Url)
+            .then(response => {
+                if (!response.ok) throw new Error("Unable to load accounts.");
+                return response.text();
+            })
+            .then(text => {
+                const rows = parseCsvRows(text).filter(row =>
+                    !row.some(cell =>
+                        String(cell || "").trim().toLowerCase() === "cancelled"
+                    )
+                );
+                let totalIn = 0;
+                let totalOut = 0;
+
+                rows.forEach(row => {
+                    const direction = String(row[2] || "").trim().toLowerCase();
+                    const amount = Math.abs(
+                        Number(String(row[3] || "").replace(/[^0-9.-]/g, "")) || 0
+                    );
+                    if (direction === "out" || direction === "outgoing") {
+                        totalOut += amount;
+                    } else {
+                        totalIn += amount;
+                    }
+                });
+
+                const format = value => value.toLocaleString("en-GB", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                document.getElementById("accounts-2027-turnover").textContent =
+                    format(totalIn);
+                document.getElementById("accounts-2027-profit").textContent =
+                    format(totalIn - totalOut);
+            })
+            .catch(() => {
+                document.getElementById("accounts-2027-turnover").textContent = "-";
+                document.getElementById("accounts-2027-profit").textContent = "-";
+            });
+    </script>
 </body>
 </html>

@@ -189,7 +189,7 @@
       "ra1|2": "Abersoch South",
       "ra1|3": "Abersoch North",
       "ra1|4": "Abersoch West",
-      "ra1|5": "Farms and Outliers",
+      "ra1|5": "Llanbedrog and Outliers",
       "qb6|1": "Llanengan",
       "qb6|2": "Bwlchtocyn",
       "qb6|3": "Cilan",
@@ -1340,6 +1340,67 @@
 
     let leafletMap = null;
     let markersLayer = null;
+    let communityBoundariesLoaded = false;
+    const COMMUNITY_BOUNDARIES = [
+      {
+        name: "Abersoch gyda Llanengan",
+        url: "/beta/boundaries/electoral-divisions/abersoch-gydal-lanengan.geojson",
+        color: "#2167b5"
+      },
+      {
+        name: "Llanbedrog gyda Mynytho",
+        url: "/beta/boundaries/electoral-divisions/llanbedrog-gydal-mynytho.geojson",
+        color: "#1b8a5a"
+      },
+      {
+        name: "Gogledd Pwllheli",
+        url: "/beta/boundaries/electoral-divisions/gogledd-pwllheli.geojson",
+        color: "#d76a17"
+      },
+      {
+        name: "De Pwllheli",
+        url: "/beta/boundaries/electoral-divisions/de-pwllheli.geojson",
+        color: "#7a4fb3"
+      },
+      {
+        name: "Efailnewydd a Buan",
+        url: "/beta/boundaries/electoral-divisions/efailnewydd-a-buan.geojson",
+        color: "#bf3c69"
+      }
+    ];
+
+    function addCommunityBoundaries() {
+
+      if (communityBoundariesLoaded) return;
+      communityBoundariesLoaded = true;
+
+      COMMUNITY_BOUNDARIES.forEach(community => {
+
+        fetch(community.url)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error("Could not load " + community.name + " boundary.");
+            }
+            return response.json();
+          })
+          .then(geojson => {
+            const boundary = L.geoJSON(geojson, {
+              style: {
+                color: community.color,
+                weight: 4,
+                opacity: 0.95,
+                fillColor: community.color,
+                fillOpacity: 0.06,
+                pane: "communityBoundaries"
+              }
+            }).addTo(leafletMap);
+
+          })
+          .catch(error => console.error(error));
+
+      });
+
+    }
 
     function renderMap(households, colorForHousehold) {
 
@@ -1354,6 +1415,10 @@
             attribution: "&copy; OpenStreetMap contributors"
           }
         ).addTo(leafletMap);
+        leafletMap.createPane("communityBoundaries");
+        leafletMap.getPane("communityBoundaries").style.zIndex = 450;
+        leafletMap.getPane("communityBoundaries").style.pointerEvents = "none";
+        addCommunityBoundaries();
 
       }
 
@@ -1408,24 +1473,25 @@
 
       markersLayer = L.layerGroup(markers).addTo(leafletMap);
 
-      if (markers.length) {
-
-        const group = L.featureGroup(markers);
-
-        leafletMap.fitBounds(
-          group.getBounds().pad(0.15)
-        );
-
-      } else {
-
-        // No plottable households - fall back to a view centred on
-        // Abersoch gyda Llanengan so the map isn't blank.
-        leafletMap.setView([52.8168, -4.4855], 13);
-
-      }
-
       setTimeout(
-        () => leafletMap.invalidateSize(),
+        () => {
+
+          leafletMap.invalidateSize();
+
+          if (markers.length) {
+
+            const group = L.featureGroup(markers);
+            leafletMap.fitBounds(group.getBounds().pad(0.15));
+
+          } else {
+
+            // No plottable households - fall back to a view centred on
+            // Abersoch gyda Llanengan so the map isn't blank.
+            leafletMap.setView([52.8168, -4.4855], 13);
+
+          }
+
+        },
         0
       );
 

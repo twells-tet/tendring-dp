@@ -80,6 +80,22 @@
         const saveButtonEl = document.getElementById("lottery-save");
         const savedSectionEl = document.getElementById("lottery-saved-section");
         const savedListEl = document.getElementById("lottery-saved-list");
+        const DEFAULT_OUTGOINGS = [
+            { description: "NEW HOUSE", amount: 390000 },
+            { description: "TO END FEB 2027", amount: 30000 },
+            { description: "BROTHER", amount: 45500 },
+            { description: "LEGAL FEES", amount: 4000 },
+            { description: "ELECTION", amount: 4000 },
+            { description: "COUSIN", amount: 2500 },
+            { description: "TAXES 1", amount: 4000 },
+            { description: "PARENTS 1", amount: 20000 },
+            { description: "TO END JULY 2027", amount: 20000 },
+            { description: "TAXES 2", amount: 10500 },
+            { description: "PARENTS 2", amount: 115000 },
+            { description: "REFURB", amount: 14500 },
+            { description: "REPAIR CAR", amount: 5000 },
+            { description: "SALE OF FLAT", amount: -165000 }
+        ];
 
         let lastResult = null;
 
@@ -225,8 +241,6 @@
         });
 
         totaliseButtonEl.addEventListener("click", () => {
-
-            sortRowsByAmountDescending();
 
             const winnings = getWinningsAmount();
 
@@ -375,7 +389,7 @@
             if (savedOutgoings.length) {
                 savedOutgoings.forEach(row => addRow(row.description, row.amount));
             } else {
-                addRow("", "");
+                DEFAULT_OUTGOINGS.forEach(row => addRow(row.description, row.amount));
             }
 
             renderSavedScenarios();
