@@ -48,6 +48,31 @@
       color: #333;
     }
 
+    .zoom-bypass {
+      align-self: center;
+      padding: 0.4rem 0.65rem;
+      border: 1px solid var(--plaid-red-dark, #9e1713);
+      border-radius: 0.4rem;
+      background: var(--plaid-red, #da291c);
+      color: #fff;
+      font: inherit;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .zoom-bypass:hover,
+    .zoom-bypass:focus-visible {
+      background: var(--plaid-red-dark, #9e1713);
+    }
+
+    .zoom-bypass:disabled {
+      border-color: #999;
+      background: #ddd;
+      color: #777;
+      cursor: not-allowed;
+    }
+
     .district-key {
       display: flex;
       flex-wrap: wrap;
@@ -86,6 +111,7 @@
         <button id="boundaries-toggle" class="map-toggle" type="button" aria-pressed="true">HIDE BOUNDARIES</button>
         <button id="electors-toggle" class="map-toggle" type="button" aria-pressed="true">HIDE ELECTORS</button>
         <button id="bypass-toggle" class="map-toggle" type="button" aria-pressed="true">HIDE BYPASS</button>
+        <button id="zoom-bypass" class="zoom-bypass" type="button">ZOOM TO BYPASS</button>
       </div>
       <div id="district-key" class="district-key" aria-label="Polling district key"></div>
       <div id="harlech-map" class="harlech-map" aria-label="Map of Harlech a Llanbedr elector totals by postcode"></div>
@@ -109,9 +135,11 @@
     const boundariesToggle = document.getElementById("boundaries-toggle");
     const electorsToggle = document.getElementById("electors-toggle");
     const bypassToggle = document.getElementById("bypass-toggle");
+    const zoomBypassButton = document.getElementById("zoom-bypass");
     const postcodeMarkers = L.layerGroup().addTo(map);
     const bypassLayer = L.layerGroup().addTo(map);
     const boundariesLayer = L.layerGroup().addTo(map);
+    let bypassBounds = null;
     const DISTRICT_COLORS = {
       N1: "#2167b5",
       AF1: "#1b8a5a",
@@ -197,6 +225,7 @@
           if (points.length < 2) return;
 
           const coordinates = points.map(point => [point.latitude, point.longitude]);
+          bypassBounds = L.latLngBounds(coordinates);
           L.polyline(coordinates, {
             color: "#f252a4",
             weight: 4,
@@ -323,7 +352,12 @@
     configureLayerToggle(electorsToggle, postcodeMarkers, "ELECTORS", isVisible => {
       districtKey.hidden = !isVisible;
     });
-    configureLayerToggle(bypassToggle, bypassLayer, "BYPASS");
+    configureLayerToggle(bypassToggle, bypassLayer, "BYPASS", isVisible => {
+      zoomBypassButton.disabled = !isVisible;
+    });
+    zoomBypassButton.addEventListener("click", () => {
+      if (bypassBounds) map.fitBounds(bypassBounds, { padding: [28, 28] });
+    });
   </script>
 </body>
 </html>
