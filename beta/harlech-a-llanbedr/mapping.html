@@ -19,6 +19,23 @@
       margin: 0 0 1rem;
     }
 
+    .bypass-toggle {
+      margin: 0 0 1rem;
+      padding: 0.65rem 1rem;
+      border: 1px solid #164a8a;
+      border-radius: 0.5rem;
+      background: #2167b5;
+      color: #fff;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .bypass-toggle:hover,
+    .bypass-toggle:focus-visible {
+      background: #164a8a;
+    }
+
     .district-key {
       display: flex;
       flex-wrap: wrap;
@@ -53,6 +70,7 @@
       <h2>Mapping</h2>
       <p><a href="index.html" class="back-link">&larr; Back to Harlech a Llanbedr</a></p>
       <p id="mapping-summary" class="mapping-summary" role="status">Loading map data...</p>
+      <button id="bypass-toggle" class="bypass-toggle" type="button">View bypass only</button>
       <div id="district-key" class="district-key" aria-label="Polling district key"></div>
       <div id="harlech-map" class="harlech-map" aria-label="Map of Harlech a Llanbedr elector totals by postcode"></div>
     </section>
@@ -61,9 +79,14 @@
   <script>
     const sheetUrl =
       "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/export?format=csv&gid=439559888";
+    const bypassUrl =
+      "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/gviz/tq?tqx=out:csv&gid=439559888&range=G:I";
     const map = L.map("harlech-map", { attributionControl: false });
     const summary = document.getElementById("mapping-summary");
     const districtKey = document.getElementById("district-key");
+    const bypassToggle = document.getElementById("bypass-toggle");
+    const postcodeMarkers = L.layerGroup().addTo(map);
+    let bypassBounds = null;
     const DISTRICT_COLORS = {
       N1: "#2167b5",
       AF1: "#1b8a5a",
@@ -120,6 +143,46 @@
       return rows;
     }
 
+    function addProposedBypass() {
+      return fetch(bypassUrl)
+        .then(response => {
+          if (!response.ok) throw new Error("Could not load proposed bypass data.");
+          return response.text();
+        })
+        .then(text => {
+          const points = parseCsv(text)
+            .map(row => ({
+              name: row[0].trim(),
+              latitude: Number(row[1]),
+              longitude: Number(row[2])
+            }))
+            .filter(point =>
+              point.name &&
+              Number.isFinite(point.latitude) &&
+              Number.isFinite(point.longitude)
+            );
+
+          if (points.length < 2) return;
+
+          const coordinates = points.map(point => [point.latitude, point.longitude]);
+          bypassBounds = L.latLngBounds(coordinates);
+          L.polyline(coordinates, {
+            color: "#f252a4",
+            weight: 4,
+            opacity: 0.95
+          }).addTo(map);
+
+          points.forEach(point => {
+            L.circleMarker([point.latitude, point.longitude], {
+              radius: 6,
+              stroke: false,
+              fillColor: "#f252a4",
+              fillOpacity: 1
+            }).addTo(map).bindPopup("<strong>Proposed bypass</strong><br>" + point.name);
+          });
+        });
+    }
+
     fetch(sheetUrl)
       .then(response => {
         if (!response.ok) throw new Error("Could not load mapping data.");
@@ -162,7 +225,7 @@
             stroke: false,
             fillColor: color,
             fillOpacity: 0.75
-          }).addTo(map);
+          }).addTo(postcodeMarkers);
           marker.bindPopup(
             "<strong>" + point.postcode + "</strong><br>" +
             point.pollingDistrict + " (" +
@@ -177,11 +240,27 @@
         summary.textContent =
           points.length.toLocaleString("en-GB") + " postcode locations · " +
           totalElectors.toLocaleString("en-GB") + " electors";
+        return addProposedBypass();
       })
       .catch(error => {
         map.setView([52.856, -4.108], 12);
         summary.textContent = error.message;
       });
+
+    bypassToggle.addEventListener("click", () => {
+      const bypassOnly = map.hasLayer(postcodeMarkers);
+
+      if (bypassOnly) {
+        map.removeLayer(postcodeMarkers);
+        districtKey.hidden = true;
+        bypassToggle.textContent = "View all plot points";
+        if (bypassBounds) map.fitBounds(bypassBounds, { padding: [28, 28] });
+      } else {
+        map.addLayer(postcodeMarkers);
+        districtKey.hidden = false;
+        bypassToggle.textContent = "View bypass only";
+      }
+    });
   </script>
 </body>
 </html>
