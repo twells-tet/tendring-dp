@@ -7,6 +7,36 @@
   <link rel="icon" type="image/svg+xml" href="tarian-shield.svg">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <style>
+    .map-layer-toggle {
+      padding: 0.4rem 0.65rem;
+      border: 1px solid var(--plaid-red-dark, #9e1713);
+      border-radius: 0.5rem;
+      background: var(--plaid-red, #da291c);
+      color: #fff;
+      font: inherit;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .map-layer-toggles {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 0.4rem;
+    }
+
+    .map-layer-toggle:hover,
+    .map-layer-toggle:focus-visible {
+      background: var(--plaid-red-dark, #9e1713);
+    }
+
+    .map-layer-toggle[aria-pressed="false"] {
+      border-color: #777;
+      background: #eee;
+      color: #333;
+    }
+  </style>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 </head>
 <body class="pin-locked">
@@ -122,6 +152,10 @@
 
       <div class="mapping-controls">
         <button type="button" id="show-walks-toggle" class="show-walks-toggle-button">Show Delivery Walks</button>
+        <div class="map-layer-toggles">
+          <button type="button" id="property-markers-toggle" class="map-layer-toggle" aria-pressed="true">HIDE PROPERTY MARKERS</button>
+          <button type="button" id="boundaries-toggle" class="map-layer-toggle" aria-pressed="true">HIDE BOUNDARIES</button>
+        </div>
 
         <div class="manage-walks-picker-row" id="walk-district-row">
           <label for="walk-district-select">Polling District</label>
@@ -261,6 +295,12 @@
 
     const showWalksToggleEl =
       document.getElementById("show-walks-toggle");
+
+    const propertyMarkersToggleEl =
+      document.getElementById("property-markers-toggle");
+
+    const boundariesToggleEl =
+      document.getElementById("boundaries-toggle");
 
     const walkDistrictRowEl =
       document.getElementById("walk-district-row");
@@ -1340,43 +1380,172 @@
 
     let leafletMap = null;
     let markersLayer = null;
+    let propertyMarkersVisible = true;
+    let boundariesVisible = true;
     let communityBoundariesLoaded = false;
+    let communityBoundariesPromise = null;
+    let defaultBoundaryViewSet = false;
+    let initialMapRender = true;
+    const communityBoundariesLayer = L.featureGroup();
+
+    function updateMapLayerToggle(toggle, isVisible, label) {
+      toggle.setAttribute("aria-pressed", String(isVisible));
+      toggle.textContent = (isVisible ? "HIDE " : "SHOW ") + label;
+    }
+
+    propertyMarkersToggleEl.addEventListener("click", () => {
+      propertyMarkersVisible = !propertyMarkersVisible;
+
+      if (leafletMap && markersLayer) {
+        if (propertyMarkersVisible) {
+          markersLayer.addTo(leafletMap);
+        } else {
+          leafletMap.removeLayer(markersLayer);
+        }
+      }
+
+      updateMapLayerToggle(propertyMarkersToggleEl, propertyMarkersVisible, "PROPERTY MARKERS");
+    });
+
+    boundariesToggleEl.addEventListener("click", () => {
+      boundariesVisible = !boundariesVisible;
+
+      if (leafletMap) {
+        if (boundariesVisible) {
+          communityBoundariesLayer.addTo(leafletMap);
+        } else {
+          leafletMap.removeLayer(communityBoundariesLayer);
+        }
+      }
+
+      updateMapLayerToggle(boundariesToggleEl, boundariesVisible, "BOUNDARIES");
+    });
     const COMMUNITY_BOUNDARIES = [
       {
         name: "Abersoch gyda Llanengan",
         url: "/beta/boundaries/electoral-divisions/abersoch-gydal-lanengan.geojson",
-        color: "#2167b5"
+        color: "#777777"
       },
       {
         name: "Llanbedrog gyda Mynytho",
         url: "/beta/boundaries/electoral-divisions/llanbedrog-gydal-mynytho.geojson",
-        color: "#1b8a5a"
+        color: "#777777"
       },
       {
         name: "Gogledd Pwllheli",
         url: "/beta/boundaries/electoral-divisions/gogledd-pwllheli.geojson",
-        color: "#d76a17"
+        color: "#005f3b"
       },
       {
         name: "De Pwllheli",
         url: "/beta/boundaries/electoral-divisions/de-pwllheli.geojson",
-        color: "#7a4fb3"
+        color: "#777777"
       },
       {
         name: "Efailnewydd a Buan",
         url: "/beta/boundaries/electoral-divisions/efailnewydd-a-buan.geojson",
-        color: "#bf3c69"
+        color: "#777777"
+      },
+      {
+        name: "Pen draw Llŷn",
+        url: "/beta/boundaries/electoral-divisions/pen-draw-llyn.geojson",
+        color: "#777777"
+      },
+      {
+        name: "Morfa Nefyn a Thudweiliog",
+        url: "/beta/boundaries/electoral-divisions/morfa-nefyn-a-thudweiliog.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Nefyn",
+        url: "/beta/boundaries/electoral-divisions/nefyn.geojson",
+        color: "#777777"
+      },
+      {
+        name: "Abererch",
+        url: "/beta/boundaries/electoral-divisions/abererch.geojson",
+        color: "#777777"
+      },
+      {
+        name: "Llanystumdwy",
+        url: "/beta/boundaries/electoral-divisions/llanystumdwy.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Yr Eifl",
+        url: "/beta/boundaries/electoral-divisions/yr-eifl.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Criccieth",
+        url: "/beta/boundaries/electoral-divisions/criccieth.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Dwyrain Porthmadog",
+        url: "/beta/boundaries/electoral-divisions/dwyrain-porthmadog.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Gorllewin Porthmadog",
+        url: "/beta/boundaries/electoral-divisions/gorllewin-porthmadog.geojson",
+        color: "#777777"
+      },
+      {
+        name: "Glaslyn",
+        url: "/beta/boundaries/electoral-divisions/glaslyn.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Dolbenmaen",
+        url: "/beta/boundaries/electoral-divisions/dolbenmaen.geojson",
+        color: "#f58220"
+      },
+      {
+        name: "Penrhyndeudraeth",
+        url: "/beta/boundaries/electoral-divisions/penrhyndeudraeth.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Harlech a Llanbedr",
+        url: "/beta/boundaries/electoral-divisions/harlech-a-llanbedr.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Clynnog",
+        url: "/beta/boundaries/electoral-divisions/clynnog.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Trawsfynydd",
+        url: "/beta/boundaries/electoral-divisions/trawsfynydd.geojson",
+        color: "#777777"
+      },
+      {
+        name: "Dyffryn Ardudwy",
+        url: "/beta/boundaries/electoral-divisions/dyffryn-ardudwy.geojson",
+        color: "#777777"
+      },
+      {
+        name: "Abermaw",
+        url: "/beta/boundaries/electoral-divisions/abermaw.geojson",
+        color: "#777777"
+      },
+      {
+        name: "Brithdir and Llanfachreth/Ganllwyd/Llanelltyd",
+        url: "/beta/boundaries/electoral-divisions/brithdir-llanfachreth-ganllwyd-llanelltyd.geojson",
+        color: "#005f3b"
       }
     ];
 
     function addCommunityBoundaries() {
 
-      if (communityBoundariesLoaded) return;
+      if (communityBoundariesLoaded) return communityBoundariesPromise;
       communityBoundariesLoaded = true;
 
-      COMMUNITY_BOUNDARIES.forEach(community => {
+      communityBoundariesPromise = Promise.all(COMMUNITY_BOUNDARIES.map(community => {
 
-        fetch(community.url)
+        return fetch(community.url)
           .then(response => {
             if (!response.ok) {
               throw new Error("Could not load " + community.name + " boundary.");
@@ -1393,12 +1562,13 @@
                 fillOpacity: 0.06,
                 pane: "communityBoundaries"
               }
-            }).addTo(leafletMap);
+            }).addTo(communityBoundariesLayer);
 
           })
           .catch(error => console.error(error));
 
-      });
+      }));
+      return communityBoundariesPromise;
 
     }
 
@@ -1418,6 +1588,9 @@
         leafletMap.createPane("communityBoundaries");
         leafletMap.getPane("communityBoundaries").style.zIndex = 450;
         leafletMap.getPane("communityBoundaries").style.pointerEvents = "none";
+        if (boundariesVisible) {
+          communityBoundariesLayer.addTo(leafletMap);
+        }
         addCommunityBoundaries();
 
       }
@@ -1471,13 +1644,24 @@
 
       });
 
-      markersLayer = L.layerGroup(markers).addTo(leafletMap);
+      markersLayer = L.layerGroup(markers);
+      if (propertyMarkersVisible) {
+        markersLayer.addTo(leafletMap);
+      }
 
       function fitInitialMapView() {
 
         leafletMap.invalidateSize();
 
-        if (markers.length) {
+        if (
+          initialMapRender &&
+          defaultBoundaryViewSet &&
+          communityBoundariesLayer.getLayers().length
+        ) {
+
+          leafletMap.fitBounds(communityBoundariesLayer.getBounds().pad(0.08));
+
+        } else if (markers.length) {
 
           const group = L.featureGroup(markers);
           leafletMap.fitBounds(group.getBounds().pad(0.15));
@@ -1496,6 +1680,15 @@
         requestAnimationFrame(fitInitialMapView);
       });
       setTimeout(fitInitialMapView, 250);
+
+      if (initialMapRender) {
+        addCommunityBoundaries().then(() => {
+          if (!communityBoundariesLayer.getLayers().length) return;
+          defaultBoundaryViewSet = true;
+          fitInitialMapView();
+          initialMapRender = false;
+        });
+      }
 
     }
 
