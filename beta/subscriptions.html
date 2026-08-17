@@ -407,11 +407,13 @@
           "</strong>"
         : "<strong>" + (isOverdue(subscriber) ? "Payment Was Due Before: " : "Next Payment Due Before: ") + nextDue + "</strong>";
       const weeklyCostValue = parseCurrency(subscriber.weeklyCost);
-      const annualRevenue = subscriber.annualCost
-        ? subscriber.annualCost
-        : (weeklyCostValue ? "£" + (weeklyCostValue * 51.5).toFixed(2) : "");
+      const annualRevenue = weeklyCostValue
+        ? "£" + (weeklyCostValue * 4).toFixed(2) + " × 13 = £" +
+          (weeklyCostValue * 52).toFixed(2)
+        : "";
       const next28Days = weeklyCostValue
-        ? "£" + (weeklyCostValue * 4).toFixed(2)
+        ? "£" + weeklyCostValue.toFixed(2) + " × 4 = £" +
+          (weeklyCostValue * 4).toFixed(2)
         : "";
       return (
         "Subscription Start Date: " + startDateLabel + "<br>" +
@@ -468,6 +470,7 @@
     const FREQUENCY_DELIVERY_DAYS = {
       everyday: [0, 1, 2, 3, 4, 5, 6],
       sundaysonly: [0],
+      saturdaysonly: [6],
       weekdaysonly: [1, 2, 3, 4, 5],
       everydayexceptsaturday: [0, 1, 2, 3, 4, 5],
       cambriannews: [3],
@@ -490,6 +493,7 @@
     const FREQUENCY_COLUMNS = [
       { key: "everyday", label: "EVERY DAY" },
       { key: "sundaysonly", label: "SUNDAYS ONLY" },
+      { key: "saturdaysonly", label: "SATURDAYS ONLY" },
       { key: "weekdaysonly", label: "WEEKDAYS ONLY" },
       { key: "everydayexceptsaturday", label: "EVERY DAY EXCEPT SATURDAY" },
       { key: "cambriannews", label: "CAMBRIAN NEWS" }
@@ -539,12 +543,17 @@
           const priceInfo = findPriceMatch(sub.subscription);
           const selectedTitle = priceInfo ? priceInfo.title : "";
           const selectedFrequency = findFrequencyMatch(priceInfo, sub.frequency);
-          const weeklyCost = selectedFrequency
-            ? "£" + (selectedFrequency.cost28 / 4).toFixed(2)
-            : (sub.weeklycost || "");
-          const annualCost = selectedFrequency
-            ? "£" + (selectedFrequency.cost28 * 13).toFixed(2)
-            : "";
+          const explicitWeeklyCost = parseCurrency(sub.weeklycost);
+          const weeklyCost = explicitWeeklyCost
+            ? "£" + explicitWeeklyCost.toFixed(2)
+            : (selectedFrequency
+              ? "£" + (selectedFrequency.cost28 / 4).toFixed(2)
+              : "");
+          const annualCost = explicitWeeklyCost
+            ? "£" + (explicitWeeklyCost * 51.5).toFixed(2)
+            : (selectedFrequency
+              ? "£" + (selectedFrequency.cost28 * 13).toFixed(2)
+              : "");
           return {
             householdId: sub.householdid,
             customerName: sub.customername,
