@@ -155,6 +155,7 @@
         <div class="map-layer-toggles">
           <button type="button" id="property-markers-toggle" class="map-layer-toggle" aria-pressed="true">HIDE PROPERTY MARKERS</button>
           <button type="button" id="boundaries-toggle" class="map-layer-toggle" aria-pressed="true">HIDE BOUNDARIES</button>
+          <button type="button" id="zoom-to-gwynedd" class="map-layer-toggle">ZOOM TO GWYNEDD</button>
         </div>
 
         <div class="manage-walks-picker-row" id="walk-district-row">
@@ -301,6 +302,9 @@
 
     const boundariesToggleEl =
       document.getElementById("boundaries-toggle");
+
+    const zoomToGwyneddEl =
+      document.getElementById("zoom-to-gwynedd");
 
     const walkDistrictRowEl =
       document.getElementById("walk-district-row");
@@ -1420,6 +1424,17 @@
 
       updateMapLayerToggle(boundariesToggleEl, boundariesVisible, "BOUNDARIES");
     });
+
+    zoomToGwyneddEl.addEventListener("click", () => {
+      if (!leafletMap || !communityBoundariesLayer.getLayers().length) {
+        return;
+      }
+
+      leafletMap.fitBounds(communityBoundariesLayer.getBounds(), {
+        padding: [24, 24]
+      });
+    });
+
     const COMMUNITY_BOUNDARIES = [
       {
         name: "Abersoch gyda Llanengan",
@@ -1504,7 +1519,7 @@
       {
         name: "Penrhyndeudraeth",
         url: "/beta/boundaries/electoral-divisions/penrhyndeudraeth.geojson",
-        color: "#005f3b"
+        color: "#777777"
       },
       {
         name: "Harlech a Llanbedr",
@@ -1535,6 +1550,166 @@
         name: "Brithdir and Llanfachreth/Ganllwyd/Llanelltyd",
         url: "/beta/boundaries/electoral-divisions/brithdir-llanfachreth-ganllwyd-llanelltyd.geojson",
         color: "#005f3b"
+      },
+      {
+        name: "Llanwnda",
+        url: "/beta/boundaries/electoral-divisions/llanwnda.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Teigl",
+        url: "/beta/boundaries/electoral-divisions/teigl.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Bowydd a'r Rhiw",
+        url: "/beta/boundaries/electoral-divisions/bowydd-ar-rhiw.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Waunfawr",
+        url: "/beta/boundaries/electoral-divisions/waunfawr.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Llanberis",
+        url: "/beta/boundaries/electoral-divisions/llanberis.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Arthog a Llangelynnin",
+        url: "/beta/boundaries/electoral-divisions/arthog-a-llangelynnin.geojson",
+        color: "#777777"
+      },
+      {
+        name: "Bro Dysynni",
+        url: "/beta/boundaries/electoral-divisions/bro-dysynni.geojson",
+        color: "#777777"
+      },
+      {
+        name: "Llanuwchllyn",
+        url: "/beta/boundaries/electoral-divisions/llanuwchllyn.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Gorllewin Tywyn",
+        url: "/beta/boundaries/electoral-divisions/gorllewin-tywyn.geojson",
+        color: "#777777"
+      },
+      {
+        name: "Gogledd Dolgellau",
+        url: "/beta/boundaries/electoral-divisions/gogledd-dolgellau.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "De Dolgellau",
+        url: "/beta/boundaries/electoral-divisions/de-dolgellau.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Pen-y-groes",
+        url: "/beta/boundaries/electoral-divisions/pen-y-groes.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Llanllyfni",
+        url: "/beta/boundaries/electoral-divisions/llanllyfni.geojson",
+        color: "#777777"
+      },
+      {
+        name: "Tryfan",
+        url: "/beta/boundaries/electoral-divisions/tryfan.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Y Groeslon",
+        url: "/beta/boundaries/electoral-divisions/y-groeslon.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Y Bontnewydd",
+        url: "/beta/boundaries/electoral-divisions/y-bontnewydd.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Cwm-y-glo",
+        url: "/beta/boundaries/electoral-divisions/cwm-y-glo.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Bethel a'r Felinheli",
+        url: "/beta/boundaries/electoral-divisions/bethel-ar-felinheli.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Penisa'r-waun",
+        url: "/beta/boundaries/electoral-divisions/penisar-waun.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Deiniolen",
+        url: "/beta/boundaries/electoral-divisions/deiniolen.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Canol Tref Caernarfon",
+        url: "/beta/boundaries/electoral-divisions/canol-tref-caernarfon.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Peblig",
+        url: "/beta/boundaries/electoral-divisions/peblig.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Cadnant",
+        url: "/beta/boundaries/electoral-divisions/cadnant.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Menai",
+        url: "/beta/boundaries/electoral-divisions/menai.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Llanrug",
+        url: "/beta/boundaries/electoral-divisions/llanrug.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Diffwys a Maenofferen",
+        url: "/beta/boundaries/electoral-divisions/diffwys-a-maenofferen.geojson",
+        color: "#777777"
+      },
+      {
+        name: "Y Bala",
+        url: "/beta/boundaries/electoral-divisions/y-bala.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Hendre",
+        url: "/beta/boundaries/electoral-divisions/hendre.geojson",
+        color: "#e4003b"
+      },
+      {
+        name: "Morfa Tywyn",
+        url: "/beta/boundaries/electoral-divisions/morfa-tywyn.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Llandderfel",
+        url: "/beta/boundaries/electoral-divisions/llandderfel.geojson",
+        color: "#005f3b"
+      },
+      {
+        name: "Corris a Mawddwy",
+        url: "/beta/boundaries/electoral-divisions/corris-a-mawddwy.geojson",
+        color: "#777777"
+      },
+      {
+        name: "Aberdyfi",
+        url: "/beta/boundaries/electoral-divisions/aberdyfi.geojson",
+        color: "#777777"
       }
     ];
 
@@ -1553,16 +1728,26 @@
             return response.json();
           })
           .then(geojson => {
+            const isAbersoch = community.name === "Abersoch gyda Llanengan";
+            const isIndependent = community.color === "#777777";
             const boundary = L.geoJSON(geojson, {
               style: {
-                color: community.color,
-                weight: 4,
-                opacity: 0.95,
+                color: isAbersoch ? "transparent" : "#000000",
+                weight: isAbersoch ? 0 : 3,
+                opacity: 1,
                 fillColor: community.color,
-                fillOpacity: 0.06,
+                fillOpacity: isAbersoch ? 0 : (isIndependent ? 0.5 : 0.28),
                 pane: "communityBoundaries"
               }
             }).addTo(communityBoundariesLayer);
+
+            if (!isAbersoch) {
+              const boundaryLabel =
+                community.name === "Harlech a Llanbedr"
+                  ? "Harlech a Llanbedr [2]"
+                  : community.name;
+              boundary.bindPopup("<strong>" + boundaryLabel + "</strong>");
+            }
 
           })
           .catch(error => console.error(error));
