@@ -153,7 +153,7 @@
       <div class="mapping-controls">
         <button type="button" id="show-walks-toggle" class="show-walks-toggle-button">Show Delivery Walks</button>
         <div class="map-layer-toggles">
-          <button type="button" id="property-markers-toggle" class="map-layer-toggle" aria-pressed="true">HIDE PROPERTY MARKERS</button>
+          <button type="button" id="property-markers-toggle" class="map-layer-toggle" aria-pressed="false">SHOW PROPERTY MARKERS</button>
           <button type="button" id="boundaries-toggle" class="map-layer-toggle" aria-pressed="true">HIDE BOUNDARIES</button>
           <button type="button" id="zoom-to-gwynedd" class="map-layer-toggle">ZOOM TO GWYNEDD</button>
         </div>
@@ -1384,7 +1384,7 @@
 
     let leafletMap = null;
     let markersLayer = null;
-    let propertyMarkersVisible = true;
+    let propertyMarkersVisible = false;
     let boundariesVisible = true;
     let communityBoundariesLoaded = false;
     let communityBoundariesPromise = null;
@@ -1747,10 +1747,22 @@
                 "Harlech a Llanbedr",
                 "Bethel a'r Felinheli"
               ]);
-              const boundaryLabel =
+              const wardName =
                 twoMemberWards.has(community.name)
                   ? community.name + " [2]"
                   : community.name;
+              const partyByColor = {
+                "#005f3b": "Plaid Cymru",
+                "#777777": "Independent",
+                "#f58220": "Liberal Democrat",
+                "#e4003b": "Labour",
+                "#12b5cb": "Reform"
+              };
+              const party = partyByColor[community.color];
+              const boundaryLabel =
+                party
+                  ? wardName + " (" + party + ")"
+                  : wardName;
               boundary.bindPopup("<strong>" + boundaryLabel + "</strong>");
             }
 
@@ -1843,11 +1855,7 @@
 
         leafletMap.invalidateSize();
 
-        if (
-          initialMapRender &&
-          defaultBoundaryViewSet &&
-          communityBoundariesLayer.getLayers().length
-        ) {
+        if (initialMapRender && communityBoundariesLayer.getLayers().length) {
 
           leafletMap.fitBounds(communityBoundariesLayer.getBounds().pad(0.08));
 
