@@ -1579,7 +1579,7 @@
       {
         name: "Arthog a Llangelynnin",
         url: "/beta/boundaries/electoral-divisions/arthog-a-llangelynnin.geojson",
-        color: "#777777"
+        color: "#12b5cb"
       },
       {
         name: "Bro Dysynni",
@@ -1730,21 +1730,26 @@
           .then(geojson => {
             const isAbersoch = community.name === "Abersoch gyda Llanengan";
             const isIndependent = community.color === "#777777";
+            const isReform = community.color === "#12b5cb";
             const boundary = L.geoJSON(geojson, {
               style: {
                 color: isAbersoch ? "transparent" : "#000000",
                 weight: isAbersoch ? 0 : 3,
                 opacity: 1,
                 fillColor: community.color,
-                fillOpacity: isAbersoch ? 0 : (isIndependent ? 0.5 : 0.28),
+                fillOpacity: isAbersoch ? 0 : (isIndependent || isReform ? 0.5 : 0.28),
                 pane: "communityBoundaries"
               }
             }).addTo(communityBoundariesLayer);
 
             if (!isAbersoch) {
+              const twoMemberWards = new Set([
+                "Harlech a Llanbedr",
+                "Bethel a'r Felinheli"
+              ]);
               const boundaryLabel =
-                community.name === "Harlech a Llanbedr"
-                  ? "Harlech a Llanbedr [2]"
+                twoMemberWards.has(community.name)
+                  ? community.name + " [2]"
                   : community.name;
               boundary.bindPopup("<strong>" + boundaryLabel + "</strong>");
             }
