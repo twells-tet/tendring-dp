@@ -21,6 +21,15 @@ jobs:
         with:
           node-version: 22
 
+      - name: Stage deployable assets
+        run: |
+          mkdir -p .deploy
+          rsync -a --delete \
+            --exclude '.deploy' \
+            --exclude '.git' \
+            --exclude '.github' \
+            ./ .deploy/
+
       - name: Deploy static assets
         run: npx --yes wrangler deploy
         env:
