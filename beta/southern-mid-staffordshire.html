@@ -21,11 +21,16 @@
     }
 
     .authority-map-toggles {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
       gap: 0.5rem;
       padding: 1rem 1.25rem;
       border-bottom: 1px solid var(--border);
+    }
+
+    .authority-map-toggle-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
     }
 
     .conservative-results {
@@ -112,13 +117,13 @@
     }
 
     .map-toggle-button.is-show {
-      border-color: #0069ac;
-      background: #0087dc;
+      border-color: var(--plaid-green-dark);
+      background: var(--plaid-green);
     }
 
     .map-toggle-button.is-hide {
-      border-color: #a31f16;
-      background: #da291c;
+      border-color: var(--plaid-red-dark);
+      background: var(--plaid-red);
     }
 
     .map-toggle-button:disabled {
@@ -178,13 +183,18 @@
   <main class="app-shell">
     <section class="panel authority-map-panel">
       <div class="authority-map-toggles" role="group" aria-label="Map controls">
-        <button type="button" id="targets-toggle" class="map-toggle-button is-show">SHOW 2027 TARGETS</button>
-        <button type="button" id="non-targets-toggle" class="map-toggle-button is-show">SHOW NON-TARGETS</button>
-        <button type="button" id="show-all-toggle" class="map-toggle-button is-show">SHOW ALL DIVISIONS</button>
-        <button type="button" id="held-toggle" class="map-toggle-button" disabled>SHOW HELD DIVISIONS</button>
-        <button type="button" id="districts-toggle" class="map-toggle-button is-show">SHOW DISTRICTS</button>
-        <button type="button" id="constituencies-toggle" class="map-toggle-button is-hide">HIDE CONSTITUENCIES</button>
-        <button type="button" id="labels-toggle" class="map-toggle-button is-show">SHOW CONSTITUENCY NAMES</button>
+        <div class="authority-map-toggle-row">
+          <button type="button" id="targets-toggle" class="map-toggle-button is-show">SHOW 2027 TARGETS</button>
+          <button type="button" id="non-targets-toggle" class="map-toggle-button is-show">SHOW NON-TARGETS</button>
+          <button type="button" id="show-all-toggle" class="map-toggle-button is-show">SHOW ALL DIVISIONS</button>
+          <button type="button" id="held-toggle" class="map-toggle-button" disabled>SHOW HELD DIVISIONS</button>
+          <button type="button" id="held-only-toggle" class="map-toggle-button is-hide">HIDE NON-HELD DIVISIONS</button>
+        </div>
+        <div class="authority-map-toggle-row">
+          <button type="button" id="districts-toggle" class="map-toggle-button is-show">SHOW DISTRICTS</button>
+          <button type="button" id="constituencies-toggle" class="map-toggle-button is-hide">HIDE CONSTITUENCIES</button>
+          <button type="button" id="labels-toggle" class="map-toggle-button is-show">SHOW CONSTITUENCY NAMES</button>
+        </div>
       </div>
       <div id="authority-map" class="authority-map" role="application" aria-label="Map of Southern and Mid Staffordshire county electoral divisions"></div>
       <section class="conservative-results" aria-labelledby="conservative-results-heading">
@@ -579,6 +589,7 @@
       const nonTargetsButton = document.getElementById("non-targets-toggle");
       const showAllButton = document.getElementById("show-all-toggle");
       const heldButton = document.getElementById("held-toggle");
+      const heldOnlyButton = document.getElementById("held-only-toggle");
 
       function applyFilter(filter) {
         activeFilter = filter === "all" ? "all" : (activeFilter === filter ? "all" : filter);
@@ -595,6 +606,8 @@
           if (showingHeld) {
             heldLayer.addTo(map);
           }
+        } else if (activeFilter === "held") {
+          heldLayer.addTo(map);
         } else if (activeFilter === "non-targets") {
           nonTargetsLayer.addTo(map);
         } else {
@@ -604,6 +617,9 @@
         updateButton(targetsButton, activeFilter === "targets", "2027 TARGETS");
         updateButton(nonTargetsButton, activeFilter === "non-targets", "NON-TARGETS");
         updateButton(showAllButton, false, "ALL DIVISIONS");
+        const nonHeldAvailable = activeFilter !== "non-targets";
+        heldOnlyButton.disabled = !nonHeldAvailable;
+        updateButton(heldOnlyButton, nonHeldAvailable && activeFilter !== "held", "NON-HELD DIVISIONS");
         const heldAvailable = activeFilter === "targets";
         heldButton.disabled = !heldAvailable;
         updateButton(heldButton, heldAvailable && showingHeld, "HELD DIVISIONS");
@@ -617,10 +633,8 @@
 
       targetsButton.addEventListener("click", () => applyFilter("targets"));
       nonTargetsButton.addEventListener("click", () => applyFilter("non-targets"));
-      showAllButton.addEventListener("click", () => {
-        applyFilter("all");
-        window.dispatchEvent(new Event("show-all-map"));
-      });
+      showAllButton.addEventListener("click", () => applyFilter("all"));
+      heldOnlyButton.addEventListener("click", () => applyFilter("held"));
       heldButton.addEventListener("click", () => {
         showingHeld = !showingHeld;
         if (showingHeld) {
@@ -699,7 +713,6 @@
 
       districtsButton.addEventListener("click", () => setActiveLayer("districts"));
       constituenciesButton.addEventListener("click", () => setActiveLayer("constituencies"));
-      window.addEventListener("show-all-map", () => displayLayer("districts"));
       labelsButton.addEventListener("click", () => {
         showingLabels = !showingLabels;
         if (showingLabels) {
