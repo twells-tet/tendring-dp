@@ -135,6 +135,10 @@
       { name: "Llanfair", url: "/beta/boundaries/harlech/llanfair.geojson", color: "#7a4fb3" }
     ];
     const map = L.map("harlech-map", { attributionControl: false });
+    map.createPane("community-boundaries");
+    map.getPane("community-boundaries").style.zIndex = 400;
+    map.createPane("postcode-markers");
+    map.getPane("postcode-markers").style.zIndex = 450;
     const summary = document.getElementById("mapping-summary");
     const districtKey = document.getElementById("district-key");
     const boundariesToggle = document.getElementById("boundaries-toggle");
@@ -257,6 +261,8 @@
           })
           .then(geojson => {
             const boundary = L.geoJSON(geojson, {
+              pane: "community-boundaries",
+              interactive: false,
               style: {
                 color: community.color,
                 weight: 3,
@@ -314,6 +320,7 @@
         points.forEach(point => {
           const color = districtColors.get(point.pollingDistrict);
           const marker = L.circleMarker([point.latitude, point.longitude], {
+            pane: "postcode-markers",
             radius: Math.max(6, Math.min(18, Math.sqrt(point.electors) * 1.5)),
             stroke: false,
             fillColor: color,
