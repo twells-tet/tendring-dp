@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Southern &amp; Mid Staffordshire Unitary Authority | TARIAN</title>
+  <link rel="icon" type="image/svg+xml" href="tarian-shield.svg">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="vendor/leaflet.css">
+  <script src="vendor/leaflet.js"></script>
+  <style>
+    .authority-map-panel {
+      overflow: hidden;
+      padding: 0;
+    }
+
+    .authority-map {
+      height: min(70vh, 720px);
+      min-height: 440px;
+      background: #dbe8ed;
+    }
+
+    .authority-map-toggles {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .conservative-results {
+      padding: 1.5rem 1.25rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .conservative-results h2 {
+      margin: 0 0 1rem;
+      font-size: 1.15rem;
+    }
+
+    .conservative-results-table-wrap {
+      overflow-x: auto;
+    }
+
+    .conservative-results-table {
+      width: 100%;
+      border-bottom: 1px solid var(--border);
+      color: #222;
+      font-size: 0.9rem;
+      border-collapse: collapse;
+    }
+
+    .conservative-results-table th,
+    .conservative-results-table td {
+      padding: 0.65rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+
+    .conservative-results-table th {
+      color: var(--plaid-green-dark);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .conservative-results-table td:first-child {
+      min-width: 220px;
+      font-weight: 600;
+    }
+
+    .winner-dot {
+      display: inline-block;
+      width: 0.7rem;
+      height: 0.7rem;
+      margin-right: 0.45rem;
+      border-radius: 50%;
+      vertical-align: -0.04rem;
+    }
+
+    .conservative-results-table td:last-child {
+      color: var(--plaid-green-dark);
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .conservative-results-table tr.tory-target td:first-child {
+      background-color: rgba(0, 135, 220, 0.08);
+      background-image: repeating-linear-gradient(
+        -45deg,
+        rgba(0, 135, 220, 0.28) 0,
+        rgba(0, 135, 220, 0.28) 3px,
+        transparent 3px,
+        transparent 8px
+      );
+    }
+
+    .leaflet-container {
+      font-family: "Inter", sans-serif;
+    }
+
+    .map-toggle-button {
+      padding: 0.55rem 0.7rem;
+      border: 1px solid transparent;
+      border-radius: 0.3rem;
+      color: #ffffff;
+      font: inherit;
+      font-size: 0.75rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .map-toggle-button.is-show {
+      border-color: #0069ac;
+      background: #0087dc;
+    }
+
+    .map-toggle-button.is-hide {
+      border-color: #a31f16;
+      background: #da291c;
+    }
+
+    .map-toggle-button:disabled {
+      border-color: #9b9b9b;
+      color: #666666;
+      background: #d0d0d0;
+      cursor: not-allowed;
+    }
+
+    @media (max-width: 600px) {
+      .authority-map {
+        min-height: 380px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="page-header">
+    <a href="index.html" class="page-header-logo-link" aria-label="TARIAN home">
+      <img src="tarian-shield.svg" alt="" class="page-header-logo">
+    </a>
+    <h1>TARIAN</h1>
+    <p class="page-subtitle">SOUTHERN &amp; MID STAFFORDSHIRE UNITARY AUTHORITY</p>
+  </header>
+
+  <main class="app-shell">
+    <section class="panel authority-map-panel">
+      <div class="authority-map-toggles" role="group" aria-label="Map controls">
+        <button type="button" id="targets-toggle" class="map-toggle-button is-show">SHOW 2027 TARGETS</button>
+        <button type="button" id="non-targets-toggle" class="map-toggle-button is-show">SHOW NON-TARGETS</button>
+        <button type="button" id="show-all-toggle" class="map-toggle-button is-show">SHOW ALL</button>
+        <button type="button" id="held-toggle" class="map-toggle-button" disabled>SHOW HELD DIVISIONS</button>
+        <button type="button" id="districts-toggle" class="map-toggle-button is-hide">HIDE DISTRICTS</button>
+      </div>
+      <div id="authority-map" class="authority-map" role="application" aria-label="Map of Southern and Mid Staffordshire county electoral divisions"></div>
+      <section class="conservative-results" aria-labelledby="conservative-results-heading">
+        <h2 id="conservative-results-heading">RESULTS FOR DIVISIONS 2025</h2>
+        <div class="conservative-results-table-wrap">
+          <table class="conservative-results-table">
+            <thead>
+              <tr>
+                <th scope="col">Division</th>
+                <th scope="col">District</th>
+                <th scope="col">Winner 2025</th>
+                <th scope="col">CON %</th>
+                <th scope="col">Electors</th>
+                <th scope="col">Majority</th>
+              </tr>
+            </thead>
+            <tbody id="conservative-results-list"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const map = L.map("authority-map", { zoomControl: true, scrollWheelZoom: true });
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
+    }).addTo(map);
+
+    map.createPane("division-boundaries");
+    map.getPane("division-boundaries").style.zIndex = 450;
+    map.createPane("district-boundary");
+    map.getPane("district-boundary").style.zIndex = 500;
+
+    const partyColours = {
+      "Reform UK": "#12b6cf",
+      Conservative: "#0087dc",
+      Labour: "#e4003b",
+      Green: "#6ab023",
+      "Stafford Borough Independents": "#f3a000"
+    };
+    const partyAbbreviations = {
+      "Reform UK": "REF",
+      Conservative: "CON",
+      Labour: "LAB",
+      "Liberal Democrats": "LD",
+      Green: "GRN",
+      "Stafford Borough Independents": "IND"
+    };
+    const supplementaryWinnerVotes = {
+      // The supplied CSV has the Independent percentage but not the raw vote total.
+      "Stone Urban ED": 1589
+    };
+    function divisionStyle(feature, results) {
+      const result = results.get(feature.properties.Name);
+
+      return {
+        pane: "division-boundaries",
+        color: "#ff4f9a",
+        weight: 2,
+        opacity: 1,
+        fill: true,
+        fillColor: partyColours[result?.["Winning party"]] || "#9a9a9a",
+        fillOpacity: 0.62,
+        lineCap: "round",
+        lineJoin: "round"
+      };
+    }
+
+    function districtStyle() {
+      return {
+        pane: "district-boundary",
+        color: "#000000",
+        weight: 4,
+        opacity: 1,
+        fill: false,
+        lineCap: "round",
+        lineJoin: "round"
+      };
+    }
+
+    function parseCsvRow(row) {
+      const values = [];
+      let value = "";
+      let inQuotes = false;
+
+      for (let index = 0; index < row.length; index += 1) {
+        const character = row[index];
+        if (character === "\"") {
+          if (inQuotes && row[index + 1] === "\"") {
+            value += character;
+            index += 1;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (character === "," && !inQuotes) {
+          values.push(value);
+          value = "";
+        } else {
+          value += character;
+        }
+      }
+
+      values.push(value);
+      return values;
+    }
+
+    function getResults(resultsCsv) {
+      const rows = resultsCsv.trim().split(/\r?\n/).map(parseCsvRow);
+      const headers = rows.shift().map(header => header.replace(/^\uFEFF/, ""));
+
+      return new Map(rows.map(row => {
+        const result = Object.fromEntries(headers.map((header, index) => [header, row[index]]));
+        return [result.Division, result];
+      }));
+    }
+
+    function escapeHtml(value) {
+      return value.replace(/[&<>"']/g, character => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "\"": "&quot;",
+        "'": "&#039;"
+      })[character]);
+    }
+
+    function percentageValue(value) {
+      return Number.parseFloat(value) || 0;
+    }
+
+    function formatPercentage(value) {
+      return value.toFixed(1).replace(/\.0$/, "") + "%";
+    }
+
+    function voteValue(value) {
+      return Number.parseInt((value || "").replace(/,/g, ""), 10);
+    }
+
+    function conservativeMajority(result) {
+      const winnerVoteColumns = {
+        "Reform UK": "Reform UK votes",
+        Conservative: "Conservative votes",
+        Labour: "Labour votes",
+        "Liberal Democrats": "Liberal Democrats votes",
+        Green: "Green votes"
+      };
+      const conservativeVotes = voteValue(result["Conservative votes"]);
+      const suppliedWinnerVotes = voteValue(
+        winnerVoteColumns[result["Winning party"]] &&
+        result[winnerVoteColumns[result["Winning party"]]]
+      );
+      const winnerVotes = Number.isNaN(suppliedWinnerVotes) ?
+        supplementaryWinnerVotes[result.Division] :
+        suppliedWinnerVotes;
+
+      if (Number.isNaN(conservativeVotes) || Number.isNaN(winnerVotes)) {
+        return null;
+      }
+
+      if (result["Winning party"] === "Conservative") {
+        const runnerUpVotes = [
+          "Reform UK votes",
+          "Liberal Democrats votes",
+          "Labour votes",
+          "Green votes"
+        ]
+          .map(column => voteValue(result[column]))
+          .filter(votes => !Number.isNaN(votes));
+
+        return runnerUpVotes.length ? conservativeVotes - Math.max(...runnerUpVotes) : null;
+      }
+
+      return conservativeVotes - winnerVotes;
+    }
+
+    function formatMajority(value) {
+      return value === null ? "—" : value.toLocaleString("en-GB");
+    }
+
+    function formatElectors(value) {
+      return value.toLocaleString("en-GB");
+    }
+
+    function resultBreakdown(result) {
+      const parties = [
+        { label: "REF", percentage: percentageValue(result["Reform UK %"]) },
+        { label: "CON", percentage: percentageValue(result["Conservative %"]) },
+        { label: "LD", percentage: percentageValue(result["Liberal Democrats %"]) },
+        { label: "LAB", percentage: percentageValue(result["Labour %"]) },
+        { label: "GRN", percentage: percentageValue(result["Green %"]) }
+      ].filter(party => party.percentage > 0);
+      const knownPartyWinners = new Set(["Reform UK", "Conservative", "Liberal Democrats", "Labour", "Green"]);
+      const minorPercentage = percentageValue(result["Minor %"]);
+
+      if (minorPercentage > 0 && !knownPartyWinners.has(result["Winning party"])) {
+        parties.push({ label: "IND", percentage: minorPercentage });
+      }
+
+      parties.sort((first, second) => second.percentage - first.percentage);
+      const leadingParties = parties.slice(0, 3);
+      const accountedFor = leadingParties.reduce((total, party) => total + party.percentage, 0);
+      const totalVoteShare = parties.reduce((total, party) => total + party.percentage, 0) +
+        percentageValue(result["Other %"]) +
+        (knownPartyWinners.has(result["Winning party"]) ? minorPercentage : 0);
+      const otherShare = totalVoteShare - accountedFor;
+      const summary = leadingParties.map(party => party.label + " " + formatPercentage(party.percentage));
+
+      if (otherShare > 0.05) {
+        summary.push("OTHERS " + formatPercentage(otherShare));
+      }
+
+      return summary;
+    }
+
+    function divisionPopup(feature, results) {
+      const result = results.get(feature.properties.Name);
+      if (!result) {
+        return "<strong>" + escapeHtml(feature.properties.Name) + "</strong>";
+      }
+
+      return "<strong>" + escapeHtml(feature.properties.Name) + "</strong>" +
+        "<br>" + escapeHtml(result["Existing district"]) +
+        "<br>CON MAJORITY 2025: " + formatMajority(conservativeMajority(result)) +
+        "<br>2025 Result:" +
+        "<br>" + resultBreakdown(result).map(escapeHtml).join("<br>");
+    }
+
+    function createDivisionLayer(features, results) {
+      return L.geoJSON(features, {
+        style: feature => divisionStyle(feature, results),
+        onEachFeature(feature, layer) {
+          layer.bindPopup(divisionPopup(feature, results));
+        }
+      });
+    }
+
+    function renderConservativeResults(results, electorsByDivision) {
+      const list = document.getElementById("conservative-results-list");
+      const topDivisions = getTopConservativeDivisionNames(results);
+      const rankedResults = Array.from(results.values()).sort((first, second) => {
+        function group(result) {
+          if (result["Winning party"] === "Conservative") {
+            return 0;
+          }
+          return topDivisions.has(result.Division) ? 1 : 2;
+        }
+
+        const groupDifference = group(first) - group(second);
+        if (groupDifference !== 0) {
+          return groupDifference;
+        }
+
+        return percentageValue(second["Conservative %"]) - percentageValue(first["Conservative %"]);
+      });
+
+      rankedResults.forEach(result => {
+        const item = document.createElement("tr");
+        const division = document.createElement("td");
+        const district = document.createElement("td");
+        const winner = document.createElement("td");
+        const share = document.createElement("td");
+        const electors = document.createElement("td");
+        const majority = document.createElement("td");
+
+        item.classList.toggle("tory-target", topDivisions.has(result.Division));
+        const winnerDot = document.createElement("span");
+        winnerDot.className = "winner-dot";
+        winnerDot.setAttribute("aria-hidden", "true");
+        winnerDot.style.backgroundColor = partyColours[result["Winning party"]] || "#9a9a9a";
+        division.append(winnerDot, document.createTextNode(result.Division.replace(/\s+ED$/, "")));
+        district.textContent = result["Existing district"];
+        winner.textContent = partyAbbreviations[result["Winning party"]] || result["Winning party"];
+        share.textContent = formatPercentage(percentageValue(result["Conservative %"]));
+        electors.textContent = formatElectors(electorsByDivision.get(result.Division));
+        majority.textContent = formatMajority(conservativeMajority(result));
+
+        item.append(division, district, winner, share, electors, majority);
+        list.append(item);
+      });
+    }
+
+    function getTopConservativeDivisionNames(results) {
+      const rankedDivisions = getRankedConservativeResults(results)
+        .filter(result => conservativeMajority(result) !== null);
+      const topDivisions = new Set(
+        rankedDivisions
+          .slice(0, 24)
+          .map(result => result.Division)
+      );
+
+      topDivisions.delete("Stafford West & Rural ED");
+      rankedDivisions.slice(0, 9).forEach(result => topDivisions.delete(result.Division));
+      [
+        "Stafford North ED",
+        "Stafford Central ED",
+        "Stafford South West ED"
+      ].forEach(division => topDivisions.delete(division));
+      [
+        "Stone Rural North ED",
+        "Great Wyrley & Essington ED",
+        "Cheslyn Hay Village, Featherstone & Shareshill ED"
+      ].forEach(division => topDivisions.add(division));
+      return topDivisions;
+    }
+
+    function getRankedConservativeResults(results) {
+      return Array.from(results.values()).sort((first, second) => {
+        const firstMajority = conservativeMajority(first);
+        const secondMajority = conservativeMajority(second);
+
+        if (firstMajority === null && secondMajority === null) {
+          return 0;
+        }
+        if (firstMajority === null) {
+          return 1;
+        }
+        if (secondMajority === null) {
+          return -1;
+        }
+
+        return secondMajority - firstMajority;
+      });
+    }
+
+    function addDivisionFilters(divisions, results, allDivisionsLayer) {
+      const targetDivisions = getTopConservativeDivisionNames(results);
+      const targetFeatures = divisions.features.filter(feature =>
+        targetDivisions.has(feature.properties.Name)
+      );
+      const heldFeatures = divisions.features.filter(feature => {
+        const result = results.get(feature.properties.Name);
+        return result["Winning party"] === "Conservative";
+      });
+      const nonTargetFeatures = divisions.features.filter(function(feature) {
+        return targetFeatures.indexOf(feature) === -1 &&
+          heldFeatures.indexOf(feature) === -1;
+      });
+      const targetsLayer = createDivisionLayer(targetFeatures, results);
+      const nonTargetsLayer = createDivisionLayer(nonTargetFeatures, results);
+      const heldLayer = createDivisionLayer(heldFeatures, results);
+      let activeFilter = "all";
+      let showingHeld = true;
+      const targetsButton = document.getElementById("targets-toggle");
+      const nonTargetsButton = document.getElementById("non-targets-toggle");
+      const showAllButton = document.getElementById("show-all-toggle");
+      const heldButton = document.getElementById("held-toggle");
+
+      function applyFilter(filter) {
+        activeFilter = filter === "all" ? "all" : (activeFilter === filter ? "all" : filter);
+        if (activeFilter !== "targets") {
+          showingHeld = true;
+        }
+        map.removeLayer(allDivisionsLayer);
+        map.removeLayer(targetsLayer);
+        map.removeLayer(nonTargetsLayer);
+        map.removeLayer(heldLayer);
+
+        if (activeFilter === "targets") {
+          targetsLayer.addTo(map);
+          if (showingHeld) {
+            heldLayer.addTo(map);
+          }
+        } else if (activeFilter === "non-targets") {
+          nonTargetsLayer.addTo(map);
+        } else {
+          allDivisionsLayer.addTo(map);
+        }
+
+        updateButton(targetsButton, activeFilter === "targets", "2027 TARGETS");
+        updateButton(nonTargetsButton, activeFilter === "non-targets", "NON-TARGETS");
+        updateButton(showAllButton, false, "ALL");
+        const heldAvailable = activeFilter === "targets";
+        heldButton.disabled = !heldAvailable;
+        updateButton(heldButton, heldAvailable && showingHeld, "HELD DIVISIONS");
+      }
+
+      function updateButton(button, visible, label) {
+        button.classList.toggle("is-show", !visible);
+        button.classList.toggle("is-hide", visible);
+        button.textContent = (visible ? "HIDE " : "SHOW ") + label;
+      }
+
+      targetsButton.addEventListener("click", () => applyFilter("targets"));
+      nonTargetsButton.addEventListener("click", () => applyFilter("non-targets"));
+      showAllButton.addEventListener("click", () => applyFilter("all"));
+      heldButton.addEventListener("click", () => {
+        showingHeld = !showingHeld;
+        if (showingHeld) {
+          heldLayer.addTo(map);
+        } else {
+          map.removeLayer(heldLayer);
+        }
+        updateButton(heldButton, showingHeld, "HELD DIVISIONS");
+      });
+    }
+
+    function addDistrictsToggle(districtsLayer) {
+      const button = document.getElementById("districts-toggle");
+      let showingDistricts = true;
+
+      button.addEventListener("click", () => {
+        showingDistricts = !showingDistricts;
+        if (showingDistricts) {
+          districtsLayer.addTo(map);
+        } else {
+          map.removeLayer(districtsLayer);
+        }
+        button.classList.toggle("is-show", !showingDistricts);
+        button.classList.toggle("is-hide", showingDistricts);
+        button.textContent = (showingDistricts ? "HIDE " : "SHOW ") + "DISTRICTS";
+      });
+    }
+
+    async function loadBoundaries() {
+      try {
+        const [divisionsResponse, resultsResponse, electorsResponse] = await Promise.all([
+          fetch("boundaries/southern_mid_staffordshire_divisions.geojson"),
+          fetch("boundaries/southern_mid_staffordshire_2025_results.csv"),
+          fetch("boundaries/southern_mid_staffordshire_2025_electors.json")
+        ]);
+        if (!divisionsResponse.ok || !resultsResponse.ok || !electorsResponse.ok) {
+          throw new Error("County division boundary, result, or elector data could not be loaded.");
+        }
+
+        const [divisions, resultsCsv, electorRecords] = await Promise.all([
+          divisionsResponse.json(),
+          resultsResponse.text(),
+          electorsResponse.json()
+        ]);
+        const results = getResults(resultsCsv);
+        const electorsByDivision = new Map(
+          electorRecords.map(record => [record.division, record.registeredElectors])
+        );
+        renderConservativeResults(results, electorsByDivision);
+        const divisionLayer = createDivisionLayer(divisions, results).addTo(map);
+        addDivisionFilters(divisions, results, divisionLayer);
+
+        map.fitBounds(divisionLayer.getBounds(), { padding: [24, 24] });
+
+        const districtResponses = await Promise.all([
+          fetch("boundaries/south_staffordshire.geojson"),
+          fetch("boundaries/stafford.geojson"),
+          fetch("boundaries/cannock_chase.geojson"),
+          fetch("boundaries/lichfield.geojson"),
+          fetch("boundaries/east_staffordshire.geojson"),
+          fetch("boundaries/tamworth.geojson")
+        ]);
+        if (districtResponses.some(response => !response.ok)) {
+          throw new Error("District boundary data could not be loaded.");
+        }
+        const districts = await Promise.all(districtResponses.map(response => response.json()));
+        const districtsLayer = L.layerGroup();
+        districts.forEach(district => {
+          L.geoJSON(district, { style: districtStyle }).addTo(districtsLayer);
+        });
+        districtsLayer.addTo(map);
+        addDistrictsToggle(districtsLayer);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    loadBoundaries();
+  </script>
+</body>
+</html>
