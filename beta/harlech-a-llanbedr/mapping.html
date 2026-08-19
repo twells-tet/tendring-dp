@@ -92,14 +92,19 @@
       height: 0.8rem;
       border-radius: 50%;
     }
+
+    .tarian-title-link {
+      color: inherit;
+      text-decoration: none;
+    }
   </style>
 </head>
 <body>
   <header class="page-header">
-    <a href="/beta/" class="page-header-logo-link" aria-label="TARIAN home">
+    <a href="/beta/tarian.html" class="page-header-logo-link" aria-label="About TARIAN">
       <img src="/beta/tarian-shield.svg" alt="" class="page-header-logo">
     </a>
-    <h1>TARIAN</h1>
+    <h1><a href="/beta/tarian.html" class="tarian-title-link">TARIAN</a></h1>
     <p class="page-subtitle">Harlech a Llanbedr Mapping</p>
   </header>
   <main class="app-shell">
@@ -299,8 +304,9 @@
             "<span class=\"district-key-item\"><span class=\"district-key-swatch\" style=\"background:" +
             districtColors.get(district) +
             ";\"></span>" +
-            district + " [" + households.toLocaleString("en-GB") + "; " +
-            percentage.toFixed(1) + "%]" +
+            (DISTRICT_NAMES[district] || district) + " (" +
+            households.toLocaleString("en-GB") + ") " +
+            percentage.toFixed(1) + "%" +
             "</span>"
           );
         }).join("");
