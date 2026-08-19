@@ -128,6 +128,37 @@
       cursor: not-allowed;
     }
 
+    .constituency-label {
+      border: 0;
+      background: transparent;
+    }
+
+    .constituency-label span {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      min-width: 90px;
+      padding: 0.3rem 0.45rem;
+      border: 1px solid #222222;
+      color: #222222;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+      font-family: "Inter", sans-serif;
+      font-size: 0.7rem;
+      font-weight: 800;
+      line-height: 1.2;
+      text-align: center;
+      transform: translate(-50%, -50%);
+    }
+
+    .constituency-party {
+      display: inline-block;
+      flex: none;
+      width: 0.7rem;
+      height: 0.7rem;
+      border-radius: 50%;
+    }
+
     @media (max-width: 600px) {
       .authority-map {
         min-height: 380px;
@@ -149,9 +180,11 @@
       <div class="authority-map-toggles" role="group" aria-label="Map controls">
         <button type="button" id="targets-toggle" class="map-toggle-button is-show">SHOW 2027 TARGETS</button>
         <button type="button" id="non-targets-toggle" class="map-toggle-button is-show">SHOW NON-TARGETS</button>
-        <button type="button" id="show-all-toggle" class="map-toggle-button is-show">SHOW ALL</button>
+        <button type="button" id="show-all-toggle" class="map-toggle-button is-show">SHOW ALL DIVISIONS</button>
         <button type="button" id="held-toggle" class="map-toggle-button" disabled>SHOW HELD DIVISIONS</button>
-        <button type="button" id="districts-toggle" class="map-toggle-button is-hide">HIDE DISTRICTS</button>
+        <button type="button" id="districts-toggle" class="map-toggle-button is-show">SHOW DISTRICTS</button>
+        <button type="button" id="constituencies-toggle" class="map-toggle-button is-hide">HIDE CONSTITUENCIES</button>
+        <button type="button" id="labels-toggle" class="map-toggle-button is-show">SHOW CONSTITUENCY NAMES</button>
       </div>
       <div id="authority-map" class="authority-map" role="application" aria-label="Map of Southern and Mid Staffordshire county electoral divisions"></div>
       <section class="conservative-results" aria-labelledby="conservative-results-heading">
@@ -178,7 +211,7 @@
   <script>
     const map = L.map("authority-map", { zoomControl: true, scrollWheelZoom: true });
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    const basemapTiles = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
       attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     }).addTo(map);
@@ -193,7 +226,7 @@
       Conservative: "#0087dc",
       Labour: "#e4003b",
       Green: "#6ab023",
-      "Stafford Borough Independents": "#f3a000"
+      "Stafford Borough Independents": "#4a4a4a"
     };
     const partyAbbreviations = {
       "Reform UK": "REF",
@@ -232,6 +265,47 @@
         fill: false,
         lineCap: "round",
         lineJoin: "round"
+      };
+    }
+
+    function constituencyStyle() {
+      return {
+        ...districtStyle(),
+        dashArray: "7 6"
+      };
+    }
+
+    function uniqueConstituencyBoundaries(constituencies) {
+      const segments = new Map();
+
+      function addRing(ring) {
+        for (let index = 1; index < ring.length; index += 1) {
+          const start = ring[index - 1];
+          const end = ring[index];
+          const startKey = start.join(",");
+          const endKey = end.join(",");
+          const key = startKey < endKey ? startKey + "|" + endKey : endKey + "|" + startKey;
+
+          if (!segments.has(key)) {
+            segments.set(key, [start, end]);
+          }
+        }
+      }
+
+      constituencies.features.forEach(feature => {
+        const polygons = feature.geometry.type === "Polygon" ?
+          [feature.geometry.coordinates] :
+          feature.geometry.coordinates;
+        polygons.forEach(polygon => polygon.forEach(addRing));
+      });
+
+      return {
+        type: "Feature",
+        properties: {},
+        geometry: {
+          type: "MultiLineString",
+          coordinates: Array.from(segments.values())
+        }
       };
     }
 
@@ -338,6 +412,10 @@
       return value.toLocaleString("en-GB");
     }
 
+    function formatDistrict(value) {
+      return value.replace(/\s+(District|Borough)$/, "");
+    }
+
     function resultBreakdown(result) {
       const parties = [
         { label: "REF", percentage: percentageValue(result["Reform UK %"]) },
@@ -425,7 +503,7 @@
         winnerDot.setAttribute("aria-hidden", "true");
         winnerDot.style.backgroundColor = partyColours[result["Winning party"]] || "#9a9a9a";
         division.append(winnerDot, document.createTextNode(result.Division.replace(/\s+ED$/, "")));
-        district.textContent = result["Existing district"];
+        district.textContent = formatDistrict(result["Existing district"]);
         winner.textContent = partyAbbreviations[result["Winning party"]] || result["Winning party"];
         share.textContent = formatPercentage(percentageValue(result["Conservative %"]));
         electors.textContent = formatElectors(electorsByDivision.get(result.Division));
@@ -525,7 +603,7 @@
 
         updateButton(targetsButton, activeFilter === "targets", "2027 TARGETS");
         updateButton(nonTargetsButton, activeFilter === "non-targets", "NON-TARGETS");
-        updateButton(showAllButton, false, "ALL");
+        updateButton(showAllButton, false, "ALL DIVISIONS");
         const heldAvailable = activeFilter === "targets";
         heldButton.disabled = !heldAvailable;
         updateButton(heldButton, heldAvailable && showingHeld, "HELD DIVISIONS");
@@ -539,7 +617,10 @@
 
       targetsButton.addEventListener("click", () => applyFilter("targets"));
       nonTargetsButton.addEventListener("click", () => applyFilter("non-targets"));
-      showAllButton.addEventListener("click", () => applyFilter("all"));
+      showAllButton.addEventListener("click", () => {
+        applyFilter("all");
+        window.dispatchEvent(new Event("show-all-map"));
+      });
       heldButton.addEventListener("click", () => {
         showingHeld = !showingHeld;
         if (showingHeld) {
@@ -551,20 +632,83 @@
       });
     }
 
-    function addDistrictsToggle(districtsLayer) {
-      const button = document.getElementById("districts-toggle");
-      let showingDistricts = true;
+    function constituencyPartyColour(constituencyName) {
+      if (constituencyName.startsWith("Stone,")) {
+        return partyColours.Conservative;
+      }
+      if (constituencyName.startsWith("Kingswinford")) {
+        return partyColours.Conservative;
+      }
+      return partyColours.Labour;
+    }
 
-      button.addEventListener("click", () => {
-        showingDistricts = !showingDistricts;
-        if (showingDistricts) {
+    function constituencyAbbreviation(constituencyName) {
+      const abbreviations = {
+        Stafford: "STAFF",
+        "Stoke-on-Trent South": "SoTS",
+        "Stone, Great Wyrley and Penkridge": "SGW&P",
+        Tamworth: "TAM",
+        "Burton and Uttoxeter": "B&U",
+        "Cannock Chase": "CC",
+        "Kingswinford and South Staffordshire": "K&SS",
+        Lichfield: "LICH"
+      };
+
+      return abbreviations[constituencyName] || constituencyName;
+    }
+
+    function addBoundaryToggles(districtsLayer, constituenciesLayer, constituencyLabels) {
+      const districtsButton = document.getElementById("districts-toggle");
+      const constituenciesButton = document.getElementById("constituencies-toggle");
+      const labelsButton = document.getElementById("labels-toggle");
+      let activeLayer = "constituencies";
+      let showingLabels = false;
+
+      function updateButton(button, visible, label) {
+        button.classList.toggle("is-show", !visible);
+        button.classList.toggle("is-hide", visible);
+        button.textContent = (visible ? "HIDE " : "SHOW ") + label;
+      }
+
+      function displayLayer(layer) {
+        map.removeLayer(districtsLayer);
+        map.removeLayer(constituenciesLayer);
+        map.removeLayer(constituencyLabels);
+        activeLayer = layer;
+
+        if (activeLayer === "districts") {
           districtsLayer.addTo(map);
-        } else {
-          map.removeLayer(districtsLayer);
+        } else if (activeLayer === "constituencies") {
+          constituenciesLayer.addTo(map);
+          if (showingLabels) {
+            constituencyLabels.addTo(map);
+          }
         }
-        button.classList.toggle("is-show", !showingDistricts);
-        button.classList.toggle("is-hide", showingDistricts);
-        button.textContent = (showingDistricts ? "HIDE " : "SHOW ") + "DISTRICTS";
+
+        updateButton(districtsButton, activeLayer === "districts", "DISTRICTS");
+        updateButton(constituenciesButton, activeLayer === "constituencies", "CONSTITUENCIES");
+        const labelsAvailable = activeLayer === "constituencies";
+        labelsButton.disabled = !labelsAvailable;
+        updateButton(labelsButton, labelsAvailable && showingLabels, "CONSTITUENCY NAMES");
+        basemapTiles.setOpacity(labelsAvailable && showingLabels ? 0.15 : 1);
+      }
+
+      function setActiveLayer(layer) {
+        displayLayer(activeLayer === layer ? "none" : layer);
+      }
+
+      districtsButton.addEventListener("click", () => setActiveLayer("districts"));
+      constituenciesButton.addEventListener("click", () => setActiveLayer("constituencies"));
+      window.addEventListener("show-all-map", () => displayLayer("districts"));
+      labelsButton.addEventListener("click", () => {
+        showingLabels = !showingLabels;
+        if (showingLabels) {
+          constituencyLabels.addTo(map);
+        } else {
+          map.removeLayer(constituencyLabels);
+        }
+        updateButton(labelsButton, showingLabels, "CONSTITUENCY NAMES");
+        basemapTiles.setOpacity(showingLabels ? 0.15 : 1);
       });
     }
 
@@ -600,18 +744,40 @@
           fetch("boundaries/cannock_chase.geojson"),
           fetch("boundaries/lichfield.geojson"),
           fetch("boundaries/east_staffordshire.geojson"),
-          fetch("boundaries/tamworth.geojson")
+          fetch("boundaries/tamworth.geojson"),
+          fetch("boundaries/mid_south_staffordshire_constituencies.geojson")
         ]);
         if (districtResponses.some(response => !response.ok)) {
           throw new Error("District boundary data could not be loaded.");
         }
-        const districts = await Promise.all(districtResponses.map(response => response.json()));
+        const boundaryData = await Promise.all(districtResponses.map(response => response.json()));
+        const constituencies = boundaryData.pop();
+        const districts = boundaryData;
         const districtsLayer = L.layerGroup();
         districts.forEach(district => {
           L.geoJSON(district, { style: districtStyle }).addTo(districtsLayer);
         });
-        districtsLayer.addTo(map);
-        addDistrictsToggle(districtsLayer);
+        const constituencyAreas = L.geoJSON(constituencies);
+        const constituenciesLayer = L.geoJSON(uniqueConstituencyBoundaries(constituencies), {
+          style: constituencyStyle
+        });
+        const constituencyLabels = L.layerGroup();
+        constituencyAreas.eachLayer(layer => {
+          const constituencyName = layer.feature.properties.Name.replace(/\s+Co Const$/, "");
+          const partyColour = constituencyPartyColour(constituencyName);
+          const label = constituencyAbbreviation(constituencyName);
+          L.marker(layer.getBounds().getCenter(), {
+            icon: L.divIcon({
+              className: "constituency-label",
+              html: "<span><i class=\"constituency-party\" style=\"background:" +
+                partyColour + "\" aria-hidden=\"true\"></i>" + escapeHtml(label) + "</span>",
+              iconSize: [0, 0]
+            }),
+            interactive: false
+          }).addTo(constituencyLabels);
+        });
+        constituenciesLayer.addTo(map);
+        addBoundaryToggles(districtsLayer, constituenciesLayer, constituencyLabels);
       } catch (error) {
         console.error(error);
       }
