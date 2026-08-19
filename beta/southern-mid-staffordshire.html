@@ -14,6 +14,11 @@
       padding: 0;
     }
 
+    .page-header-title-link {
+      color: inherit;
+      text-decoration: none;
+    }
+
     .authority-map {
       height: min(70vh, 720px);
       min-height: 440px;
@@ -41,6 +46,25 @@
     .conservative-results h2 {
       margin: 0 0 1rem;
       font-size: 1.15rem;
+    }
+
+    .notional-results {
+      padding: 1.5rem 1.25rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .notional-results h2 {
+      margin: 0;
+      font-size: 1.15rem;
+    }
+
+    .notional-results-heading {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 1rem;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
     }
 
     .conservative-results-heading {
@@ -81,6 +105,40 @@
       overflow-x: auto;
     }
 
+    .conservative-results-key {
+      display: flex;
+      gap: 0.45rem;
+      align-items: center;
+      margin: 0 0 0.75rem;
+      color: var(--plaid-green-dark);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+
+    .conservative-results-key-swatch {
+      display: inline-block;
+      width: 1rem;
+      height: 1rem;
+      border: 1px solid rgba(0, 135, 220, 0.4);
+      background-color: rgba(0, 135, 220, 0.08);
+      background-image: repeating-linear-gradient(
+        -45deg,
+        rgba(0, 135, 220, 0.28) 0,
+        rgba(0, 135, 220, 0.28) 3px,
+        transparent 3px,
+        transparent 8px
+      );
+    }
+
+    .conservative-results-key-note {
+      display: block;
+      margin-top: 0.15rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: normal;
+    }
+
     .conservative-results-table {
       width: 100%;
       border-bottom: 1px solid var(--border);
@@ -107,6 +165,14 @@
     .conservative-results-table td:first-child {
       min-width: 220px;
       font-weight: 600;
+    }
+
+    .division-note {
+      display: block;
+      margin-top: 0.2rem;
+      color: #555555;
+      font-size: 0.75rem;
+      font-weight: 500;
     }
 
     .winner-dot {
@@ -249,10 +315,10 @@
 </head>
 <body>
   <header class="page-header">
-    <a href="index.html" class="page-header-logo-link" aria-label="TARIAN home">
+    <a href="tarian.html" class="page-header-logo-link" aria-label="TARIAN home">
       <img src="tarian-shield.svg" alt="" class="page-header-logo">
     </a>
-    <h1>TARIAN</h1>
+    <h1><a href="tarian.html" class="page-header-title-link">TARIAN</a></h1>
     <p class="page-subtitle">SOUTH AND MID STAFFORDSHIRE UNITARY AUTHORITY</p>
   </header>
 
@@ -289,6 +355,13 @@
             </select>
           </label>
         </div>
+        <div class="conservative-results-key" aria-label="Hatched divisions are Conservative gains from Reform. 46 divisions electing 2 members. 47 needed for a majority?">
+          <span class="conservative-results-key-swatch" aria-hidden="true"></span>
+          <span>
+            HATCHED DIVISIONS: CON GAIN FROM REF
+            <span class="conservative-results-key-note">46 divisions electing 2 members. 47 needed for a majority?</span>
+          </span>
+        </div>
         <div class="conservative-results-table-wrap">
           <table class="conservative-results-table">
             <thead>
@@ -305,6 +378,21 @@
             <tbody id="conservative-results-list"></tbody>
           </table>
         </div>
+      </section>
+      <section class="notional-results" aria-labelledby="notional-results-heading">
+        <div class="notional-results-heading">
+          <h2 id="notional-results-heading">Notional results of 2025 election</h2>
+          <button type="button" id="notional-path-toggle" class="map-toggle-button is-show">SHOW CON PATH TO A MAJORITY</button>
+        </div>
+        <table class="conservative-results-table">
+          <thead>
+            <tr>
+              <th scope="col">Party</th>
+              <th scope="col">Members</th>
+            </tr>
+          </thead>
+          <tbody id="notional-results-list"></tbody>
+        </table>
       </section>
     </section>
   </main>
@@ -340,6 +428,10 @@
     const supplementaryWinnerVotes = {
       // The supplied CSV has the Independent percentage but not the raw vote total.
       "Stone Urban ED": 1589
+    };
+    const divisionNotes = {
+      "Eccleshall & Gnosall ED": "CON gain in by-election - 17 July 2025",
+      "Stretton ED": "REF hold in by-election - 25 June 2026"
     };
     function divisionStyle(feature, results) {
       const result = results.get(feature.properties.Name);
@@ -539,6 +631,14 @@
       return value === null ? "—" : value.toLocaleString("en-GB");
     }
 
+    function conservativeMarginLabel(result) {
+      const margin = conservativeMajority(result);
+      const heldByConservative = result["Winning party"] === "Conservative";
+
+      return (heldByConservative ? "CON MAJORITY 2025: " : "CON LOSS BY 2025: ") +
+        formatMajority(margin === null ? null : Math.abs(margin));
+    }
+
     function formatElectors(value) {
       return (Math.ceil(value / 100) * 100).toLocaleString("en-GB");
     }
@@ -586,7 +686,7 @@
 
       return "<strong>" + escapeHtml(feature.properties.Name) + "</strong>" +
         "<br>" + escapeHtml(result["Existing district"]) +
-        "<br>CON MAJORITY 2025: " + formatMajority(conservativeMajority(result)) +
+        "<br>" + conservativeMarginLabel(result) +
         "<br>2025 Result:" +
         "<br>" + resultBreakdown(result).map(escapeHtml).join("<br>");
     }
@@ -659,6 +759,13 @@
           winnerDot.setAttribute("aria-hidden", "true");
           winnerDot.style.backgroundColor = partyColours[result["Winning party"]] || "#9a9a9a";
           division.append(winnerDot, document.createTextNode(result.Division.replace(/\s+ED$/, "")));
+          const divisionNote = divisionNotes[result.Division];
+          if (divisionNote) {
+            const note = document.createElement("span");
+            note.className = "division-note";
+            note.textContent = divisionNote;
+            division.append(note);
+          }
           district.textContent = formatDistrict(result["Existing district"]);
           winner.textContent = partyAbbreviations[result["Winning party"]] || result["Winning party"];
           share.textContent = formatPercentage(percentageValue(result["Conservative %"]));
@@ -672,6 +779,65 @@
       }
 
       sortSelect.addEventListener("change", renderRows);
+      renderRows();
+    }
+
+    function renderNotionalResults(results) {
+      const list = document.getElementById("notional-results-list");
+      const pathButton = document.getElementById("notional-path-toggle");
+      const heading = document.getElementById("notional-results-heading");
+      const parties = [
+        { resultName: "Reform UK", label: "Reform UK" },
+        { resultName: "Conservative", label: "Conservative" },
+        { resultName: "Green", label: "Green" },
+        { resultName: "Labour", label: "Labour" },
+        { resultName: "Stafford Borough Independents", label: "Independent" }
+      ];
+      let showingPath = false;
+
+      function renderRows() {
+        const membersByParty = new Map(parties.map(party => [
+          party.resultName,
+          Array.from(results.values()).filter(result => result["Winning party"] === party.resultName).length * 2
+        ]));
+
+        if (showingPath) {
+          membersByParty.set("Conservative", membersByParty.get("Conservative") + 30);
+          membersByParty.set("Reform UK", membersByParty.get("Reform UK") - 30);
+        }
+
+        list.replaceChildren();
+        const displayedParties = showingPath ?
+          [parties[1], parties[0], ...parties.slice(2)] :
+          parties;
+        displayedParties.forEach(party => {
+          const row = document.createElement("tr");
+          const partyCell = document.createElement("td");
+          const membersCell = document.createElement("td");
+          const partyDot = document.createElement("span");
+
+          partyDot.className = "winner-dot";
+          partyDot.setAttribute("aria-hidden", "true");
+          partyDot.style.backgroundColor = partyColours[party.resultName];
+          partyCell.append(partyDot, document.createTextNode(party.label));
+          membersCell.textContent = membersByParty.get(party.resultName).toString();
+          row.append(partyCell, membersCell);
+          list.append(row);
+        });
+      }
+
+      pathButton.addEventListener("click", () => {
+        showingPath = !showingPath;
+        pathButton.classList.toggle("is-show", !showingPath);
+        pathButton.classList.toggle("is-hide", showingPath);
+        pathButton.textContent = showingPath ?
+          "SHOW NOTIONAL 2025 RESULT" :
+          "SHOW CON PATH TO A MAJORITY";
+        heading.textContent = showingPath ?
+          "CON gain 15 divisions from REF" :
+          "Notional results of 2025 election";
+        renderRows();
+      });
       renderRows();
     }
 
@@ -946,6 +1112,7 @@
           electorRecords.map(record => [record.division, record.registeredElectors])
         );
         renderConservativeResults(results, electorsByDivision);
+        renderNotionalResults(results);
         const divisionLayer = createDivisionLayer(divisions, results).addTo(map);
         addDivisionFilters(divisions, results, divisionLayer);
 
