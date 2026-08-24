@@ -42,7 +42,7 @@
       <img src="tarian-shield.svg" alt="" class="page-header-logo">
     </a>
     <h1>TARIAN</h1>
-    <p class="page-subtitle">Prototype Voter Contact Database</p>
+    <p class="page-subtitle">Voter Contact Database</p>
   </header>
 
   <main class="app-shell">
@@ -149,12 +149,12 @@
         <label for="ward">
           Ward
           <select id="ward">
-            <option value="" selected>All Wards</option>
+            <option value="" >All Wards</option>
             <option value="aberdyfi" disabled>Aberdyfi</option>
             <option value="abererch" disabled>Abererch</option>
             <option value="abermaw" disabled>Abermaw</option>
             <option value="abersoch gyda llanengan" disabled>Abersoch gyda Llanengan</option>
-            <option value="harlech a llanbedr">Harlech a Llanbedr</option>
+            <option value="harlech a llanbedr" selected>Harlech a Llanbedr</option>
             <option value="arllechwedd" disabled>Arllechwedd</option>
             <option value="bethel a'r felinheli" disabled>Bethel a'r Felinheli</option>
             <option value="bowydd a'r rhiw" disabled>Bowydd a'r Rhiw</option>
@@ -285,12 +285,9 @@
 
     <div class="search-actions-row">
       <section class="export-buttons" aria-label="Export options">
-        <button type="button" id="run-search-button" class="export-button run-search-button">Run Search</button>
-        <button type="button" id="display-map-button" class="export-button display-map-button">View Households on Map</button>
-        <a href="/shuttleworth/" class="export-button data-button">Data</a>
+        <button type="button" id="display-map-button" class="export-button display-map-button">HOUSEHOLDS</button>
         <a href="https://www.tarian146.co.uk/beta/harlech-a-llanbedr/mapping" target="_blank" rel="noopener" class="export-button polling-day-button">MAPPING</a>
-        <a href="volunteers.html" class="export-button members-activists-button">Members &amp; Activists</a>
-        <button type="button" class="export-button" disabled>Switch to Training Mode</button>
+        <a href="volunteers.html" class="export-button members-activists-button">DELIVERERS</a>
       </section>
 
       <section class="quick-name-search" id="quick-name-search-section" aria-label="Quick name search">
@@ -298,25 +295,25 @@
           <h3>Quick Lookup</h3>
           <button type="button" id="toggle-quick-lookup" class="map-toggle-button quick-lookup-toggle-button">Hide</button>
         </div>
-        <div class="quick-name-search-row" id="quick-lookup-row">
-          <label for="quick-search-first-name">
-            Search by name or postcode
-            <input type="text" id="quick-search-first-name" placeholder="First name">
-          </label>
-
-          <label for="quick-search-last-name" class="quick-name-search-last-name-label">
-            <input type="text" id="quick-search-last-name" placeholder="Last name" aria-label="Last name">
-          </label>
-
-          <input type="text" id="quick-search-postcode" placeholder="LL53 5AA" aria-label="Postcode">
-
-          <button type="button" id="quick-search-button" class="add-filter-button">Search</button>
+        <div id="quick-lookup-row" class="quick-lookup-grid">
+          <div class="quick-lookup-row">
+            <input type="text" id="quick-search-first-name" class="quick-lookup-input" placeholder="First name" aria-label="First name">
+            <input type="text" id="quick-search-last-name" class="quick-lookup-input" placeholder="Last name" aria-label="Last name">
+          </div>
+          <div class="quick-lookup-row">
+            <input type="text" id="quick-search-postcode" class="quick-lookup-input" placeholder="LL46 2SH" aria-label="Postcode">
+            <button type="button" id="quick-search-button" class="add-filter-button quick-lookup-btn">Run Search</button>
+          </div>
+          <div class="quick-lookup-row">
+            <input type="text" id="quick-search-elector-id" class="quick-lookup-input" placeholder="Elector ID" aria-label="Elector ID">
+            <button type="button" id="quick-search-id-button" class="add-filter-button quick-lookup-btn">Search Elector ID</button>
+          </div>
+          <div class="quick-lookup-row">
+            <input type="text" id="quick-search-household-id" class="quick-lookup-input" placeholder="Household ID" aria-label="Household ID">
+            <button type="button" id="quick-search-household-button" class="add-filter-button quick-lookup-btn">Search Household ID</button>
+          </div>
         </div>
         <div id="quick-search-results"></div>
-        <div class="quick-name-search-row" id="quick-lookup-id-row">
-          <input type="text" id="quick-search-elector-id" placeholder="Jump to profile by Elector ID" aria-label="Elector ID">
-          <button type="button" id="quick-search-id-button" class="add-filter-button">Search Elector ID</button>
-        </div>
       </section>
     </div>
 
@@ -452,7 +449,7 @@
               placeholder="Start typing an address...">
           </div>
 
-          <div class="address-search-row subroad-filter-row">
+          <div class="address-search-row subroad-filter-row" hidden>
             <label for="subroad-filter-subroad-select">Filter by Subroad</label>
             <div class="subroad-filter-controls">
               <select id="subroad-filter-district-select" aria-label="Polling District">
@@ -975,6 +972,12 @@ const quickSearchIdInputEl =
 const quickSearchIdButtonEl =
   document.getElementById("quick-search-id-button");
 
+const quickSearchHouseholdInputEl =
+  document.getElementById("quick-search-household-id");
+
+const quickSearchHouseholdButtonEl =
+  document.getElementById("quick-search-household-button");
+
 const statLoadedEl =
   document.getElementById("stat-loaded");
 
@@ -983,6 +986,28 @@ const statCanvassEl =
 
 let householdDetailsHeightRetryPending = false;
 
+const DEMO_PLAID_ELECTOR_NAMES = [
+  "pat postie",
+  "sam sorefeet"
+];
+const DEMO_PROBABLE_PLAID_ELECTOR_NAMES = [
+  "jane smith"
+];
+
+const DEMO_CANVASS_ID_BY_ELECTOR_ID = {
+  "801071110": "Conservative",
+  "508891699": "Labour",
+  "665650266": "Green",
+  "911051031": "Reform",
+  "693445390": "Independent",
+  "954638525": "Lib Dem",
+  "934314541": "Probable Plaid",
+  "425577355": "Conservative"
+};
+
+const DEMO_SUPPORT_INDEPENDENCE_BY_ELECTOR_ID = {
+  "425577355": "No"
+};
 
 initControls();
 
@@ -1202,6 +1227,22 @@ function initControls() {
   }
   quickSearchIdButtonEl.addEventListener("click", doIdLookup);
   quickSearchIdInputEl.addEventListener("keydown", e => { if (e.key === "Enter") doIdLookup(); });
+
+  function doHouseholdLookup() {
+    const val = quickSearchHouseholdInputEl.value.trim();
+    if (!val) return;
+    const normalVal = normalizeText(val);
+    const match = state.electors.find(e => normalizeText(e.householdGroupKey) === normalVal || normalizeText(e.householdKey) === normalVal);
+    if (match) {
+      window.location.href = "profile.html?id=" + encodeURIComponent(match.id);
+    } else {
+      quickSearchHouseholdInputEl.setCustomValidity("No household found with that ID");
+      quickSearchHouseholdInputEl.reportValidity();
+      setTimeout(() => quickSearchHouseholdInputEl.setCustomValidity(""), 3000);
+    }
+  }
+  quickSearchHouseholdButtonEl.addEventListener("click", doHouseholdLookup);
+  quickSearchHouseholdInputEl.addEventListener("keydown", e => { if (e.key === "Enter") doHouseholdLookup(); });
 
 
 
@@ -1897,7 +1938,6 @@ function mapRowToElector(row, headers, index) {
 
     deliveryOrder:
       data.deliveryorder ||
-      row[38] ||
       "",
 
 
@@ -1915,7 +1955,6 @@ function mapRowToElector(row, headers, index) {
 
     uprn:
       data.uprn ||
-      row[19] ||
       "",
 
 
@@ -2291,8 +2330,8 @@ function renderElectorList() {
     <div class="household-meta">
 
       <p>
-        <strong>Property ID:</strong>
-        ${escapeHtml(firstElector.uprn || "—")}
+        <strong>Household ID:</strong>
+        ${escapeHtml(firstElector.householdKey || firstElector.uprn || "—")}
       </p>
 
 
@@ -2728,7 +2767,7 @@ function bindHouseholdNavigation(totalHouseholds) {
 
 
 // Wires up the horizontal household elector quick-jump list rendered
-// next to Property ID/Address/Polling District: name links scroll
+// next to Household ID/Address/Polling District: name links scroll
 // straight to the matching elector card below, and the "N more" toggle
 // expands the list in place to reveal the rest of the household.
 function bindHouseholdElectorNav() {
@@ -3753,8 +3792,10 @@ function getEffectiveWalkNumberForElector(elector) {
 
 function getTotalWalkCountForDistrict(pollingDistrict) {
 
+  const DEFAULT_WALK_COUNTS = { n1: 10, ae1: 2, af1: 2, au1: 2, n2: 2 };
+
   const districtKey = normalizeText(pollingDistrict);
-  let maxWalk = 5;
+  let maxWalk = DEFAULT_WALK_COUNTS[districtKey] || 2;
 
   if (!districtKey) {
     return maxWalk;
@@ -3915,10 +3956,10 @@ function updateDeliveryDetails(elector) {
   const currentSubRoad =
     householdId && state.areaOverrides[householdId] !== undefined
       ? state.areaOverrides[householdId]
-      : (elector && elector.subRoad) || formatHouseholdArea(elector);
+      : (elector && elector.subRoad) || "";
 
   deliveryAreaInputEl.textContent =
-    currentSubRoad;
+    currentSubRoad || "—";
 
   const subRoadForLink =
     currentSubRoad && currentSubRoad !== "—"
@@ -4258,7 +4299,7 @@ function buildAiComments(household) {
   });
 
 
-  return sentences.join(" ");
+  return sentences.join("<br><br>");
 
 }
 
@@ -4305,28 +4346,6 @@ function updateStats() {
 
 // Demo electors used to showcase political-leaning colour coding:
 // these default to a specific Canvass ID until a user overrides it.
-const DEMO_PLAID_ELECTOR_NAMES = [
-  "pat postie",
-  "sam sorefeet"
-];
-const DEMO_PROBABLE_PLAID_ELECTOR_NAMES = [
-  "jane smith"
-];
-
-const DEMO_CANVASS_ID_BY_ELECTOR_ID = {
-  "801071110": "Conservative",
-  "508891699": "Labour",
-  "665650266": "Green",
-  "911051031": "Reform",
-  "693445390": "Independent",
-  "954638525": "Lib Dem",
-  "934314541": "Probable Plaid",
-  "425577355": "Conservative"
-};
-
-const DEMO_SUPPORT_INDEPENDENCE_BY_ELECTOR_ID = {
-  "425577355": "No"
-};
 
 function getElectorProgress(electorId, electorName) {
 
@@ -4505,7 +4524,7 @@ function getActiveElectors() {
     const electorPollingDistrict = normalizeText(elector.pollingDistrict);
 
     // Only filter by authority/senedd/westminster if elector has a recognisable value (len > 2, not purely numeric)
-    const looksReal = v => v && v.length > 2 && !/^\d+$/.test(v) && !v.includes("/");
+    const looksReal = v => v && v.length > 2 && !/^\d+$/.test(v) && !v.includes("/") && !/neuadd|memorial hall|polling|canolfan/i.test(v);
 
     if (authority && looksReal(electorAuthority) && electorAuthority !== authority) {
       return false;
@@ -4519,7 +4538,7 @@ function getActiveElectors() {
       return false;
     }
 
-    if (ward && looksReal(electorWard) && electorWard !== ward) {
+    if (ward && looksReal(electorWard) && electorWard !== ward && !ward.includes(electorWard)) {
       return false;
     }
 
@@ -4531,7 +4550,7 @@ function getActiveElectors() {
 
   });
 
-  // When showing all districts, sort QB6 before RA1
+  // When showing all districts, sort alphabetically (AE1, AF1, AU1, N1, N2)
   if (!pollingDistrict) {
     results.sort((a, b) => {
       const da = normalizeText(a.pollingDistrict || "");
@@ -4804,7 +4823,8 @@ function parseCsv(csvText) {
 // Title-case an address part: capitalise after spaces, hyphens, and slashes
 function fixAddressCasing(s) {
   if (!s) return s;
-  return s.replace(/([^a-zA-Z]|^)([a-zA-Z])/g, (m, pre, ch) => pre + ch.toUpperCase());
+  // Lowercase everything first, then capitalise after word boundaries
+  return s.toLowerCase().replace(/([^a-zA-Z]|^)([a-zA-Z])/g, (m, pre, ch) => pre + ch.toUpperCase());
 }
 
 function normalizeHeader(value) {
