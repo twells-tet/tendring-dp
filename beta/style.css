@@ -898,6 +898,55 @@ body.mobile-mode .elector-list {
   margin-bottom: 0;
 }
 
+.quick-lookup-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.quick-lookup-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.quick-lookup-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--plaid-green);
+  border-radius: 0.4rem;
+  font: inherit;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+}
+
+.quick-lookup-btn {
+  flex-shrink: 0;
+  width: 12rem;
+  white-space: nowrap;
+  font-size: 0.85rem;
+  padding: 0.55rem 0.85rem;
+  align-self: stretch;
+  border: 1px solid var(--plaid-green-dark);
+  background: var(--plaid-green-dark);
+  color: #fff;
+  border-radius: 0.4rem;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.quick-lookup-btn:hover {
+  background: var(--plaid-green-deeper);
+  border-color: var(--plaid-green-deeper);
+}
+
+.quick-name-search.quick-name-search--collapsed .quick-lookup-grid {
+  display: none;
+}
+
 .export-button {
   padding: 0.6rem 1rem;
   border: 1px solid var(--plaid-red);
@@ -916,6 +965,9 @@ body.mobile-mode .elector-list {
 #view-all-districts-button {
   opacity: 1;
   cursor: pointer;
+  border-color: var(--plaid-red-dark, #9e1713);
+  background: var(--plaid-red, #da291c);
+  color: #fff;
 }
 
 #view-all-districts-button:hover {
@@ -970,21 +1022,41 @@ body.mobile-mode .elector-list {
   text-align: center;
   border-color: #2b6cb0;
   background: #2b6cb0;
-  opacity: 0.55;
+  opacity: 1;
   cursor: pointer;
 }
 
 .display-map-button:hover {
-  opacity: 0.7;
+  opacity: 0.85;
 }
 
-.data-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.polling-day-button {
+  display: inline-block;
   text-decoration: none;
   text-align: center;
   border-color: #2b6cb0;
+  background: #2b6cb0;
+  opacity: 1;
+  cursor: pointer;
+}
+
+.polling-day-button:hover {
+  opacity: 0.85;
+}
+
+.members-activists-button {
+  display: inline-block;
+  text-decoration: none;
+  text-align: center;
+  border-color: #2b6cb0;
+  background: #2b6cb0;
+  opacity: 1;
+  cursor: pointer;
+}
+
+.members-activists-button:hover {
+  opacity: 0.85;
+}
   background: #2b6cb0;
   opacity: 0.55;
   cursor: pointer;
