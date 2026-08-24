@@ -80,7 +80,7 @@
           </select>
           <label for="walk-description-input">Description</label>
           <input type="text" id="walk-description-input" disabled placeholder="Description">
-          <button type="button" id="edit-walk-description-btn" class="edit-walk-description-button" disabled>Edit</button>
+          <button type="button" id="edit-walk-description-btn" class="edit-walk-description-button" disabled>EDIT WALK NAME</button>
         </div>
       </div>
 
@@ -509,7 +509,7 @@
       walkDescriptionSelectEl.disabled = !pollingDistrict;
       walkDescriptionInputEl.disabled = !pollingDistrict || !isEditingWalkDescription;
       editWalkDescriptionBtnEl.disabled = !pollingDistrict;
-      editWalkDescriptionBtnEl.textContent = isEditingWalkDescription ? "Done" : "Edit";
+      editWalkDescriptionBtnEl.textContent = isEditingWalkDescription ? "Done" : "EDIT WALK NAME";
       addWalkBtnEl.disabled = WALK_ADD_DELETE_TEMP_DISABLED || !pollingDistrict;
       viewWalkOnMapBtnEl.disabled = !pollingDistrict;
 
