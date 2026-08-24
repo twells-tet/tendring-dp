@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Accounts | ACCOUNTING</title>
+    <link rel="stylesheet" href="../../style.css">
+
+    <style>
+        .accounts-data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.25rem;
+        }
+
+        .accounts-data-table th,
+        .accounts-data-table td {
+            padding: 0.65rem 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-strong, #333);
+        }
+
+        .accounts-data-table th {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .accounts-data-table .amount {
+            text-align: right;
+        }
+
+        .accounts-status {
+            margin: 1rem 0 0;
+        }
+
+        .transaction-count {
+            margin: 0.4rem 0 0;
+            font-size: 0.8rem;
+            text-align: right;
+            color: #555;
+        }
+    </style>
+</head>
+<body class="tarian-homepage pin-locked">
+    <div id="pin-gate" class="pin-gate">
+        <div class="pin-gate-box">
+            <img src="../../tarian-shield.svg" alt="" class="pin-gate-logo">
+            <h2>TARIAN</h2>
+            <p>Enter the 6-digit PIN to continue.</p>
+            <form id="pin-gate-form" autocomplete="off">
+                <input
+                    type="password"
+                    id="pin-gate-input"
+                    class="pin-gate-input"
+                    inputmode="numeric"
+                    pattern="[0-9]*"
+                    maxlength="6"
+                    autocomplete="off"
+                    aria-label="6-digit PIN">
+                <button type="submit" class="pin-gate-button">Unlock</button>
+            </form>
+            <p id="pin-gate-error" class="pin-gate-error" hidden>Incorrect PIN. Please try again.</p>
+        </div>
+    </div>
+    <header class="page-header tarian-homepage-header" id="top">
+        <a href="/beta/" class="page-header-logo-link" aria-label="Tarian home">
+            <img src="../../tarian-shield.svg" alt="" class="page-header-logo">
+        </a>
+    </header>
+    <main class="app-shell">
+        <div class="tarian-homepage-card">
+            <p class="eyebrow">ACCOUNTING</p>
+            <p class="subheading">Personal Accounts to 31 March 2026</p>
+            <table class="accounts-data-table">
+                <tbody>
+                    <tr>
+                        <th>Total In</th>
+                        <td id="total-in" class="amount">0.00</td>
+                    </tr>
+                    <tr>
+                        <th>Total Out</th>
+                        <td id="total-out" class="amount">-0.00</td>
+                    </tr>
+                    <tr>
+                        <th>Profit / Loss</th>
+                        <td id="profit-loss" class="amount">0.00</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p id="transaction-count" class="transaction-count">0 transactions</p>
+            <p id="accounts-status" class="accounts-status">Loading accounts...</p>
+            <table id="accounts-data-table" class="accounts-data-table" hidden>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Direction</th>
+                        <th class="amount">Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="accounts-data-body"></tbody>
+            </table>
+            <p><a href="../8/">Back to draft business accounts</a></p>
+        </div>
+    </main>
+
+    <script>
+        const PIN_GATE_CODE = "202705";
+        const PIN_GATE_SESSION_KEY = "vote2027PinUnlocked";
+
+        (function initPinGate() {
+            const gate = document.getElementById("pin-gate");
+            const form = document.getElementById("pin-gate-form");
+            const input = document.getElementById("pin-gate-input");
+            const error = document.getElementById("pin-gate-error");
+
+            function unlock() {
+                document.body.classList.remove("pin-locked");
+                gate.style.display = "none";
+                sessionStorage.setItem(PIN_GATE_SESSION_KEY, "true");
+            }
+
+            if (sessionStorage.getItem(PIN_GATE_SESSION_KEY) === "true") {
+                unlock();
+                return;
+            }
+
+            form.addEventListener("submit", event => {
+                event.preventDefault();
+                if (input.value.trim() === PIN_GATE_CODE) {
+                    unlock();
+                } else {
+                    error.hidden = false;
+                    input.select();
+                }
+            });
+        })();
+
+        const ACCOUNTS_CSV_URL =
+            "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/gviz/tq?tqx=out:csv&sheet=ACCOUNTS%20TO%2031%20MARCH%202026&range=G3:J";
+
+        function parseCsv(text) {
+            const rows = [];
+            let row = [];
+            let value = "";
+            let quoted = false;
+
+            for (let index = 0; index < text.length; index++) {
+                const character = text[index];
+
+                if (character === '"') {
+                    if (quoted && text[index + 1] === '"') {
+                        value += '"';
+                        index++;
+                    } else {
+                        quoted = !quoted;
+                    }
+                } else if (character === "," && !quoted) {
+                    row.push(value);
+                    value = "";
+                } else if ((character === "\n" || character === "\r") && !quoted) {
+                    if (character === "\r" && text[index + 1] === "\n") {
+                        index++;
+                    }
+                    row.push(value);
+                    if (row.some(cell => cell !== "")) {
+                        rows.push(row);
+                    }
+                    row = [];
+                    value = "";
+                } else {
+                    value += character;
+                }
+            }
+
+            if (value || row.length) {
+                row.push(value);
+                rows.push(row);
+            }
+
+            return rows;
+        }
+
+        function createCell(text, className) {
+            const cell = document.createElement("td");
+            cell.textContent = text;
+            if (className) {
+                cell.className = className;
+            }
+            return cell;
+        }
+
+        function parseAmount(value) {
+            const cleaned = String(value || "")
+                .replace(/[^0-9.-]/g, "")
+                .replace(/[^0-9.-]/g, "");
+            const amount = Number(cleaned);
+            return Number.isFinite(amount) ? Math.abs(amount) : 0;
+        }
+
+        function formatCurrency(value) {
+            const sign = value < 0 ? "-" : "";
+            return sign + Math.abs(value).toLocaleString("en-GB", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function formatUkDate(value) {
+            const text = String(value || "").trim();
+            if (!text || text.toLowerCase() === "n/a") {
+                return "Not Dated";
+            }
+            const ukMatch = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+            if (ukMatch) {
+                return ukMatch[1].padStart(2, "0") + "/" +
+                    ukMatch[2].padStart(2, "0") + "/" + ukMatch[3];
+            }
+            const match = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+            if (match) {
+                return match[3].padStart(2, "0") + "/" +
+                    match[2].padStart(2, "0") + "/" + match[1];
+            }
+
+            const namedDate = new Date(text);
+            if (Number.isNaN(namedDate.getTime())) {
+                return text;
+            }
+            return String(namedDate.getDate()).padStart(2, "0") + "/" +
+                String(namedDate.getMonth() + 1).padStart(2, "0") + "/" +
+                namedDate.getFullYear();
+        }
+
+        fetch(ACCOUNTS_CSV_URL)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Unable to load accounts.");
+                }
+                return response.text();
+            })
+            .then(text => {
+                const rows = parseCsv(text)
+                    .filter(row =>
+                        !row.some(cell =>
+                            String(cell || "").trim().toLowerCase() === "cancelled"
+                        )
+                    )
+                    .map(row => [
+                        row[0],
+                        row[1],
+                        row[2],
+                        row[3]
+                    ]);
+                const datedRows = [];
+                const undatedRows = [];
+                rows.forEach(row => {
+                    const firstUnavailable =
+                        !String(row[0] || "").trim() ||
+                        String(row[0] || "").trim().toLowerCase() === "n/a";
+                    (firstUnavailable ? undatedRows : datedRows).push(row);
+                });
+                datedRows.sort((first, second) => {
+                    function dateValue(value) {
+                        const parts = String(value || "").trim().split("/");
+                        if (parts.length === 3) {
+                            return new Date(
+                                Number(parts[2]),
+                                Number(parts[1]) - 1,
+                                Number(parts[0])
+                            ).getTime();
+                        }
+                        return new Date(value).getTime();
+                    }
+                    return dateValue(first[0]) - dateValue(second[0]);
+                });
+                rows.splice(0, rows.length, ...datedRows, ...undatedRows);
+                const body = document.getElementById("accounts-data-body");
+                let totalIn = 0;
+                let totalOut = 0;
+
+                rows.forEach(row => {
+                    const direction = String(row[2] || "").trim();
+                    const outgoing =
+                        direction.toLowerCase() === "out" ||
+                        direction.toLowerCase() === "outgoing" ||
+                        String(row[1] || "").trim().toLowerCase() === "out" ||
+                        String(row[1] || "").trim().toLowerCase() === "outgoing";
+                    const amount = parseAmount(row[3]);
+                    const signedAmount = outgoing ? -amount : amount;
+
+                    if (outgoing) {
+                        totalOut += amount;
+                    } else {
+                        totalIn += amount;
+                    }
+
+                    const tableRow = document.createElement("tr");
+                    tableRow.appendChild(createCell(formatUkDate(row[0])));
+                    tableRow.appendChild(createCell(row[1] || ""));
+                    tableRow.appendChild(createCell(direction));
+                    tableRow.appendChild(createCell(formatCurrency(signedAmount), "amount"));
+                    body.appendChild(tableRow);
+                });
+
+                document.getElementById("total-in").textContent =
+                    formatCurrency(totalIn);
+                document.getElementById("total-out").textContent =
+                    formatCurrency(-totalOut);
+                document.getElementById("profit-loss").textContent =
+                    formatCurrency(totalIn - totalOut);
+                document.getElementById("transaction-count").textContent =
+                    rows.length.toLocaleString("en-GB") +
+                    (rows.length === 1 ? " transaction" : " transactions");
+
+                const status = document.getElementById("accounts-status");
+                if (rows.length) {
+                    status.hidden = true;
+                    document.getElementById("accounts-data-table").hidden = false;
+                } else {
+                    status.textContent = "No account entries have been added yet.";
+                }
+            })
+            .catch(() => {
+                document.getElementById("accounts-status").textContent =
+                    "The accounts could not be loaded.";
+            });
+    </script>
+</body>
+</html>

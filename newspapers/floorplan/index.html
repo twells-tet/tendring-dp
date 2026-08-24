@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Floorplan | Tarian Newspapers</title>
+    <link rel="stylesheet" href="../style.css">
+
+    <style>
+        .floorplan-wrap {
+            width: 100%;
+            padding: clamp(1rem, 3vw, 2.5rem);
+            box-sizing: border-box;
+        }
+
+        .floorplan-card {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: clamp(0.75rem, 2vw, 1.5rem);
+            background: #fff;
+            border: 1px solid var(--border-strong, #333);
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .floorplan-svg {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .floorplan-toggle {
+            display: flex;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .floorplan-toggle {
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .floor-toggle-btn,
+        .property-title-link {
+            box-sizing: border-box;
+            width: 160px;
+            height: 48px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .floor-toggle-btn {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            border-radius: 0.35rem;
+            border: 1px solid var(--plaid-red, #da291c);
+            background: #fff;
+            color: var(--plaid-red, #da291c);
+            cursor: pointer;
+        }
+
+        .floor-toggle-btn:hover {
+            background: var(--plaid-red-dark, #a31f16);
+            border-color: var(--plaid-red-dark, #a31f16);
+            color: #fff;
+        }
+
+        .floor-toggle-btn[aria-pressed="true"] {
+            background: var(--plaid-red, #da291c);
+            border-color: var(--plaid-red, #da291c);
+            color: #fff;
+        }
+
+        .property-title-link {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            border-radius: 0.35rem;
+            border: none;
+            background: var(--plaid-green, #0aa77d);
+            color: #fff;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .property-title-link:hover {
+            background: var(--plaid-green-dark, #0a5e49);
+        }
+    </style>
+</head>
+
+<body class="tarian-homepage">
+
+    <header class="page-header tarian-homepage-header" id="top">
+        <a href="https://www.tarian146.co.uk/beta/" class="page-header-logo-link" aria-label="Tarian Newspapers home">
+            <img src="../tarian-shield.svg" alt="" class="page-header-logo">
+        </a>
+    </header>
+
+    <main class="app-shell">
+        <div class="floorplan-wrap">
+            <div class="floorplan-card">
+
+                <svg
+                    class="floorplan-svg"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 1060 730"
+                    role="img"
+                    aria-labelledby="proposed-plan-title proposed-plan-desc"
+                >
+                    <title id="proposed-plan-title">
+                        Building floorplan — external walls and room layout
+                    </title>
+
+                    <desc id="proposed-plan-desc">
+                        Simplified floorplan showing the external wall outline and
+                        room layout for the Ground Floor, First Floor and Second
+                        Floor, each independently toggled on or off. Top and right
+                        hand walls are plate glass.
+                    </desc>
+
+                    <defs>
+                        <style>
+                            .sheet { fill: #fff; }
+
+                            .window-mask { fill: #fff; }
+                            .window-line { stroke: #111; stroke-width: 2; }
+
+                            .wall {
+                                fill: none;
+                                stroke: #111;
+                                stroke-width: 10;
+                                stroke-linejoin: miter;
+                                stroke-linecap: square;
+                            }
+
+                            .wall-glass {
+                                fill: none;
+                                stroke: #2f6690;
+                                stroke-width: 7;
+                                stroke-linejoin: miter;
+                                stroke-linecap: square;
+                                stroke-dasharray: 18 6;
+                            }
+
+                            .partition {
+                                fill: none;
+                                stroke: #111;
+                                stroke-width: 5;
+                                stroke-linecap: square;
+                            }
+
+                            .stair-rail {
+                                fill: none;
+                                stroke: #888;
+                                stroke-width: 3;
+                                stroke-dasharray: 6 5;
+                            }
+
+                            .door-leaf {
+                                fill: none;
+                                stroke: #666;
+                                stroke-width: 3.5;
+                            }
+
+                            .hatch-door {
+                                fill: #2b2b2b;
+                                stroke: #000;
+                                stroke-width: 1;
+                            }
+
+                            .stair-tread {
+                                stroke: #666;
+                                stroke-width: 2.5;
+                            }
+
+                            .room-name {
+                                font-family: Arial, Helvetica, sans-serif;
+                                font-size: 15px;
+                                font-weight: 700;
+                                text-anchor: middle;
+                                fill: #111;
+                            }
+
+                            .small-note {
+                                font-family: Arial, Helvetica, sans-serif;
+                                font-size: 11px;
+                                text-anchor: middle;
+                                fill: #555;
+                            }
+
+                            .floor-label {
+                                font-family: Arial, Helvetica, sans-serif;
+                                font-size: 24px;
+                                font-weight: 400;
+                                text-transform: uppercase;
+                                text-anchor: middle;
+                                fill: #111;
+                            }
+
+                            .subtitle {
+                                font-family: Arial, Helvetica, sans-serif;
+                                font-size: 15px;
+                                text-anchor: middle;
+                                fill: #555;
+                            }
+
+                            .cost-label {
+                                font-family: Arial, Helvetica, sans-serif;
+                                font-size: 20px;
+                                font-weight: 700;
+                                text-anchor: middle;
+                                fill: #c0201f;
+                            }
+
+                            .dimension {
+                                fill: none;
+                                stroke: #555;
+                                stroke-width: 1.5;
+                            }
+
+                            .dimension-ext {
+                                fill: none;
+                                stroke: #999;
+                                stroke-width: 1;
+                            }
+
+                            .dimension-text {
+                                font-family: Arial, Helvetica, sans-serif;
+                                font-size: 13px;
+                                text-anchor: middle;
+                                fill: #333;
+                            }
+                            .flue-marker {
+                                fill: #fff;
+                                stroke: #a33;
+                                stroke-width: 2.5;
+                            }
+
+                            .flue-marker-dot {
+                                fill: #a33;
+                            }
+
+                            .flue-label {
+                                font-family: Arial, Helvetica, sans-serif;
+                                font-size: 11px;
+                                font-weight: 700;
+                                text-anchor: middle;
+                                fill: #a33;
+                            }
+
+                            .chimney-breast {
+                                stroke: #5c3a1e;
+                                stroke-width: 3;
+                            }
+
+                            .furniture {
+                                fill: #e9e1cf;
+                                stroke: #8a7a5c;
+                                stroke-width: 2;
+                            }
+
+                            .furniture-label {
+                                font-family: Arial, Helvetica, sans-serif;
+                                font-size: 13px;
+                                font-weight: 700;
+                                text-anchor: middle;
+                                fill: #5c4f38;
+                            }
+
+                            .plant {
+                                fill: #7fb069;
+                                stroke: #3f6b2e;
+                                stroke-width: 2;
+                            }
+
+                            .plant-label {
+                                font-family: Arial, Helvetica, sans-serif;
+                                font-size: 13px;
+                                font-weight: 700;
+                                text-anchor: middle;
+                                fill: #2f5322;
+                            }
+
+                            .compass-label {
+                                font-family: Arial, Helvetica, sans-serif;
+                                font-size: 12px;
+                                font-weight: 700;
+                                text-anchor: middle;
+                                dominant-baseline: middle;
+                                fill: #333;
+                            }
+                        </style>
+
+                        <marker
+                            id="dim-arrow"
+                            viewBox="0 0 10 10"
+                            refX="5"
+                            refY="5"
+                            markerWidth="6"
+                            markerHeight="6"
+                            orient="auto-start-reverse"
+                        >
+                            <path d="M0 0L10 5L0 10Z" fill="#555"/>
+                        </marker>
+
+                        <pattern id="hatch-grey" width="8" height="8" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+                            <line x1="0" y1="0" x2="0" y2="8" stroke="#555" stroke-width="2"/>
+                        </pattern>
+                        <pattern id="hatch-blue" width="8" height="8" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+                            <line x1="0" y1="0" x2="0" y2="8" stroke="#5b8fb9" stroke-width="1.5"/>
+                        </pattern>
+                        <pattern id="hatch-brick" width="10" height="6" patternUnits="userSpaceOnUse">
+                            <rect width="10" height="6" fill="#b5651d"/>
+                            <line x1="0" y1="3" x2="10" y2="3" stroke="#7a4419" stroke-width="1"/>
+                            <line x1="5" y1="0" x2="5" y2="3" stroke="#7a4419" stroke-width="1"/>
+                            <line x1="0" y1="3" x2="0" y2="6" stroke="#7a4419" stroke-width="1"/>
+                            <line x1="10" y1="3" x2="10" y2="6" stroke="#7a4419" stroke-width="1"/>
+                        </pattern>
+                    </defs>
+
+                    <rect class="sheet" x="0" y="0" width="1060" height="730"/>
+
+                    <g class="compass" transform="translate(1015 700)">
+                        <circle r="22" fill="#fff" stroke="#333" stroke-width="1.5"/>
+                        <path d="M0 -18 L5.66 -5.66 L18 0 L5.66 5.66 L0 18 L-5.66 5.66 L-18 0 L-5.66 -5.66 Z" fill="#333"/>
+                        <text x="0" y="-28" class="compass-label">N</text>
+                        <text x="0" y="34" class="compass-label">S</text>
+                        <text x="30" y="1" class="compass-label">E</text>
+                        <text x="-30" y="1" class="compass-label">W</text>
+                    </g>
+
+                    <!-- GROUND FLOOR -->
+                    <g id="ground-floor-outline" transform="translate(40 40)">
+                        <path class="chimney-breast" d="M0 195 H-35 V260 H0 Z" fill="url(#hatch-brick)"/>
+                        <path class="wall-glass" d="M0 120 H120 V0"/>
+                        <path class="wall-glass" d="M120 0 H140"/>
+                        <path class="wall-glass" d="M240 0 H260 V420"/>
+                        <path class="wall" d="M0 420 V120"/>
+                        <path class="wall" d="M0 420 V450"/>
+                        <path class="door-leaf" d="M0 450 L-35 450 A35 35 0 0 1 0 490"/>
+                        <text x="-37" y="440" class="small-note">External Door</text>
+                        <path class="wall" d="M0 490 V560 H130"/>
+                        <path class="wall" d="M260 420 V500 L251 518"/>
+                        <path class="wall" d="M239 542 L230 560 H130"/>
+                        <path class="door-leaf" d="M251 518 L275 530 A27 27 0 0 1 239 542"/>
+                        <text x="278" y="510" class="small-note">Fire Door</text>
+
+                        <path class="door-leaf" d="M140 0 L140 60 A60 60 0 0 0 190 0"/>
+                        <path class="door-leaf" d="M240 0 L240 60 A60 60 0 0 1 190 0"/>
+                        <text x="190" y="-10" class="small-note">Front Door</text>
+
+                        <path class="partition" d="M130 420 H150"/>
+                        <path class="partition" d="M190 420 H260"/>
+
+                        <path class="partition" d="M0 420 H10"/>
+                        <path class="partition" d="M50 420 H85"/>
+                        <path class="partition" d="M85 420 V560"/>
+                        <path class="partition" d="M85 420 H105"/>
+                        <path class="partition" d="M111 420 H130"/>
+                        <rect class="hatch-door" x="103" y="416" width="10" height="8"/>
+                        <path class="partition" d="M130 420 V530"/>
+                        <path class="partition" d="M130 540 V560"/>
+                        <rect class="hatch-door" x="126" y="530" width="8" height="10"/>
+                        <path class="door-leaf" d="M10 420 L10 380 A40 40 0 0 0 50 420"/>
+
+                        <g>
+                            <line class="stair-tread" x1="160" y1="520" x2="240" y2="520"/>
+                            <line class="stair-tread" x1="160" y1="505" x2="240" y2="505"/>
+                            <line class="stair-tread" x1="160" y1="490" x2="240" y2="490"/>
+                            <line class="stair-tread" x1="160" y1="475" x2="240" y2="475"/>
+                            <line class="stair-tread" x1="160" y1="460" x2="240" y2="460"/>
+                            <line class="stair-tread" x1="160" y1="445" x2="240" y2="445"/>
+                            <path d="M200 440 L192 452 H208 Z" fill="#666"/>
+                            <text x="200" y="435" class="small-note">UP</text>
+                        </g>
+
+                        <text x="21" y="500" class="room-name" transform="rotate(-90 21 500)">Merched</text>
+                        <text x="63" y="500" class="room-name" transform="rotate(-90 63 500)">Dynion</text>
+                        <line x1="42" y1="469" x2="42" y2="560" class="stair-rail"/>
+                        <text x="112" y="490" class="room-name" transform="rotate(-90 112 490)">Wood Store</text>
+                        <text x="195" y="480" class="room-name">Stairway</text>
+                        <text x="195" y="498" class="room-name">&amp; Storage</text>
+
+                        <text x="130" y="225" class="room-name" style="font-size:14px; font-weight:400;">≈ 53 m² (570 sq ft)</text>
+
+                        <path class="furniture" d="M88 245 H230 V285 H128 V387 H88 Z"/>
+                        <text x="159" y="269" class="furniture-label">ONYX BAR</text>
+
+                        <circle cx="0" cy="227.5" r="13" class="flue-marker"/>
+                        <circle cx="0" cy="227.5" r="3" class="flue-marker-dot"/>
+                        <text x="-26" y="231.5" class="flue-label">Flue</text>
+
+                        <line x1="0" y1="560" x2="0" y2="600" class="dimension-ext"/>
+                        <line x1="260" y1="560" x2="260" y2="600" class="dimension-ext"/>
+                        <line x1="0" y1="600" x2="260" y2="600" class="dimension" marker-start="url(#dim-arrow)" marker-end="url(#dim-arrow)"/>
+                        <text x="130" y="594" class="dimension-text">≈ 8.0 m overall width</text>
+
+                        <line x1="260" y1="0" x2="300" y2="0" class="dimension-ext"/>
+                        <line x1="260" y1="560" x2="300" y2="560" class="dimension-ext"/>
+                        <line x1="300" y1="0" x2="300" y2="560" class="dimension" marker-start="url(#dim-arrow)" marker-end="url(#dim-arrow)"/>
+                        <text x="312" y="280" class="dimension-text" transform="rotate(90 312 280)">≈ 9.5 m overall depth</text>
+
+                        <text x="130" y="650" class="floor-label">Ground Floor</text>
+                    </g>
+
+                    <!-- FIRST FLOOR -->
+                    <g id="first-floor-outline" transform="translate(400 40)">
+                        <path class="chimney-breast" d="M0 195 H-35 V260 H0 Z" fill="url(#hatch-brick)"/>
+                        <path class="wall" d="M0 420 V0"/>
+                        <path class="wall" d="M0 0 H200 L260 60 V420"/>
+                        <path class="wall" d="M0 420 V460 H-40 V560 H150"/>
+                        <path class="wall" d="M260 420 V560 H150"/>
+
+                        <g transform="translate(60 0)">
+                            <rect class="window-mask" x="-20" y="-6" width="40" height="12"/>
+                            <line class="window-line" x1="-20" y1="-6" x2="-20" y2="6"/>
+                            <line class="window-line" x1="20" y1="-6" x2="20" y2="6"/>
+                            <line class="window-line" x1="-20" y1="-2" x2="20" y2="-2"/>
+                            <line class="window-line" x1="-20" y1="2" x2="20" y2="2"/>
+                        </g>
+                        <g transform="translate(150 0)">
+                            <rect class="window-mask" x="-20" y="-6" width="40" height="12"/>
+                            <line class="window-line" x1="-20" y1="-6" x2="-20" y2="6"/>
+                            <line class="window-line" x1="20" y1="-6" x2="20" y2="6"/>
+                            <line class="window-line" x1="-20" y1="-2" x2="20" y2="-2"/>
+                            <line class="window-line" x1="-20" y1="2" x2="20" y2="2"/>
+                        </g>
+                        <g transform="translate(260 150)">
+                            <rect class="window-mask" x="-6" y="-20" width="12" height="40"/>
+                            <line class="window-line" x1="-6" y1="-20" x2="6" y2="-20"/>
+                            <line class="window-line" x1="-6" y1="20" x2="6" y2="20"/>
+                            <line class="window-line" x1="-2" y1="-20" x2="-2" y2="20"/>
+                            <line class="window-line" x1="2" y1="-20" x2="2" y2="20"/>
+                        </g>
+                        <g transform="translate(260 300)">
+                            <rect class="window-mask" x="-6" y="-20" width="12" height="40"/>
+                            <line class="window-line" x1="-6" y1="-20" x2="6" y2="-20"/>
+                            <line class="window-line" x1="-6" y1="20" x2="6" y2="20"/>
+                            <line class="window-line" x1="-2" y1="-20" x2="-2" y2="20"/>
+                            <line class="window-line" x1="2" y1="-20" x2="2" y2="20"/>
+                        </g>
+
+                        <path d="M10 15 L200 15 L255 70 V322 H10 Z" fill="url(#hatch-grey)"/>
+                        <rect x="10" y="430" width="130" height="120" fill="url(#hatch-blue)"/>
+
+                        <path class="furniture" d="M93 83.13 H137 V170.88 H93 Z"/>
+                        <text x="115" y="110" class="furniture-label" transform="rotate(-90 115 110)">ISLAND</text>
+
+                        <path class="furniture" d="M10 15 H40 V136 H10 Z"/>
+                        <text x="25" y="76" class="small-note" transform="rotate(-90 25 76)">Kitchen units</text>
+
+                        <path class="furniture" d="M40 15 H200 L230 45 H40 Z"/>
+                        <text x="120" y="34" class="small-note">Kitchen units</text>
+
+                        <rect x="52" y="222" width="46" height="40" class="furniture"/>
+                        <text x="75" y="246" class="small-note">Table</text>
+                        <circle cx="65" cy="212" r="6" class="furniture"/>
+                        <circle cx="85" cy="212" r="6" class="furniture"/>
+                        <circle cx="65" cy="272" r="6" class="furniture"/>
+                        <circle cx="85" cy="272" r="6" class="furniture"/>
+
+                        <rect x="165" y="170" width="90" height="25" class="furniture"/>
+                        <text x="210" y="186" class="small-note">Sofa</text>
+
+                        <rect x="170" y="312" width="60" height="8" class="furniture"/>
+                        <text x="200" y="308" class="small-note">TV</text>
+
+                        <path class="partition" d="M0 332 H110"/>
+                        <path class="partition" d="M150 332 H260"/>
+                        <path class="door-leaf" d="M110 332 L110 372 A40 40 0 0 0 150 332"/>
+
+                        <path class="partition" d="M50 332 V356"/>
+                        <path class="partition" d="M50 396 V420"/>
+
+
+                        <path class="partition" d="M0 420 H60"/>
+                        <path class="partition" d="M100 420 H150"/>
+                        <path class="door-leaf" d="M60 420 L60 460 A40 40 0 0 0 100 420"/>
+
+                        <path class="partition" d="M150 420 V560"/>
+
+                        <path class="partition" d="M150 420 H160"/>
+
+                        <path class="partition" d="M210 362 V420"/>
+                        <path class="door-leaf" d="M210 332 L180 332 A30 30 0 0 0 210 362"/>
+
+                        <path d="M10 280 H222 V390 H177 V325 H10 Z" class="stair-rail" fill="none"/>
+                        <path d="M80 295 L72 307 H88 Z" fill="#888"/>
+                        <text x="80" y="317" class="small-note">Stairs below</text>
+
+                        <g>
+                            <line class="stair-tread" x1="160" y1="520" x2="240" y2="520"/>
+                            <line class="stair-tread" x1="160" y1="505" x2="240" y2="505"/>
+                            <line class="stair-tread" x1="160" y1="490" x2="240" y2="490"/>
+                            <line class="stair-tread" x1="160" y1="475" x2="240" y2="475"/>
+                            <line class="stair-tread" x1="160" y1="460" x2="240" y2="460"/>
+                            <line class="stair-tread" x1="160" y1="445" x2="240" y2="445"/>
+                            <path d="M200 440 L192 452 H208 Z" fill="#666"/>
+                            <text x="200" y="435" class="small-note">UP</text>
+                        </g>
+
+                        <text x="130" y="244" class="room-name">KITCHEN / DINER</text>
+                        <text x="130" y="376" class="room-name">Hallway</text>
+                        <text x="25" y="376" class="room-name" transform="rotate(-90 25 376)" style="font-size:12px">Utility</text>
+                        <text x="235" y="370" class="room-name" transform="rotate(-90 235 376)" style="font-size:11px"><tspan x="235" dy="0">UNDER STAIRS</tspan><tspan x="235" dy="13">STORAGE</tspan></text>
+                        <text x="205" y="480" class="room-name">Stairway</text>
+                        <text x="75" y="480" class="room-name">Main</text>
+                        <text x="75" y="498" class="room-name">Bathroom</text>
+                        <text x="-15" y="490" class="small-note" transform="rotate(-90 -15 490)">Extractor fan</text>
+
+                        <circle cx="0" cy="227.5" r="13" class="flue-marker"/>
+                        <circle cx="0" cy="227.5" r="3" class="flue-marker-dot"/>
+                        <text x="-26" y="231.5" class="flue-label">Flue</text>
+
+
+                        <text x="130" y="650" class="floor-label">First Floor</text>
+                    </g>
+
+                    <!-- SECOND FLOOR -->
+                    <g id="second-floor-outline" transform="translate(760 40)">
+                        <path class="chimney-breast" d="M0 195 H-35 V260 H0 Z" fill="url(#hatch-brick)"/>
+                        <path class="wall" d="M0 560 V0"/>
+                        <path class="wall" d="M0 0 H200 L260 60 V300 H230 V560"/>
+                        <path class="wall" d="M230 560 H0"/>
+
+                        <g transform="translate(60 0)">
+                            <rect class="window-mask" x="-20" y="-6" width="40" height="12"/>
+                            <line class="window-line" x1="-20" y1="-6" x2="-20" y2="6"/>
+                            <line class="window-line" x1="20" y1="-6" x2="20" y2="6"/>
+                            <line class="window-line" x1="-20" y1="-2" x2="20" y2="-2"/>
+                            <line class="window-line" x1="-20" y1="2" x2="20" y2="2"/>
+                        </g>
+                        <g transform="translate(150 0)">
+                            <rect class="window-mask" x="-20" y="-6" width="40" height="12"/>
+                            <line class="window-line" x1="-20" y1="-6" x2="-20" y2="6"/>
+                            <line class="window-line" x1="20" y1="-6" x2="20" y2="6"/>
+                            <line class="window-line" x1="-20" y1="-2" x2="20" y2="-2"/>
+                            <line class="window-line" x1="-20" y1="2" x2="20" y2="2"/>
+                        </g>
+                        <g transform="translate(260 120)">
+                            <rect class="window-mask" x="-6" y="-20" width="12" height="40"/>
+                            <line class="window-line" x1="-6" y1="-20" x2="6" y2="-20"/>
+                            <line class="window-line" x1="-6" y1="20" x2="6" y2="20"/>
+                            <line class="window-line" x1="-2" y1="-20" x2="-2" y2="20"/>
+                            <line class="window-line" x1="2" y1="-20" x2="2" y2="20"/>
+                        </g>
+                        <g transform="translate(260 220)">
+                            <rect class="window-mask" x="-6" y="-20" width="12" height="40"/>
+                            <line class="window-line" x1="-6" y1="-20" x2="6" y2="-20"/>
+                            <line class="window-line" x1="-6" y1="20" x2="6" y2="20"/>
+                            <line class="window-line" x1="-2" y1="-20" x2="-2" y2="20"/>
+                            <line class="window-line" x1="2" y1="-20" x2="2" y2="20"/>
+                        </g>
+
+                        <rect x="100" y="430" width="120" height="120" fill="url(#hatch-blue)"/>
+
+                        <path d="M10 280 H222 V390 H177 V325 H10 Z" class="stair-rail" fill="none"/>
+                        <path d="M80 295 L72 307 H88 Z" fill="#888"/>
+                        <text x="80" y="317" class="small-note">Stairs below</text>
+
+                        <path class="partition" d="M0 220 H40"/>
+                        <path class="partition" d="M75 220 H105"/>
+                        <path class="door-leaf" d="M40 220 L40 252 A32 32 0 0 0 73 220"/>
+
+                        <path class="partition" d="M105 0 V360"/>
+                        <path class="partition" d="M105 395 V420"/>
+                        <path class="door-leaf" d="M105 360 L137 360 A32 32 0 0 1 105 393"/>
+
+                        <path class="partition" d="M105 80 H168"/>
+                        <path class="partition" d="M198 80 H260"/>
+                        <path class="door-leaf" d="M168 80 L168 110 A30 30 0 0 0 198 80"/>
+
+                        <path class="partition" d="M90 420 H160"/>
+                        <path class="partition" d="M195 420 H230"/>
+                        <path class="door-leaf" d="M160 420 L160 388 A32 32 0 0 1 193 420"/>
+
+                        <path class="partition" d="M0 420 H20"/>
+                        <path class="partition" d="M58 420 H90"/>
+                        <path class="partition" d="M90 420 V560"/>
+                        <path class="door-leaf" d="M20 420 L20 385 A35 35 0 0 1 58 420"/>
+
+                        <text x="45" y="110" class="room-name" transform="rotate(-90 45 110)">Bedroom 2</text>
+                        <text x="45" y="325" class="room-name">Hallway</text>
+                        <text x="182" y="212" class="room-name">Bedroom 1</text>
+                        <text x="182" y="45" class="room-name">Study</text>
+                        <text x="160" y="490" class="small-note" transform="rotate(-90 160 490)" style="font-size:13px">En-suite</text>
+                        <text x="275" y="490" class="small-note" transform="rotate(-90 275 490)">Extractor fan</text>
+                        <text x="45" y="490" class="small-note" transform="rotate(-90 45 490)" style="font-size:11px"><tspan x="45" dy="0">Airing Cupboard,</tspan><tspan x="45" dy="13">Gas Boiler and</tspan><tspan x="45" dy="13">Hot Water</tspan></text>
+
+                        <rect x="-78" y="460" width="55" height="60" class="plant"/>
+                        <line x1="-23" y1="490" x2="0" y2="490" class="stair-rail"/>
+                        <text x="-50" y="534" class="plant-label">ASHP &amp;</text>
+                        <text x="-50" y="547" class="plant-label">A/C Unit</text>
+
+                        <text x="130" y="650" class="floor-label">Second Floor</text>
+                    </g>
+                </svg>
+
+                <div class="floorplan-toggle">
+                    <button type="button" class="floor-toggle-btn" data-target="ground-floor-outline" aria-pressed="true">
+                        Ground Floor
+                    </button>
+                    <button type="button" class="floor-toggle-btn" data-target="first-floor-outline" aria-pressed="true">
+                        First Floor
+                    </button>
+                    <button type="button" class="floor-toggle-btn" data-target="second-floor-outline" aria-pressed="true">
+                        Second Floor
+                    </button>
+                </div>
+
+                <div class="floorplan-toggle">
+                    <a href="../costings/" class="property-title-link">52 STRYD FAWR</a>
+                    <a href="../floorplan_2/" class="property-title-link">FLOORPLAN 2</a>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        (function () {
+            var buttons = document.querySelectorAll('.floor-toggle-btn');
+            var svg = document.querySelector('.floorplan-svg');
+            var floorGroups = Array.prototype.slice.call(document.querySelectorAll('[id$="-floor-outline"]'));
+            var viewBox = svg.viewBox.baseVal;
+            var baseTransforms = {};
+
+            floorGroups.forEach(function (g) {
+                baseTransforms[g.id] = g.getAttribute('transform');
+            });
+
+            function resetTransforms() {
+                floorGroups.forEach(function (g) {
+                    g.setAttribute('transform', baseTransforms[g.id]);
+                });
+            }
+
+            function updateLayout() {
+                var visible = floorGroups.filter(function (g) {
+                    return g.style.display !== 'none';
+                });
+
+                resetTransforms();
+
+                if (visible.length === 1) {
+                    var g = visible[0];
+                    var bbox = g.getBBox();
+                    var cx = bbox.x + bbox.width / 2;
+                    var cy = bbox.y + bbox.height / 2;
+                    var padding = 40;
+                    var availW = viewBox.width - padding * 2;
+                    var availH = viewBox.height - padding * 2;
+                    var scale = Math.min(availW / bbox.height, availH / bbox.width);
+                    var targetCx = viewBox.x + viewBox.width / 2;
+                    var targetCy = viewBox.y + viewBox.height / 2;
+
+                    g.setAttribute(
+                        'transform',
+                        'translate(' + targetCx + ' ' + targetCy + ') ' +
+                        'scale(' + scale + ') ' +
+                        'rotate(-90) ' +
+                        'translate(' + (-cx) + ' ' + (-cy) + ')'
+                    );
+                }
+            }
+
+            buttons.forEach(function (btn) {
+                var target = document.getElementById(btn.getAttribute('data-target'));
+
+                if (!target) {
+                    return;
+                }
+
+                btn.addEventListener('click', function () {
+                    var isShown = btn.getAttribute('aria-pressed') === 'true';
+                    var next = !isShown;
+
+                    target.style.display = next ? '' : 'none';
+                    btn.setAttribute('aria-pressed', next ? 'true' : 'false');
+                    updateLayout();
+                });
+            });
+        })();
+    </script>
+
+</body>
+</html>

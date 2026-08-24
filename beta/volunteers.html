@@ -7,7 +7,28 @@
   <link rel="icon" type="image/svg+xml" href="tarian-shield.svg">
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="pin-locked">
+
+  <div id="pin-gate" class="pin-gate">
+    <div class="pin-gate-box">
+      <img src="tarian-shield.svg" alt="" class="pin-gate-logo">
+      <h2>TARIAN</h2>
+      <p>Enter the 6-digit PIN to continue.</p>
+      <form id="pin-gate-form" autocomplete="off">
+        <input
+          type="password"
+          id="pin-gate-input"
+          class="pin-gate-input"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          maxlength="6"
+          autocomplete="off"
+          aria-label="6-digit PIN">
+        <button type="submit" class="pin-gate-button">Unlock</button>
+      </form>
+      <p id="pin-gate-error" class="pin-gate-error" hidden>Incorrect PIN. Please try again.</p>
+    </div>
+  </div>
 
   <header class="page-header">
     <a href="index.html" class="page-header-logo-link" aria-label="TARIAN home">
@@ -113,31 +134,31 @@
           </tr>
         </thead>
         <tbody>
-          <tr data-row-key="member-1">
-            <td><input type="text" class="name-input first-name-input read-only-input" value="Pat" readonly title="Member name cannot be changed"></td>
-            <td><input type="text" class="name-input last-name-input read-only-input" value="Postie" readonly title="Member name cannot be changed"></td>
+          <tr data-row-key="member-3">
+            <td><input type="text" class="name-input first-name-input read-only-input" value="Chris" readonly title="Member name cannot be changed"></td>
+            <td><input type="text" class="name-input last-name-input read-only-input" value="Green" readonly title="Member name cannot be changed"></td>
             <td>
-              <input type="text" class="elector-id-input read-only-input" value="836408391" placeholder="Elector ID" readonly title="Elector ID cannot be changed">
+              <input type="text" class="elector-id-input read-only-input" value="12345679" placeholder="Elector ID" readonly title="Elector ID cannot be changed">
               <div class="elector-address-display"></div>
               <div class="elector-polling-district-display"></div>
-              <div class="elector-local-authority-display">Gwynedd</div>
+              <a class="elector-profile-link" style="display:none"></a>
             </td>
-            <td class="placeholder-cell"><input type="tel" class="placeholder-input" placeholder="07700 111222"></td>
-            <td class="placeholder-cell"><input type="email" class="placeholder-input" placeholder="elector@email.com"></td>
+            <td class="placeholder-cell"><input type="tel" class="placeholder-input phone-input" placeholder="07700 111222"></td>
+            <td class="placeholder-cell"><input type="email" class="placeholder-input email-input" placeholder="elector@email.com"></td>
             <td>
               <ul class="activist-options">
-                <li><label><input type="checkbox"> Attend Action Days</label></li>
-                <li><label><input type="checkbox"> Attend social events</label></li>
+                <li><label><input type="checkbox" checked> Attend Action Days</label></li>
+                <li><label><input type="checkbox" checked> Attend social events</label></li>
                 <li><label><input type="checkbox" checked> Clerical work</label></li>
                 <li><label><input type="checkbox"> Councillor</label></li>
-                <li><label><input type="checkbox"> Council Candidate</label></li>
+                <li><label><input type="checkbox" checked> Council Candidate</label></li>
                 <li><label><input type="checkbox" checked> Donate money</label></li>
-                <li><label><input type="checkbox"> Knock on doors</label></li>
+                <li><label><input type="checkbox" checked> Knock on doors</label></li>
                 <li><label><input type="checkbox"> Local Party Officer</label></li>
-                <li><label><input type="checkbox"> Make telephone calls</label></li>
+                <li><label><input type="checkbox" checked> Make telephone calls</label></li>
                 <li><label><input type="checkbox" checked> Regular deliverer</label></li>
-                <li><label><input type="checkbox"> Stand for election</label></li>
-                <li><label><input type="checkbox"> Take leaflets to deliverers</label></li>
+                <li><label><input type="checkbox" checked> Stand for election</label></li>
+                <li><label><input type="checkbox" checked> Take leaflets to deliverers</label></li>
               </ul>
             </td>
           </tr>
@@ -145,7 +166,7 @@
       </table>
 
       <div class="activist-category-row">
-        <h3 class="activist-category" id="volunteers-heading">Non-Member Volunteers [2]</h3>
+        <h3 class="activist-category" id="volunteers-heading">Non-Member Volunteers [0]</h3>
         <select class="add-activist-select" id="add-volunteer-select" data-table="volunteers-table" data-key-prefix="nonmember">
           <option value="" selected disabled>+ Add a volunteer</option>
           <option value="elector-id">Add using Elector ID</option>
@@ -164,56 +185,6 @@
           </tr>
         </thead>
         <tbody>
-          <tr data-row-key="nonmember-1">
-            <td><input type="text" class="name-input first-name-input" value="Pat"></td>
-            <td><input type="text" class="name-input last-name-input" value="Postie"></td>
-            <td>
-              <input type="text" class="elector-id-input" value="836408392" placeholder="Elector ID">
-              <div class="elector-address-display"></div>
-              <div class="elector-polling-district-display"></div>
-              <div class="elector-local-authority-display">Gwynedd</div>
-            </td>
-            <td class="placeholder-cell"><input type="tel" class="placeholder-input" placeholder="07700 111222"></td>
-            <td class="placeholder-cell"><input type="email" class="placeholder-input" placeholder="elector@email.com"></td>
-            <td>
-              <ul class="activist-options">
-                <li><label><input type="checkbox" checked> Ask to join the Party</label></li>
-                <li><label><input type="checkbox"> Attend Action Days</label></li>
-                <li><label><input type="checkbox"> Attend social events</label></li>
-                <li><label><input type="checkbox"> Clerical work</label></li>
-                <li><label><input type="checkbox"> Donate money</label></li>
-                <li><label><input type="checkbox"> Knock on doors</label></li>
-                <li><label><input type="checkbox"> Make telephone calls</label></li>
-                <li><label><input type="checkbox" checked> Regular deliverer</label></li>
-                <li><label><input type="checkbox"> Take leaflets to deliverers</label></li>
-              </ul>
-            </td>
-          </tr>
-          <tr data-row-key="nonmember-2">
-            <td><input type="text" class="name-input first-name-input" value="Sam"></td>
-            <td><input type="text" class="name-input last-name-input" value="Sorefeet"></td>
-            <td>
-              <input type="text" class="elector-id-input" value="934314542" placeholder="Elector ID">
-              <div class="elector-address-display"></div>
-              <div class="elector-polling-district-display"></div>
-              <div class="elector-local-authority-display">Gwynedd</div>
-            </td>
-            <td class="placeholder-cell"><input type="tel" class="placeholder-input" placeholder="07700 111222"></td>
-            <td class="placeholder-cell"><input type="email" class="placeholder-input" placeholder="elector@email.com"></td>
-            <td>
-              <ul class="activist-options">
-                <li><label><input type="checkbox" checked> Ask to join the Party</label></li>
-                <li><label><input type="checkbox"> Attend Action Days</label></li>
-                <li><label><input type="checkbox"> Attend social events</label></li>
-                <li><label><input type="checkbox"> Clerical work</label></li>
-                <li><label><input type="checkbox"> Donate money</label></li>
-                <li><label><input type="checkbox"> Knock on doors</label></li>
-                <li><label><input type="checkbox"> Make telephone calls</label></li>
-                <li><label><input type="checkbox" checked> Regular deliverer</label></li>
-                <li><label><input type="checkbox"> Take leaflets to deliverers</label></li>
-              </ul>
-            </td>
-          </tr>
         </tbody>
       </table>
 
@@ -345,12 +316,88 @@
 
     const electorsById = new Map();
 
+    function toNewspapersCsvUrl(rawUrl) {
+
+      const match = rawUrl.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+
+      if (!match) {
+        return null;
+      }
+
+      return (
+        "https://docs.google.com/spreadsheets/d/" +
+        match[1] +
+        "/gviz/tq?tqx=out:csv&sheet=NEWSPAPERS"
+      );
+
+    }
+
+    // NEWSPAPERS tab stores its Address Line 1/2 already correctly cased
+    // (e.g. "Awel y Mor"), unlike Sheet1's ALL CAPS address columns which
+    // need forcing through toTitleCaseAddress (and that regex incorrectly
+    // capitalises short Welsh words like "y"). So prefer the NEWSPAPERS
+    // address, keyed by Household ID, over the Sheet1 fallback.
+    async function loadNewspapersAddressesByHouseholdId() {
+
+      const addressesByHouseholdId = new Map();
+
+      try {
+
+        const newspapersUrl = toNewspapersCsvUrl(DEFAULT_SHEET_URL);
+
+        if (!newspapersUrl) {
+          return addressesByHouseholdId;
+        }
+
+        const response = await fetch(newspapersUrl);
+
+        if (!response.ok) {
+          return addressesByHouseholdId;
+        }
+
+        const rows = parseCsv(await response.text());
+
+        rows.slice(1).forEach(row => {
+
+          const householdId = (row[1] || "").trim();
+
+          if (!householdId) {
+            return;
+          }
+
+          const addressLine =
+            [row[3], row[4]]
+              .map(part => (part || "").trim())
+              .filter(part => part && part.toLowerCase() !== "gwynedd")
+              .join(", ");
+
+          const postcode = (row[7] || "").trim().toUpperCase();
+
+          if (addressLine) {
+            addressesByHouseholdId.set(householdId, { addressLine, postcode });
+          }
+
+        });
+
+      } catch (error) {
+        // NEWSPAPERS tab is supplementary — fall back to Sheet1 address.
+      }
+
+      return addressesByHouseholdId;
+
+    }
+
     async function loadElectorsForLookup() {
 
       try {
 
         const csvUrl = toGoogleCsvUrl(DEFAULT_SHEET_URL);
-        const response = await fetch(csvUrl);
+
+        const [response, newspapersAddressesByHouseholdId] =
+          await Promise.all([
+            fetch(csvUrl),
+            loadNewspapersAddressesByHouseholdId()
+          ]);
 
         if (!response.ok) {
           return;
@@ -366,9 +413,13 @@
         const address2Idx = headers.indexOf("address2");
         const address3Idx = headers.indexOf("address3");
         const postcodeIdx = headers.indexOf("postcode");
+        const householdIdIdx = headers.indexOf("householdid");
         const pollingDistrictIdx = headers.indexOf("pollingdistrict");
         const pollingDistrictDescIdx =
           headers.indexOf("pollingdistrictdescription");
+        const phoneIdx = headers.indexOf("phone");
+        const emailIdx = headers.indexOf("email");
+        const posterIdx = headers.indexOf("poster");
 
         rows.slice(1).forEach(row => {
 
@@ -387,8 +438,13 @@
           const lastName =
             spaceIdx === -1 ? "" : fullName.slice(spaceIdx + 1);
 
-          const addressLine =
-            [row[address1Idx], row[address2Idx], row[address3Idx]]
+          const householdId = (row[householdIdIdx] || "").trim();
+
+          const newspapersEntry =
+            newspapersAddressesByHouseholdId.get(householdId);
+
+          const sheetAddressLine =
+            [row[address1Idx], row[address2Idx]]
               .map(part => (part || "").trim())
               // Address fields sometimes contain an embedded comma
               // (e.g. "BODORWEL,BWLCH"), so re-split on every comma
@@ -400,10 +456,20 @@
               .map(part => toTitleCaseAddress(part))
               .join(", ");
 
-          const postcode = (row[postcodeIdx] || "").trim().toUpperCase();
+          const address = newspapersEntry
+            ? newspapersEntry.addressLine
+            : sheetAddressLine;
 
-          const address =
-            [addressLine, postcode].filter(Boolean).join(", ");
+          const postcode =
+            (newspapersEntry && newspapersEntry.postcode) ||
+            (row[postcodeIdx] || "").trim().toUpperCase();
+
+          // Slightly longer address (with postcode) for contexts like
+          // Poster Sites where the extra detail is useful; the plain
+          // "address" (line 1/2 only) is used for the compact Members
+          // table display.
+          const addressWithPostcode =
+            [address, postcode].filter(Boolean).join(", ");
 
           const pollingDistrictCode =
             (row[pollingDistrictIdx] || "").trim();
@@ -416,7 +482,20 @@
               ? pollingDistrictCode + " (" + pollingDistrictDesc + ")"
               : pollingDistrictCode || pollingDistrictDesc;
 
-          electorsById.set(id, { firstName, lastName, address, pollingDistrict });
+          electorsById.set(id, {
+            firstName,
+            lastName,
+            address,
+            addressWithPostcode,
+            pollingDistrict,
+            phone: (row[phoneIdx] || "").trim(),
+            email: (row[emailIdx] || "").trim(),
+            // Sheet1 (master data) Poster column - locked/read-only on
+            // the profile & main pages, so it's never written back to
+            // localStorage progress. Poster Sites here must read it
+            // directly from the sheet, same as index.html/profile.html do.
+            masterPosterRaw: (row[posterIdx] || "").trim()
+          });
 
         });
 
@@ -434,6 +513,9 @@
       const addressDisplay = row.querySelector(".elector-address-display");
       const pollingDistrictDisplay =
         row.querySelector(".elector-polling-district-display");
+      const profileLink = row.querySelector(".elector-profile-link");
+      const phoneInput = row.querySelector(".phone-input");
+      const emailInput = row.querySelector(".email-input");
 
       if (!electorIdInput) {
         return;
@@ -453,9 +535,27 @@
 
       if (pollingDistrictDisplay) {
         pollingDistrictDisplay.textContent =
-          match && match.pollingDistrict
-            ? "Polling District: " + match.pollingDistrict
-            : "";
+          match && match.pollingDistrict ? match.pollingDistrict : "";
+      }
+
+      if (phoneInput) {
+        phoneInput.value = match ? (match.phone || "") : "";
+      }
+
+      if (emailInput) {
+        emailInput.value = match ? (match.email || "") : "";
+      }
+
+      if (profileLink) {
+        if (match && id) {
+          profileLink.href = "profile.html?id=" + encodeURIComponent(id);
+          profileLink.textContent = "View Elector's Profile \u2192";
+          profileLink.style.display = "";
+        } else {
+          profileLink.removeAttribute("href");
+          profileLink.textContent = "";
+          profileLink.style.display = "none";
+        }
       }
 
       if (save) {
@@ -616,26 +716,33 @@
 
     }
 
-    // Groups every elector with an active Poster selection (read from the
-    // main page's shared progress storage) by address, so a household
-    // with several posters appears as a single Poster Sites row.
+    // Groups every elector with an active Poster selection by address, so
+    // a household with several posters appears as a single Poster Sites
+    // row. Poster comes from Sheet1 (master data) when present there -
+    // same "master wins" rule as index.html/profile.html - falling back
+    // to the shared progress storage for electors without a sheet value
+    // (e.g. manually set before Poster became a locked, sheet-sourced
+    // field). Iterates every known elector (not just ones with saved
+    // progress) so sheet-only Poster values are never missed.
     function collectPosterSiteGroups() {
 
       const progress = loadElectorProgress();
       const groupsByAddress = new Map();
 
-      Object.keys(progress).forEach(electorId => {
+      electorsById.forEach((elector, electorId) => {
 
-        const posterType =
-          getPosterTypeFromProgress(progress[electorId] && progress[electorId].poster);
+        const masterPosterRaw = elector.masterPosterRaw || "";
+        const masterPoster =
+          masterPosterRaw && masterPosterRaw !== "No Poster"
+            ? "Poster: " + masterPosterRaw
+            : masterPosterRaw;
+
+        const rawPoster =
+          masterPoster || (progress[electorId] && progress[electorId].poster) || "";
+
+        const posterType = getPosterTypeFromProgress(rawPoster);
 
         if (!posterType) {
-          return;
-        }
-
-        const elector = electorsById.get(electorId);
-
-        if (!elector) {
           return;
         }
 
@@ -644,7 +751,7 @@
 
         if (!groupsByAddress.has(addressKey)) {
           groupsByAddress.set(addressKey, {
-            address: elector.address || "—",
+            address: elector.addressWithPostcode || elector.address || "—",
             members: []
           });
         }
@@ -669,13 +776,11 @@
       ul.className = "activist-options";
 
       const types = new Set(group.members.map(member => member.posterType));
-      const isMixed = types.has("Garden") && types.has("Window");
+      const isMixed =
+        types.has("Both") ||
+        (types.has("Garden") && types.has("Window"));
 
-      const options = ["Garden", "Window"];
-
-      if (isMixed) {
-        options.push("Both");
-      }
+      const options = ["Garden", "Window", "Both"];
 
       options.forEach(optionLabel => {
 
@@ -687,7 +792,8 @@
         radio.disabled = true;
 
         // When both a Garden and a Window poster exist at the same
-        // address, only "Both" is selectable/checked and the individual
+        // address (or an elector's own Poster value is already "Both"),
+        // only "Both" is selectable/checked and the individual
         // Garden/Window options are greyed out (still shown for context).
         if (isMixed) {
           radio.checked = optionLabel === "Both";
@@ -960,14 +1066,14 @@
       const pollingDistrictDisplay = document.createElement("div");
       pollingDistrictDisplay.className = "elector-polling-district-display";
 
-      const localAuthorityDisplay = document.createElement("div");
-      localAuthorityDisplay.className = "elector-local-authority-display";
-      localAuthorityDisplay.textContent = "Gwynedd";
+      const profileLink = document.createElement("a");
+      profileLink.className = "elector-profile-link";
+      profileLink.style.display = "none";
 
       td.appendChild(input);
       td.appendChild(addressDisplay);
       td.appendChild(pollingDistrictDisplay);
-      td.appendChild(localAuthorityDisplay);
+      td.appendChild(profileLink);
 
       return td;
 
@@ -1143,7 +1249,7 @@
       phoneTd.className = "placeholder-cell";
       const phoneInput = document.createElement("input");
       phoneInput.type = "tel";
-      phoneInput.className = "placeholder-input";
+      phoneInput.className = "placeholder-input phone-input";
       phoneInput.placeholder = "07700 111222";
       phoneTd.appendChild(phoneInput);
 
@@ -1151,7 +1257,7 @@
       emailTd.className = "placeholder-cell";
       const emailInput = document.createElement("input");
       emailInput.type = "email";
-      emailInput.className = "placeholder-input";
+      emailInput.className = "placeholder-input email-input";
       emailInput.placeholder = "elector@email.com";
       emailTd.appendChild(emailInput);
 
@@ -1319,11 +1425,81 @@
 
     }
 
+    // Scrolls to and briefly highlights a specific member/activist row
+    // when arriving via a deep link, e.g. profile.html's "Volunteer
+    // Record" link (?rowKey=member-3).
+    function highlightRowFromQueryString() {
+
+      const rowKey = new URLSearchParams(location.search).get("rowKey");
+
+      if (!rowKey) {
+        return;
+      }
+
+      const row = document.querySelector("[data-row-key=\"" + CSS.escape(rowKey) + "\"]");
+
+      if (!row) {
+        return;
+      }
+
+      row.scrollIntoView({ behavior: "smooth", block: "center" });
+      row.classList.add("elector-item-highlight");
+
+      window.setTimeout(() => {
+        row.classList.remove("elector-item-highlight");
+      }, 1500);
+
+    }
+
     (async function init() {
       await loadElectorsForLookup();
       initVolunteerRows();
       renderPosterSites();
       initAddActivistControls();
+      highlightRowFromQueryString();
+    })();
+
+  </script>
+
+  <script>
+
+    const PIN_GATE_CODE = "202705";
+    const PIN_GATE_SESSION_KEY = "vote2027PinUnlocked";
+
+    (function initPinGate() {
+
+      const gateEl = document.getElementById("pin-gate");
+      const formEl = document.getElementById("pin-gate-form");
+      const inputEl = document.getElementById("pin-gate-input");
+      const errorEl = document.getElementById("pin-gate-error");
+
+      function unlock() {
+        document.body.classList.remove("pin-locked");
+        gateEl.style.display = "none";
+        sessionStorage.setItem(PIN_GATE_SESSION_KEY, "true");
+      }
+
+      if (sessionStorage.getItem(PIN_GATE_SESSION_KEY) === "true") {
+        unlock();
+        return;
+      }
+
+      formEl.addEventListener("submit", event => {
+
+        event.preventDefault();
+
+        if (inputEl.value.trim() === PIN_GATE_CODE) {
+          unlock();
+        } else {
+          errorEl.hidden = false;
+          inputEl.value = "";
+          inputEl.focus();
+        }
+
+      });
+
+      inputEl.focus();
+
     })();
 
   </script>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Costings | Tarian Newspapers</title>
+    <link rel="stylesheet" href="../style.css">
+
+    <style>
+        .costings-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.25rem;
+        }
+
+        .costings-table th,
+        .costings-table td {
+            text-align: left;
+            padding: 0.6rem 0.75rem;
+            border-bottom: 1px solid var(--border-strong, #333);
+        }
+
+        .costings-table th {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .costings-table td.amount,
+        .costings-table th.amount {
+            text-align: right;
+        }
+
+        .costings-table tfoot td {
+            font-weight: 700;
+            border-bottom: none;
+            border-top: 2px solid #111;
+        }
+
+        .costings-floorplan-link {
+            display: block;
+            text-align: center;
+            font-size: 1.1rem;
+            margin-top: 1.5rem;
+            color: var(--plaid-green-dark, #0a5e49);
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body class="tarian-homepage">
+
+    <header class="page-header tarian-homepage-header" id="top">
+        <a href="https://www.tarian146.co.uk/beta/" class="page-header-logo-link" aria-label="Tarian Newspapers home">
+            <img src="../tarian-shield.svg" alt="" class="page-header-logo">
+        </a>
+    </header>
+
+    <main class="app-shell">
+        <div class="tarian-homepage-card">
+            <p class="eyebrow">Tarian Newspapers</p>
+            <p class="subheading">52 Stryd Fawr — Costings</p>
+
+            <div class="intro">
+                <p>Estimated build costs for the proposed works.</p>
+            </div>
+
+            <table class="costings-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th class="amount">Estimated cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Furnishings</td>
+                        <td class="amount"><strong>£30,000 (21%)</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Plaster and construction of internal walls</td>
+                        <td class="amount"><strong>£15,000 (10%)</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Bathrooms (3)</td>
+                        <td class="amount"><strong>£15,000 (10%)</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Replacement windows</td>
+                        <td class="amount"><strong>£15,000 (10%)</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Roof repairs / replacement contingency</td>
+                        <td class="amount"><strong>£15,000 (10%)</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Kitchen / Diner</td>
+                        <td class="amount"><strong>£14,000 (10%)</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Heat Pump, Boiler, Water Tank, etc</td>
+                        <td class="amount"><strong>£10,000 (7%)</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Flooring, Carpets, Insulation</td>
+                        <td class="amount"><strong>£8,000 (6%)</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Remove staircase and install new one</td>
+                        <td class="amount"><strong>£7,000 (5%)</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Hoarding, demolition, removal of rubbish</td>
+                        <td class="amount"><strong>£5,000 (3%)</strong></td>
+                    </tr>
+                    <tr>
+                        <td>External masonry paint, scaffolding, contingencies</td>
+                        <td class="amount"><strong>£5,000 (3%)</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Stoves and flue system</td>
+                        <td class="amount"><strong>£3,000 (2%)</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Bar and storage</td>
+                        <td class="amount"><strong>£3,000 (2%)</strong></td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td>Total</td>
+                        <td class="amount">£145,000</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </main>
+
+    <a href="../floorplan/" class="costings-floorplan-link">floorplan</a>
+
+</body>
+</html>
