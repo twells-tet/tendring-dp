@@ -77,12 +77,11 @@
         <label for="polling-district">
           Polling District
           <select id="polling-district">
-            <option value="" id="polling-district-all-opt" hidden>SHOWING ALL POLLING DISTRICTS IN HARLECH A LLANBEDR</option>
-            <option value="" id="polling-district-placeholder-opt">Select Polling District</option>
+            <option value="" id="polling-district-all-opt" selected>All Districts</option>
             <option value="ae1">AE1 (Llanbedr)</option>
             <option value="af1">AF1 (Talsarnau)</option>
             <option value="au1">AU1 (Llanfair)</option>
-            <option value="n1" selected>N1 (Harlech)</option>
+            <option value="n1">N1 (Harlech)</option>
             <option value="n2">N2 (Llandanwg)</option>
           </select>
         </label>
@@ -93,8 +92,6 @@
 
 
     <section class="stats" aria-label="Elector statistics">
-
-      <button type="button" id="view-all-districts-button" class="export-button">View All Polling Districts</button>
 
       <div class="stat-card">
         <span class="stat-label">Households</span>
@@ -666,9 +663,6 @@ const westminsterEl =
 const pollingDistrictEl =
   document.getElementById("polling-district");
 
-const viewAllDistrictsButtonEl =
-  document.getElementById("view-all-districts-button");
-
 const wardPreviewEl =
   document.getElementById("ward-preview");
 
@@ -1129,33 +1123,10 @@ function initControls() {
   pollingDistrictEl.addEventListener(
     "change",
     () => {
-      pollingDistrictEl.disabled = false;
-      document.getElementById("polling-district-all-opt").hidden = true;
-      document.getElementById("polling-district-placeholder-opt").hidden = true;
-      viewAllDistrictsButtonEl.textContent = "View All Polling Districts";
       populateSubroadFilterOptions();
       handleFilterChange();
     }
   );
-
-  viewAllDistrictsButtonEl.addEventListener("click", () => {
-    const isShowingAll = viewAllDistrictsButtonEl.textContent.trim() === "Narrow By Polling District";
-    if (isShowingAll) {
-      // Return to "pick a district" state — clears data until user selects one
-      pollingDistrictEl.disabled = false;
-      document.getElementById("polling-district-all-opt").hidden = true;
-      document.getElementById("polling-district-placeholder-opt").selected = true;
-      viewAllDistrictsButtonEl.textContent = "View All Polling Districts";
-    } else {
-      // Show all districts
-      document.getElementById("polling-district-all-opt").hidden = false;
-      pollingDistrictEl.value = "";
-      pollingDistrictEl.disabled = true;
-      viewAllDistrictsButtonEl.textContent = "Narrow By Polling District";
-    }
-    populateSubroadFilterOptions();
-    handleFilterChange();
-  });
 
   const savedPollingDistrict =
     localStorage.getItem(
@@ -2085,8 +2056,8 @@ function renderElectorList() {
 
 
 
-  // In "View All" mode, render a compact scrollable list of all households
-  if (pollingDistrictEl.disabled) {
+  // In "View All" mode (no specific district selected), render compact list
+  if (!pollingDistrictEl.value) {
     updateStats();
     updatePropertyMap(null);
     updateAiComments(null);
@@ -2119,10 +2090,7 @@ function renderElectorList() {
       row.addEventListener("click", () => {
         // Switch to single-district view for this household's district
         const districtVal = normalizeText(fe.pollingDistrict);
-        pollingDistrictEl.disabled = false;
         pollingDistrictEl.value = districtVal;
-        document.getElementById("polling-district-all-opt").hidden = true;
-        viewAllDistrictsButtonEl.textContent = "View All Polling Districts";
         state.householdPageIndex = 0;
         populateSubroadFilterOptions();
         handleFilterChange();
@@ -4431,8 +4399,8 @@ function getActiveElectors() {
   const ward = normalizeText(wardEl.value);
   const pollingDistrict = normalizeText(pollingDistrictEl.value);
 
-  // If no district selected and not in "all districts" mode, show nothing
-  if (!pollingDistrict && !pollingDistrictEl.disabled) return [];
+  // If no district selected, show all (value="" = All Districts option)
+  // Never return early — empty value means show all
 
   const results = state.electors.filter(elector => {
 
@@ -4457,9 +4425,7 @@ function getActiveElectors() {
       return false;
     }
 
-    if (ward && looksReal(electorWard) && electorWard !== ward && !ward.includes(electorWard)) {
-      return false;
-    }
+    // Ward filter skipped — all data in this sheet belongs to Harlech a Llanbedr ward
 
     if (pollingDistrict && electorPollingDistrict && electorPollingDistrict !== pollingDistrict) {
       return false;
