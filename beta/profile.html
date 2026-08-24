@@ -1,5 +1,5 @@
-<!DOCTYPE html>
-<html lang="en-GB">
+﻿<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,12 +7,6 @@
   <link rel="icon" type="image/svg+xml" href="tarian-shield.svg">
   <link rel="stylesheet" href="style.css">
   <style>
-    .profile-meta {
-      margin: 0 0 0.75rem;
-      color: var(--text-muted);
-      font-size: 0.9rem;
-    }
-
     .profile-canvass-badge {
       display: inline-block;
       padding: 0.3rem 1rem;
@@ -22,19 +16,15 @@
       margin-bottom: 1rem;
       border: 2px solid transparent;
     }
+    .profile-canvass-badge.elector-lean-green  { background: rgba(10,167,125,0.12); border-color: var(--plaid-green);    color: var(--plaid-green-dark); }
+    .profile-canvass-badge.elector-lean-grey   { background: #f4f4f4;                border-color: #aaa;                  color: #555; }
+    .profile-canvass-badge.elector-lean-blue   { background: rgba(43,108,176,0.1);   border-color: #2b6cb0;               color: #1a4c90; }
+    .profile-canvass-badge.elector-lean-red    { background: rgba(218,41,28,0.08);   border-color: var(--plaid-red);      color: var(--plaid-red-dark); }
+    .profile-canvass-badge.elector-lean-light-green { background: rgba(102,187,106,0.1); border-color: #66bb6a; color: #2e7d32; }
+    .profile-canvass-badge.elector-lean-orange { background: rgba(245,166,35,0.1);   border-color: #f5a623;               color: #7a4f00; }
+    .profile-canvass-badge.elector-lean-turquoise { background: rgba(0,167,179,0.1); border-color: #00a7b3;               color: #006670; }
 
-    .profile-canvass-badge.elector-lean-green { background: rgba(10, 167, 125, 0.12); border-color: var(--plaid-green); color: var(--plaid-green-dark); }
-    .profile-canvass-badge.elector-lean-grey { background: #f4f4f4; border-color: #aaa; color: #555; }
-    .profile-canvass-badge.elector-lean-blue { background: rgba(43, 108, 176, 0.1); border-color: #2b6cb0; color: #1a4c90; }
-    .profile-canvass-badge.elector-lean-red { background: rgba(218, 41, 28, 0.08); border-color: var(--plaid-red); color: var(--plaid-red-dark); }
-    .profile-canvass-badge.elector-lean-light-green { background: rgba(102, 187, 106, 0.1); border-color: #66bb6a; color: #2e7d32; }
-    .profile-canvass-badge.elector-lean-orange { background: rgba(245, 166, 35, 0.1); border-color: #f5a623; color: #7a4f00; }
-    .profile-canvass-badge.elector-lean-turquoise { background: rgba(0, 167, 179, 0.1); border-color: #00a7b3; color: #006670; }
-
-    .profile-section {
-      margin-bottom: 1.5rem;
-    }
-
+    .profile-section { margin-bottom: 1.5rem; }
     .profile-section h3 {
       margin: 0 0 0.5rem;
       font-size: 0.8rem;
@@ -45,7 +35,6 @@
       border-bottom: 1px solid #e0e0e0;
       padding-bottom: 0.3rem;
     }
-
     .profile-dl {
       display: grid;
       grid-template-columns: max-content 1fr;
@@ -53,53 +42,30 @@
       margin: 0;
       font-size: 0.9rem;
     }
-
-    .profile-dl dt {
-      font-weight: 600;
-      color: #555;
-      white-space: nowrap;
-    }
-
-    .profile-dl dd {
-      margin: 0;
-    }
-
-    .profile-table,
-    .voting-history-table {
+    .profile-dl dt { font-weight: 600; color: #555; white-space: nowrap; }
+    .profile-dl dd { margin: 0; }
+    .profile-table {
       width: 100%;
       border-collapse: collapse;
       font-size: 0.85rem;
     }
-
     .profile-table th,
-    .profile-table td,
-    .voting-history-table th,
-    .voting-history-table td {
+    .profile-table td {
       text-align: left;
       padding: 0.35rem 0.6rem;
       border: 1px solid #ddd;
     }
+    .profile-table thead th { background: #f4f4f4; font-weight: 600; }
+    .profile-table .empty-row td { color: #aaa; font-style: italic; }
 
-    .profile-table thead th,
-    .voting-history-table thead th {
-      background: #f4f4f4;
-      font-weight: 600;
+    .voting-history-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .voting-history-table th, .voting-history-table td {
+      border: 1px solid #ddd;
+      padding: 0.3rem 0.5rem;
+      text-align: center;
     }
-
-    .profile-table .empty-row td,
-    .voting-history-disabled-cell {
-      color: #aaa;
-    }
-
-    .voting-history-table th,
-    .voting-history-table td {
-      width: 50%;
-    }
-
-    .voting-history-table th:first-child,
-    .voting-history-table td:first-child {
-      white-space: nowrap;
-    }
+    .voting-history-table th[scope="row"] { text-align: right; }
+    .voting-history-disabled-cell { color: #aaa; }
 
     .profile-anti-plaid {
       display: flex;
@@ -111,7 +77,6 @@
       border-radius: 0.5rem;
       background: #fff5f5;
     }
-
     .profile-anti-plaid-title {
       flex-basis: 100%;
       margin: 0 0 0.25rem;
@@ -121,138 +86,15 @@
       text-transform: uppercase;
       letter-spacing: 0.04em;
     }
-
-    .add-attempt-button {
-      display: inline-block;
-      margin: 0.6rem 0 0;
-      padding: 0.4rem 0.9rem;
-      border: 1px solid var(--plaid-green-dark, #0a7a5d);
-      border-radius: 0.4rem;
-      background: none;
-      color: var(--plaid-green-dark, #0a7a5d);
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .add-attempt-button:hover {
-      background: rgba(10, 167, 125, 0.08);
-    }
-
-    .add-attempt-form {
-      margin-top: 0.75rem;
-      padding: 0.75rem;
-      border: 1px solid #e0e0e0;
-      border-radius: 0.5rem;
-      background: #fafafa;
-    }
-
-    .add-attempt-form .profile-field-row {
-      margin-bottom: 0.5rem;
-    }
-
-    .add-attempt-form-buttons {
-      display: flex;
-      gap: 0.5rem;
-      margin-top: 0.5rem;
-    }
-
-    .attempt-notes-wrap {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      flex: 1;
-    }
-
-    .attempt-not-home-label {
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-      font-size: 0.85rem;
-      color: #555;
-      white-space: nowrap;
-      cursor: pointer;
-    }
-
-    #attempt-notes-input:disabled {
-      background: #eee;
-      color: #888;
-      cursor: not-allowed;
-    }
-
-    .attempt-save-button,
-    .attempt-cancel-button {
-      padding: 0.35rem 0.9rem;
-      border-radius: 0.4rem;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .attempt-save-button {
-      border: none;
-      background: var(--plaid-green-dark, #0a7a5d);
-      color: #fff;
-    }
-
-    .attempt-cancel-button {
-      border: 1px solid #aaa;
-      background: none;
-      color: #555;
-    }
-
     .profile-field-row {
       display: grid;
-      grid-template-columns: max-content minmax(0, 1fr);
+      grid-template-columns: max-content 1fr;
       gap: 0.35rem 1rem;
       align-items: center;
       margin: 0.3rem 0;
       font-size: 0.9rem;
     }
-
-    /* Canvassing Data uses a shared fixed column width across its
-       selects and definition-list rows so all four values (Canvass
-       ID, Support Independence, First Language, Postal Vote Status)
-       line up neatly at the same left edge. */
-    .canvassing-section .profile-field-row,
-    .canvassing-section .profile-dl {
-      grid-template-columns: 170px 220px;
-    }
-
-    .canvassing-section .profile-field-select {
-      width: 100%;
-    }
-
-    .profile-dob-inputs {
-      display: flex;
-      gap: 0.5rem;
-      width: 100%;
-      max-width: 320px;
-    }
-
-    .profile-dob-select {
-      width: 100%;
-      min-width: 0;
-      flex: 1 1 0;
-    }
-
-    .identity-field-row {
-      grid-template-columns: 160px minmax(0, 1fr);
-    }
-
-    .profile-field-note {
-      margin: 0 0 0.75rem;
-      margin-left: calc(160px + 1rem);
-      font-size: 0.75rem;
-      color: var(--text-muted);
-    }
-
-    .profile-field-label {
-      font-weight: 600;
-      color: #555;
-      white-space: nowrap;
-    }
-
+    .profile-field-label { font-weight: 600; color: #555; white-space: nowrap; }
     .profile-field-input,
     .profile-field-select {
       padding: 0.3rem 0.5rem;
@@ -262,40 +104,11 @@
       font-size: 0.9rem;
       background: var(--surface);
       color: var(--text);
-      max-width: 320px;
-      width: 100%;
-    }
-
-    .profile-checkboxes {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.6rem 1rem;
-      margin: 0.5rem 0;
+      max-width: 300px;
     }
   </style>
 </head>
-<body class="pin-locked">
-
-  <div id="pin-gate" class="pin-gate">
-    <div class="pin-gate-box">
-      <img src="tarian-shield.svg" alt="" class="pin-gate-logo">
-      <h2>TARIAN</h2>
-      <p>Enter the 6-digit PIN to continue.</p>
-      <form id="pin-gate-form" autocomplete="off">
-        <input
-          type="password"
-          id="pin-gate-input"
-          class="pin-gate-input"
-          inputmode="numeric"
-          pattern="[0-9]*"
-          maxlength="6"
-          autocomplete="off"
-          aria-label="6-digit PIN">
-        <button type="submit" class="pin-gate-button">Unlock</button>
-      </form>
-      <p id="pin-gate-error" class="pin-gate-error" hidden>Incorrect PIN. Please try again.</p>
-    </div>
-  </div>
+<body>
 
   <header class="page-header">
     <a href="index.html" class="page-header-logo-link" aria-label="TARIAN home">
@@ -307,103 +120,73 @@
 
   <main class="app-shell">
     <section class="panel">
-      <p><a href="index.html" class="back-link">&larr; Back to main list</a></p>
+
+      <p><a href="index.html" class="back-link">&larr; Back to homepage</a></p>
+
       <p id="profile-message" class="message" role="status" aria-live="polite">Loading&hellip;</p>
 
       <div id="profile-content" hidden>
+
         <h2 id="profile-name" style="margin-bottom:0.4rem"></h2>
-        <p id="profile-elector-identifiers" class="profile-meta"></p>
-        <p id="profile-electors-in-household" class="profile-meta"></p>
         <div id="profile-canvass-badge" class="profile-canvass-badge"></div>
-
-        <div class="profile-section">
-          <h3>Vital Stats</h3>
-
-          <div class="profile-field-row identity-field-row" style="margin-bottom:0.15rem">
-            <span class="profile-field-label">Preferred Name</span>
-            <input type="text" id="profile-preferred-name" class="profile-field-input" placeholder="Enter preferred name">
-          </div>
-          <p class="profile-field-note">N.B. This is the name that will be displayed on letters addressed to the Elector</p>
-
-          <div class="profile-field-row identity-field-row" style="margin-bottom:0.25rem">
-            <span class="profile-field-label">Date of Birth</span>
-            <div class="profile-dob-inputs">
-              <select id="profile-dob-year" class="profile-field-select profile-dob-select" aria-label="Birth year">
-                <option value="">Year</option>
-              </select>
-              <select id="profile-dob-month" class="profile-field-select profile-dob-select" aria-label="Birth month" disabled>
-                <option value="">Month</option>
-              </select>
-              <select id="profile-dob-day" class="profile-field-select profile-dob-select" aria-label="Birth day" disabled>
-                <option value="">Day</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="profile-field-row identity-field-row">
-            <span class="profile-field-label">Age</span>
-            <input type="text" id="profile-age-display" class="profile-field-input" disabled>
-          </div>
-
-          <div class="profile-checkboxes">
-            <label class="checkbox-label">
-              <input type="checkbox" id="profile-left-register-checkbox"> Dropped off Electoral Register?
-            </label>
-          </div>
+        <div class="profile-field-row" style="margin-bottom:0.75rem">
+          <span class="profile-field-label">Preferred Name</span>
+          <input type="text" id="profile-preferred-name" class="profile-field-input" placeholder="Enter preferred name">
         </div>
 
+        <!-- HOUSEHOLD DATA -->
         <div class="profile-section">
           <h3>Household Data</h3>
           <dl class="profile-dl" id="profile-household-dl"></dl>
         </div>
 
+        <!-- DELIVERY DETAILS -->
         <div class="profile-section">
           <h3>Delivery Details</h3>
           <dl class="profile-dl" id="profile-delivery-dl"></dl>
         </div>
 
-        <div class="profile-section canvassing-section">
+        <!-- CANVASSING DATA -->
+        <div class="profile-section">
           <h3>Canvassing Data</h3>
           <div class="profile-field-row">
-            <span class="profile-field-label">Canvass ID</span>
-            <select id="profile-canvass-select" class="profile-field-select"></select>
-            <input type="text" id="profile-canvass-display" class="profile-field-input" disabled style="display:none">
-          </div>
-          <div class="profile-field-row">
             <span class="profile-field-label">Support Independence</span>
-            <select id="profile-independence-select" class="profile-field-select"></select>
-            <input type="text" id="profile-independence-display" class="profile-field-input" disabled style="display:none">
+            <select id="profile-independence-select" class="profile-field-select">
+              <option>No Data</option><option>Yes</option><option>No</option>
+            </select>
           </div>
           <div class="profile-field-row">
             <span class="profile-field-label">First Language</span>
-            <select id="profile-language-select" class="profile-field-select"></select>
-            <input type="text" id="profile-language-display" class="profile-field-input" disabled style="display:none">
-          </div>
-          <div class="profile-field-row" id="profile-postal-vote-row" style="display:none">
-            <span class="profile-field-label">Postal Vote Status</span>
-            <select id="profile-postal-vote-select" class="profile-field-select"></select>
-            <input type="text" id="profile-postal-vote-display" class="profile-field-input" disabled style="display:none">
+            <select id="profile-language-select" class="profile-field-select">
+              <option>English</option><option>Cymraeg</option>
+            </select>
           </div>
           <dl class="profile-dl" id="profile-canvass-dl" style="margin-top:0.4rem"></dl>
         </div>
 
+        <!-- VOTING HISTORY -->
         <div class="profile-section">
           <h3>Voting History</h3>
           <div id="profile-voting-history"></div>
         </div>
 
-        <div class="profile-section canvassing-section">
-          <h3>Membership / Volunteering</h3>
+        <!-- MEMBERSHIP / VOLUNTEER DETAILS -->
+        <div class="profile-section">
+          <h3>Membership / Volunteer Details</h3>
           <div class="profile-field-row">
             <span class="profile-field-label">Party Member</span>
-            <select id="profile-party-member-select" class="profile-field-select"></select>
+            <select id="profile-party-member-select" class="profile-field-select">
+              <option>No</option><option>Current</option><option>Former</option>
+              <option>Lapsed</option><option>Supporter</option><option>Ask to Join</option>
+            </select>
           </div>
           <div class="profile-field-row">
             <span class="profile-field-label">Poster</span>
-            <select id="profile-poster-select" class="profile-field-select"></select>
+            <select id="profile-poster-select" class="profile-field-select">
+              <option>No Poster</option><option>Poster: Window</option><option>Poster: Garden</option>
+            </select>
           </div>
-          <dl class="profile-dl" id="profile-membership-dl" style="margin-top:0.4rem"></dl>
-          <div class="profile-checkboxes">
+          <div class="volunteer-checkboxes" style="margin:0.4rem 0">
             <label class="checkbox-label">
               <input type="checkbox" id="profile-volunteer-checkbox"> Active Volunteer
             </label>
@@ -411,8 +194,10 @@
               <input type="checkbox" id="profile-ask-volunteer-checkbox"> Ask to Volunteer
             </label>
           </div>
+          <dl class="profile-dl" id="profile-membership-dl" style="margin-top:0.4rem"></dl>
         </div>
 
+        <!-- CONTACT HISTORY -->
         <div class="profile-section">
           <h3>Contact History</h3>
           <table class="profile-table">
@@ -429,43 +214,11 @@
               <tr class="empty-row"><td colspan="5">No contact history recorded.</td></tr>
             </tbody>
           </table>
-          <button type="button" id="add-attempt-button" class="add-attempt-button">+ Add An Attempt</button>
-          <div id="add-attempt-form" class="add-attempt-form" style="display:none">
-            <div class="profile-field-row">
-              <span class="profile-field-label">Date</span>
-              <input type="date" id="attempt-date-input" class="profile-field-select">
-            </div>
-            <div class="profile-field-row">
-              <span class="profile-field-label">Time</span>
-              <input type="time" id="attempt-time-input" class="profile-field-select">
-            </div>
-            <div class="profile-field-row">
-              <span class="profile-field-label">Canvasser</span>
-              <select id="attempt-canvasser-select" class="profile-field-select"></select>
-            </div>
-            <div class="profile-field-row">
-              <span class="profile-field-label">Channel</span>
-              <select id="attempt-channel-select" class="profile-field-select"></select>
-            </div>
-            <div class="profile-field-row">
-              <span class="profile-field-label">Notes</span>
-              <span class="attempt-notes-wrap">
-                <label class="attempt-not-home-label">
-                  <input type="checkbox" id="attempt-not-home-checkbox">
-                  Not Home
-                </label>
-                <input type="text" id="attempt-notes-input" class="profile-field-select">
-              </span>
-            </div>
-            <div class="add-attempt-form-buttons">
-              <button type="button" id="attempt-save-button" class="attempt-save-button">Save Attempt</button>
-              <button type="button" id="attempt-cancel-button" class="attempt-cancel-button">Cancel</button>
-            </div>
-          </div>
         </div>
 
+        <!-- DO NOT DELIVER / DO NOT DOORSTEP -->
         <div class="profile-section">
-          <div class="profile-anti-plaid">
+          <div class="profile-anti-plaid" id="profile-anti-plaid">
             <p class="profile-anti-plaid-title">Anti-Plaid?</p>
             <label class="checkbox-label">
               <input type="checkbox" id="profile-do-not-deliver">
@@ -477,588 +230,112 @@
             </label>
           </div>
         </div>
+
       </div>
+
     </section>
   </main>
 
   <script>
+
     const DEFAULT_SHEET_URL =
       "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/edit?usp=sharing";
 
     const STORAGE_KEYS = {
-      sheetUrl: "abersoch-sheet-url",
-      progress: "abersoch-elector-progress-v1",
-      hideMap: "abersoch-hide-map",
-      hideDeliveryDetails: "abersoch-hide-delivery-details",
-      hideAiComments: "abersoch-hide-ai-comments",
-      hideVotingHistory: "abersoch-hide-voting-history",
-      pollingDistrict: "abersoch-polling-district",
-      areaOverrides: "abersoch-area-overrides-v1",
-      currentListFilter: "abersoch-current-list-filter",
-      mappingFilter: "abersoch-mapping-filter",
-      walkOverrides: "abersoch-walk-overrides-v1",
+      sheetUrl:               "abersoch-sheet-url",
+      progress:               "abersoch-elector-progress-v1",
+      areaOverrides:          "abersoch-area-overrides-v1",
+      walkOverrides:          "abersoch-walk-overrides-v1",
       deliveryOrderOverrides: "abersoch-delivery-order-overrides-v1",
-      walkDescriptions: "abersoch-walk-descriptions-v1",
-      walkCounts: "abersoch-walk-counts-v1",
-      volunteerOverrides: "abersoch-volunteer-overrides",
-      regularDelivererOverrides: "abersoch-regular-deliverer-overrides",
-      walkDeliverers: "abersoch-walk-deliverers-v1",
-      contactHistory: "abersoch-contact-history-v1"
+      walkDescriptions:       "abersoch-walk-descriptions-v1",
+      volunteerOverrides:     "abersoch-volunteer-overrides",
+      regularDelivererOverrides: "abersoch-regular-deliverer-overrides"
     };
 
-    const CONTACT_CHANNEL_OPTIONS = [
-      "Door Knocking",
-      "Telephone Call",
-      "Social Media",
-      "Survey"
+    // Mirrors volunteers.html seed rows — used to cross-reference electorId → rowKey
+    const DEFAULT_VOLUNTEERS = [
+      { rowKey: "member-1",    electorId: "836408391", regularDeliverer: true },
+      { rowKey: "nonmember-1", electorId: "836408392", regularDeliverer: true },
+      { rowKey: "nonmember-2", electorId: "934314542", regularDeliverer: false }
     ];
-
-    function loadContactAttempts(electorId) {
-      const all = loadFromStorage(STORAGE_KEYS.contactHistory, {});
-      return Array.isArray(all[electorId]) ? all[electorId] : [];
-    }
-
-    function saveContactAttempt(electorId, attempt) {
-      const all = loadFromStorage(STORAGE_KEYS.contactHistory, {});
-      const existingAttempts = Array.isArray(all[electorId]) ? all[electorId] : [];
-      all[electorId] = existingAttempts.concat([attempt]);
-      localStorage.setItem(STORAGE_KEYS.contactHistory, JSON.stringify(all));
-    }
 
     const DEFAULT_WALK_DESCRIPTIONS = {
       "ra1|1": "High Street and Harbour",
-      "ra1|2": "Abersoch South",
-      "ra1|3": "Abersoch North",
-      "ra1|4": "Abersoch West",
-      "ra1|5": "Llanbedrog and Outliers",
+      "ra1|2": "Cae Du",
+      "ra1|3": "Village North",
+      "ra1|4": "Village South",
+      "ra1|5": "Farms and Outliers",
       "qb6|1": "Llanengan",
       "qb6|2": "Bwlchtocyn",
       "qb6|3": "Cilan",
       "qb6|4": "Sarn Bach",
-      "qb6|5": "Llangian and Outliers"
+      "qb6|5": "Farm and Outliers"
     };
-
-    const DEFAULT_VOLUNTEERS = [
-      { rowKey: "member-3", firstName: "Chris", lastName: "Green", electorId: "12345679", regularDeliverer: true }
-    ];
-
-    const DEFAULT_WALK_DELIVERERS = {
-      "qb6|1": "member-3",
-      "qb6|2": "member-3",
-      "qb6|3": "member-3",
-      "qb6|4": "member-3",
-      "qb6|5": "member-3",
-      "ra1|1": "member-3",
-      "ra1|2": "member-3",
-      "ra1|3": "member-3",
-      "ra1|4": "member-3",
-      "ra1|5": "member-3"
-    };
-
-    const canvassIdOptions = [
-      "No Data",
-      "Definite Plaid",
-      "Probable Plaid",
-      "Conservative",
-      "Green",
-      "Independent",
-      "Labour",
-      "Lib Dem",
-      "Reform"
-    ];
-
-    const independenceOptions = ["No Data", "Yes", "No"];
-    const languageOptions = ["English", "Cymraeg", "Other"];
-    const postalVoteOptions = ["None", "Requested"];
-    const partyMemberOptions = ["No", "Current", "Former", "Lapsed", "Supporter", "Ask to Join"];
-    const posterOptions = ["No Poster", "Poster: Window", "Poster: Garden", "Poster: Both"];
 
     const VOTING_HISTORY_YEARS = [
-      "2027 (Local)",
-      "2026 (Senedd)",
-      "2024 (PCC)",
-      "2024 (General)",
-      "2022 (Local)",
-      "2021 (Senedd)",
-      "2019 (General)",
-      "2019 (European)",
-      "2017 (General)",
-      "2017 (Local)",
-      "2016 (Referendum)",
-      "2016 (Senedd)",
-      "2015 (General)"
+      "2026 (Senedd)", "2024 (PCC)", "2024 (General)", "2022 (Local)",
+      "2021 (Senedd)", "2019 (General)", "2019 (European)", "2017 (General)",
+      "2017 (Local)", "2016 (Referendum)", "2016 (Senedd)", "2015 (General)"
     ];
 
-    // Live data starts with no preset canvass/independence/party/poster
-    // assignments — electors show "No Data" until a real canvasser
-    // records it.
-    const DEMO_PLAID_ELECTOR_NAMES = [];
-    const DEMO_PROBABLE_PLAID_ELECTOR_NAMES = [];
-    const DEMO_CANVASS_ID_BY_ELECTOR_ID = {
-      // Chris Green is the sole real volunteer/deliverer, and a known
-      // Party supporter.
-      "12345679": "Definite Plaid"
-    };
-    const DEMO_PARTY_MEMBER_BY_ELECTOR_ID = {};
-    const DEMO_POSTER_BY_ELECTOR_ID = {};
-    const DEMO_SUPPORT_INDEPENDENCE_BY_ELECTOR_ID = {
-      // Chris Green is the sole real volunteer/deliverer, and is a
-      // known independence supporter.
-      "12345679": "Yes"
-    };
+    const DEMO_ALWAYS_VOTES_NAMES = new Set(["pat postie", "sam sorefeet"]);
 
-    const POLLING_DISTRICT_LABELS = {
-      "ra1": "RA1 (Abersoch)",
-      "qb6": "QB6 (Llanengan)"
-    };
+    // ── helpers ───────────────────────────────────────────────────────────────
 
     function loadFromStorage(key, fallback) {
-      try {
-        const raw = localStorage.getItem(key);
-        return raw ? JSON.parse(raw) : fallback;
-      } catch (error) {
-        return fallback;
-      }
+      try { const r = localStorage.getItem(key); return r ? JSON.parse(r) : fallback; }
+      catch (e) { return fallback; }
     }
 
-    function saveProgressField(electorId, field, value) {
-      const all = loadFromStorage(STORAGE_KEYS.progress, {});
-      all[electorId] = Object.assign({}, all[electorId] || {}, { [field]: value });
-      localStorage.setItem(STORAGE_KEYS.progress, JSON.stringify(all));
+    function saveToStorage(key, value) {
+      try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
     }
 
-    function toGoogleCsvUrl(rawUrl) {
-      if (rawUrl.includes("output=csv") || rawUrl.includes("/export?format=csv")) {
-        return rawUrl;
-      }
-      const match = rawUrl.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-      if (!match) {
-        return rawUrl;
-      }
-      const gidMatch = rawUrl.match(/[?&#]gid=([0-9]+)/);
-      const gid = gidMatch ? gidMatch[1] : "0";
-      return "https://docs.google.com/spreadsheets/d/" + match[1] + "/export?format=csv&gid=" + gid;
+    function toGoogleCsvUrl(raw) {
+      if (raw.includes("output=csv") || raw.includes("/export?format=csv")) return raw;
+      const m = raw.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+      if (!m) return raw;
+      const gid = (raw.match(/[?&#]gid=([0-9]+)/) || [, "0"])[1];
+      return "https://docs.google.com/spreadsheets/d/" + m[1] + "/export?format=csv&gid=" + gid;
     }
 
-    // "Sheet5" of the workbook holds Elector ID (col C), First/Middle/Last
-    // Name (cols D/E/F) and Date Of Birth (col J) — but DOB is only
-    // populated for a small number of (mostly attaining) electors.
-    function toSheet5CsvUrl(rawUrl) {
-      const match = rawUrl.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-      if (!match) {
-        return null;
-      }
-      return "https://docs.google.com/spreadsheets/d/" + match[1] + "/gviz/tq?tqx=out:csv&sheet=Sheet5";
-    }
-
-    function parseSheet5DobToIso(value) {
-      const match = String(value || "").trim().match(/^(\d{1,2})\s+(\d{1,2})\s+(\d{4})$/);
-      if (!match) {
-        return "";
-      }
-      const day = padTwoDigits(parseInt(match[1], 10));
-      const month = padTwoDigits(parseInt(match[2], 10));
-      const year = match[3];
-      return year + "-" + month + "-" + day;
-    }
-
-    async function loadSheet5DataById(sheetUrl) {
-      const result = { dobById: {}, preferredNameById: {}, senedd2026ById: {} };
-      const sheet5Url = toSheet5CsvUrl(sheetUrl);
-      if (!sheet5Url) {
-        return result;
-      }
-      try {
-        const response = await fetch(sheet5Url);
-        if (!response.ok) {
-          return result;
+    function parseCsv(text) {
+      const rows = []; let row = [], val = "", inQ = false;
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i], n = text[i + 1];
+        if (c === '"' && inQ && n === '"') { val += '"'; i++; continue; }
+        if (c === '"') { inQ = !inQ; continue; }
+        if (c === ',' && !inQ) { row.push(val); val = ""; continue; }
+        if ((c === '\n' || c === '\r') && !inQ) {
+          if (c === '\r' && n === '\n') i++;
+          row.push(val); rows.push(row); row = []; val = ""; continue;
         }
-        const rows = parseCsv(await response.text());
-        rows.slice(1).forEach(row => {
-          const electorId = (row[2] || "").trim();
-          if (!electorId) {
-            return;
-          }
-          const iso = parseSheet5DobToIso(row[9]);
-          if (iso) {
-            result.dobById[electorId] = iso;
-          }
-          // Column L: "SHORTENED NAME" - the elector's Preferred Name.
-          const preferredName = (row[11] || "").trim();
-          if (preferredName) {
-            result.preferredNameById[electorId] = preferredName;
-          }
-          // Column M: "SENEDD 2026" - "Y" (voted on the day) or "A"
-          // (voted by post). Exact text is copied as-is.
-          const senedd2026 = (row[12] || "").trim();
-          if (senedd2026) {
-            result.senedd2026ById[electorId] = senedd2026;
-          }
-        });
-      } catch (error) {
-        // Sheet5 is supplementary — ignore failures and fall back to none.
+        val += c;
       }
-      return result;
-    }
-
-    // The "NEWSPAPERS" tab holds authoritative address data (Address
-    // Line 1/2/3, Post Town, Postcode) plus master WALK/SUBROAD/SORT
-    // ORDER columns, keyed by Household ID — used to override the main
-    // sheet's own (often less complete) address/walk/subroad fields.
-    function toNewspapersCsvUrl(rawUrl) {
-      const match = rawUrl.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-      if (!match) {
-        return null;
-      }
-      return "https://docs.google.com/spreadsheets/d/" + match[1] + "/gviz/tq?tqx=out:csv&sheet=NEWSPAPERS";
-    }
-
-    function properCaseWord(value) {
-      return String(value || "")
-        .toLowerCase()
-        .replace(/\b[a-z]/g, ch => ch.toUpperCase());
-    }
-
-    function buildNewspapersAddress(entry) {
-      return [entry.addressLine1, entry.addressLine2, entry.addressLine3, entry.postTown && properCaseWord(entry.postTown)]
-        .filter(part => part && !/^\d+$/.test(part) && part.toLowerCase() !== "gwynedd")
-        .join(", ");
-    }
-
-    async function loadNewspapersDataByHouseholdId(sheetUrl) {
-      const dataByHouseholdId = {};
-      const newspapersUrl = toNewspapersCsvUrl(sheetUrl);
-      if (!newspapersUrl) {
-        return dataByHouseholdId;
-      }
-      try {
-        const response = await fetch(newspapersUrl);
-        if (!response.ok) {
-          return dataByHouseholdId;
-        }
-        const rows = parseCsv(await response.text());
-        rows.slice(1).forEach(row => {
-          const householdId = (row[1] || "").trim();
-          if (!householdId) {
-            return;
-          }
-          dataByHouseholdId[householdId] = {
-            addressLine1: (row[3] || "").trim(),
-            addressLine2: (row[4] || "").trim(),
-            addressLine3: (row[5] || "").trim(),
-            postTown: (row[6] || "").trim(),
-            postcode: (row[7] || "").trim(),
-            walk: (row[8] || "").trim(),
-            subRoad: (row[9] || "").trim(),
-            pollingDistrict: (row[10] || "").trim(),
-            sortOrder: (row[11] || "").trim(),
-            doNotCanvass: Boolean((row[15] || "").trim()),
-            doNotDeliver: Boolean((row[16] || "").trim())
-          };
-        });
-      } catch (error) {
-        // NEWSPAPERS tab is supplementary — ignore failures.
-      }
-      return dataByHouseholdId;
-    }
-
-    function applyNewspapersDataToElector(elector, dataByHouseholdId) {
-      const entry = dataByHouseholdId[elector.uprn];
-      if (!entry) {
-        return;
-      }
-      if (entry.addressLine1) {
-        elector.addressLine1 = entry.addressLine1;
-      }
-      if (entry.addressLine2) {
-        elector.addressLine2 = entry.addressLine2;
-      }
-      if (entry.addressLine3) {
-        elector.addressLine3 = entry.addressLine3;
-      }
-      if (entry.postTown) {
-        elector.postTown = entry.postTown;
-      }
-      if (entry.postcode) {
-        elector.postcode = entry.postcode;
-      }
-      if (entry.addressLine1 || entry.addressLine2 || entry.addressLine3 || entry.postTown) {
-        elector.address = buildNewspapersAddress(entry);
-      }
-      if (entry.walk) {
-        elector.deliveryWalk = entry.walk;
-      }
-      if (entry.subRoad) {
-        elector.subRoad = entry.subRoad;
-      }
-      if (entry.sortOrder) {
-        elector.deliveryOrder = entry.sortOrder;
-      }
-      elector.masterDoNotContact = Boolean(entry.doNotCanvass);
-      elector.masterDoNotDeliver = Boolean(entry.doNotDeliver);
-    }
-
-    function parseCsv(csvText) {
-      const rows = [];
-      let row = [];
-      let value = "";
-      let inQuotes = false;
-
-      for (let i = 0; i < csvText.length; i += 1) {
-        const char = csvText[i];
-        const next = csvText[i + 1];
-
-        if (char === "\"" && inQuotes && next === "\"") {
-          value += "\"";
-          i += 1;
-          continue;
-        }
-        if (char === "\"") {
-          inQuotes = !inQuotes;
-          continue;
-        }
-        if (char === "," && !inQuotes) {
-          row.push(value);
-          value = "";
-          continue;
-        }
-        if ((char === "\n" || char === "\r") && !inQuotes) {
-          if (char === "\r" && next === "\n") {
-            i += 1;
-          }
-          row.push(value);
-          rows.push(row);
-          row = [];
-          value = "";
-          continue;
-        }
-        value += char;
-      }
-
-      if (value.length || row.length) {
-        row.push(value);
-        rows.push(row);
-      }
-
+      if (val.length || row.length) { row.push(val); rows.push(row); }
       return rows;
     }
 
-    function normalizeHeader(value) {
-      return (value || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+    function normalizeHeader(v) { return String(v||"").trim().toLowerCase().replace(/[^a-z0-9]/g,""); }
+    function normalizeText(v)   { return String(v||"").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,""); }
+    function formatPostalProxy(v) {
+      const n = normalizeText(v);
+      if (!n) return ""; if (n.includes("postal")) return "Postal"; if (n.includes("proxy")) return "Proxy";
+      return String(v).trim();
     }
-
-    function normalizeText(value) {
-      return String(value || "")
-        .trim()
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-    }
-
-    const MONTH_NAMES = [
-      "january", "february", "march", "april", "may", "june",
-      "july", "august", "september", "october", "november", "december"
-    ];
-
-    // Tries to read a birth month + year from free text, e.g. "1991-06"
-    // or "June 1991" — returns { year, month } (month is 0-indexed) or
-    // null if no month can be identified (just a bare year, or a full
-    // day-month-year date, which are handled separately).
-    function parseMonthYear(cleaned) {
-      const isoMatch = cleaned.match(/^(\d{4})-(\d{1,2})$/);
-      if (isoMatch) {
-        const year = parseInt(isoMatch[1], 10);
-        const month = parseInt(isoMatch[2], 10) - 1;
-        return month >= 0 && month <= 11 ? { year, month } : null;
-      }
-
-      const lower = cleaned.toLowerCase();
-      for (let i = 0; i < MONTH_NAMES.length; i++) {
-        if (new RegExp("\\b" + MONTH_NAMES[i] + "\\b").test(lower)) {
-          const yearMatch = cleaned.match(/(\d{4})/);
-          if (yearMatch) {
-            return { year: parseInt(yearMatch[1], 10), month: i };
-          }
-        }
-      }
-
-      return null;
-    }
-
-    // Accepts a full date ("YYYY-MM-DD") for an exact age, a birth
-    // month + year ("1991-06" or "June 1991") for an age that's exact
-    // outside that month and a two-way range during it (e.g. "34/35"),
-    // or just a birth year ("1991") when only that much is known, in
-    // which case we can't tell if the birthday has passed yet this
-    // year, so we show both possible ages, e.g. "34/35".
-    function calculateAgeDisplay(value) {
-      const cleaned = String(value || "").trim();
-      if (!cleaned) {
-        return "";
-      }
-
-      const yearOnlyMatch = cleaned.match(/^(\d{4})$/);
-      if (yearOnlyMatch) {
-        const birthYear = parseInt(yearOnlyMatch[1], 10);
-        const currentYear = new Date().getFullYear();
-        const olderAge = currentYear - birthYear;
-        const youngerAge = olderAge - 1;
-        if (olderAge < 0 || olderAge > 130) {
-          return "";
-        }
-        return youngerAge + "/" + olderAge;
-      }
-
-      const fullDateMatch = cleaned.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-      if (!fullDateMatch) {
-        const monthYear = parseMonthYear(cleaned);
-        if (monthYear) {
-          const today = new Date();
-          const olderAge = today.getFullYear() - monthYear.year;
-          if (olderAge < 0 || olderAge > 130) {
-            return "";
-          }
-          if (today.getMonth() > monthYear.month) {
-            return String(olderAge);
-          }
-          if (today.getMonth() < monthYear.month) {
-            return String(olderAge - 1);
-          }
-          return (olderAge - 1) + "/" + olderAge;
-        }
-      }
-
-      // "DD MM YYYY" / "DD/MM/YYYY" / "DD-MM-YYYY" — the sheet's
-      // day-month-year DOB format (e.g. "19 12 2010").
-      const dayMonthYearMatch = cleaned.match(/^(\d{1,2})[\s/.-](\d{1,2})[\s/.-](\d{4})$/);
-      if (dayMonthYearMatch) {
-        const day = parseInt(dayMonthYearMatch[1], 10);
-        const month = parseInt(dayMonthYearMatch[2], 10) - 1;
-        const year = parseInt(dayMonthYearMatch[3], 10);
-        if (month >= 0 && month <= 11 && day >= 1 && day <= 31) {
-          const dmyParsed = new Date(year, month, day);
-          const today = new Date();
-          let dmyAge = today.getFullYear() - dmyParsed.getFullYear();
-          const dmyMonthDiff = today.getMonth() - dmyParsed.getMonth();
-          if (dmyMonthDiff < 0 || (dmyMonthDiff === 0 && today.getDate() < dmyParsed.getDate())) {
-            dmyAge--;
-          }
-          return dmyAge >= 0 && dmyAge <= 130 ? String(dmyAge) : "";
-        }
-      }
-
-      const parsed = new Date(cleaned);
-      if (isNaN(parsed.getTime())) {
-        return "";
-      }
-
-      const today = new Date();
-      let age = today.getFullYear() - parsed.getFullYear();
-      const monthDiff = today.getMonth() - parsed.getMonth();
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < parsed.getDate())) {
-        age--;
-      }
-      return age >= 0 && age <= 130 ? String(age) : "";
-    }
-
-    // Parses the normalized dob storage format ("YYYY", "YYYY-MM", or
-    // "YYYY-MM-DD") back into the three separate select values.
-    function parseDobParts(value) {
-      const cleaned = String(value || "").trim();
-      const match = cleaned.match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/);
-      if (!match) {
-        return { year: "", month: "", day: "" };
-      }
-      return { year: match[1] || "", month: match[2] || "", day: match[3] || "" };
-    }
-
-    function padTwoDigits(value) {
-      return value < 10 ? "0" + value : String(value);
-    }
-
-    const EARLIEST_BIRTH_YEAR = 1927;
-
-    function populateDobSelects(yearEl, monthEl, dayEl) {
-      const currentYear = new Date().getFullYear();
-      for (let year = currentYear; year >= EARLIEST_BIRTH_YEAR; year--) {
-        const option = document.createElement("option");
-        option.value = String(year);
-        option.textContent = String(year);
-        yearEl.appendChild(option);
-      }
-
-      MONTH_NAMES.forEach((name, index) => {
-        const option = document.createElement("option");
-        option.value = padTwoDigits(index + 1);
-        option.textContent = name.charAt(0).toUpperCase() + name.slice(1);
-        monthEl.appendChild(option);
-      });
-    }
-
-    // Rebuilds the Day select's options to match the number of days in
-    // the chosen year/month (respecting leap years), preserving the
-    // previously selected day where it's still valid.
-    function refreshDobDaySelect(dayEl, year, month, preferredDay) {
-      const desiredDay = preferredDay !== undefined ? preferredDay : dayEl.value;
-      dayEl.innerHTML = '<option value="">Day</option>';
-
-      if (!year || !month) {
-        dayEl.value = "";
-        return;
-      }
-
-      const daysInMonth = new Date(parseInt(year, 10), parseInt(month, 10), 0).getDate();
-      for (let day = 1; day <= daysInMonth; day++) {
-        const option = document.createElement("option");
-        option.value = padTwoDigits(day);
-        option.textContent = String(day);
-        dayEl.appendChild(option);
-      }
-
-      dayEl.value = desiredDay && parseInt(desiredDay, 10) <= daysInMonth ? desiredDay : "";
-    }
-
-    function formatPostalProxy(value) {
-      const cleaned = String(value || "").trim();
-      const normalized = normalizeText(cleaned);
-      if (!normalized) {
-        return "";
-      }
-      if (normalized.includes("postal")) {
-        return "Postal";
-      }
-      if (normalized.includes("proxy")) {
-        return "Proxy";
-      }
-      return cleaned;
-    }
-
-    function escapeHtml(value) {
-      return String(value == null ? "" : value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+    function escapeHtml(v) {
+      return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
     }
 
     function mapRowToElector(row, headers, index) {
       const data = {};
-      headers.forEach((header, idx) => {
-        data[header] = (row[idx] || "").trim();
-      });
-
+      headers.forEach((h, i) => { data[h] = (row[i] || "").trim(); });
       const sourceRow = index + 2;
       const id = data.electorid || data.id || data.reference || data.uprn || ("row-" + sourceRow);
       const name = data.name || data.elector || data.electorname || "";
-      const address = [data.address, data.address1, data.address2, data.address3, data.household]
-        .filter(part => part && !/^\d+$/.test(part) && part.toLowerCase() !== "gwynedd")
-        .join(", ");
-
       return {
         id: String(id),
         name,
-        address,
         addressLine1: data.address1 || "",
         addressLine2: data.address2 || "",
         postcode: data.postcode || "",
@@ -1068,929 +345,249 @@
         ward: data.ward || data.electoralward || row[33] || "",
         pollingDistrict: data.pollingdistrict || data.pollingdist || data.district || data.pd || row[15] || "",
         pollingElectorNumber: data.electornumber || data.electorno || data.electornum || row[16] || "",
-        community: data.community || data.communityname || row[34] || "",
         deliveryWalk: data.walk || row[37] || "",
         deliveryOrder: data.deliveryorder || row[38] || "",
         deliverer: data.deliverer || row[39] || "",
         subRoad: data.subroad || row[40] || "",
-        uprn: data.uprn || row[19] || "",
         electorIdValue: data.electorid || row[20] || "",
         lat: parseFloat(data.latitude || data.lat || row[21]) || null,
         lng: parseFloat(data.longitude || data.lng || data.lon || row[22]) || null,
         postalProxy: formatPostalProxy(data.postalproxy || data.postalorproxy || row[17] || ""),
         pvStatusRaw: String(data.pvstatus || row[17] || "").trim(),
-        sourceRow,
-        householdKey: data.householdkey || data.key || row[11] || "",
-        householdGroupKey: normalizeText(data.householdkey || data.key || row[11] || "") || ("row-" + sourceRow),
-        electorsInHousehold: parseInt(data.numberofelectors || data.electors || data.householdcount || row[14] || "", 10) || null,
-        householdNumber: null,
-        electorNumber: null,
-        displayId: String(id),
-        masterPhone: data.phone || row[44] || "",
-        masterEmail: data.email || row[45] || "",
-        masterCanvassId: data.canvassid || row[46] || "",
-        masterSupportIndependence: data.independence || row[47] || "",
-        masterFirstLanguage: data.firstlanguage || row[48] || "",
-        masterPartyMemberRaw: data.partymember || row[49] || "",
-        masterVolunteerRaw: data.volunteer || row[50] || "",
-        masterPosterRaw: data.poster || row[51] || ""
+        householdId: data.householdid || row[19] || "",
+        householdGroupKey: normalizeText(data.householdkey || data.key || row[11] || "") || ("row-" + sourceRow)
       };
     }
 
     function getPoliticalLeanClass(canvassId) {
-      if (["Definite Plaid", "Probable Plaid"].includes(canvassId)) return "elector-lean-green";
-      if (canvassId === "Conservative") return "elector-lean-blue";
-      if (canvassId === "Green") return "elector-lean-light-green";
-      if (canvassId === "Lib Dem") return "elector-lean-orange";
-      if (canvassId === "Reform") return "elector-lean-turquoise";
-      if (canvassId === "Labour") return "elector-lean-red";
+      if (["Definite Plaid","Probable Plaid"].includes(canvassId)) return "elector-lean-green";
+      if (canvassId === "Conservative")  return "elector-lean-blue";
+      if (canvassId === "Green")         return "elector-lean-light-green";
+      if (canvassId === "Lib Dem")       return "elector-lean-orange";
+      if (canvassId === "Reform")        return "elector-lean-turquoise";
+      if (canvassId === "Labour")        return "elector-lean-red";
       return "elector-lean-grey";
     }
 
-    function getPollingDistrictLabel(value) {
-      return POLLING_DISTRICT_LABELS[normalizeText(value)] || value || "—";
+    const POLLING_DISTRICT_LABELS = {
+      "n1": "N1 (Harlech)",
+      "af1": "AF1 (Talsarnau)",
+      "ae1": "AE1 (Llanbedr)",
+      "au1": "AU1 (Llanfair)",
+      "n2": "N2 (Llandanwg)",
+      "ra1": "RA1 (Abersoch)",
+      "qb6": "QB6 (Llanengan)"
+    };
+
+    function getPollingDistrictLabel(pd) {
+      return POLLING_DISTRICT_LABELS[normalizeText(pd)] || pd;
     }
 
-    function walkDescriptionKey(pollingDistrict, walkNumber) {
-      return normalizeText(pollingDistrict) + "|" + walkNumber;
+
+      const key = normalizeText(pollingDistrict) + "|" + walkNumber;
+      const overrides = loadFromStorage(STORAGE_KEYS.walkDescriptions, {});
+      return overrides[key] !== undefined ? overrides[key] : (DEFAULT_WALK_DESCRIPTIONS[key] || "");
     }
 
-    function getWalkDescription(pollingDistrict, walkNumber) {
-      const key = walkDescriptionKey(pollingDistrict, walkNumber);
-      const walkDescriptions = loadFromStorage(STORAGE_KEYS.walkDescriptions, {});
-      if (walkDescriptions[key] !== undefined) {
-        return walkDescriptions[key];
-      }
-      return DEFAULT_WALK_DESCRIPTIONS[key] || "";
-    }
-
-    function parseWalkNumber(value) {
-      const match = String(value || "").match(/\d+/);
-      if (!match) {
-        return null;
-      }
-      const parsed = parseInt(match[0], 10);
-      return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
-    }
-
-    function getEffectiveWalkNumberForElector(elector) {
-      const walkOverrides = loadFromStorage(STORAGE_KEYS.walkOverrides, {});
-      const walkOverride = elector && elector.householdGroupKey ? walkOverrides[elector.householdGroupKey] : undefined;
-      return parseWalkNumber(walkOverride) || parseWalkNumber(elector && elector.deliveryWalk) || 1;
-    }
-
-    function walkDelivererKey(pollingDistrict, walkNumber) {
-      return normalizeText(pollingDistrict) + "|" + walkNumber;
-    }
-
-    function getAssignedDelivererName(pollingDistrict, walkNumber) {
-      const walkDeliverers = loadFromStorage(STORAGE_KEYS.walkDeliverers, DEFAULT_WALK_DELIVERERS);
-      const assignedRowKey = walkDeliverers[walkDelivererKey(pollingDistrict, walkNumber)];
-      if (!assignedRowKey) {
-        return "No Assigned Deliverer";
-      }
-
-      const volunteerOverrides = loadFromStorage(STORAGE_KEYS.volunteerOverrides, {});
-      const regularDelivererOverrides = loadFromStorage(STORAGE_KEYS.regularDelivererOverrides, {});
-      const volunteer = DEFAULT_VOLUNTEERS.find(entry => entry.rowKey === assignedRowKey);
-      if (!volunteer) {
-        return "No Assigned Deliverer";
-      }
-
-      const isRegularDeliverer =
-        regularDelivererOverrides[volunteer.rowKey] !== undefined
-          ? regularDelivererOverrides[volunteer.rowKey]
-          : volunteer.regularDeliverer;
-      if (!isRegularDeliverer) {
-        return "No Assigned Deliverer";
-      }
-
-      const override = volunteerOverrides[volunteer.rowKey] || {};
-      return ((override.firstName || volunteer.firstName) + " " + (override.lastName || volunteer.lastName)).trim() || "No Assigned Deliverer";
-    }
-
-    function getWalksCoveredByVolunteer(rowKey) {
-      const walkDeliverers = loadFromStorage(STORAGE_KEYS.walkDeliverers, DEFAULT_WALK_DELIVERERS);
-      return Object.keys(walkDeliverers)
-        .filter(key => walkDeliverers[key] === rowKey)
-        .map(key => {
-          const [district, walkNumber] = key.split("|");
-          const description = getWalkDescription(district, walkNumber);
-          return district.toUpperCase() + "-" + walkNumber + (description ? " (" + description + ")" : "");
-        })
-        .sort()
-        .map(escapeHtml)
-        .join(";<br>");
-    }
-
-    function getVolunteerRecordForElector(elector) {
-      const volunteerOverrides = loadFromStorage(STORAGE_KEYS.volunteerOverrides, {});
-      const regularDelivererOverrides = loadFromStorage(STORAGE_KEYS.regularDelivererOverrides, {});
-      const electorsName = normalizeText(elector.name);
-      const volunteers = DEFAULT_VOLUNTEERS.map(volunteer => {
-        const override = volunteerOverrides[volunteer.rowKey] || {};
-        return {
-          rowKey: volunteer.rowKey,
-          firstName: override.firstName || volunteer.firstName,
-          lastName: override.lastName || volunteer.lastName,
-          electorId: override.electorId || volunteer.electorId || "",
-          regularDeliverer:
-            regularDelivererOverrides[volunteer.rowKey] !== undefined
-              ? Boolean(regularDelivererOverrides[volunteer.rowKey])
-              : Boolean(volunteer.regularDeliverer)
-        };
-      });
-
-      return volunteers.find(volunteer => String(volunteer.electorId) === String(elector.id)) ||
-        volunteers.find(volunteer => normalizeText((volunteer.firstName + " " + volunteer.lastName).trim()) === electorsName) ||
-        null;
-    }
-
-    function normalizeCanvassId(value) {
-      const cleaned = String(value || "").trim();
-      if (cleaned === "Tory") return "Conservative";
-      if (cleaned === "Plaid") return "Probable Plaid";
-      return cleaned || "No Data";
-    }
-
-    function applyCanvassAffinityRules(canvassId, partyMember, volunteer, askToVolunteer, poster, supportIndependence) {
-      if (
-        partyMember === "Current" ||
-        volunteer ||
-        poster === "Poster: Window" ||
-        poster === "Poster: Garden"
-      ) {
-        return "Definite Plaid";
-      }
-      if (partyMember === "Supporter" || askToVolunteer) {
-        return "Probable Plaid";
-      }
-      // Anyone in favour of independence is at least a Probable Plaid lean.
-      if (supportIndependence === "Yes") {
-        return "Probable Plaid";
-      }
-      return normalizeCanvassId(canvassId);
-    }
-
-    // Only Chris Green (the sole regular deliverer) defaults to "Active
-    // Volunteer" ticked; everyone else starts unticked until a user
-    // explicitly marks them as a volunteer. Matched by Elector ID rather
-    // than name, since the live Legal Name may differ from "Chris Green"
-    // (e.g. "Christopher Charles Green").
-    const CHRIS_GREEN_ELECTOR_ID = "12345679";
-    const CHRIS_GREEN_HOUSEHOLD_ID = "12345678";
-    const CHRIS_GREEN_DOB = "1991-06-14";
-
-    // Chris Green isn't a real row in the live Google Sheet — he's a
-    // fictional demo volunteer used to showcase the volunteer/canvass
-    // features. Build a synthetic elector record for him so his
-    // profile, Quick Lookup, and Current List entries all work.
-    function buildChrisGreenDemoElector() {
+    function getProgress(electorId) {
+      const all = loadFromStorage(STORAGE_KEYS.progress, {});
+      const raw = all[electorId] || {};
       return {
-        id: CHRIS_GREEN_ELECTOR_ID,
-        name: "Christopher Green",
-        address: "12 Lôn Garmon, Abersoch, Pwllheli",
-        addressLine1: "12 Lôn Garmon",
-        addressLine2: "Abersoch",
-        postcode: "LL53 7AE",
-        householdId: CHRIS_GREEN_HOUSEHOLD_ID,
-        localAuthority: "Gwynedd",
-        senedd: "Gwynedd Maldwyn",
-        westminster: "Dwyfor Meirionnydd",
-        ward: "Abersoch gyda Llanengan",
-        pollingDistrict: "QB6",
-        pollingElectorNumber: "999",
-        community: "Llanengan",
-        deliveryWalk: "1",
-        deliveryOrder: "1",
-        deliverer: "Chris Green",
-        subRoad: "Lôn Garmon",
-        uprn: "900000001",
-        electorIdValue: CHRIS_GREEN_ELECTOR_ID,
-        lat: 52.8202,
-        lng: -4.5117,
-        postalProxy: formatPostalProxy(""),
-        pvStatusRaw: "",
-        sourceRow: -1,
-        householdKey: "chris-green-household",
-        householdGroupKey: "chris-green-household",
-        electorsInHousehold: 1,
-        householdNumber: null,
-        electorNumber: null,
-        displayId: CHRIS_GREEN_ELECTOR_ID,
-        sheetDob: CHRIS_GREEN_DOB
+        preferredName:       raw.preferredName || "",
+        canvassId:           raw.canvassId || raw.status || "No Data",
+        supportIndependence: raw.supportIndependence || "No Data",
+        firstLanguage:       raw.firstLanguage || "English",
+        phone:               raw.phone || "",
+        email:               raw.email || "",
+        partyMember:         raw.partyMember || "No",
+        poster:              raw.poster || "No Poster",
+        volunteer:           Boolean(raw.volunteer),
+        askToVolunteer:      Boolean(raw.askToVolunteer),
+        doNotDeliver:        Boolean(raw.doNotDeliver),
+        doNotContact:        Boolean(raw.doNotContact)
       };
     }
 
-    function isKnownVolunteer(electorName, electorId) {
-      if (String(electorId || "").trim() === CHRIS_GREEN_ELECTOR_ID) {
-        return true;
+    // Returns true/false/null (null = not a known volunteer)
+    function getRegularDelivererStatus(electorId) {
+      const volOverrides = loadFromStorage(STORAGE_KEYS.volunteerOverrides, {});
+      const rdOverrides  = loadFromStorage(STORAGE_KEYS.regularDelivererOverrides, {});
+
+      // Find the rowKey for this electorId across defaults + saved overrides
+      const allRowKeys = new Set([
+        ...DEFAULT_VOLUNTEERS.map(v => v.rowKey),
+        ...Object.keys(volOverrides)
+      ]);
+
+      for (const rowKey of allRowKeys) {
+        const defaultVol = DEFAULT_VOLUNTEERS.find(v => v.rowKey === rowKey);
+        const override   = volOverrides[rowKey] || {};
+        const rowElectorId = override.electorId || (defaultVol && defaultVol.electorId) || "";
+
+        if (String(rowElectorId) === String(electorId)) {
+          if (rdOverrides[rowKey] !== undefined) return Boolean(rdOverrides[rowKey]);
+          return defaultVol ? Boolean(defaultVol.regularDeliverer) : null;
+        }
       }
-      const normalizedName = normalizeText(electorName);
-      return DEFAULT_VOLUNTEERS.some(
-        volunteer =>
-          volunteer.regularDeliverer &&
-          normalizeText((volunteer.firstName + " " + volunteer.lastName).trim()) === normalizedName
-      );
+      return null;
     }
 
-    function getElectorProgress(electorId, electorName, sheetDob, sheetPreferredName, elector) {
-      const existing = loadFromStorage(STORAGE_KEYS.progress, {})[electorId] || {};
-      const isDemoPlaidElector = DEMO_PLAID_ELECTOR_NAMES.includes(String(electorName || "").trim().toLowerCase());
-      const isDemoProbablePlaidElector = DEMO_PROBABLE_PLAID_ELECTOR_NAMES.includes(String(electorName || "").trim().toLowerCase());
-      const demoCanvassId = DEMO_CANVASS_ID_BY_ELECTOR_ID[String(electorId)];
-      const demoSupportIndependence = DEMO_SUPPORT_INDEPENDENCE_BY_ELECTOR_ID[String(electorId)];
-      const demoPartyMember = DEMO_PARTY_MEMBER_BY_ELECTOR_ID[String(electorId)];
-      const demoPoster = DEMO_POSTER_BY_ELECTOR_ID[String(electorId)];
-
-      // Master data from Sheet1 (columns AS:AZ) always wins over any
-      // per-browser localStorage override or demo value when present.
-      // "No Data" (the sheet's own placeholder) is treated as absent.
-      const masterCanvassId =
-        (elector && elector.masterCanvassId && elector.masterCanvassId !== "No Data")
-          ? elector.masterCanvassId
-          : "";
-      const masterSupportIndependenceRaw =
-        (elector && elector.masterSupportIndependence && elector.masterSupportIndependence !== "No Data")
-          ? elector.masterSupportIndependence
-          : "";
-      const masterSupportIndependence =
-        masterSupportIndependenceRaw === "Support" ? "Yes" : masterSupportIndependenceRaw;
-      const masterFirstLanguage = (elector && elector.masterFirstLanguage) || "";
-      const masterPartyMemberRaw = (elector && elector.masterPartyMemberRaw) || "";
-      // Sheet's Party Member dropdown now uses the app's own option
-      // vocabulary directly (No/Current/Former/Lapsed/Supporter/Ask to
-      // Join), so pass it straight through.
-      const masterPartyMember = masterPartyMemberRaw;
-      const masterVolunteerRaw = (elector && elector.masterVolunteerRaw) || "";
-      const masterVolunteerKnown = masterVolunteerRaw !== "" && masterVolunteerRaw !== "No Data";
-      const masterVolunteer = masterVolunteerRaw === "Active Volunteer";
-      // Sheet's Poster dropdown now uses "No Poster"/"Window"/"Garden"/"Both" -
-      // map to the app's "Poster: X" vocabulary (leaving "No Poster" as-is).
-      const masterPosterRaw = (elector && elector.masterPosterRaw) || "";
-      const masterPoster =
-        masterPosterRaw && masterPosterRaw !== "No Poster"
-          ? "Poster: " + masterPosterRaw
-          : masterPosterRaw;
-
-      const legacyCanvassId =
-        masterCanvassId ||
-        existing.canvassId ||
-        existing.status ||
-        demoCanvassId ||
-        (isDemoPlaidElector ? "Definite Plaid" : (isDemoProbablePlaidElector ? "Probable Plaid" : "No Data"));
-      const baseCanvassId = normalizeCanvassId(legacyCanvassId);
-      const rawPartyMember = masterPartyMember || existing.partyMember || demoPartyMember || "No";
-      const partyMember = partyMemberOptions.includes(rawPartyMember) ? rawPartyMember : "No";
-      const rawPoster = masterPoster || existing.poster || demoPoster || "No Poster";
-      const poster = posterOptions.includes(rawPoster) ? rawPoster : "No Poster";
-      const volunteer =
-        masterVolunteerKnown
-          ? masterVolunteer
-          : (existing.volunteer !== undefined
-              ? Boolean(existing.volunteer)
-              : isKnownVolunteer(electorName, electorId));
-      const askToVolunteer = volunteer ? false : Boolean(existing.askToVolunteer);
-      const rawSupportIndependence = masterSupportIndependence || existing.supportIndependence || demoSupportIndependence || "No Data";
-      const supportIndependence = independenceOptions.includes(rawSupportIndependence) ? rawSupportIndependence : "No Data";
-      const canvassId = applyCanvassAffinityRules(baseCanvassId, partyMember, volunteer, askToVolunteer, poster, supportIndependence);
-      const firstLanguage = masterFirstLanguage || existing.firstLanguage || "English";
-
-      return {
-        preferredName: existing.preferredName || sheetPreferredName || "",
-        dob: existing.dob || sheetDob || "",
-        canvassId: canvassIdOptions.includes(canvassId) ? canvassId : "No Data",
-        supportIndependence,
-        firstLanguage: languageOptions.includes(firstLanguage) ? firstLanguage : "English",
-        phone: (elector && elector.masterPhone) || existing.phone || "",
-        email: (elector && elector.masterEmail) || existing.email || "",
-        partyMember,
-        poster,
-        volunteer,
-        askToVolunteer,
-        postalVoteRequested: postalVoteOptions.includes(existing.postalVoteRequested || "None") ? (existing.postalVoteRequested || "None") : "None",
-        doNotDeliver: Boolean(existing.doNotDeliver) || Boolean(elector && elector.masterDoNotDeliver),
-        doNotContact: Boolean(existing.doNotContact) || Boolean(elector && elector.masterDoNotContact),
-        masterDoNotDeliver: Boolean(elector && elector.masterDoNotDeliver),
-        masterDoNotContact: Boolean(elector && elector.masterDoNotContact),
-        canvassIdLocked: Boolean(masterCanvassId),
-        supportIndependenceLocked: Boolean(masterSupportIndependence),
-        firstLanguageLocked: Boolean(masterFirstLanguage),
-        phoneLocked: Boolean(elector && elector.masterPhone),
-        emailLocked: Boolean(elector && elector.masterEmail),
-        partyMemberLocked: Boolean(masterPartyMember),
-        posterLocked: Boolean(masterPoster),
-        volunteerLocked: masterVolunteerKnown,
-        masterVolunteerRaw,
-        leftElectoralRegister: Boolean(existing.leftElectoralRegister)
-      };
+    function saveProgressField(electorId, field, value) {
+      const all = loadFromStorage(STORAGE_KEYS.progress, {});
+      all[electorId] = Object.assign({}, all[electorId] || {}, { [field]: value });
+      saveToStorage(STORAGE_KEYS.progress, all);
     }
+
+    // ── rendering ─────────────────────────────────────────────────────────────
 
     function dlRow(label, value) {
-      if (!value && value !== 0) {
-        return "";
-      }
+      if (!value && value !== 0) return "";
       return "<dt>" + escapeHtml(label) + "</dt><dd>" + escapeHtml(String(value)) + "</dd>";
     }
 
-    // Same as dlRow, but the value is rendered as a same-tab link to
-    // another page (e.g. a volunteer's row on Members & Activists).
-    function dlRowLink(label, value, href) {
-      if (!value && value !== 0) {
-        return "";
-      }
-      return "<dt>" + escapeHtml(label) + "</dt><dd><a href=\"" + escapeHtml(href) + "\">" + escapeHtml(String(value)) + "</a></dd>";
-    }
-
-    // Same as dlRow, but the value is pre-built HTML (already escaped
-    // by the caller) rather than plain text, e.g. multi-line lists.
-    function dlRowHtml(label, html) {
-      if (!html) {
-        return "";
-      }
-      return "<dt>" + escapeHtml(label) + "</dt><dd>" + html + "</dd>";
-    }
-
-    // Turns "lat, lng" text into a clickable Google Maps search link,
-    // e.g. "52.7915804, -4.5263449".
-    function dlRowCoordinates(label, lat, lng) {
-      if (lat === null || lat === undefined || lat === "" ||
-          lng === null || lng === undefined || lng === "") {
-        return "";
-      }
-      const text = lat + ", " + lng;
-      const mapsUrl =
-        "https://www.google.com/maps/search/" +
-        encodeURIComponent(lat) + ",+" + encodeURIComponent(lng) +
-        "?sa=X&ved=1t:242&ictx=111";
-      return "<dt>" + escapeHtml(label) + "</dt><dd><a href=\"" + escapeHtml(mapsUrl) + "\" target=\"_blank\" rel=\"noopener noreferrer\">" + escapeHtml(text) + "</a></dd>";
-    }
-
-    function setSelectOptions(selectEl, options, selectedValue) {
-      selectEl.innerHTML = options.map(option =>
-        "<option" + (option === selectedValue ? " selected" : "") + ">" + escapeHtml(option) + "</option>"
-      ).join("");
-    }
-
-    function updateCanvassBadge(canvassId) {
-      const badgeEl = document.getElementById("profile-canvass-badge");
-      badgeEl.textContent = canvassId;
-      badgeEl.className = "profile-canvass-badge " + getPoliticalLeanClass(canvassId);
-    }
-
-    function renderVotingHistory(elector, dob) {
-      // Anyone under 17 hasn't had the chance to vote yet, so no
-      // Voting History table is shown at all. Ages given as a range
-      // (e.g. "16/17") are kept, since the elector may already be 17.
-      const ageStr = calculateAgeDisplay(dob || "");
-      const maxAge = ageStr ? Math.max.apply(null, ageStr.split("/").map(Number)) : null;
-      if (maxAge !== null && maxAge < 17) {
-        return "";
-      }
-      const alwaysVotes = String(elector.id || "").trim() === CHRIS_GREEN_ELECTOR_ID;
-      const rows = VOTING_HISTORY_YEARS.map(year => {
-        // 2026 (Senedd) now has real data from Sheet5 column M ("Y" =
-        // voted on the day, "A" = voted by post) - shown as exact text
-        // when present, taking priority over the demo placeholder.
-        if (year === "2026 (Senedd)" && elector.senedd2026Vote) {
-          return "<tr><th scope=\"row\">" + escapeHtml(year) + "</th><td class=\"voting-history-disabled-cell\">" + escapeHtml(elector.senedd2026Vote) + "</td></tr>";
-        }
-        const voted = year !== "2027 (Local)" && alwaysVotes;
-        return "<tr><th scope=\"row\">" + escapeHtml(year) + "</th><td class=\"voting-history-disabled-cell\">" + (voted ? "X" : "—") + "</td></tr>";
+    function renderVotingHistory(elector) {
+      const normalizedName = String(elector.name || "").trim().toLowerCase();
+      const alwaysVotes = DEMO_ALWAYS_VOTES_NAMES.has(normalizedName);
+      const headerCells = "<th scope='col'>Year</th><th scope='col'>" + escapeHtml(elector.name || "Elector") + "</th>";
+      const bodyRows = VOTING_HISTORY_YEARS.map(year => {
+        const voted = alwaysVotes && !year.includes("(Local)");
+        return "<tr><th scope='row'>" + escapeHtml(year) + "</th>" +
+          "<td class='voting-history-disabled-cell'>" + (voted ? "X" : "\u2014") + "</td></tr>";
       }).join("");
-      return "<table class=\"voting-history-table\"><thead><tr><th scope=\"col\">Year</th><th scope=\"col\">" + escapeHtml(elector.name || "Elector") + "</th></tr></thead><tbody>" + rows + "</tbody></table>";
+      return "<table class='voting-history-table'><thead><tr>" + headerCells + "</tr></thead><tbody>" + bodyRows + "</tbody></table>";
     }
 
-    // Formats an ISO date ("2026-07-29") to match the existing Origin
-    // Data row style ("29 July 2026"). Falls back to the raw value if
-    // it isn't a recognised date.
-    function formatAttemptDateLabel(isoDate) {
-      const match = String(isoDate || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
-      if (!match) {
-        return isoDate || "";
-      }
-      const day = parseInt(match[3], 10);
-      const monthIndex = parseInt(match[2], 10) - 1;
-      const year = match[1];
-      const monthName = AI_SUMMARY_MONTH_NAMES_DISPLAY[monthIndex] || "";
-      return day + " " + monthName + " " + year;
-    }
+    function renderProfile(elector, progress) {
 
-    const AI_SUMMARY_MONTH_NAMES_DISPLAY = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
-    ];
-
-    function renderContactHistoryBody(electorId) {
-      const attempts = loadContactAttempts(electorId);
-
-      // Newest to oldest, by date then time.
-      const sortedAttempts = attempts.slice().sort((a, b) => {
-        const aKey = (a.date || "") + " " + (a.time || "");
-        const bKey = (b.date || "") + " " + (b.time || "");
-        return bKey.localeCompare(aKey);
-      });
-
-      const attemptRows = sortedAttempts.map(attempt =>
-        "<tr><td>" + escapeHtml(formatAttemptDateLabel(attempt.date)) + "</td><td>" +
-        escapeHtml(attempt.time || "") + "</td><td>" +
-        escapeHtml(attempt.canvasser || "") + "</td><td>" +
-        escapeHtml(attempt.channel || "") + "</td><td>" +
-        escapeHtml(attempt.notes || "") + "</td></tr>"
-      ).join("");
-
-      // Every elector record originated from the same initial data
-      // import, so a "Created" entry is always shown as the final
-      // (oldest) row.
-      const originRow =
-        "<tr><td>" + escapeHtml("29 July 2026") + "</td><td>" + escapeHtml("00:01") + "</td><td>" +
-        escapeHtml("Chris Green") + "</td><td>" + escapeHtml("Origin Data") + "</td><td>" +
-        escapeHtml("Created") + "</td></tr>";
-
-      document.getElementById("contact-history-body").innerHTML = attemptRows + originRow;
-    }
-
-    function setupAddAttemptForm(electorId) {
-      const addButtonEl = document.getElementById("add-attempt-button");
-      const formEl = document.getElementById("add-attempt-form");
-      const dateEl = document.getElementById("attempt-date-input");
-      const timeEl = document.getElementById("attempt-time-input");
-      const canvasserEl = document.getElementById("attempt-canvasser-select");
-      const channelEl = document.getElementById("attempt-channel-select");
-      const notHomeEl = document.getElementById("attempt-not-home-checkbox");
-      const notesEl = document.getElementById("attempt-notes-input");
-      const saveButtonEl = document.getElementById("attempt-save-button");
-      const cancelButtonEl = document.getElementById("attempt-cancel-button");
-
-      const canvasserNames = DEFAULT_VOLUNTEERS.map(volunteer => (volunteer.firstName + " " + volunteer.lastName).trim());
-      setSelectOptions(canvasserEl, canvasserNames, "Chris Green");
-      setSelectOptions(channelEl, CONTACT_CHANNEL_OPTIONS, "Door Knocking");
-
-      // "Not Home" is a tickbox: when checked, the Notes box is locked
-      // to "Not Home" and disabled; when unchecked, Notes reverts to a
-      // freeform field for the canvasser's own text.
-      function applyNotHomeState() {
-        if (notHomeEl.checked) {
-          notesEl.value = "Not Home";
-          notesEl.disabled = true;
-        } else {
-          if (notesEl.value === "Not Home") {
-            notesEl.value = "";
-          }
-          notesEl.disabled = false;
-        }
-      }
-
-      notHomeEl.addEventListener("change", applyNotHomeState);
-
-      function resetForm() {
-        const now = new Date();
-        const pad = value => String(value).padStart(2, "0");
-        dateEl.value = now.getFullYear() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate());
-        timeEl.value = pad(now.getHours()) + ":" + pad(now.getMinutes());
-        canvasserEl.value = "Chris Green";
-        channelEl.value = "Door Knocking";
-        notHomeEl.checked = true;
-        applyNotHomeState();
-      }
-
-      resetForm();
-
-      addButtonEl.addEventListener("click", () => {
-        resetForm();
-        formEl.style.display = "";
-        addButtonEl.style.display = "none";
-      });
-
-      cancelButtonEl.addEventListener("click", () => {
-        formEl.style.display = "none";
-        addButtonEl.style.display = "";
-      });
-
-      saveButtonEl.addEventListener("click", () => {
-        saveContactAttempt(electorId, {
-          date: dateEl.value,
-          time: timeEl.value,
-          canvasser: canvasserEl.value,
-          channel: channelEl.value,
-          notes: notHomeEl.checked ? "Not Home" : (notesEl.value.trim() || "Not Home")
-        });
-        renderContactHistoryBody(electorId);
-        formEl.style.display = "none";
-        addButtonEl.style.display = "";
-      });
-    }
-
-    function renderProfile(elector) {
-      const progress = getElectorProgress(elector.id, elector.name, elector.sheetDob, elector.sheetPreferredName, elector);
-      const walkNumber = getEffectiveWalkNumberForElector(elector);
-      const walkDescription = getWalkDescription(elector.pollingDistrict, walkNumber);
-      const assignedDeliverer = getAssignedDelivererName(elector.pollingDistrict, walkNumber);
-      const volunteerRecord = getVolunteerRecordForElector(elector);
-      const addressLine = [elector.address, elector.postcode].filter(Boolean).join(", ") ||
-        [elector.addressLine1, elector.addressLine2, elector.postcode].filter(Boolean).join(", ");
-
+      // Name + badge + preferred name
       document.getElementById("profile-name").textContent = elector.name || "Unnamed elector";
-      document.getElementById("profile-elector-identifiers").textContent =
-        "Elector ID: " + (elector.electorIdValue || "—") +
-        " · Household ID: " + (elector.uprn || "—");
-      document.getElementById("profile-electors-in-household").innerHTML =
-        "Electors in Household: " + escapeHtml(String(elector.electorsInHousehold || "—")) +
-        (elector.otherHouseholdElectors && elector.otherHouseholdElectors.length
-          ? " (" +
-            elector.otherHouseholdElectors
-              .map(other =>
-                "<a href=\"profile.html?id=" + encodeURIComponent(other.id) + "\">" +
-                escapeHtml(other.name || "Unnamed elector") +
-                "</a>" +
-                (other.ageDisplay ? " [Age " + escapeHtml(other.ageDisplay) + "]" : "")
-              )
-              .join(", ") +
-            ")"
-          : "");
-      updateCanvassBadge(progress.canvassId);
+      const badge = document.getElementById("profile-canvass-badge");
+      badge.textContent = progress.canvassId;
+      badge.className = "profile-canvass-badge " + getPoliticalLeanClass(progress.canvassId);
 
+      const prefNameEl = document.getElementById("profile-preferred-name");
+      prefNameEl.value = progress.preferredName || elector.name || "";
+      prefNameEl.addEventListener("change", () => saveProgressField(elector.id, "preferredName", prefNameEl.value.trim()));
+
+      // Address line
+      const addressParts = [elector.addressLine1, elector.addressLine2, elector.postcode].filter(Boolean);
+      const addressLine = addressParts.join(", ");
+
+      // Household data
       document.getElementById("profile-household-dl").innerHTML =
-        dlRow("Household ID", elector.uprn) +
+        dlRow("Household ID", elector.householdId || elector.householdGroupKey) +
         dlRow("Address", addressLine) +
-        dlRow("Ward", elector.ward) +
-        dlRow("Polling Number", (elector.pollingDistrict || "") + (elector.pollingElectorNumber ? "-" + elector.pollingElectorNumber : "")) +
+        dlRow("Local Authority", elector.localAuthority) +
         dlRow("Senedd", elector.senedd) +
         dlRow("Westminster", elector.westminster) +
-        dlRow("Local Authority", elector.localAuthority);
+        dlRow("Ward", elector.ward);
 
+      // Delivery details
+      const walkNum = elector.deliveryWalk ? String(elector.deliveryWalk).match(/\d+/) : null;
+      const walkDesc = walkNum ? getWalkDescription(elector.pollingDistrict, parseInt(walkNum[0], 10)) : "";
       document.getElementById("profile-delivery-dl").innerHTML =
         dlRow("Polling District", getPollingDistrictLabel(elector.pollingDistrict)) +
-        dlRow("Walk", String(walkNumber) + (walkDescription ? " (" + walkDescription + ")" : "")) +
-        dlRow("Assigned Deliverer", assignedDeliverer) +
+        dlRow("Walk", elector.deliveryWalk + (walkDesc ? " (" + walkDesc + ")" : "")) +
         dlRow("Subroad", elector.subRoad) +
         dlRow("Sort Order", elector.deliveryOrder) +
-        dlRowCoordinates("Coordinates", elector.lat, elector.lng) +
+        dlRow("Coordinates", [elector.lat, elector.lng].filter(Boolean).join(", "));
+
+      // Canvassing data — editable selects
+      const indepEl = document.getElementById("profile-independence-select");
+      const langEl  = document.getElementById("profile-language-select");
+      indepEl.value = progress.supportIndependence;
+      langEl.value  = progress.firstLanguage;
+      indepEl.addEventListener("change", () => saveProgressField(elector.id, "supportIndependence", indepEl.value));
+      langEl.addEventListener("change",  () => saveProgressField(elector.id, "firstLanguage",       langEl.value));
+
+      document.getElementById("profile-canvass-dl").innerHTML =
         dlRow("Phone", progress.phone) +
         dlRow("Email", progress.email);
 
-      document.getElementById("profile-canvass-dl").innerHTML = "";
+      // Voting history
+      document.getElementById("profile-voting-history").innerHTML = renderVotingHistory(elector);
 
-      document.getElementById("profile-voting-history").innerHTML = renderVotingHistory(elector, progress.dob);
+      // Membership / volunteer — editable selects + checkboxes
+      const partyEl   = document.getElementById("profile-party-member-select");
+      const posterEl  = document.getElementById("profile-poster-select");
+      const volEl     = document.getElementById("profile-volunteer-checkbox");
+      const askVolEl  = document.getElementById("profile-ask-volunteer-checkbox");
 
-      const regularDelivererWalksHtml =
-        volunteerRecord && volunteerRecord.regularDeliverer
-          ? getWalksCoveredByVolunteer(volunteerRecord.rowKey)
-          : "";
+      partyEl.value   = progress.partyMember;
+      posterEl.value  = progress.poster;
+      volEl.checked   = progress.volunteer;
+      askVolEl.checked = progress.askToVolunteer;
 
-      const volunteerStatus = progress.volunteerLocked
-        ? progress.masterVolunteerRaw
-        : (volunteerRecord || progress.volunteer
-            ? "Active Volunteer"
-            : progress.askToVolunteer
-              ? "Ask to Volunteer"
-              : "");
+      partyEl.addEventListener("change",  () => saveProgressField(elector.id, "partyMember", partyEl.value));
+      posterEl.addEventListener("change", () => saveProgressField(elector.id, "poster",      posterEl.value));
+      volEl.addEventListener("change", () => {
+        saveProgressField(elector.id, "volunteer", volEl.checked);
+        if (volEl.checked) { askVolEl.checked = false; saveProgressField(elector.id, "askToVolunteer", false); }
+        askVolEl.disabled = volEl.checked;
+      });
+      askVolEl.addEventListener("change", () => saveProgressField(elector.id, "askToVolunteer", askVolEl.checked));
+      askVolEl.disabled = progress.volunteer;
 
-      const volunteerStatusDisplay =
-        !volunteerStatus || volunteerStatus === "No Data" ? "\u2014" : volunteerStatus;
-
+      // Regular deliverer status (derived from volunteers page)
+      const rdStatus = getRegularDelivererStatus(elector.id);
       document.getElementById("profile-membership-dl").innerHTML =
-        (volunteerRecord
-          ? dlRowLink("Volunteer Record", (volunteerRecord.firstName + " " + volunteerRecord.lastName).trim(), "volunteers.html?rowKey=" + encodeURIComponent(volunteerRecord.rowKey))
-          : dlRow("Volunteer Record", "Volunteer - No")) +
-        (regularDelivererWalksHtml
-          ? dlRowHtml("Regular Deliverer", regularDelivererWalksHtml)
-          : dlRow("Regular Deliverer", volunteerRecord && volunteerRecord.regularDeliverer ? "Yes" : "No")
-        ) +
-        dlRow("Volunteer Status", volunteerStatusDisplay);
+        rdStatus !== null ? dlRow("Regular Deliverer", rdStatus ? "Yes" : "No") : "";
 
-      // Every elector record originated from the same initial data
-      // import, so a "Created" entry is shown as the default last
-      // (oldest) Contact History row, with any logged attempts shown
-      // above it, newest to oldest.
-      renderContactHistoryBody(elector.id);
-      setupAddAttemptForm(elector.id);
-
-      const preferredNameEl = document.getElementById("profile-preferred-name");
-      preferredNameEl.value = progress.preferredName || elector.name || "";
-      preferredNameEl.addEventListener("change", () => {
-        saveProgressField(elector.id, "preferredName", preferredNameEl.value.trim());
-      });
-
-      const dobYearEl = document.getElementById("profile-dob-year");
-      const dobMonthEl = document.getElementById("profile-dob-month");
-      const dobDayEl = document.getElementById("profile-dob-day");
-      const ageDisplayEl = document.getElementById("profile-age-display");
-
-      populateDobSelects(dobYearEl, dobMonthEl, dobDayEl);
-
-      const dobParts = parseDobParts(progress.dob || "");
-      dobYearEl.value = dobParts.year;
-      dobMonthEl.value = dobParts.month;
-      refreshDobDaySelect(dobDayEl, dobParts.year, dobParts.month, dobParts.day);
-      updateDobEnablement();
-      updateAgeDisplay(buildDobValue());
-
-      function updateDobEnablement() {
-        dobMonthEl.disabled = !dobYearEl.value;
-        dobDayEl.disabled = !dobYearEl.value || !dobMonthEl.value;
-      }
-
-      function buildDobValue() {
-        if (!dobYearEl.value) {
-          return "";
-        }
-        if (!dobMonthEl.value) {
-          return dobYearEl.value;
-        }
-        if (!dobDayEl.value) {
-          return dobYearEl.value + "-" + dobMonthEl.value;
-        }
-        return dobYearEl.value + "-" + dobMonthEl.value + "-" + dobDayEl.value;
-      }
-
-      function handleDobChange() {
-        if (!dobYearEl.value) {
-          dobMonthEl.value = "";
-        }
-        if (!dobMonthEl.value) {
-          dobDayEl.value = "";
-        }
-        refreshDobDaySelect(dobDayEl, dobYearEl.value, dobMonthEl.value, dobDayEl.value);
-        updateDobEnablement();
-        const value = buildDobValue();
-        saveProgressField(elector.id, "dob", value);
-        updateAgeDisplay(value);
-      }
-
-      dobYearEl.addEventListener("change", handleDobChange);
-      dobMonthEl.addEventListener("change", handleDobChange);
-      dobDayEl.addEventListener("change", handleDobChange);
-
-      function updateAgeDisplay(value) {
-        const age = calculateAgeDisplay(value);
-        ageDisplayEl.value = age || "Unknown";
-      }
-
-      const canvassSelectEl = document.getElementById("profile-canvass-select");
-      const canvassDisplayEl = document.getElementById("profile-canvass-display");
-      setSelectOptions(canvassSelectEl, canvassIdOptions, progress.canvassId);
-      if (progress.canvassIdLocked) {
-        canvassSelectEl.style.display = "none";
-        canvassDisplayEl.style.display = "";
-        canvassDisplayEl.value = progress.canvassId;
-        canvassDisplayEl.title = "Sourced from Sheet1 (master data) - cannot be changed here";
-      }
-      canvassSelectEl.addEventListener("change", () => {
-        saveProgressField(elector.id, "canvassId", canvassSelectEl.value);
-        updateCanvassBadge(getElectorProgress(elector.id, elector.name).canvassId);
-      });
-
-      const independenceSelectEl = document.getElementById("profile-independence-select");
-      const independenceDisplayEl = document.getElementById("profile-independence-display");
-      setSelectOptions(independenceSelectEl, independenceOptions, progress.supportIndependence);
-      if (progress.supportIndependenceLocked) {
-        independenceSelectEl.style.display = "none";
-        independenceDisplayEl.style.display = "";
-        independenceDisplayEl.value = progress.supportIndependence;
-        independenceDisplayEl.title = "Sourced from Sheet1 (master data) - cannot be changed here";
-      }
-      independenceSelectEl.addEventListener("change", () => {
-        saveProgressField(elector.id, "supportIndependence", independenceSelectEl.value);
-      });
-
-      const languageSelectEl = document.getElementById("profile-language-select");
-      const languageDisplayEl = document.getElementById("profile-language-display");
-      setSelectOptions(languageSelectEl, languageOptions, progress.firstLanguage);
-      if (progress.firstLanguageLocked) {
-        languageSelectEl.style.display = "none";
-        languageDisplayEl.style.display = "";
-        languageDisplayEl.value = progress.firstLanguage;
-        languageDisplayEl.title = "Sourced from Sheet1 (master data) - cannot be changed here";
-      }
-      languageSelectEl.addEventListener("change", () => {
-        saveProgressField(elector.id, "firstLanguage", languageSelectEl.value);
-      });
-
-      const postalVoteRowEl = document.getElementById("profile-postal-vote-row");
-      const postalVoteSelectEl = document.getElementById("profile-postal-vote-select");
-      const postalVoteDisplayEl = document.getElementById("profile-postal-vote-display");
-      postalVoteRowEl.style.display = "";
-      if (elector.postalProxy) {
-        postalVoteSelectEl.style.display = "none";
-        postalVoteDisplayEl.style.display = "";
-        postalVoteDisplayEl.value = elector.postalProxy;
-      } else {
-        postalVoteSelectEl.style.display = "";
-        postalVoteDisplayEl.style.display = "none";
-        setSelectOptions(postalVoteSelectEl, postalVoteOptions, progress.postalVoteRequested);
-      }
-      postalVoteSelectEl.addEventListener("change", () => {
-        saveProgressField(elector.id, "postalVoteRequested", postalVoteSelectEl.value);
-      });
-
-      const partyMemberSelectEl = document.getElementById("profile-party-member-select");
-      setSelectOptions(partyMemberSelectEl, partyMemberOptions, progress.partyMember);
-      if (progress.partyMemberLocked) {
-        partyMemberSelectEl.disabled = true;
-        partyMemberSelectEl.title = "Sourced from Sheet1 (master data) - cannot be changed here";
-      }
-      partyMemberSelectEl.addEventListener("change", () => {
-        saveProgressField(elector.id, "partyMember", partyMemberSelectEl.value);
-        updateCanvassBadge(getElectorProgress(elector.id, elector.name).canvassId);
-      });
-
-      const posterSelectEl = document.getElementById("profile-poster-select");
-      setSelectOptions(posterSelectEl, posterOptions, progress.poster);
-      if (progress.posterLocked) {
-        posterSelectEl.disabled = true;
-        posterSelectEl.title = "Sourced from Sheet1 (master data) - cannot be changed here";
-      }
-      posterSelectEl.addEventListener("change", () => {
-        saveProgressField(elector.id, "poster", posterSelectEl.value);
-        updateCanvassBadge(getElectorProgress(elector.id, elector.name).canvassId);
-      });
-
-      const volunteerCheckboxEl = document.getElementById("profile-volunteer-checkbox");
-      const askVolunteerCheckboxEl = document.getElementById("profile-ask-volunteer-checkbox");
-      // Volunteer status is now sourced from Sheet1 column AY for every
-      // elector, so this toggle is always a read-only reflection of it.
-      volunteerCheckboxEl.checked = Boolean(volunteerRecord) || progress.volunteer;
-      volunteerCheckboxEl.disabled = true;
-      askVolunteerCheckboxEl.checked = !volunteerCheckboxEl.checked && progress.askToVolunteer;
-      askVolunteerCheckboxEl.disabled = true;
-      const volunteerLockTitle = volunteerRecord
-        ? "Sourced from the Members & Activists page - cannot be changed here"
-        : "Sourced from Sheet1 (master data) - cannot be changed here";
-      volunteerCheckboxEl.title = volunteerLockTitle;
-      askVolunteerCheckboxEl.title = volunteerLockTitle;
-
-      const doNotDeliverEl = document.getElementById("profile-do-not-deliver");
-      const doNotDoorstepEl = document.getElementById("profile-do-not-doorstep");
-      doNotDeliverEl.checked = progress.doNotDeliver;
-      doNotDoorstepEl.checked = progress.doNotContact;
-      doNotDeliverEl.disabled = progress.masterDoNotDeliver;
-      doNotDoorstepEl.disabled = progress.masterDoNotContact;
-      doNotDeliverEl.title = progress.masterDoNotDeliver
-        ? "Sourced from NEWSPAPERS (master data) - cannot be changed here"
-        : "";
-      doNotDoorstepEl.title = progress.masterDoNotContact
-        ? "Sourced from NEWSPAPERS (master data) - cannot be changed here"
-        : "";
-      doNotDeliverEl.addEventListener("change", () => {
-        saveProgressField(elector.id, "doNotDeliver", doNotDeliverEl.checked);
-      });
-      doNotDoorstepEl.addEventListener("change", () => {
-        saveProgressField(elector.id, "doNotContact", doNotDoorstepEl.checked);
-      });
-
-      const leftRegisterEl = document.getElementById("profile-left-register-checkbox");
-      leftRegisterEl.checked = progress.leftElectoralRegister;
-      leftRegisterEl.addEventListener("change", async () => {
-        if (leftRegisterEl.checked) {
-          // window.confirm() is overridden with an async dialog-plugin
-          // call in the Tauri app shell (it returns a Promise, not a
-          // boolean, there) but stays a normal synchronous boolean in a
-          // regular browser — awaiting it works correctly in both cases.
-          const confirmed = await window.confirm(
-            "This will remove " + (elector.name || "this elector") +
-            " from every list, filter, and map in the app (e.g. they may have died or moved away). " +
-            "Their profile page will stay reachable directly by this Elector ID if needed. Continue?"
-          );
-          if (!confirmed) {
-            leftRegisterEl.checked = false;
-            return;
-          }
-        }
-        saveProgressField(elector.id, "leftElectoralRegister", leftRegisterEl.checked);
-      });
+      // Anti-plaid checkboxes
+      const dndEl = document.getElementById("profile-do-not-deliver");
+      const dncEl = document.getElementById("profile-do-not-doorstep");
+      dndEl.checked = progress.doNotDeliver;
+      dncEl.checked = progress.doNotContact;
+      dndEl.addEventListener("change", () => saveProgressField(elector.id, "doNotDeliver", dndEl.checked));
+      dncEl.addEventListener("change", () => saveProgressField(elector.id, "doNotContact", dncEl.checked));
 
       document.getElementById("profile-content").hidden = false;
       document.getElementById("profile-message").textContent = "";
     }
 
+    // ── init ──────────────────────────────────────────────────────────────────
+
+    const SHEET_CACHE_KEY = "tarian-sheet-csv-cache";
+    const SHEET_CACHE_TS_KEY = "tarian-sheet-csv-cache-ts";
+    const SHEET_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+    async function fetchSheetCsv(url) {
+      const cached = sessionStorage.getItem(SHEET_CACHE_KEY);
+      const ts = parseInt(sessionStorage.getItem(SHEET_CACHE_TS_KEY) || "0", 10);
+      if (cached && (Date.now() - ts) < SHEET_CACHE_TTL) return cached;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Could not fetch sheet data.");
+      const csv = await response.text();
+      try { sessionStorage.setItem(SHEET_CACHE_KEY, csv); sessionStorage.setItem(SHEET_CACHE_TS_KEY, String(Date.now())); } catch (e) { /* storage full */ }
+      return csv;
+    }
+
     async function init() {
-      const wantedId = new URLSearchParams(window.location.search).get("id");
-      const messageEl = document.getElementById("profile-message");
-      if (!wantedId) {
-        messageEl.textContent = "No elector ID specified.";
-        return;
-      }
+      const params = new URLSearchParams(window.location.search);
+      const wantedId = params.get("id");
+      const msgEl = document.getElementById("profile-message");
+      if (!wantedId) { msgEl.textContent = "No elector ID specified."; return; }
 
-      messageEl.textContent = "Loading…";
-
+      msgEl.textContent = "Loading…";
+      const sheetUrl = localStorage.getItem(STORAGE_KEYS.sheetUrl) || DEFAULT_SHEET_URL;
       try {
-        const sheetUrl = localStorage.getItem(STORAGE_KEYS.sheetUrl) || DEFAULT_SHEET_URL;
-        const response = await fetch(toGoogleCsvUrl(sheetUrl));
-        if (!response.ok) {
-          throw new Error("Could not fetch sheet data.");
-        }
-
-        const rows = parseCsv(await response.text());
+        const csv = await fetchSheetCsv(toGoogleCsvUrl(sheetUrl));
+        const rows = parseCsv(csv);
         const headers = rows[0].map(normalizeHeader);
-        const allElectors = rows.slice(1).map((row, index) => mapRowToElector(row, headers, index));
+        const elector = rows.slice(1)
+          .map((r, i) => mapRowToElector(r, headers, i))
+          .find(e => e.id === wantedId);
 
-        if (!allElectors.some(candidate => candidate.id === CHRIS_GREEN_ELECTOR_ID)) {
-          allElectors.push(buildChrisGreenDemoElector());
-        }
+        if (!elector) { msgEl.textContent = "Elector not found (ID: " + wantedId + ")."; return; }
 
-        const elector = allElectors.find(candidate => candidate.id === wantedId);
-
-        if (!elector) {
-          messageEl.textContent = "Elector not found (ID: " + wantedId + ").";
-          return;
-        }
-
-        // The sheet's own per-row "electors in household" count is
-        // sometimes left blank, so always recompute it by counting how
-        // many electors share this Household ID — that's authoritative
-        // and never leaves a "—" gap when the count is simply missing.
-        const allProgress = loadFromStorage(STORAGE_KEYS.progress, {});
-        const isStillOnRegister = candidate => !(allProgress[candidate.id] || {}).leftElectoralRegister;
-        if (elector.uprn) {
-          const activeHouseholdElectors = allElectors.filter(
-            candidate => candidate.uprn === elector.uprn && isStillOnRegister(candidate)
-          );
-          elector.electorsInHousehold = activeHouseholdElectors.length || elector.electorsInHousehold;
-          elector.otherHouseholdElectors = activeHouseholdElectors.filter(
-            candidate => candidate.id !== elector.id
-          );
-        } else {
-          elector.otherHouseholdElectors = [];
-        }
-
-        const sheet5Data = await loadSheet5DataById(sheetUrl);
-        // Chris Green's DOB isn't recorded in the live Sheet5 (he's a
-        // demo volunteer record), so apply his known demo DOB as a
-        // fallback regardless of whether his row is a real sheet entry
-        // or the synthetic record built above.
-        if (!sheet5Data.dobById[CHRIS_GREEN_ELECTOR_ID]) {
-          sheet5Data.dobById[CHRIS_GREEN_ELECTOR_ID] = CHRIS_GREEN_DOB;
-        }
-        elector.sheetDob = sheet5Data.dobById[elector.id] || elector.sheetDob || "";
-        // Compute a display age for each other household member so the
-        // "Electors in Household" line can show it alongside their name,
-        // e.g. "Ffion Jones (Age 35)". Uses the same DOB source
-        // (Sheet5, falling back to any locally-saved override) and the
-        // same age calculation as the main profile's Age field.
-        if (elector.otherHouseholdElectors && elector.otherHouseholdElectors.length) {
-          elector.otherHouseholdElectors.forEach(other => {
-            const otherDob = getElectorProgress(other.id, other.name, sheet5Data.dobById[other.id] || "").dob;
-            other.ageDisplay = calculateAgeDisplay(otherDob);
-          });
-        }
-        // Elector Name always comes from Sheet1 column A. Preferred
-        // Name comes from Sheet5 column L ("SHORTENED NAME").
-        elector.sheetPreferredName = sheet5Data.preferredNameById[elector.id] || "";
-        // Sheet5 col M: real 2026 Senedd voting record ("Y"/"A").
-        elector.senedd2026Vote = sheet5Data.senedd2026ById[elector.id] || "";
-
-        const newspapersDataByHouseholdId = await loadNewspapersDataByHouseholdId(sheetUrl);
-        applyNewspapersDataToElector(elector, newspapersDataByHouseholdId);
-
-        renderProfile(elector);
-      } catch (error) {
-        messageEl.textContent = "Unable to load data: " + error.message;
+        msgEl.textContent = "";
+        renderProfile(elector, getProgress(elector.id));
+      } catch (err) {
+        msgEl.textContent = "Unable to load data: " + err.message;
       }
     }
 
     init();
-  </script>
-  <script>
-
-    const PIN_GATE_CODE = "202705";
-    const PIN_GATE_SESSION_KEY = "vote2027PinUnlocked";
-
-    (function initPinGate() {
-
-      const gateEl = document.getElementById("pin-gate");
-      const formEl = document.getElementById("pin-gate-form");
-      const inputEl = document.getElementById("pin-gate-input");
-      const errorEl = document.getElementById("pin-gate-error");
-
-      function unlock() {
-        document.body.classList.remove("pin-locked");
-        gateEl.style.display = "none";
-        sessionStorage.setItem(PIN_GATE_SESSION_KEY, "true");
-      }
-
-      if (sessionStorage.getItem(PIN_GATE_SESSION_KEY) === "true") {
-        unlock();
-        return;
-      }
-
-      formEl.addEventListener("submit", event => {
-
-        event.preventDefault();
-
-        if (inputEl.value.trim() === PIN_GATE_CODE) {
-          unlock();
-        } else {
-          errorEl.hidden = false;
-          inputEl.value = "";
-          inputEl.focus();
-        }
-
-      });
-
-      inputEl.focus();
-
-    })();
 
   </script>
 

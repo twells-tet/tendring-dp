@@ -93,6 +93,7 @@
 
     .tarian-services,
     .tarian-candidate,
+    .tarian-testimonial,
     .tarian-experience {
       padding-top: 4.5rem;
     }
@@ -136,6 +137,37 @@
       background: #eaf4ef;
     }
 
+    .tarian-testimonial {
+      max-width: 850px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .tarian-testimonial blockquote {
+      margin: 0;
+      padding: 0;
+      border: 0;
+      color: #183f35;
+      font-size: clamp(1.45rem, 2.6vw, 1.8rem);
+      font-weight: 600;
+      line-height: 1.5;
+      letter-spacing: -0.02em;
+    }
+
+    .tarian-testimonial blockquote p {
+      margin: 0;
+    }
+
+    .tarian-testimonial cite {
+      display: block;
+      margin-top: 1.5rem;
+      color: #53615d;
+      font-size: 0.95rem;
+      font-style: normal;
+      font-weight: 600;
+      line-height: 1.5;
+    }
+
     .tarian-experience {
       max-width: 810px;
       padding-bottom: 0;
@@ -155,6 +187,7 @@
       }
 
       .tarian-services,
+      .tarian-testimonial,
       .tarian-experience {
         padding-top: 3.5rem;
       }
@@ -186,6 +219,10 @@
       .tarian-candidate {
         padding: 1.5rem 1.35rem 1.5rem 1.6rem;
       }
+
+      .tarian-testimonial blockquote {
+        font-size: 1.3rem;
+      }
     }
   </style>
 </head>
@@ -213,10 +250,12 @@
           <h3>Electoral Intelligence</h3>
           <p>We help campaigns turn electoral data into practical decisions — from voter contact data and marked register analysis to demographic insight, targeting and campaign planning.</p>
         </article>
+
         <article class="tarian-service">
           <h3>Digital Campaigning</h3>
           <p>We also provide guidance on social media and digital campaigning, helping teams understand where to focus their resources, who they need to reach and how their online activity can support the wider campaign.</p>
         </article>
+
         <article class="tarian-service">
           <h3>Campaign Strategy and Raising Funds</h3>
           <p>Our focus is straightforward: turbocharge your fundraising, better data, sharper targeting and more effective campaigns.</p>
@@ -227,6 +266,13 @@
     <section class="tarian-candidate" aria-labelledby="candidate-heading">
       <h2 id="candidate-heading">Thinking of standing for Parliament?</h2>
       <p>We can also help you win your selection campaign, if you want to be a candidate for Parliament next time.</p>
+    </section>
+
+    <section class="tarian-testimonial" aria-label="Client testimonial">
+      <blockquote>
+        <p>“We used Chris for our marked register processing and analysis for the 2026 county council elections in Norfolk. I cannot recommend his service highly enough. Chris was extremely helpful throughout and responded to any queries quickly, clearly and concisely.”</p>
+      </blockquote>
+      <cite>Kate, Campaigns Organiser<br>Broadland &amp; Fakenham</cite>
     </section>
 
     <section class="tarian-experience" aria-labelledby="experience-heading">

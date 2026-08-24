@@ -20,7 +20,27 @@
 
 </head>
 
-<body>
+<body class="pin-locked">
+
+<div id="pin-gate" class="pin-gate">
+<div class="pin-gate-box">
+<h2>TENDRING DEMOCRACY PROJECT</h2>
+<p>Enter PIN to continue.</p>
+<form id="pin-gate-form" autocomplete="off">
+<input
+type="password"
+id="pin-gate-input"
+class="pin-gate-input"
+inputmode="numeric"
+pattern="[0-9]*"
+maxlength="6"
+autocomplete="off"
+aria-label="6-digit PIN">
+<button type="submit" class="pin-gate-button">Unlock</button>
+</form>
+<p id="pin-gate-error" class="pin-gate-error" hidden>Incorrect PIN. Please try again.</p>
+</div>
+</div>
 
 <main>
 
@@ -169,13 +189,45 @@ Enquiries / Contact Us
 
 <footer>
 
-Promoted by Tendring Democracy Project, all at PO Box 2002, Clacton-on-Sea, CO15 1JA. An unincorporated association and registered third party campaigner established to defeat Farage, Reform UK and fascism. <a href="/beta">beta</a>
+Promoted by Tendring Democracy Project, all at PO Box 2002, Clacton-on-Sea, CO15 1JA. An unincorporated association and registered third party campaigner established to defeat Farage, Reform UK and fascism. <a href="https://www.tarian146.co.uk/beta">beta</a>
 
 </footer>
 
 <script>
 
 // Campaign timeline - no longer active countdown
+
+(function initPinGate() {
+  const PIN = "168801";
+  const STORAGE_KEY = "tendring-home-pin-unlocked";
+  const gateEl = document.getElementById("pin-gate");
+  const formEl = document.getElementById("pin-gate-form");
+  const inputEl = document.getElementById("pin-gate-input");
+  const errorEl = document.getElementById("pin-gate-error");
+
+  function unlock() {
+    document.body.classList.remove("pin-locked");
+    gateEl.hidden = true;
+    errorEl.hidden = true;
+    sessionStorage.setItem(STORAGE_KEY, "1");
+  }
+
+  if (sessionStorage.getItem(STORAGE_KEY) === "1") {
+    unlock();
+    return;
+  }
+
+  formEl.addEventListener("submit", function (event) {
+    event.preventDefault();
+    if (inputEl.value === PIN) {
+      unlock();
+      return;
+    }
+    errorEl.hidden = false;
+    inputEl.value = "";
+    inputEl.focus();
+  });
+})();
 
 </script>
 
