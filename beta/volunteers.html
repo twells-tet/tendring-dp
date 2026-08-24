@@ -43,58 +43,19 @@
     <section class="panel">
       <a href="index.html" class="back-link back-to-main-button">&larr; Back to main page</a>
 
-      <h2 style="margin:1rem 0 0.5rem;font-size:1.1rem;color:var(--plaid-green);">Harlech a Llanbedr</h2>
+      <h2 style="margin:1rem 0 1rem;font-size:1.1rem;color:var(--plaid-green);">Harlech a Llanbedr — Walks</h2>
 
-      <div style="margin-bottom:1.5rem;">
-        <label style="font-weight:600;font-size:0.9rem;display:block;margin-bottom:0.4rem;">Deliverer</label>
-        <input
-          type="text"
-          id="deliverer-elector-id"
-          placeholder="Elector ID"
-          style="padding:0.5rem 0.7rem;border:1px solid var(--border-strong);border-radius:0.5rem;font:inherit;width:14rem;margin-right:0.5rem;">
-        <span id="deliverer-name" style="font-weight:600;color:var(--plaid-green);">Chris Green — 4 Pencei Flats, Sand Street, Pwllheli, LL53 5LB</span>
-      </div>
-
-      <table class="activist-table" style="width:100%;border-collapse:collapse;">
+      <table class="activist-table" style="width:100%;border-collapse:collapse;font-size:0.88rem;">
         <thead>
           <tr>
-            <th style="text-align:left;padding:0.6rem 0.8rem;background:var(--plaid-green);color:#fff;">Polling District</th>
-            <th style="text-align:left;padding:0.6rem 0.8rem;background:var(--plaid-green);color:#fff;">Community</th>
-            <th style="text-align:center;padding:0.6rem 0.8rem;background:var(--plaid-green);color:#fff;">Walks</th>
-            <th style="text-align:left;padding:0.6rem 0.8rem;background:var(--plaid-green);color:#fff;">View Electors</th>
+            <th style="text-align:left;padding:0.5rem 0.6rem;background:var(--plaid-green);color:#fff;white-space:nowrap;">Polling District</th>
+            <th style="text-align:center;padding:0.5rem 0.6rem;background:var(--plaid-green);color:#fff;">Walk</th>
+            <th style="text-align:left;padding:0.5rem 0.6rem;background:var(--plaid-green);color:#fff;">Deliverer</th>
+            <th style="text-align:left;padding:0.5rem 0.6rem;background:var(--plaid-green);color:#fff;">Deliverer Address</th>
+            <th style="text-align:left;padding:0.5rem 0.6rem;background:var(--plaid-green);color:#fff;">Elector ID</th>
           </tr>
         </thead>
-        <tbody>
-          <tr>
-            <td style="padding:0.6rem 0.8rem;border-bottom:1px solid #e5e7eb;font-weight:600;">N1</td>
-            <td style="padding:0.6rem 0.8rem;border-bottom:1px solid #e5e7eb;">Harlech</td>
-            <td style="padding:0.6rem 0.8rem;border-bottom:1px solid #e5e7eb;text-align:center;">10</td>
-            <td style="padding:0.6rem 0.8rem;border-bottom:1px solid #e5e7eb;"><a href="index.html?district=n1">View &rarr;</a></td>
-          </tr>
-          <tr>
-            <td style="padding:0.6rem 0.8rem;border-bottom:1px solid #e5e7eb;font-weight:600;">N2</td>
-            <td style="padding:0.6rem 0.8rem;border-bottom:1px solid #e5e7eb;">Llandanwg</td>
-            <td style="padding:0.6rem 0.8rem;border-bottom:1px solid #e5e7eb;text-align:center;">2</td>
-            <td style="padding:0.6rem 0.8rem;border-bottom:1px solid #e5e7eb;"><a href="index.html?district=n2">View &rarr;</a></td>
-          </tr>
-          <tr>
-            <td style="padding:0.6rem 0.8rem;border-bottom:1px solid #e5e7eb;font-weight:600;">AE1</td>
-            <td style="padding:0.6rem 0.8rem;border-bottom:1px solid #e5e7eb;">Llanbedr</td>
-            <td style="padding:0.6rem 0.8rem;border-bottom:1px solid #e5e7eb;text-align:center;">2</td>
-            <td style="padding:0.6rem 0.8rem;border-bottom:1px solid #e5e7eb;"><a href="index.html?district=ae1">View &rarr;</a></td>
-          </tr>
-          <tr>
-            <td style="padding:0.6rem 0.8rem;border-bottom:1px solid #e5e7eb;font-weight:600;">AF1</td>
-            <td style="padding:0.6rem 0.8rem;border-bottom:1px solid #e5e7eb;">Talsarnau</td>
-            <td style="padding:0.6rem 0.8rem;border-bottom:1px solid #e5e7eb;text-align:center;">2</td>
-            <td style="padding:0.6rem 0.8rem;border-bottom:1px solid #e5e7eb;"><a href="index.html?district=af1">View &rarr;</a></td>
-          </tr>
-          <tr>
-            <td style="padding:0.6rem 0.8rem;font-weight:600;">AU1</td>
-            <td style="padding:0.6rem 0.8rem;">Llanfair</td>
-            <td style="padding:0.6rem 0.8rem;text-align:center;">2</td>
-            <td style="padding:0.6rem 0.8rem;"><a href="index.html?district=au1">View &rarr;</a></td>
-          </tr>
+        <tbody id="walks-tbody">
         </tbody>
       </table>
 
@@ -103,25 +64,97 @@
   </main>
 
   <script>
-    // Persist deliverer elector ID to localStorage
-    const DELIVERER_KEY = "harlech-deliverer-elector-id";
-    const delivererInput = document.getElementById("deliverer-elector-id");
-    const delivererName = document.getElementById("deliverer-name");
+    const PIN_GATE_CODE = "202705";
+    const PIN_GATE_SESSION_KEY = "vote2027PinUnlocked";
 
-    const DEFAULT_DELIVERER = "Chris Green — 4 Pencei Flats, Sand Street, Pwllheli, LL53 5LB";
+    (function initPinGate() {
+      const gateEl = document.getElementById("pin-gate");
+      const formEl = document.getElementById("pin-gate-form");
+      const inputEl = document.getElementById("pin-gate-input");
+      const errorEl = document.getElementById("pin-gate-error");
+      function unlock() {
+        document.body.classList.remove("pin-locked");
+        gateEl.style.display = "none";
+        sessionStorage.setItem(PIN_GATE_SESSION_KEY, "true");
+      }
+      if (sessionStorage.getItem(PIN_GATE_SESSION_KEY) === "true") { unlock(); return; }
+      formEl.addEventListener("submit", event => {
+        event.preventDefault();
+        if (inputEl.value.trim() === PIN_GATE_CODE) { unlock(); }
+        else { errorEl.hidden = false; inputEl.value = ""; inputEl.focus(); }
+      });
+      inputEl.focus();
+    })();
 
-    const saved = localStorage.getItem(DELIVERER_KEY);
-    if (saved) {
-      delivererInput.value = saved;
-      delivererName.textContent = saved || DEFAULT_DELIVERER;
+    const WALKS_KEY = "harlech-walks-v1";
+    const DEFAULT_DELIVERER_NAME = "Chris Green";
+    const DEFAULT_DELIVERER_ADDRESS = "4 Pencei Flats, Sand Street, Pwllheli, LL53 5LB";
+
+    const WALKS = [
+      { district: "N1", community: "Harlech", walk: 1 },
+      { district: "N1", community: "Harlech", walk: 2 },
+      { district: "N1", community: "Harlech", walk: 3 },
+      { district: "N1", community: "Harlech", walk: 4 },
+      { district: "N1", community: "Harlech", walk: 5 },
+      { district: "N1", community: "Harlech", walk: 6 },
+      { district: "N1", community: "Harlech", walk: 7 },
+      { district: "N1", community: "Harlech", walk: 8 },
+      { district: "N1", community: "Harlech", walk: 9 },
+      { district: "N1", community: "Harlech", walk: 10 },
+      { district: "N2", community: "Llandanwg", walk: 1 },
+      { district: "N2", community: "Llandanwg", walk: 2 },
+      { district: "AE1", community: "Llanbedr", walk: 1 },
+      { district: "AE1", community: "Llanbedr", walk: 2 },
+      { district: "AF1", community: "Talsarnau", walk: 1 },
+      { district: "AF1", community: "Talsarnau", walk: 2 },
+      { district: "AU1", community: "Llanfair", walk: 1 },
+      { district: "AU1", community: "Llanfair", walk: 2 },
+    ];
+
+    let walksData = {};
+    try { walksData = JSON.parse(localStorage.getItem(WALKS_KEY) || "{}"); } catch(e) {}
+
+    function saveWalks() {
+      localStorage.setItem(WALKS_KEY, JSON.stringify(walksData));
     }
 
-    delivererInput.addEventListener("change", () => {
-      const val = delivererInput.value.trim();
-      localStorage.setItem(DELIVERER_KEY, val);
-      delivererName.textContent = val || DEFAULT_DELIVERER;
+    function rowKey(district, walk) {
+      return district + "-" + walk;
+    }
+
+    function getRow(district, walk) {
+      return walksData[rowKey(district, walk)] || {};
+    }
+
+    const td = (content, style) =>
+      "<td style='padding:0.45rem 0.6rem;border-bottom:1px solid #e5e7eb;" + (style || "") + "'>" + content + "</td>";
+
+    const tbody = document.getElementById("walks-tbody");
+
+    WALKS.forEach(({ district, community, walk }) => {
+      const key = rowKey(district, walk);
+      const saved = walksData[key] || {};
+      const electorId = saved.electorId || "";
+      const delivererName = saved.delivererName || DEFAULT_DELIVERER_NAME;
+      const delivererAddress = saved.delivererAddress || DEFAULT_DELIVERER_ADDRESS;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML =
+        td("<strong>" + district + " (" + community + ")</strong>") +
+        td(walk, "text-align:center;") +
+        td(delivererName, "color:var(--plaid-green);font-weight:600;") +
+        td(delivererAddress, "color:#555;font-size:0.82rem;") +
+        td("<input type='text' class='walk-elector-id' data-key='" + key + "' value='" + electorId.replace(/'/g,"&#39;") + "' placeholder='Elector ID' style='padding:0.3rem 0.5rem;border:1px solid var(--border-strong);border-radius:0.4rem;font:inherit;font-size:0.82rem;width:9rem;'>");
+      tbody.appendChild(tr);
+    });
+
+    tbody.addEventListener("change", e => {
+      const input = e.target.closest(".walk-elector-id");
+      if (!input) return;
+      const key = input.dataset.key;
+      walksData[key] = Object.assign(walksData[key] || {}, { electorId: input.value.trim() });
+      saveWalks();
     });
   </script>
-
 </body>
 </html>
