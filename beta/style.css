@@ -1904,6 +1904,7 @@ body.mobile-mode .elector-list {
   color: var(--plaid-green-dark);
   cursor: pointer;
   text-align: left;
+  text-decoration: none;
 }
 
 .map-toggle-button:hover {

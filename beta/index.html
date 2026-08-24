@@ -149,10 +149,12 @@
         <label for="ward">
           Ward
           <select id="ward">
+            <option value="" selected>All Wards</option>
             <option value="aberdyfi" disabled>Aberdyfi</option>
             <option value="abererch" disabled>Abererch</option>
             <option value="abermaw" disabled>Abermaw</option>
-            <option value="abersoch gyda llanengan" selected>Abersoch gyda Llanengan</option>
+            <option value="abersoch gyda llanengan" disabled>Abersoch gyda Llanengan</option>
+            <option value="harlech a llanbedr">Harlech a Llanbedr</option>
             <option value="arllechwedd" disabled>Arllechwedd</option>
             <option value="bethel a'r felinheli" disabled>Bethel a'r Felinheli</option>
             <option value="bowydd a'r rhiw" disabled>Bowydd a'r Rhiw</option>
@@ -219,10 +221,13 @@
         <label for="polling-district">
           Polling District
           <select id="polling-district">
-            <option value="" id="polling-district-all-opt" hidden>SHOWING ALL POLLING DISTRICTS IN WARD</option>
+            <option value="" id="polling-district-all-opt" hidden>SHOWING ALL POLLING DISTRICTS IN HARLECH A LLANBEDR</option>
             <option value="" id="polling-district-placeholder-opt">Select Polling District</option>
-            <option value="qb6">QB6 (Llanengan)</option>
-            <option value="ra1" selected>RA1 (Abersoch)</option>
+            <option value="ae1">AE1 (Llanbedr)</option>
+            <option value="af1">AF1 (Talsarnau)</option>
+            <option value="au1">AU1 (Llanfair)</option>
+            <option value="n1" selected>N1 (Harlech)</option>
+            <option value="n2">N2 (Llandanwg)</option>
           </select>
         </label>
 
@@ -283,7 +288,7 @@
         <button type="button" id="run-search-button" class="export-button run-search-button">Run Search</button>
         <button type="button" id="display-map-button" class="export-button display-map-button">View Households on Map</button>
         <a href="/shuttleworth/" class="export-button data-button">Data</a>
-        <a href="polling-day.html" class="export-button polling-day-button">GOTV: Run Polling Day</a>
+        <a href="https://www.tarian146.co.uk/beta/harlech-a-llanbedr/mapping" target="_blank" rel="noopener" class="export-button polling-day-button">MAPPING</a>
         <a href="volunteers.html" class="export-button members-activists-button">Members &amp; Activists</a>
         <button type="button" class="export-button" disabled>Switch to Training Mode</button>
       </section>
@@ -324,7 +329,7 @@
             Property Location (hide map)
           </button>
           <button type="button" id="toggle-ward-boundary" class="map-toggle-button">
-            View Ward Boundary
+            View Community Boundary
           </button>
         </div>
 
@@ -451,8 +456,11 @@
             <label for="subroad-filter-subroad-select">Filter by Subroad</label>
             <div class="subroad-filter-controls">
               <select id="subroad-filter-district-select" aria-label="Polling District">
-                <option value="RA1" selected>RA1 (Abersoch)</option>
-                <option value="QB6">QB6 (Llanengan)</option>
+                <option value="N1" selected>N1 (Harlech)</option>
+                  <option value="AF1">AF1 (Talsarnau)</option>
+                  <option value="AE1">AE1 (Llanbedr)</option>
+                  <option value="AU1">AU1 (Llanfair)</option>
+                  <option value="N2">N2 (Llandanwg)</option>
               </select>
               <select id="subroad-filter-subroad-select" aria-label="Subroad">
                 <option value="">All Subroads</option>
@@ -580,7 +588,7 @@
 
   <script>
 
-    const PIN_GATE_CODE = "168800";
+    const PIN_GATE_CODE = "202705";
     const PIN_GATE_SESSION_KEY = "vote2027PinUnlocked";
 
     (function initPinGate() {
@@ -640,7 +648,7 @@ const WELSH_LOWERCASE = new Set([
 
 
 const DEFAULT_SHEET_URL =
-  "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/edit?usp=sharing";
+  "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/edit?gid=439559888";
 
 
 const STORAGE_KEYS = {
@@ -1580,7 +1588,7 @@ function updateMapToggleLabel(hidden) {
 
   const label =
     state.showingWardBoundary
-      ? "Ward Boundary"
+      ? "Community Boundary"
       : "Property Location";
 
   toggleMapEl.textContent =
@@ -1758,16 +1766,37 @@ function mapRowToElector(row, headers, index) {
     data.name ||
     data.elector ||
     data.electorname ||
+    ([data.firstname, data.surname].filter(Boolean).join(" ")) ||
     "";
 
 
+
+  // POST TOWNS — standalone settlement names that should be treated as post town, not address lines
+  const POST_TOWNS = new Set(["llanbedr", "harlech", "talsarnau", "llanfair", "llandanwg", "barmouth", "abersoch"]);
+
+  const POSTCODE_TOWN = {
+    "ll42": "BARMOUTH", "ll43": "TALYBONT", "ll44": "DYFFRYN ARDUDWY",
+    "ll45": "LLANBEDR", "ll46": "HARLECH", "ll47": "TALSARNAU",
+    "ll48": "PENRHYNDEUDRAETH", "ll49": "PORTHMADOG", "ll51": "GARNDOLBENMAEN"
+  };
+
+  // Columns W–AC (address3–address9) compressed into one address line
+  const addrParts3to9 = [
+    data.address3, data.address4, data.address5, data.address6,
+    data.address7, data.address8, data.address9
+  ].filter(p => p && p.trim());
+
+  const postTownFromParts = (addrParts3to9.find(p => POST_TOWNS.has(p.trim().toLowerCase())) || "").toUpperCase();
+  const address3Compressed = addrParts3to9
+    .filter(p => !POST_TOWNS.has(p.trim().toLowerCase()))
+    .join(", ");
 
   const address =
     [
       data.address,
       data.address1,
       data.address2,
-      data.address3,
+      address3Compressed,
       data.household
     ]
     .filter(
@@ -1778,7 +1807,13 @@ function mapRowToElector(row, headers, index) {
     )
     .join(", ");
 
-
+  const postcodePrefix = (data.postcode || "").trim().toLowerCase().replace(/\s.*$/, "");
+  const postcodeTown = POSTCODE_TOWN[postcodePrefix] || "";
+  // Only use postcode-derived town if it doesn't already appear in the address
+  const addressLower = [data.address1, data.address2, address3Compressed].join(" ").toLowerCase();
+  const postTown = postTownFromParts ||
+    (data.address3 && POST_TOWNS.has(data.address3.trim().toLowerCase()) ? data.address3.trim().toUpperCase() : "") ||
+    (postcodeTown && !addressLower.includes(postcodeTown.toLowerCase()) ? postcodeTown : "");
 
   const postcode =
     data.postcode || "";
@@ -1793,9 +1828,13 @@ function mapRowToElector(row, headers, index) {
 
     address,
 
-    addressLine1: data.address1 || "",
+    addressLine1: fixAddressCasing(data.address1 || ""),
 
-    addressLine2: data.address2 || "",
+    addressLine2: fixAddressCasing(data.address2 || ""),
+
+    addressLine3: fixAddressCasing(address3Compressed),
+
+    postTown,
 
     postcode,
 
@@ -1907,6 +1946,7 @@ function mapRowToElector(row, headers, index) {
       formatPostalProxy(
         data.postalproxy ||
         data.postalorproxy ||
+        data.ballottype ||
         row[17] ||
         ""
       ),
@@ -1914,6 +1954,7 @@ function mapRowToElector(row, headers, index) {
     pvStatusRaw:
       String(
         data.pvstatus ||
+        data.ballottype ||
         row[17] ||
         ""
       ).trim(),
@@ -1924,6 +1965,7 @@ function mapRowToElector(row, headers, index) {
 
     householdKey:
       data.householdkey ||
+      data.householdid ||
       data.key ||
       row[11] ||
       "",
@@ -1932,6 +1974,7 @@ function mapRowToElector(row, headers, index) {
     householdGroupKey:
       normalizeText(
         data.householdkey ||
+        data.householdid ||
         data.key ||
         row[11] ||
         ""
@@ -3022,8 +3065,13 @@ function formatPollingDistrictSummary(elector) {
     normalizeText(elector.pollingDistrict || "");
 
   const POLLING_DISTRICT_LABELS = {
-    ra1: "RA1 (Abersoch)",
-    qb6: "QB6 (Llanengan)"
+    "n1": "N1 (Harlech)",
+    "af1": "AF1 (Talsarnau)",
+    "ae1": "AE1 (Llanbedr)",
+    "au1": "AU1 (Llanfair)",
+    "n2": "N2 (Llandanwg)",
+    "qb6": "QB6 (Llanengan)",
+    "ra1": "RA1 (Abersoch)"
   };
 
   if (POLLING_DISTRICT_LABELS[district]) {
@@ -3439,7 +3487,9 @@ function updatePropertyMap(elector) {
   if (state.showingWardBoundary) {
 
     propertyFullAddressEl.textContent =
-      "ABERSOCH GYDA LLANENGAN ELECTORAL DIVISION, GWYNEDD";
+      ((state.selectedElector && state.selectedElector.ward
+        ? state.selectedElector.ward
+        : "HARLECH") + " COMMUNITY, GWYNEDD");
 
     toggleWardBoundaryEl.textContent =
       "View Property Location";
@@ -3449,8 +3499,7 @@ function updatePropertyMap(elector) {
     editLocationLinkEl.hidden = true;
     wardBoundaryErrorEl.hidden = true;
 
-    wardPreviewCoordsEl.textContent =
-      "Ward boundary: Abersoch gyda Llanengan (W05001509)";
+    wardPreviewCoordsEl.textContent = "SHOWING COMMUNITY BOUNDARY";
 
     showWardBoundaryMap();
 
@@ -3459,7 +3508,7 @@ function updatePropertyMap(elector) {
   }
 
   toggleWardBoundaryEl.textContent =
-    "View Ward Boundary";
+    "View Community Boundary";
 
   propertyFullAddressEl.textContent =
     elector
@@ -3505,8 +3554,17 @@ function updatePropertyMap(elector) {
 }
 
 
+const DISTRICT_COMMUNITY_GEOJSON = {
+  N1:  "/beta/boundaries/harlech/harlech.geojson",
+  AF1: "/beta/boundaries/harlech/talsarnau.geojson",
+  AE1: "/beta/boundaries/harlech/llanbedr.geojson",
+  AU1: "/beta/boundaries/harlech/llanfair.geojson",
+  N2:  "/beta/boundaries/harlech/llanfair.geojson"
+};
+
 let wardBoundaryLeafletMap = null;
 let wardBoundaryGeoJson = null;
+let wardBoundaryLastDistrict = null;
 
 function showWardBoundaryMap() {
 
@@ -3528,14 +3586,19 @@ function showWardBoundaryMap() {
     0
   );
 
-  if (wardBoundaryGeoJson) {
+  const district = state.selectedElector && state.selectedElector.pollingDistrict || "N1";
+  const geojsonUrl = DISTRICT_COMMUNITY_GEOJSON[district] ||
+    "https://mapit.mysociety.org/area/165915.geojson?simplify_tolerance=0.0001";
+
+  if (wardBoundaryGeoJson && wardBoundaryLastDistrict === district) {
     drawWardBoundary();
     return;
   }
 
-  fetch(
-    "https://mapit.mysociety.org/area/166295.geojson?simplify_tolerance=0.0001"
-  )
+  wardBoundaryGeoJson = null;
+  wardBoundaryLastDistrict = district;
+
+  fetch(geojsonUrl)
     .then((response) => {
       if (!response.ok) {
         throw new Error("MapIt request failed: " + response.status);
@@ -4441,19 +4504,22 @@ function getActiveElectors() {
     const electorWard = normalizeText(elector.ward);
     const electorPollingDistrict = normalizeText(elector.pollingDistrict);
 
-    if (authority && electorAuthority && electorAuthority !== authority) {
+    // Only filter by authority/senedd/westminster if elector has a recognisable value (len > 2, not purely numeric)
+    const looksReal = v => v && v.length > 2 && !/^\d+$/.test(v) && !v.includes("/");
+
+    if (authority && looksReal(electorAuthority) && electorAuthority !== authority) {
       return false;
     }
 
-    if (senedd && electorSenedd && electorSenedd !== senedd) {
+    if (senedd && looksReal(electorSenedd) && electorSenedd !== senedd) {
       return false;
     }
 
-    if (westminster && electorWestminster && electorWestminster !== westminster) {
+    if (westminster && looksReal(electorWestminster) && electorWestminster !== westminster) {
       return false;
     }
 
-    if (ward && electorWard && electorWard !== ward) {
+    if (ward && looksReal(electorWard) && electorWard !== ward) {
       return false;
     }
 
@@ -4734,6 +4800,12 @@ function parseCsv(csvText) {
 
 }
 
+
+// Title-case an address part: capitalise after spaces, hyphens, and slashes
+function fixAddressCasing(s) {
+  if (!s) return s;
+  return s.replace(/([^a-zA-Z]|^)([a-zA-Z])/g, (m, pre, ch) => pre + ch.toUpperCase());
+}
 
 function normalizeHeader(value) {
 
