@@ -2242,10 +2242,10 @@ body.mobile-mode .elector-list {
 
 #ward-preview {
   width: 100%;
-  height: calc(65vh + 430px);
-  min-height: 850px;
+  height: 100%;
+  min-height: 0;
   border: 0;
-  transform: translateY(-215px);
+  transform: none;
 }
 
 .ward-boundary-map {

@@ -175,11 +175,10 @@
         </p>
 
         <div class="ward-preview-crop">
-          <iframe
+          <div
             id="ward-preview"
-            title="Property location on OpenStreetMap"
-            loading="lazy">
-          </iframe>
+            title="Property location on OpenStreetMap">
+          </div>
           <div id="ward-boundary-map" class="ward-boundary-map" hidden></div>
           <p id="ward-boundary-error" class="ward-boundary-error" hidden>
             Ward boundary could not be loaded from MapIt right now (the shared boundary service may be temporarily rate-limited). Please try again shortly.
@@ -1869,6 +1868,11 @@ function mapRowToElector(row, headers, index) {
       data.deliveryorder ||
       "",
 
+    deliveryDescription:
+      row[51] ||
+      data.description ||
+      "",
+
 
     deliverer:
       data.deliverer ||
@@ -3298,25 +3302,34 @@ function updatePropertyMap(elector) {
     elector.lat === null ||
     elector.lng === null
   ) {
-    wardPreviewEl.removeAttribute("src");
+    if (wardPreviewMarker) {
+      wardPreviewMarker.remove();
+      wardPreviewMarker = null;
+    }
     wardPreviewCoordsEl.textContent = "GPS coordinates —";
     return;
   }
 
   const lat = elector.lat;
   const lng = elector.lng;
-  const delta = 0.004;
-
-  const bbox = [
-    lng - delta,
-    lat - delta * 0.6,
-    lng + delta,
-    lat + delta * 0.6
-  ].join(",");
-
-  wardPreviewEl.src =
-    "https://www.openstreetmap.org/export/embed.html?bbox=" + bbox +
-    "&layer=mapnik&marker=" + lat + "," + lng;
+  if (!wardPreviewLeafletMap) {
+    wardPreviewLeafletMap = L.map("ward-preview", { attributionControl: false });
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 18
+    }).addTo(wardPreviewLeafletMap);
+  }
+  if (wardPreviewMarker) {
+    wardPreviewMarker.remove();
+  }
+  wardPreviewMarker = L.circleMarker([lat, lng], {
+    radius: 7,
+    color: "#fff",
+    weight: 2,
+    fillColor: "#da291c",
+    fillOpacity: 1
+  }).addTo(wardPreviewLeafletMap);
+  wardPreviewLeafletMap.setView([lat, lng], 15);
+  requestAnimationFrame(() => wardPreviewLeafletMap.invalidateSize());
 
   wardPreviewCoordsEl.textContent =
     "GPS coordinates " + lat + ", " + lng;
@@ -3333,6 +3346,8 @@ const DISTRICT_COMMUNITY_GEOJSON = {
 };
 
 let wardBoundaryLeafletMap = null;
+let wardPreviewLeafletMap = null;
+let wardPreviewMarker = null;
 let wardBoundaryGeoJson = null;
 let wardBoundaryLastDistrict = null;
 
@@ -3601,6 +3616,12 @@ function walkDelivererKey(pollingDistrict, walkNumber) {
   return normalizeText(pollingDistrict) + "|" + walkNumber;
 }
 
+function getDefaultDelivererName(pollingDistrict) {
+  return normalizeText(pollingDistrict) === "ae1"
+    ? "Karl Ciz"
+    : "Chris Green";
+}
+
 function getAssignedDelivererName(pollingDistrict, walkNumber) {
 
   const key = walkDelivererKey(pollingDistrict, walkNumber);
@@ -3614,7 +3635,7 @@ function getAssignedDelivererName(pollingDistrict, walkNumber) {
   const assignedRowKey = walkDeliverers[key];
 
   if (!assignedRowKey) {
-    return "No Assigned Deliverer";
+    return getDefaultDelivererName(pollingDistrict);
   }
 
   const volunteerOverrides =
@@ -3627,7 +3648,7 @@ function getAssignedDelivererName(pollingDistrict, walkNumber) {
     DEFAULT_VOLUNTEERS.find(v => v.rowKey === assignedRowKey);
 
   if (!volunteer) {
-    return "No Assigned Deliverer";
+    return getDefaultDelivererName(pollingDistrict);
   }
 
   const isRegularDeliverer =
@@ -3636,7 +3657,7 @@ function getAssignedDelivererName(pollingDistrict, walkNumber) {
       : volunteer.regularDeliverer;
 
   if (!isRegularDeliverer) {
-    return "No Assigned Deliverer";
+    return getDefaultDelivererName(pollingDistrict);
   }
 
   const override = volunteerOverrides[volunteer.rowKey];
@@ -3644,8 +3665,8 @@ function getAssignedDelivererName(pollingDistrict, walkNumber) {
   const firstName = (override && override.firstName) || volunteer.firstName;
   const lastName = (override && override.lastName) || volunteer.lastName;
 
-  return (firstName + " " + lastName).trim() || "No Assigned Deliverer";
-
+  return (firstName + " " + lastName).trim() ||
+    getDefaultDelivererName(pollingDistrict);
 }
 
 
@@ -3759,6 +3780,11 @@ function buildDeliveryDescription(elector, pollingDistrict, walkNumber) {
     return "—";
   }
 
+  const sourceDescription = String(elector.deliveryDescription || "").trim();
+  if (sourceDescription) {
+    return sourceDescription;
+  }
+
   const district =
     normalizeText(pollingDistrict || elector.pollingDistrict || "");
 
@@ -3787,13 +3813,23 @@ function buildAiComments(household) {
 
   const sentences = [];
   const electorCount = electors.length;
+  const electorCountWord = [
+    "zero", "one", "two", "three", "four", "five",
+    "six", "seven", "eight", "nine", "ten"
+  ][electorCount] || String(electorCount);
+  const electorNames = names.map(escapeHtml);
+  const listedElectorNames =
+    electorNames.length === 2
+      ? electorNames.join(" and ")
+      : electorNames.slice(0, -1).join(", ") + ", and " +
+        electorNames[electorNames.length - 1];
 
   sentences.push(
     electorCount === 1
       ? "There is one (1) elector in this household, " +
         escapeHtml(getDisplayName(electors[0])) + "."
-      : "There are " + electorCount + " (" + electorCount +
-        ") electors in this household."
+      : "There are " + electorCountWord + " (" + electorCount +
+        ") electors in this household: " + listedElectorNames + "."
   );
 
 
@@ -3908,6 +3944,9 @@ function buildAiComments(household) {
             escapeHtml(getDisplayName(elector)) +
             " is " +
             age +
+            (elector.dateOfBirth
+              ? " (DOB " + escapeHtml(elector.dateOfBirth) + ")"
+              : "") +
             "."
           );
         }
