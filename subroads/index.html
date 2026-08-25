@@ -213,10 +213,7 @@
         const subroad =
           data.subroad ||
           String(row[48] || "").trim();
-        const walk =
-          data.walk ||
-          String(row[37] || "").trim() ||
-          "1";
+        const walk = String(row[50] || "").trim();
 
         if (!pollingDistrict || !subroad) {
           return;
@@ -259,7 +256,13 @@
             POLLING_DISTRICT_NAMES[group.pollingDistrict.toLowerCase()] ||
             group.pollingDistrict
           ) + "</td>" +
-          "<td>" + escapeHtml(group.subroad) + "</td>" +
+          "<td><a href=\"subroad.html?district=" +
+            encodeURIComponent(group.pollingDistrict) +
+            "&subroad=" +
+            encodeURIComponent(group.subroad) +
+            "\">" +
+            escapeHtml(group.subroad) +
+            "</a></td>" +
           "<td>" + escapeHtml(group.walk) + "</td>" +
           "<td class=\"number\">" + group.households.size + "</td>" +
           "<td class=\"number\">" + group.electors + "</td>" +

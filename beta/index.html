@@ -100,6 +100,7 @@
       <div class="stat-card">
         <span class="stat-label">Electors</span>
         <strong id="stat-loaded">0</strong>
+        <small id="stat-cap-notice" hidden>*Only the first 1129 electors and 678 households are shown below.</small>
       </div>
 
     </section>
@@ -124,7 +125,7 @@
     <div class="search-actions-row">
       <section class="export-buttons" aria-label="Export options">
         <button type="button" id="display-map-button" class="export-button display-map-button">SUBROADS</button>
-        <a href="/mapping" class="export-button polling-day-button">MAPPING</a>
+        <a href="https://www.tarian146.co.uk/beta/harlech-a-llanbedr/mapping" class="export-button polling-day-button">MAPPING</a>
         <a href="volunteers.html" class="export-button members-activists-button">DELIVERERS</a>
       </section>
 
@@ -502,17 +503,14 @@ const DEFAULT_WALK_DESCRIPTIONS = {
 
 
 const canvassIdOptions = [
+  "Plaid",
   "Independent",
-  "Plaid Cymru",
-  "Other"
+  "Other",
+  "No Data"
 ];
 
-
-const independenceOptions = [
-  "No Data",
-  "Yes",
-  "No"
-];
+const MAX_VISIBLE_ELECTORS = 1129;
+const MAX_VISIBLE_HOUSEHOLDS = 678;
 
 
 const languageOptions = [
@@ -801,6 +799,9 @@ const statLoadedEl =
 const statCanvassEl =
   document.getElementById("stat-complete");
 
+const statCapNoticeEl =
+  document.getElementById("stat-cap-notice");
+
 let householdDetailsHeightRetryPending = false;
 
 const DEMO_PLAID_ELECTOR_NAMES = [
@@ -820,10 +821,6 @@ const DEMO_CANVASS_ID_BY_ELECTOR_ID = {
   "954638525": "Lib Dem",
   "934314541": "Probable Plaid",
   "425577355": "Conservative"
-};
-
-const DEMO_SUPPORT_INDEPENDENCE_BY_ELECTOR_ID = {
-  "425577355": "No"
 };
 
 initControls();
@@ -1844,12 +1841,13 @@ function mapRowToElector(row, headers, index) {
 
 
     deliveryWalk:
+      row[50] ||
       data.walk ||
-      row[37] ||
       "",
 
 
     deliveryOrder:
+      row[49] ||
       data.deliveryorder ||
       "",
 
@@ -2148,63 +2146,6 @@ function renderElectorList() {
 
 
 
-  // In "View All" mode (no specific district selected), render compact list
-  if (areAllPollingDistrictsSelected()) {
-    updateStats();
-    updatePropertyMap(null);
-    updateAiComments(null);
-    updateVotingHistory(null);
-    updateDeliveryDetails(null);
-    updateMapHouseholdNav(0, 0);
-    updateListHouseholdNav(0, 0);
-
-    const allSummary = document.createElement("div");
-    allSummary.className = "all-districts-summary";
-
-    let currentDistrict = null;
-    households.forEach((hh, idx) => {
-      const fe = hh.electors[0];
-      const district = fe.pollingDistrict || "—";
-      if (district !== currentDistrict) {
-        currentDistrict = district;
-        const heading = document.createElement("h3");
-        heading.className = "all-districts-heading";
-        heading.textContent = district;
-        allSummary.appendChild(heading);
-      }
-      const row = document.createElement("button");
-      row.className = "all-districts-row";
-      row.type = "button";
-      row.innerHTML = `
-        <span class="all-districts-address">${escapeHtml(formatHouseholdAddress(fe))}</span>
-        <span class="all-districts-count">${hh.electors.length} elector${hh.electors.length !== 1 ? "s" : ""}</span>
-      `;
-      row.addEventListener("click", () => {
-        // Switch to single-district view for this household's district
-        const districtVal = normalizeText(fe.pollingDistrict);
-        setSelectedPollingDistricts([districtVal]);
-        state.householdPageIndex = 0;
-        populateSubroadFilterOptions();
-        handleFilterChange();
-        // Find the household in the new list and navigate to it
-        const newElectors = getFilteredActiveElectors();
-        const newHouseholds = buildVisibleHouseholds(newElectors);
-        const targetIdx = newHouseholds.findIndex(
-          h => h.electors[0].householdGroupKey === fe.householdGroupKey
-        );
-        if (targetIdx >= 0) {
-          state.householdPageIndex = targetIdx;
-          renderElectorList();
-        }
-      });
-      allSummary.appendChild(row);
-    });
-
-    listEl.appendChild(allSummary);
-    syncHouseholdDetailsPanelHeight();
-    return;
-  }
-
   state.householdPageIndex =
     Math.min(
       state.householdPageIndex,
@@ -2454,30 +2395,6 @@ function renderElectorList() {
 
 
         <label>
-          Support Independence?
-
-          <select
-          class="independence-select"
-          data-id="${escapeHtmlAttr(elector.id)}">
-
-          ${
-            independenceOptions.map(option =>
-              `
-              <option
-              ${option === progress.supportIndependence ? "selected" : ""}
-              >
-              ${option}
-              </option>
-              `
-            ).join("")
-          }
-
-          </select>
-
-        </label>
-
-
-        <label>
           First language
 
           <select
@@ -2525,55 +2442,6 @@ function renderElectorList() {
           value="${escapeHtmlAttr(progress.email)}">
 
         </label>
-
-
-        <label>
-          Party Member
-
-          <select
-          class="party-member-select read-only-select"
-          data-id="${escapeHtmlAttr(elector.id)}"
-          title="Party membership is managed at the back end and cannot be amended here.">
-
-          ${
-            partyMemberOptions.map(option =>
-              `
-              <option
-              ${option === progress.partyMember ? "selected" : ""}
-              >
-              ${option}
-              </option>
-              `
-            ).join("")
-          }
-
-          </select>
-
-        </label>
-
-
-        <div class="volunteer-checkboxes">
-
-          <label class="checkbox-label">
-            <input
-            type="checkbox"
-            class="volunteer-checkbox"
-            data-id="${escapeHtmlAttr(elector.id)}"
-            ${progress.volunteer ? "checked" : ""}>
-            Active Volunteer
-          </label>
-
-          <label class="checkbox-label">
-            <input
-            type="checkbox"
-            class="ask-volunteer-checkbox"
-            data-id="${escapeHtmlAttr(elector.id)}"
-            ${progress.askToVolunteer ? "checked" : ""}
-            ${progress.volunteer ? "disabled" : ""}>
-            Ask to Volunteer
-          </label>
-
-        </div>
 
 
         <label>
@@ -3176,9 +3044,6 @@ function bindProgressEditors() {
   const canvassInputs =
     listEl.querySelectorAll(".canvass-select");
 
-  const independenceInputs =
-    listEl.querySelectorAll(".independence-select");
-
   const languageInputs =
     listEl.querySelectorAll(".language-select");
 
@@ -3188,17 +3053,8 @@ function bindProgressEditors() {
   const emailInputs =
     listEl.querySelectorAll(".email-input");
 
-  const partyMemberInputs =
-    listEl.querySelectorAll(".party-member-select");
-
   const posterInputs =
     listEl.querySelectorAll(".poster-select");
-
-  const volunteerInputs =
-    listEl.querySelectorAll(".volunteer-checkbox");
-
-  const askVolunteerInputs =
-    listEl.querySelectorAll(".ask-volunteer-checkbox");
 
   const antiInputs =
     listEl.querySelectorAll(".anti-checkbox");
@@ -3218,24 +3074,6 @@ function bindProgressEditors() {
       saveToStorage(STORAGE_KEYS.progress, state.progress);
 
       updateStats();
-
-    });
-
-  });
-
-  independenceInputs.forEach(input => {
-
-    input.addEventListener("change", event => {
-
-      const id = event.target.dataset.id;
-      const existing = getElectorProgress(id);
-
-      state.progress[id] = {
-        ...existing,
-        supportIndependence: event.target.value.trim()
-      };
-
-      saveToStorage(STORAGE_KEYS.progress, state.progress);
 
     });
 
@@ -3295,40 +3133,6 @@ function bindProgressEditors() {
 
   });
 
-  partyMemberInputs.forEach(input => {
-
-    // Party membership is set at the back end when the demo goes live.
-    // Users can still open the dropdown and browse the options, but their
-    // selection is only kept when the elector is currently "No" and they
-    // choose "Supporter" or "Ask to Join" - every other change is reverted.
-    input.addEventListener("change", event => {
-
-      const id = event.target.dataset.id;
-      const existing = getElectorProgress(id);
-      const currentValue = existing.partyMember || "No";
-      const newValue = event.target.value.trim();
-
-      if (currentValue === "No" && (newValue === "Supporter" || newValue === "Ask to Join")) {
-
-        state.progress[id] = {
-          ...existing,
-          partyMember: newValue
-        };
-
-        saveToStorage(STORAGE_KEYS.progress, state.progress);
-        updateStats();
-        renderElectorList();
-
-        return;
-
-      }
-
-      event.target.value = currentValue;
-
-    });
-
-  });
-
   posterInputs.forEach(input => {
 
     input.addEventListener("change", event => {
@@ -3342,48 +3146,6 @@ function bindProgressEditors() {
       };
 
       saveToStorage(STORAGE_KEYS.progress, state.progress);
-
-    });
-
-  });
-
-  volunteerInputs.forEach(input => {
-
-    input.addEventListener("change", event => {
-
-      const id = event.target.dataset.id;
-      const existing = getElectorProgress(id);
-      const volunteer = event.target.checked;
-
-      state.progress[id] = {
-        ...existing,
-        volunteer,
-        askToVolunteer: volunteer ? false : existing.askToVolunteer
-      };
-
-      saveToStorage(STORAGE_KEYS.progress, state.progress);
-      updateStats();
-      renderElectorList();
-
-    });
-
-  });
-
-  askVolunteerInputs.forEach(input => {
-
-    input.addEventListener("change", event => {
-
-      const id = event.target.dataset.id;
-      const existing = getElectorProgress(id);
-
-      state.progress[id] = {
-        ...existing,
-        askToVolunteer: event.target.checked
-      };
-
-      saveToStorage(STORAGE_KEYS.progress, state.progress);
-      updateStats();
-      renderElectorList();
 
     });
 
@@ -4142,71 +3904,34 @@ function buildAiComments(household) {
 
   if (!anyPostalProxy) {
 
-    if (names.length === 1) {
-
-      sentences.push(
-        escapeHtml(names[0]) +
-        " does not have a postal vote."
-      );
-
-    } else if (names.length === 2) {
-
-      sentences.push(
-        "Neither elector has a postal vote."
-      );
-
-    } else {
-
-      sentences.push(
-        "None of the electors have a postal vote."
-      );
-
-    }
+    sentences.push(
+      "Nobody in this household has a postal vote."
+    );
 
   } else {
 
-    const parts =
-      postalProxyEntries.map(entry => {
+    const postalVoterNames =
+      postalProxyEntries
+        .filter(
+          entry =>
+            entry.status === "Postal" ||
+            entry.status === "Proxy"
+        )
+        .map(entry => escapeHtml(entry.name));
 
-        if (entry.status === "Postal" || entry.status === "Proxy") {
-          return escapeHtml(entry.name) + " has a postal vote";
-        }
+    sentences.push(
+      joinNames(postalVoterNames) +
+      (postalVoterNames.length === 1 ? " has" : " have") +
+      " a postal vote."
+    );
 
-        return escapeHtml(entry.name) + " does not have a postal vote";
-
-      });
-
-    sentences.push(parts.join(". ") + ".");
-
-  }
-
-
-  // Party membership / support status sentence
-  const PARTY_MEMBER_SENTENCES = {
-    "Current": "is a current party member",
-    "Former": "is a former party member",
-    "Lapsed": "was a party member, but has lapsed",
-    "Supporter": "is a supporter",
-    "Ask to Join": "has been asked to join the party"
-  };
-
-  electors.forEach(elector => {
-
-    const progress = getElectorProgress(elector.id);
-    const status = PARTY_MEMBER_SENTENCES[progress.partyMember];
-
-    if (status) {
-
+    if (postalVoterNames.length < postalProxyEntries.length) {
       sentences.push(
-        escapeHtml(getDisplayName(elector)) +
-        " " +
-        status +
-        "."
+        "No other electors have a postal vote."
       );
-
     }
 
-  });
+  }
 
 
   return sentences.join("<br><br>");
@@ -4241,15 +3966,19 @@ function numberToWords(value) {
 
 function updateStats() {
 
-  const active = getFilteredActiveElectors();
+  const active = getAllFilteredActiveElectors();
 
   const householdCount =
     new Set(
       active.map(e => e.householdGroupKey)
     ).size;
 
-  statLoadedEl.textContent = String(active.length);
+  const isCapped =
+    active.length > MAX_VISIBLE_ELECTORS ||
+    householdCount > MAX_VISIBLE_HOUSEHOLDS;
+  statLoadedEl.textContent = String(active.length) + (isCapped ? " *" : "");
   statCanvassEl.textContent = String(householdCount);
+  statCapNoticeEl.hidden = !isCapped;
 
 }
 
@@ -4272,9 +4001,6 @@ function getElectorProgress(electorId, electorName) {
 
   const demoCanvassId =
     DEMO_CANVASS_ID_BY_ELECTOR_ID[String(electorId)];
-  const demoSupportIndependence =
-    DEMO_SUPPORT_INDEPENDENCE_BY_ELECTOR_ID[String(electorId)];
-
   const legacyCanvassId =
     existing.canvassId ||
     existing.status ||
@@ -4286,10 +4012,6 @@ function getElectorProgress(electorId, electorName) {
     );
 
   const baseCanvassId = normalizeCanvassId(legacyCanvassId);
-  const supportIndependence =
-    existing.supportIndependence ||
-    demoSupportIndependence ||
-    "No Data";
   const firstLanguage = existing.firstLanguage || "English";
   const phone = existing.phone || "";
   const email = existing.email || "";
@@ -4314,8 +4036,6 @@ function getElectorProgress(electorId, electorName) {
   return {
     canvassId:
       canvassIdOptions.includes(canvassId) ? canvassId : "No Data",
-    supportIndependence:
-      independenceOptions.includes(supportIndependence) ? supportIndependence : "No Data",
     firstLanguage:
       languageOptions.includes(firstLanguage) ? firstLanguage : "English",
     phone,
@@ -4338,11 +4058,11 @@ function applyCanvassAffinityRules(canvassId, partyMember, volunteer, askToVolun
     poster === "Poster: Window" ||
     poster === "Poster: Garden"
   ) {
-    return "Plaid Cymru";
+    return "Plaid";
   }
 
   if (askToVolunteer) {
-    return "Plaid Cymru";
+    return "Plaid";
   }
 
   return canvassId;
@@ -4363,7 +4083,7 @@ function hasAntiPlaidFlag(progress) {
 // Colour-codes elector cards and "Jump to Elector" chips by party.
 function getPoliticalLeanClass(canvassId) {
 
-  if (canvassId === "Plaid Cymru") {
+  if (canvassId === "Plaid") {
     return "elector-lean-green";
   }
 
@@ -4380,9 +4100,9 @@ function normalizeCanvassId(value) {
     cleaned === "Plaid" ||
     cleaned === "Definite Plaid" ||
     cleaned === "Probable Plaid" ||
-    cleaned === "Plaid Cymru"
+    cleaned === "Plaid"
   ) {
-    return "Plaid Cymru";
+    return "Plaid";
   }
 
   if (cleaned === "Independent") {
@@ -4607,6 +4327,19 @@ function populateSubroadFilterOptions() {
 
 
 function getFilteredActiveElectors() {
+  const visibleHouseholds = new Set();
+  return getAllFilteredActiveElectors()
+    .filter(elector => {
+      const householdKey = elector.householdGroupKey;
+      if (visibleHouseholds.has(householdKey)) return true;
+      if (visibleHouseholds.size >= MAX_VISIBLE_HOUSEHOLDS) return false;
+      visibleHouseholds.add(householdKey);
+      return true;
+    })
+    .slice(0, MAX_VISIBLE_ELECTORS);
+}
+
+function getAllFilteredActiveElectors() {
 
   const filterType =
     filterTypeEl.value;

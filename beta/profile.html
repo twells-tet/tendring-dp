@@ -67,25 +67,6 @@
     .voting-history-table th[scope="row"] { text-align: right; }
     .voting-history-disabled-cell { color: #aaa; }
 
-    .profile-anti-plaid {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 0.5rem 1rem;
-      padding: 0.6rem 0.75rem;
-      border: 1px solid #d33;
-      border-radius: 0.5rem;
-      background: #fff5f5;
-    }
-    .profile-anti-plaid-title {
-      flex-basis: 100%;
-      margin: 0 0 0.25rem;
-      font-weight: 700;
-      color: #c00;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
     .profile-field-row {
       display: grid;
       grid-template-columns: max-content 1fr;
@@ -95,6 +76,15 @@
       font-size: 0.9rem;
     }
     .profile-field-label { font-weight: 600; color: #555; white-space: nowrap; }
+    .profile-section--canvass .profile-field-row {
+      grid-template-columns: 13.5rem minmax(0, 1fr);
+    }
+    .deliverer-walk-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+      gap: 0.4rem 1rem;
+      margin-top: 0.4rem;
+    }
     .profile-field-input,
     .profile-field-select {
       padding: 0.3rem 0.5rem;
@@ -147,21 +137,21 @@
         </div>
 
         <!-- CANVASSING DATA -->
-        <div class="profile-section">
-          <h3>Canvassing Data</h3>
+        <div class="profile-section profile-section--canvass">
+          <h3>CANVASS DATA</h3>
           <div class="profile-field-row">
-            <span class="profile-field-label">Support Independence</span>
-            <select id="profile-independence-select" class="profile-field-select">
-              <option>No Data</option><option>Yes</option><option>No</option>
+            <span class="profile-field-label">CANVASS DATA</span>
+            <select id="profile-canvass-data-select" class="profile-field-select" disabled>
+              <option>Plaid</option><option>Independent</option>
+              <option>Other</option><option>No Data</option>
             </select>
           </div>
           <div class="profile-field-row">
-            <span class="profile-field-label">First Language</span>
+            <span class="profile-field-label">PREFERRED LANGUAGE</span>
             <select id="profile-language-select" class="profile-field-select">
               <option>English</option><option>Cymraeg</option>
             </select>
           </div>
-          <dl class="profile-dl" id="profile-canvass-dl" style="margin-top:0.4rem"></dl>
         </div>
 
         <!-- VOTING HISTORY -->
@@ -173,28 +163,15 @@
         <!-- MEMBERSHIP / VOLUNTEER DETAILS -->
         <div class="profile-section">
           <h3>Membership / Volunteer Details</h3>
-          <div class="profile-field-row">
-            <span class="profile-field-label">Party Member</span>
-            <select id="profile-party-member-select" class="profile-field-select">
-              <option>No</option><option>Current</option><option>Former</option>
-              <option>Lapsed</option><option>Supporter</option><option>Ask to Join</option>
-            </select>
-          </div>
-          <div class="profile-field-row">
-            <span class="profile-field-label">Poster</span>
-            <select id="profile-poster-select" class="profile-field-select">
-              <option>No Poster</option><option>Poster: Window</option><option>Poster: Garden</option>
-            </select>
-          </div>
           <div class="volunteer-checkboxes" style="margin:0.4rem 0">
             <label class="checkbox-label">
-              <input type="checkbox" id="profile-volunteer-checkbox"> Active Volunteer
-            </label>
-            <label class="checkbox-label">
-              <input type="checkbox" id="profile-ask-volunteer-checkbox"> Ask to Volunteer
+              <input type="checkbox" id="profile-active-deliverer-checkbox"> Volunteer Deliverer
             </label>
           </div>
-          <dl class="profile-dl" id="profile-membership-dl" style="margin-top:0.4rem"></dl>
+          <div>
+            <span class="profile-field-label">Walks</span>
+            <div id="profile-deliverer-walk-options" class="deliverer-walk-options"></div>
+          </div>
         </div>
 
         <!-- CONTACT HISTORY -->
@@ -218,17 +195,10 @@
 
         <!-- DO NOT DELIVER / DO NOT DOORSTEP -->
         <div class="profile-section">
-          <div class="profile-anti-plaid" id="profile-anti-plaid">
-            <p class="profile-anti-plaid-title">Anti-Plaid?</p>
-            <label class="checkbox-label">
-              <input type="checkbox" id="profile-do-not-deliver">
-              DO NOT DELIVER
-            </label>
-            <label class="checkbox-label">
-              <input type="checkbox" id="profile-do-not-doorstep">
-              DO NOT DOORSTEP
-            </label>
-          </div>
+          <label class="checkbox-label">
+            <input type="checkbox" id="profile-do-not-deliver-doorstep">
+            NO NOT DELIVER/DOORSTEP
+          </label>
         </div>
 
       </div>
@@ -239,7 +209,7 @@
   <script>
 
     const DEFAULT_SHEET_URL =
-      "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/edit?usp=sharing";
+      "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/edit?gid=439559888";
 
     const STORAGE_KEYS = {
       sheetUrl:               "abersoch-sheet-url",
@@ -332,10 +302,19 @@
       headers.forEach((h, i) => { data[h] = (row[i] || "").trim(); });
       const sourceRow = index + 2;
       const id = data.electorid || data.id || data.reference || data.uprn || ("row-" + sourceRow);
-      const name = data.name || data.elector || data.electorname || "";
+      const name =
+        data.name ||
+        data.elector ||
+        data.electorname ||
+        [data.firstname, data.surname].filter(Boolean).join(" ") ||
+        "";
       return {
         id: String(id),
         name,
+        preferredName: [row[14], row[16]]
+          .map(value => String(value || "").trim())
+          .filter(Boolean)
+          .join(" "),
         addressLine1: data.address1 || "",
         addressLine2: data.address2 || "",
         postcode: data.postcode || "",
@@ -345,8 +324,8 @@
         ward: data.ward || data.electoralward || row[33] || "",
         pollingDistrict: data.pollingdistrict || data.pollingdist || data.district || data.pd || row[15] || "",
         pollingElectorNumber: data.electornumber || data.electorno || data.electornum || row[16] || "",
-        deliveryWalk: data.walk || row[37] || "",
-        deliveryOrder: data.deliveryorder || row[38] || "",
+        deliveryWalk: row[50] || data.walk || "",
+        deliveryOrder: row[49] || data.deliveryorder || "",
         deliverer: data.deliverer || row[39] || "",
         subRoad: data.subroad || row[40] || "",
         electorIdValue: data.electorid || row[20] || "",
@@ -360,7 +339,7 @@
     }
 
     function getPoliticalLeanClass(canvassId) {
-      if (["Definite Plaid","Probable Plaid"].includes(canvassId)) return "elector-lean-green";
+      if (["Plaid", "Definite Plaid", "Probable Plaid"].includes(canvassId)) return "elector-lean-green";
       if (canvassId === "Conservative")  return "elector-lean-blue";
       if (canvassId === "Green")         return "elector-lean-light-green";
       if (canvassId === "Lib Dem")       return "elector-lean-orange";
@@ -383,6 +362,18 @@
       return POLLING_DISTRICT_LABELS[normalizeText(pd)] || pd;
     }
 
+    function getCommunity(pd) {
+      const label = getPollingDistrictLabel(pd);
+      const match = String(label).match(/\(([^)]+)\)/);
+      const community = match ? match[1] : String(label).replace(/^[A-Za-z]+\d+\s*/, "");
+      const value = normalizeText(community) === "llandanwg" ? "Llanfair" : community;
+      return String(value)
+        .toLowerCase()
+        .replace(/^./, character => character.toUpperCase());
+    }
+
+
+    function getWalkDescription(pollingDistrict, walkNumber) {
 
       const key = normalizeText(pollingDistrict) + "|" + walkNumber;
       const overrides = loadFromStorage(STORAGE_KEYS.walkDescriptions, {});
@@ -399,6 +390,11 @@
         firstLanguage:       raw.firstLanguage || "English",
         phone:               raw.phone || "",
         email:               raw.email || "",
+        activeDeliverer:     Boolean(raw.activeDeliverer),
+        delivererWalks:
+          Array.isArray(raw.delivererWalks)
+            ? raw.delivererWalks
+            : (raw.delivererWalk ? [raw.delivererWalk] : []),
         partyMember:         raw.partyMember || "No",
         poster:              raw.poster || "No Poster",
         volunteer:           Boolean(raw.volunteer),
@@ -445,14 +441,28 @@
       return "<dt>" + escapeHtml(label) + "</dt><dd>" + escapeHtml(String(value)) + "</dd>";
     }
 
+    function dlLinkRow(label, href, text) {
+      if (!text) return "";
+      return "<dt>" + escapeHtml(label) + "</dt><dd><a href=\"" +
+        escapeHtml(href) +
+        "\" target=\"_blank\" rel=\"noopener noreferrer\">" +
+        escapeHtml(text) +
+        "</a></dd>";
+    }
+
     function renderVotingHistory(elector) {
       const normalizedName = String(elector.name || "").trim().toLowerCase();
       const alwaysVotes = DEMO_ALWAYS_VOTES_NAMES.has(normalizedName);
+      const hasPostalVote = elector.postalProxy === "Postal";
       const headerCells = "<th scope='col'>Year</th><th scope='col'>" + escapeHtml(elector.name || "Elector") + "</th>";
       const bodyRows = VOTING_HISTORY_YEARS.map(year => {
+        const assumedPostalAttendance =
+          hasPostalVote &&
+          ["2026 (Senedd)", "2024 (PCC)", "2024 (General)"].includes(year);
         const voted = alwaysVotes && !year.includes("(Local)");
+        const marker = assumedPostalAttendance ? "A" : (voted ? "X" : "\u2014");
         return "<tr><th scope='row'>" + escapeHtml(year) + "</th>" +
-          "<td class='voting-history-disabled-cell'>" + (voted ? "X" : "\u2014") + "</td></tr>";
+          "<td class='voting-history-disabled-cell'>" + marker + "</td></tr>";
       }).join("");
       return "<table class='voting-history-table'><thead><tr>" + headerCells + "</tr></thead><tbody>" + bodyRows + "</tbody></table>";
     }
@@ -466,7 +476,15 @@
       badge.className = "profile-canvass-badge " + getPoliticalLeanClass(progress.canvassId);
 
       const prefNameEl = document.getElementById("profile-preferred-name");
-      prefNameEl.value = progress.preferredName || elector.name || "";
+      const savedPreferredName = String(progress.preferredName || "").trim();
+      const sourcePreferredName = elector.preferredName || elector.name || "";
+      const savedFirstNameOnly =
+        savedPreferredName &&
+        savedPreferredName === sourcePreferredName.split(/\s+/)[0];
+      prefNameEl.value =
+        savedFirstNameOnly
+          ? sourcePreferredName
+          : (savedPreferredName || sourcePreferredName);
       prefNameEl.addEventListener("change", () => saveProgressField(elector.id, "preferredName", prefNameEl.value.trim()));
 
       // Address line
@@ -477,69 +495,104 @@
       document.getElementById("profile-household-dl").innerHTML =
         dlRow("Household ID", elector.householdId || elector.householdGroupKey) +
         dlRow("Address", addressLine) +
-        dlRow("Local Authority", elector.localAuthority) +
-        dlRow("Senedd", elector.senedd) +
-        dlRow("Westminster", elector.westminster) +
-        dlRow("Ward", elector.ward);
+        dlRow("Local Authority", "GWYNEDD") +
+        dlRow("Ward", "HARLECH A LLANBEDR") +
+        dlRow("COMMUNITY", getCommunity(elector.pollingDistrict));
 
       // Delivery details
       const walkNum = elector.deliveryWalk ? String(elector.deliveryWalk).match(/\d+/) : null;
       const walkDesc = walkNum ? getWalkDescription(elector.pollingDistrict, parseInt(walkNum[0], 10)) : "";
+      const coordinateValues = [elector.lat, elector.lng].filter(Boolean);
+      const coordinates = coordinateValues.join(", ");
+      const googleMapsUrl = coordinateValues.length === 2
+        ? "https://www.google.com/maps/search/?api=1&query=" +
+          encodeURIComponent(coordinateValues.join(","))
+        : "";
       document.getElementById("profile-delivery-dl").innerHTML =
         dlRow("Polling District", getPollingDistrictLabel(elector.pollingDistrict)) +
         dlRow("Walk", elector.deliveryWalk + (walkDesc ? " (" + walkDesc + ")" : "")) +
         dlRow("Subroad", elector.subRoad) +
         dlRow("Sort Order", elector.deliveryOrder) +
-        dlRow("Coordinates", [elector.lat, elector.lng].filter(Boolean).join(", "));
+        dlLinkRow("Coordinates", googleMapsUrl, coordinates);
 
-      // Canvassing data — editable selects
-      const indepEl = document.getElementById("profile-independence-select");
-      const langEl  = document.getElementById("profile-language-select");
-      indepEl.value = progress.supportIndependence;
-      langEl.value  = progress.firstLanguage;
-      indepEl.addEventListener("change", () => saveProgressField(elector.id, "supportIndependence", indepEl.value));
-      langEl.addEventListener("change",  () => saveProgressField(elector.id, "firstLanguage",       langEl.value));
-
-      document.getElementById("profile-canvass-dl").innerHTML =
-        dlRow("Phone", progress.phone) +
-        dlRow("Email", progress.email);
+      const canvassDataEl = document.getElementById("profile-canvass-data-select");
+      const langEl = document.getElementById("profile-language-select");
+      canvassDataEl.value =
+        ["Plaid", "Independent", "Other", "No Data"].includes(progress.canvassId)
+          ? progress.canvassId
+          : "No Data";
+      langEl.value = progress.firstLanguage;
+      langEl.addEventListener(
+        "change",
+        () => saveProgressField(elector.id, "firstLanguage", langEl.value)
+      );
 
       // Voting history
       document.getElementById("profile-voting-history").innerHTML = renderVotingHistory(elector);
 
-      // Membership / volunteer — editable selects + checkboxes
-      const partyEl   = document.getElementById("profile-party-member-select");
-      const posterEl  = document.getElementById("profile-poster-select");
-      const volEl     = document.getElementById("profile-volunteer-checkbox");
-      const askVolEl  = document.getElementById("profile-ask-volunteer-checkbox");
+      const activeDelivererEl =
+        document.getElementById("profile-active-deliverer-checkbox");
+      const delivererWalkOptionsEl =
+        document.getElementById("profile-deliverer-walk-options");
+      const delivererWalks = [
+        ...Array.from({ length: 10 }, (_, index) => "N1-" + (index + 1)),
+        ...["AE1", "AF1", "AU1", "N2"].flatMap(
+          district => ["1", "2"].map(walk => district + "-" + walk)
+        )
+      ];
 
-      partyEl.value   = progress.partyMember;
-      posterEl.value  = progress.poster;
-      volEl.checked   = progress.volunteer;
-      askVolEl.checked = progress.askToVolunteer;
+      activeDelivererEl.checked = progress.activeDeliverer;
+      const selectedDelivererWalks = new Set(progress.delivererWalks);
+      delivererWalkOptionsEl.innerHTML = delivererWalks.map(walk => {
+        const [district, walkNumber] = walk.split("-");
+        return (
+          "<label class=\"checkbox-label\">" +
+          "<input type=\"checkbox\" value=\"" + walk + "\"" +
+          (selectedDelivererWalks.has(walk) ? " checked" : "") +
+          (!activeDelivererEl.checked ? " disabled" : "") +
+          "> " + getPollingDistrictLabel(district) + " - " + walkNumber +
+          "</label>"
+        );
+      }).join("");
 
-      partyEl.addEventListener("change",  () => saveProgressField(elector.id, "partyMember", partyEl.value));
-      posterEl.addEventListener("change", () => saveProgressField(elector.id, "poster",      posterEl.value));
-      volEl.addEventListener("change", () => {
-        saveProgressField(elector.id, "volunteer", volEl.checked);
-        if (volEl.checked) { askVolEl.checked = false; saveProgressField(elector.id, "askToVolunteer", false); }
-        askVolEl.disabled = volEl.checked;
+      function saveSelectedDelivererWalks() {
+        const selectedWalks = Array.from(
+          delivererWalkOptionsEl.querySelectorAll("input:checked")
+        ).map(input => input.value);
+        saveProgressField(elector.id, "delivererWalks", selectedWalks);
+      }
+
+      activeDelivererEl.addEventListener(
+        "change",
+        () => {
+          saveProgressField(
+            elector.id,
+            "activeDeliverer",
+            activeDelivererEl.checked
+          );
+          delivererWalkOptionsEl.querySelectorAll("input").forEach(input => {
+            input.disabled = !activeDelivererEl.checked;
+          });
+        }
+      );
+      delivererWalkOptionsEl.addEventListener("change", saveSelectedDelivererWalks);
+
+      const doNotDeliverDoorstepEl =
+        document.getElementById("profile-do-not-deliver-doorstep");
+      doNotDeliverDoorstepEl.checked =
+        progress.doNotDeliver || progress.doNotContact;
+      doNotDeliverDoorstepEl.addEventListener("change", () => {
+        saveProgressField(
+          elector.id,
+          "doNotDeliver",
+          doNotDeliverDoorstepEl.checked
+        );
+        saveProgressField(
+          elector.id,
+          "doNotContact",
+          doNotDeliverDoorstepEl.checked
+        );
       });
-      askVolEl.addEventListener("change", () => saveProgressField(elector.id, "askToVolunteer", askVolEl.checked));
-      askVolEl.disabled = progress.volunteer;
-
-      // Regular deliverer status (derived from volunteers page)
-      const rdStatus = getRegularDelivererStatus(elector.id);
-      document.getElementById("profile-membership-dl").innerHTML =
-        rdStatus !== null ? dlRow("Regular Deliverer", rdStatus ? "Yes" : "No") : "";
-
-      // Anti-plaid checkboxes
-      const dndEl = document.getElementById("profile-do-not-deliver");
-      const dncEl = document.getElementById("profile-do-not-doorstep");
-      dndEl.checked = progress.doNotDeliver;
-      dncEl.checked = progress.doNotContact;
-      dndEl.addEventListener("change", () => saveProgressField(elector.id, "doNotDeliver", dndEl.checked));
-      dncEl.addEventListener("change", () => saveProgressField(elector.id, "doNotContact", dncEl.checked));
 
       document.getElementById("profile-content").hidden = false;
       document.getElementById("profile-message").textContent = "";
