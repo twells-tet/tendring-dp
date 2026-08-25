@@ -379,8 +379,19 @@
         electorIdValue: data.electorid || row[20] || "",
         lat: parseFloat(data.latitude || data.lat || row[21]) || null,
         lng: parseFloat(data.longitude || data.lng || data.lon || row[22]) || null,
-        postalProxy: formatPostalProxy(data.postalproxy || data.postalorproxy || row[17] || ""),
-        pvStatusRaw: String(data.pvstatus || row[17] || "").trim(),
+        postalProxy: formatPostalProxy(
+          data.ballottype ||
+          data.postalproxy ||
+          data.postalorproxy ||
+          row[39] ||
+          ""
+        ),
+        pvStatusRaw: String(
+          data.ballottype ||
+          data.pvstatus ||
+          row[39] ||
+          ""
+        ).trim(),
         dateOfBirth:
           data.dateofbirth ||
           data.dob ||

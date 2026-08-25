@@ -254,19 +254,17 @@
             <dt>Description</dt>
             <dd id="delivery-description">High Street and Harbour</dd>
 
-            <dt hidden>Subroad</dt>
-            <dd hidden>
+            <dt>Subroad</dt>
+            <dd>
               <span id="delivery-area-input" class="delivery-area-text">—</span>
-              <button type="button" id="road-area-help-toggle" class="road-area-help-toggle">What does this mean?</button>
-              <p id="road-area-help-text" class="road-area-help-text" hidden>This should be the smallest unit of individual properties: the road, lane, subroad, cul-de-sac, hamlet or block of flats. Deliveries will be organised by this unit, so it is important to be accurate and consistent.</p>
             </dd>
 
-            <dt><a href="manage-walks.html" id="sort-order-link">Manage Walks</a></dt>
-            <dd>
+            <dt hidden><span id="sort-order-link">Sort Order</span></dt>
+            <dd hidden>
               <span id="delivery-order">—</span>
             </dd>
 
-            <dt><a href="manage-deliverers.html" id="deliverer-link">Manage Deliverers</a></dt>
+            <dt>Deliverer</dt>
             <dd id="delivery-deliverer">—</dd>
           </dl>
 
@@ -489,6 +487,24 @@ const STORAGE_KEYS = {
 // Kept in sync with the Manage Walks page's seed values, so both pages
 // agree on every Walk's name before anyone edits it there.
 const DEFAULT_WALK_DESCRIPTIONS = {
+  "n1|1": "Harlech",
+  "n1|2": "Harlech",
+  "n1|3": "Harlech",
+  "n1|4": "Harlech",
+  "n1|5": "Harlech",
+  "n1|6": "Harlech",
+  "n1|7": "Harlech",
+  "n1|8": "Harlech",
+  "n1|9": "Harlech",
+  "n1|10": "Harlech (Rural)",
+  "ae1|1": "Llanbedr",
+  "ae1|2": "Llanbedr (Rural)",
+  "au1|1": "Llanfair",
+  "au1|2": "Llanfair (Rural)",
+  "af1|1": "Talsarnau",
+  "af1|2": "Talsarnau (Rural)",
+  "n2|1": "Llanganwg",
+  "n2|2": "Llanganwg (Rural)",
   "ra1|1": "High Street and Harbour",
   "ra1|2": "Cae Du",
   "ra1|3": "Village North",
@@ -1277,13 +1293,15 @@ function initControls() {
   const roadAreaHelpTextEl =
     document.getElementById("road-area-help-text");
 
-  roadAreaHelpToggleEl.addEventListener(
-    "click",
-    () => {
-      roadAreaHelpTextEl.hidden =
-        !roadAreaHelpTextEl.hidden;
-    }
-  );
+  if (roadAreaHelpToggleEl && roadAreaHelpTextEl) {
+    roadAreaHelpToggleEl.addEventListener(
+      "click",
+      () => {
+        roadAreaHelpTextEl.hidden =
+          !roadAreaHelpTextEl.hidden;
+      }
+    );
+  }
 
 
   updateStats();
@@ -3425,13 +3443,15 @@ function updateVotingHistory(household) {
           const normalizedName = rawName.trim().toLowerCase();
           return {
             displayName: escapeHtml(rawName),
-            alwaysVotesDemo: DEMO_ALWAYS_VOTES_NAMES.has(normalizedName)
+            alwaysVotesDemo: DEMO_ALWAYS_VOTES_NAMES.has(normalizedName),
+            postalVoter: elector.postalProxy === "Postal"
           };
         })
       : [
           {
             displayName: "—",
-            alwaysVotesDemo: false
+            alwaysVotesDemo: false,
+            postalVoter: false
           }
         ];
 
@@ -3443,11 +3463,16 @@ function updateVotingHistory(household) {
     VOTING_HISTORY_YEARS.map(year =>
       "<tr>" +
       "<th scope=\"row\">" + escapeHtml(year) + "</th>" +
-      electorEntries.map(entry => {
-        const voted =
-          entry.alwaysVotesDemo &&
-          !year.includes("(Local)");
-        return "<td class=\"voting-history-disabled-cell\">" + (voted ? "X" : "—") + "</td>";
+       electorEntries.map(entry => {
+       const assumedPostalAttendance =
+         entry.postalVoter &&
+         ["2026 (Senedd)", "2024 (PCC)", "2024 (General)"].includes(year);
+       const voted =
+         entry.alwaysVotesDemo &&
+         !year.includes("(Local)");
+       return "<td class=\"voting-history-disabled-cell\">" +
+         (assumedPostalAttendance ? "A" : (voted ? "X" : "—")) +
+         "</td>";
       }).join("") +
       "</tr>"
     ).join("");
@@ -3761,9 +3786,18 @@ function buildAiComments(household) {
     electors.map(getDisplayName);
 
   const sentences = [];
+  const electorCount = electors.length;
+
+  sentences.push(
+    electorCount === 1
+      ? "There is one (1) elector in this household, " +
+        escapeHtml(getDisplayName(electors[0])) + "."
+      : "There are " + electorCount + " (" + electorCount +
+        ") electors in this household."
+  );
 
 
-  // Anti-Plaid sentence(s) - always shown first, flanked by a red
+  // Anti-Plaid sentence(s) follow the household summary, flanked by a red
   // exclamation mark either side, when any elector is flagged
   // "Do not deliver" and/or "Do not contact".
   const antiPlaidParts = [];
@@ -4109,8 +4143,11 @@ function normalizeCanvassId(value) {
     return "Independent";
   }
 
+  if (cleaned === "Other") {
   return "Other";
+  }
 
+  return "No Data";
 }
 
 
