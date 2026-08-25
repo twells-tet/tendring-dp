@@ -444,15 +444,11 @@
         const walkNumber = walk.replace(/^[A-Z0-9]+-/, "");
         const isHidden = hiddenWalks.has(walk);
         const walkProperties = districtProperties.filter(property => property.walk === walk);
-        const householdCount = walkProperties.length;
-        const electorCount = walkProperties.reduce(
-          (total, property) => total + property.electors,
-          0
-        );
+        const propertyCount = walkProperties.length;
         return (
           "<span class=\"district-key-item\"><span class=\"district-key-swatch\" style=\"background:" +
           walkColors.get(walk) + ";\"></span>" + walkNumber + " [" +
-          householdCount + "/" + electorCount + "]" +
+          propertyCount + "]" +
           "<button type=\"button\" class=\"walk-key-toggle\" data-walk=\"" + walk + "\">" +
           " (" + (isHidden ? "SHOW" : "HIDE") + ")</button></span>"
         );
