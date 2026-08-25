@@ -5,27 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Harlech a Llanbedr | TARIAN</title>
   <link rel="icon" type="image/svg+xml" href="/beta/tarian-shield.svg">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
   <link rel="stylesheet" href="/beta/style.css">
   <style>
-    .ward-boundary-map {
-      width: 100%;
-      height: min(68vw, 620px);
-      min-height: 380px;
-      border-radius: 0.5rem;
-    }
-
-    .ward-panel {
-      padding: 1rem;
-      isolation: isolate;
-    }
-
     .ward-data {
       width: 100%;
       border-collapse: collapse;
     }
 
-    .ward-panel,
     .ward-data {
       position: relative;
       z-index: 0;
@@ -42,13 +28,6 @@
       font-size: 0.85rem;
       text-transform: uppercase;
       letter-spacing: 0.04em;
-    }
-
-    .ward-note {
-      margin: 1rem 0 0;
-      color: #4b5753;
-      font-size: 0.9rem;
-      line-height: 1.5;
     }
 
     .ward-data tfoot td {
@@ -100,73 +79,133 @@
           <tr>
             <th>Polling District</th>
             <th>Electors</th>
-            <th>Households</th>
+            <th>Shuttleworth</th>
+            <th>Supporters</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>Harlech (N1) [48.4%]</td>
+            <td>Harlech</td>
             <td>1,130</td>
-            <td>678</td>
+            <td>330 (29.2%)</td>
+            <td id="support-n1">—</td>
           </tr>
           <tr>
-            <td>Talsarnau (AF1) [18.9%]</td>
-            <td>468</td>
-            <td>264</td>
-          </tr>
-          <tr>
-            <td>Llanbedr (AE1) [17.9%]</td>
+            <td>Llanbedr</td>
             <td>449</td>
-            <td>250</td>
+            <td>135 (30.1%)</td>
+            <td id="support-ae1">—</td>
           </tr>
           <tr>
-            <td>Llanfair (AU1) [10.1%]</td>
+            <td>Talsarnau</td>
+            <td>468</td>
+            <td>100 (21.4%)</td>
+            <td id="support-af1">—</td>
+          </tr>
+          <tr>
+            <td>Llanfair</td>
             <td>238</td>
-            <td>141</td>
+            <td>68 (28.6%)</td>
+            <td id="support-au1">—</td>
           </tr>
           <tr>
-            <td>Llandanwg (N2) [4.8%]</td>
+            <td>Llandanwg</td>
             <td>102</td>
-            <td>67</td>
+            <td>27 (26.5%)</td>
+            <td id="support-n2">—</td>
           </tr>
         </tbody>
         <tfoot>
           <tr>
             <td>Total</td>
             <td>2,387</td>
-            <td>1,400</td>
+            <td>660 (27.6%)</td>
+            <td id="support-total">—</td>
           </tr>
         </tfoot>
       </table>
-      <p class="ward-note">NB: Both Plaid Cymru councillors were elected unopposed in 2022.</p>
-    </section>
-    <section class="panel ward-panel">
-      <h2>Ward Boundary</h2>
-      <div id="ward-boundary-map" class="ward-boundary-map" aria-label="Harlech a Llanbedr ward boundary map"></div>
     </section>
   </main>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script>
-    const map = L.map("ward-boundary-map", { attributionControl: false });
+    const SHEET_URL =
+      "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/export?format=csv&gid=439559888";
+    const PROGRESS_KEY = "abersoch-elector-progress-v1";
+    const DISTRICTS = ["N1", "AE1", "AF1", "AU1", "N2"];
+    const DEFAULT_CANVASS_IDS = {
+      "507243585": "Independent",
+      "507226537": "Independent"
+    };
 
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 18
-    }).addTo(map);
-
-    fetch("https://mapit.mysociety.org/area/165915.geojson?simplify_tolerance=0.0001")
-      .then(response => {
-        if (!response.ok) {
-          throw new Error("Unable to load ward boundary.");
+    function parseCsv(text) {
+      const rows = [];
+      let row = [];
+      let value = "";
+      let quoted = false;
+      for (let index = 0; index < text.length; index += 1) {
+        const character = text[index];
+        if (character === "\"") {
+          if (quoted && text[index + 1] === "\"") {
+            value += "\"";
+            index += 1;
+          } else {
+            quoted = !quoted;
+          }
+        } else if (character === "," && !quoted) {
+          row.push(value);
+          value = "";
+        } else if ((character === "\n" || character === "\r") && !quoted) {
+          if (character === "\r" && text[index + 1] === "\n") index += 1;
+          row.push(value);
+          if (row.some(cell => cell.trim())) rows.push(row);
+          row = [];
+          value = "";
+        } else {
+          value += character;
         }
-        return response.json();
-      })
-      .then(geojson => {
-        const boundary = L.geoJSON(geojson, {
-          style: { color: "#215fff", weight: 3, fillColor: "#215fff", fillOpacity: 0.12 }
-        }).addTo(map);
-        map.fitBounds(boundary.getBounds(), { padding: [24, 24] });
-      })
-      .catch(() => map.setView([52.856, -4.108], 12));
+      }
+      if (value || row.length) {
+        row.push(value);
+        rows.push(row);
+      }
+      return rows;
+    }
+
+    function renderCurrentSupport() {
+      const progress = JSON.parse(localStorage.getItem(PROGRESS_KEY) || "{}");
+      return fetch(localStorage.getItem("abersoch-sheet-url") || SHEET_URL)
+        .then(response => {
+          if (!response.ok) throw new Error("Could not load elector data.");
+          return response.text();
+        })
+        .then(text => {
+          const totals = Object.fromEntries(DISTRICTS.map(district => [district, 0]));
+          parseCsv(text).slice(1).forEach(row => {
+            const district = String(row[10] || "").trim().toUpperCase();
+            const electorId = String(row[40] || "").trim();
+            const savedProgress = progress[electorId] || {};
+            const canvassId =
+              savedProgress.canvassId ||
+              savedProgress.status ||
+              DEFAULT_CANVASS_IDS[electorId];
+            if (district in totals && canvassId === "Independent") {
+              totals[district] += 1;
+            }
+          });
+          DISTRICTS.forEach(district => {
+            document.getElementById("support-" + district.toLowerCase()).textContent =
+              totals[district];
+          });
+          document.getElementById("support-total").textContent =
+            Object.values(totals).reduce((total, count) => total + count, 0);
+        })
+        .catch(() => {
+          DISTRICTS.forEach(district => {
+            document.getElementById("support-" + district.toLowerCase()).textContent = "—";
+          });
+        });
+    }
+
+    renderCurrentSupport();
   </script>
 </body>
 </html>
