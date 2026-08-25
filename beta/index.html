@@ -3266,8 +3266,8 @@ function updatePropertyMap(elector) {
   if (state.showingWardBoundary) {
 
     propertyFullAddressEl.textContent =
-      ((state.selectedElector && state.selectedElector.ward
-        ? state.selectedElector.ward
+      ((state.currentMapElector && state.currentMapElector.ward
+        ? state.currentMapElector.ward
         : "HARLECH") + " COMMUNITY, GWYNEDD");
 
     toggleWardBoundaryEl.textContent =
@@ -3363,6 +3363,7 @@ let wardPreviewLeafletMap = null;
 let wardPreviewMarker = null;
 let wardBoundaryGeoJson = null;
 let wardBoundaryLastDistrict = null;
+let wardBoundaryLayer = null;
 
 function showWardBoundaryMap() {
 
@@ -3384,7 +3385,9 @@ function showWardBoundaryMap() {
     0
   );
 
-  const district = state.selectedElector && state.selectedElector.pollingDistrict || "N1";
+  const district = String(
+    state.currentMapElector && state.currentMapElector.pollingDistrict || "N1"
+  ).trim().toUpperCase();
   const geojsonUrl = DISTRICT_COMMUNITY_GEOJSON[district] ||
     "https://mapit.mysociety.org/area/165915.geojson?simplify_tolerance=0.0001";
 
@@ -3404,6 +3407,9 @@ function showWardBoundaryMap() {
       return response.json();
     })
     .then((geojson) => {
+      if (wardBoundaryLastDistrict !== district) {
+        return;
+      }
       wardBoundaryGeoJson = geojson;
       if (state.showingWardBoundary) {
         wardBoundaryErrorEl.hidden = true;
@@ -3422,11 +3428,15 @@ function showWardBoundaryMap() {
 
 function drawWardBoundary() {
 
-  const layer = L.geoJSON(wardBoundaryGeoJson, {
+  if (wardBoundaryLayer) {
+    wardBoundaryLeafletMap.removeLayer(wardBoundaryLayer);
+  }
+
+  wardBoundaryLayer = L.geoJSON(wardBoundaryGeoJson, {
     style: { color: "#38f", weight: 2, fillOpacity: 0.1 }
   }).addTo(wardBoundaryLeafletMap);
 
-  wardBoundaryLeafletMap.fitBounds(layer.getBounds());
+  wardBoundaryLeafletMap.fitBounds(wardBoundaryLayer.getBounds());
 
 }
 
