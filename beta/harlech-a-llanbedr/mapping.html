@@ -370,6 +370,7 @@
       rows.slice(1).forEach(row => {
         const pollingDistrict = String(row[10] || "").trim();
         const householdId = String(row[41] || "").trim();
+        const postcode = String(row[29] || "").trim();
         const latitude = Number(row[43]);
         const longitude = Number(row[44]);
         if (
@@ -400,6 +401,8 @@
             latitude,
             longitude,
             pollingDistrict,
+            postcode,
+            subroad,
             walk,
             electors: 1,
             address: [number, name, subroad].filter(Boolean).join(" ")
@@ -410,6 +413,15 @@
       });
 
       propertyData = [...properties.values()];
+      const propertyCounts = new Map();
+      propertyData.forEach(property => {
+        const key = [property.postcode, property.subroad].join("\u0000");
+        propertyCounts.set(key, (propertyCounts.get(key) || 0) + 1);
+      });
+      propertyData.forEach(property => {
+        const key = [property.postcode, property.subroad].join("\u0000");
+        property.propertyCount = propertyCounts.get(key);
+      });
       const walks = [...new Set(propertyData.map(property => property.walk))]
         .sort((left, right) => left.localeCompare(right, undefined, { numeric: true }));
       walkColors = new Map(
@@ -460,7 +472,9 @@
           fillOpacity: 1
         }).addTo(propertyMarkers);
         marker.bindPopup(
-          "<strong>" + (property.address || "Property") + "</strong><br>Walk " +
+          "<strong>" + [property.postcode, property.subroad]
+            .filter(Boolean)
+            .join(", ") + " (" + property.propertyCount + ")</strong><br>Walk " +
           property.walk.replace(/^[A-Z0-9]+-/, "")
         );
         });
