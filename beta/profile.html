@@ -369,13 +369,23 @@
         localAuthority: data.localauthority || data.localauthorityname || row[30] || "",
         senedd: data.senedd || row[31] || "",
         westminster: data.westminster || row[32] || "",
-        ward: data.ward || data.electoralward || row[33] || "",
+        ward:
+          String(id) === "599999999"
+            ? "GOGLEDD PWLLHELI"
+            : (data.ward || data.electoralward || row[33] || ""),
         pollingDistrict: data.pollingdistrict || data.pollingdist || data.district || data.pd || row[15] || "",
         pollingElectorNumber: data.electornumber || data.electorno || data.electornum || row[16] || "",
         deliveryWalk: row[50] || data.walk || "",
         deliveryOrder: row[49] || data.deliveryorder || "",
         deliverer: data.deliverer || row[39] || "",
-        subRoad: data.subroad || row[40] || "",
+        subRoad:
+          String(id) === "599999999"
+            ? "Sand Street"
+            : (data.subroad || row[40] || ""),
+        community:
+          String(id) === "599999999"
+            ? "PWLLHELI"
+            : "",
         electorIdValue: data.electorid || row[20] || "",
         lat: parseFloat(data.latitude || data.lat || row[21]) || null,
         lng: parseFloat(data.longitude || data.lng || data.lon || row[22]) || null,
@@ -393,9 +403,13 @@
           ""
         ).trim(),
         dateOfBirth:
-          data.dateofbirth ||
-          data.dob ||
-          dateOfBirthFromAttainment(data.dateofattainment || row[18] || ""),
+          String(id) === "599999999"
+            ? "14/06/1991"
+            : (
+              data.dateofbirth ||
+              data.dob ||
+              dateOfBirthFromAttainment(data.dateofattainment || row[18] || "")
+            ),
         householdId: data.householdid || row[19] || "",
         householdGroupKey: normalizeText(data.householdkey || data.key || row[11] || "") || ("row-" + sourceRow)
       };
@@ -447,6 +461,14 @@
     function getProgress(electorId) {
       const all = loadFromStorage(STORAGE_KEYS.progress, {});
       const raw = all[electorId] || {};
+      const isChrisGreen = String(electorId) === "599999999";
+      const isKarlCiz = String(electorId) === "507243585";
+      const defaultChrisGreenWalks = [
+        ...Array.from({ length: 10 }, (_, index) => "N1-" + (index + 1)),
+        ...["AF1", "AU1", "N2"].flatMap(
+          district => ["1", "2"].map(walk => district + "-" + walk)
+        )
+      ];
       return {
         preferredName:       raw.preferredName || "",
         birthYear:           raw.birthYear || "",
@@ -458,11 +480,22 @@
         firstLanguage:       raw.firstLanguage || "English",
         phone:               raw.phone || "",
         email:               raw.email || "",
-        activeDeliverer:     Boolean(raw.activeDeliverer),
+        activeDeliverer:
+          raw.activeDeliverer === undefined
+            ? (isChrisGreen || isKarlCiz)
+            : Boolean(raw.activeDeliverer),
         delivererWalks:
           Array.isArray(raw.delivererWalks)
             ? raw.delivererWalks
-            : (raw.delivererWalk ? [raw.delivererWalk] : []),
+            : (
+              raw.delivererWalk
+                ? [raw.delivererWalk]
+                : (
+                  isChrisGreen
+                    ? defaultChrisGreenWalks
+                    : (isKarlCiz ? ["AE1-1", "AE1-2"] : [])
+                )
+            ),
         partyMember:         raw.partyMember || "No",
         poster:              raw.poster || "No Poster",
         volunteer:           Boolean(raw.volunteer),
@@ -611,7 +644,11 @@
       birthMonthEl.innerHTML = "<option value=\"\">Month</option>" +
         Array.from({ length: 12 }, (_, index) => {
           const month = String(index + 1).padStart(2, "0");
-          return "<option value=\"" + month + "\">" + month + "</option>";
+          const monthName = [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+          ][index];
+          return "<option value=\"" + month + "\">" + monthName + "</option>";
         }).join("");
 
       function updateBirthDateFields() {
@@ -670,7 +707,10 @@
         dlRow("Address", addressLine) +
         dlRow("Local Authority", "GWYNEDD") +
         dlRow("Ward", "HARLECH A LLANBEDR") +
-        dlRow("Community", progress.community || getCommunity(elector.pollingDistrict));
+        dlRow(
+          "Community",
+          progress.community || elector.community || getCommunity(elector.pollingDistrict)
+        );
 
       // Delivery details
       const walkNum = elector.deliveryWalk ? String(elector.deliveryWalk).match(/\d+/) : null;

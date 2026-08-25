@@ -3319,7 +3319,7 @@ function updatePropertyMap(elector) {
   if (!wardPreviewLeafletMap) {
     wardPreviewLeafletMap = L.map("ward-preview", { attributionControl: false });
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 18
+      maxZoom: 19
     }).addTo(wardPreviewLeafletMap);
   }
   if (wardPreviewMarker) {
@@ -3332,8 +3332,16 @@ function updatePropertyMap(elector) {
     fillColor: "#da291c",
     fillOpacity: 1
   }).addTo(wardPreviewLeafletMap);
-  wardPreviewLeafletMap.setView([lat, lng], 15);
-  requestAnimationFrame(() => wardPreviewLeafletMap.invalidateSize());
+  const refreshPropertyMap = () => {
+    wardPreviewLeafletMap.invalidateSize({ pan: false });
+    wardPreviewLeafletMap.setView([lat, lng], 19, { animate: false });
+  };
+
+  requestAnimationFrame(() => {
+    refreshPropertyMap();
+    requestAnimationFrame(refreshPropertyMap);
+  });
+  window.setTimeout(refreshPropertyMap, 150);
 
   wardPreviewCoordsEl.textContent =
     "GPS coordinates " + lat + ", " + lng;
@@ -3948,8 +3956,9 @@ function buildAiComments(household) {
             escapeHtml(getDisplayName(elector)) +
             " is " +
             age +
+            " years of age" +
             (elector.dateOfBirth
-              ? " (DOB " + escapeHtml(elector.dateOfBirth) + ")"
+              ? " (DOB: " + escapeHtml(elector.dateOfBirth) + ")"
               : "") +
             "."
           );
