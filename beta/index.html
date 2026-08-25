@@ -123,12 +123,44 @@
 
 
     <div class="search-actions-row">
-      <section class="export-buttons" aria-label="Export options">
-        <button type="button" id="display-map-button" class="export-button display-map-button">SUBROADS</button>
-        <a href="https://www.tarian146.co.uk/beta/harlech-a-llanbedr/mapping" class="export-button polling-day-button">MAPPING</a>
-        <a href="volunteers.html" class="export-button members-activists-button">DELIVERERS</a>
-        <a href="https://www.tarian146.co.uk/beta/harlech-a-llanbedr/" class="export-button">DATA</a>
-      </section>
+      <div class="search-actions-controls">
+        <section class="export-buttons" aria-label="Export options">
+          <button type="button" id="display-map-button" class="export-button display-map-button">SUBROADS</button>
+          <a href="https://www.tarian146.co.uk/beta/harlech-a-llanbedr/mapping" class="export-button polling-day-button">MAPPING</a>
+          <a href="volunteers.html" class="export-button members-activists-button">DELIVERERS</a>
+          <a href="https://www.tarian146.co.uk/beta/harlech-a-llanbedr/" class="export-button display-map-button">DATA</a>
+        </section>
+
+        <div class="panel delivery-panel" id="delivery-panel">
+
+          <div class="panel-heading">
+            <h2>Deliverer / Walk Details</h2>
+            <button type="button" id="toggle-delivery-details" class="map-toggle-button">Hide</button>
+          </div>
+
+          <dl class="delivery-details" id="delivery-details-body">
+            <dt>Walk</dt>
+            <dd id="delivery-walk">—</dd>
+
+            <dt>Description</dt>
+            <dd id="delivery-description">High Street and Harbour</dd>
+
+            <dt>Subroad</dt>
+            <dd>
+              <span id="delivery-area-input" class="delivery-area-text">—</span>
+            </dd>
+
+            <dt hidden><span id="sort-order-link">Sort Order</span></dt>
+            <dd hidden>
+              <span id="delivery-order">—</span>
+            </dd>
+
+            <dt>Deliverer</dt>
+            <dd id="delivery-deliverer">—</dd>
+          </dl>
+
+        </div>
+      </div>
 
       <section class="quick-name-search" id="quick-name-search-section" aria-label="Quick name search">
         <div class="quick-name-search-head panel-heading">
@@ -239,37 +271,6 @@
 
 
       <div class="list-column">
-
-        <div class="panel delivery-panel" id="delivery-panel">
-
-          <div class="panel-heading">
-            <h2>Deliverer / Walk Details</h2>
-            <button type="button" id="toggle-delivery-details" class="map-toggle-button">Hide</button>
-          </div>
-
-          <dl class="delivery-details" id="delivery-details-body">
-            <dt>Walk</dt>
-            <dd id="delivery-walk">—</dd>
-
-            <dt>Description</dt>
-            <dd id="delivery-description">High Street and Harbour</dd>
-
-            <dt>Subroad</dt>
-            <dd>
-              <span id="delivery-area-input" class="delivery-area-text">—</span>
-            </dd>
-
-            <dt hidden><span id="sort-order-link">Sort Order</span></dt>
-            <dd hidden>
-              <span id="delivery-order">—</span>
-            </dd>
-
-            <dt>Deliverer</dt>
-            <dd id="delivery-deliverer">—</dd>
-          </dl>
-
-        </div>
-
 
         <div class="panel list-panel">
 
