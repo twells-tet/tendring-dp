@@ -2328,7 +2328,7 @@ body.mobile-mode .elector-list {
 
 .subroad-filter-controls {
   display: grid;
-  grid-template-columns: minmax(130px, 1fr) minmax(190px, 2fr);
+  grid-template-columns: minmax(130px, 1fr) 7rem minmax(190px, 2fr);
   gap: 0.5rem;
 }
 

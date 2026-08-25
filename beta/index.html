@@ -100,7 +100,7 @@
       <div class="stat-card">
         <span class="stat-label">Electors</span>
         <strong id="stat-loaded">0</strong>
-        <small id="stat-cap-notice" hidden>*Only the first 1129 electors and 678 households are shown below.</small>
+        <small id="stat-cap-notice" hidden>*Only the first 1255 electors and 721 properties are shown below.</small>
       </div>
 
     </section>
@@ -291,13 +291,17 @@
             <label for="subroad-filter-subroad-select">Filter by Subroad</label>
             <div class="subroad-filter-controls">
               <select id="subroad-filter-district-select" aria-label="Polling District">
-                <option value="N1" selected>N1 (Harlech)</option>
+                <option value="" selected disabled>Polling District</option>
+                  <option value="N1">N1 (Harlech)</option>
                   <option value="AF1">AF1 (Talsarnau)</option>
                   <option value="AE1">AE1 (Llanbedr)</option>
                   <option value="AU1">AU1 (Llanfair)</option>
                   <option value="N2">N2 (Llandanwg)</option>
               </select>
-              <select id="subroad-filter-subroad-select" aria-label="Subroad">
+              <select id="subroad-filter-walk-select" aria-label="Walk" disabled>
+                <option value="" selected disabled>Walk</option>
+              </select>
+              <select id="subroad-filter-subroad-select" aria-label="Subroad" disabled>
                 <option value="">All Subroads</option>
               </select>
             </div>
@@ -526,8 +530,8 @@ const canvassIdOptions = [
   "No Data"
 ];
 
-const MAX_VISIBLE_ELECTORS = 1129;
-const MAX_VISIBLE_HOUSEHOLDS = 678;
+const MAX_VISIBLE_ELECTORS = 1255;
+const MAX_VISIBLE_HOUSEHOLDS = 721;
 
 
 const languageOptions = [
@@ -783,6 +787,9 @@ const quickNameSearchSectionEl =
 const subroadFilterDistrictEl =
   document.getElementById("subroad-filter-district-select");
 
+const subroadFilterWalkEl =
+  document.getElementById("subroad-filter-walk-select");
+
 const subroadFilterSubroadEl =
   document.getElementById("subroad-filter-subroad-select");
 
@@ -1010,9 +1017,20 @@ function initControls() {
     }
   );
 
+  subroadFilterWalkEl.addEventListener(
+    "change",
+    () => {
+      populateSubroadFilterOptions();
+      state.householdPageIndex = 0;
+      renderElectorList();
+    }
+  );
+
   subroadFilterDistrictEl.addEventListener(
     "change",
     () => {
+      subroadFilterWalkEl.value = "";
+      subroadFilterSubroadEl.value = "";
       populateSubroadFilterOptions();
       state.householdPageIndex = 0;
       renderElectorList();
@@ -1142,7 +1160,9 @@ function initControls() {
 
   selectAllPollingDistrictsEl.addEventListener("click", () => {
     setSelectedPollingDistricts(
-      [...pollingDistrictEl.options].map(option => option.value)
+      areAllPollingDistrictsSelected()
+        ? []
+        : [...pollingDistrictEl.options].map(option => option.value)
     );
     populateSubroadFilterOptions();
     localStorage.setItem(
@@ -2190,6 +2210,7 @@ function renderElectorList() {
   const firstElector =
     household.electors[0];
 
+  syncSubroadFilterDistrict(firstElector);
 
 
   updatePropertyMap(
@@ -4252,6 +4273,8 @@ function syncPollingDistrictToggles() {
   const allSelected = areAllPollingDistrictsSelected();
   selectAllPollingDistrictsEl.classList.toggle("is-selected", allSelected);
   selectAllPollingDistrictsEl.setAttribute("aria-pressed", String(allSelected));
+  selectAllPollingDistrictsEl.textContent =
+    allSelected ? "Deselect All" : "Select All";
 
 }
 
@@ -4333,32 +4356,25 @@ function getActiveElectors() {
 function populateSubroadFilterOptions() {
 
   const selectedDistrict =
-    normalizeText(
-      subroadFilterDistrictEl.value ||
-      getSelectedPollingDistricts()[0]
-    );
+    normalizeText(subroadFilterDistrictEl.value);
 
-  if (
-    [...subroadFilterDistrictEl.options].some(
-      option => normalizeText(option.value) === selectedDistrict
-    )
-  ) {
-    const matchingOption = [...subroadFilterDistrictEl.options].find(
-      option => normalizeText(option.value) === selectedDistrict
-    );
-    if (matchingOption) {
-      subroadFilterDistrictEl.value = matchingOption.value;
-    }
+  if (!selectedDistrict) {
+    subroadFilterWalkEl.disabled = true;
+    subroadFilterSubroadEl.disabled = true;
+    subroadFilterWalkEl.innerHTML =
+      "<option value=\"\" selected disabled>Walk</option>";
+    subroadFilterSubroadEl.innerHTML =
+      "<option value=\"\">All Subroads</option>";
+    return;
   }
 
-  const wantedDistrict =
-    normalizeText(
-      subroadFilterDistrictEl.value ||
-      getSelectedPollingDistricts()[0]
-    );
+  const wantedDistrict = selectedDistrict;
 
   const previousSelection =
     subroadFilterSubroadEl.value;
+
+  const previousWalk =
+    subroadFilterWalkEl.value;
 
   const seenHouseholds = new Set();
   const subRoadEntriesByKey = new Map();
@@ -4385,30 +4401,63 @@ function populateSubroadFilterOptions() {
       return;
     }
 
-    const subRoadKey = normalizeText(effectiveSubRoad);
     const walkNumber = getEffectiveWalkNumberForElector(elector);
+    const subRoadKey =
+      normalizeText(effectiveSubRoad);
     const existing = subRoadEntriesByKey.get(subRoadKey);
 
     if (!existing) {
       subRoadEntriesByKey.set(subRoadKey, {
         name: effectiveSubRoad,
-        walkNumber
+        properties: 1,
+        propertiesByWalk: new Map([[walkNumber, 1]])
       });
       return;
     }
 
-    if (walkNumber < existing.walkNumber) {
-      existing.walkNumber = walkNumber;
-    }
+    existing.properties += 1;
+    existing.propertiesByWalk.set(
+      walkNumber,
+      (existing.propertiesByWalk.get(walkNumber) || 0) + 1
+    );
   });
+
+  const walkNumbers =
+    Array.from(
+      { length: getTotalWalkCountForDistrict(wantedDistrict) },
+      (_, index) => index + 1
+    );
+
+  subroadFilterWalkEl.innerHTML =
+    "<option value=\"\" selected disabled>Walk</option>" +
+    "<option value=\"all\">All Walks</option>" +
+    walkNumbers.map(walkNumber =>
+      "<option value=\"" + walkNumber + "\">" + walkNumber + "</option>"
+    ).join("");
+  subroadFilterWalkEl.disabled = false;
+
+  if (walkNumbers.includes(Number(previousWalk))) {
+    subroadFilterWalkEl.value = previousWalk;
+  } else {
+    subroadFilterWalkEl.value = "all";
+  }
+
+  const selectedWalk =
+    Number(subroadFilterWalkEl.value);
+
+  if (!subroadFilterWalkEl.value) {
+    subroadFilterSubroadEl.disabled = true;
+    subroadFilterSubroadEl.innerHTML =
+      "<option value=\"\">All Subroads</option>";
+    return;
+  }
 
   const subRoadEntries =
     Array.from(subRoadEntriesByKey.values()).sort((a, b) => {
-      if (a.walkNumber !== b.walkNumber) {
-        return a.walkNumber - b.walkNumber;
-      }
       return a.name.localeCompare(b.name);
-    });
+    }).filter(entry =>
+      !selectedWalk || entry.propertiesByWalk.has(selectedWalk)
+    );
 
   const subRoadNames = subRoadEntries.map(entry => entry.name);
 
@@ -4416,11 +4465,34 @@ function populateSubroadFilterOptions() {
     "<option value=\"\">All Subroads</option>" +
     subRoadEntries.map(entry =>
       "<option value=\"" + escapeHtmlAttr(entry.name) + "\">" +
-      escapeHtml(entry.name) + " [" + entry.walkNumber + "]</option>"
+      escapeHtml(entry.name) + " (" +
+      (selectedWalk
+        ? entry.propertiesByWalk.get(selectedWalk)
+        : entry.properties) + ")</option>"
     ).join("");
+  subroadFilterSubroadEl.disabled = false;
 
   if (subRoadNames.includes(previousSelection)) {
     subroadFilterSubroadEl.value = previousSelection;
+  }
+
+}
+
+function syncSubroadFilterDistrict(elector) {
+
+  const matchingOption = [...subroadFilterDistrictEl.options].find(
+    option =>
+      normalizeText(option.value) === normalizeText(elector.pollingDistrict)
+  );
+
+  if (
+    matchingOption &&
+    subroadFilterDistrictEl.value !== matchingOption.value
+  ) {
+    subroadFilterDistrictEl.value = matchingOption.value;
+    subroadFilterWalkEl.value = "";
+    subroadFilterSubroadEl.value = "";
+    populateSubroadFilterOptions();
   }
 
 }
@@ -4455,6 +4527,9 @@ function getAllFilteredActiveElectors() {
 
   const subroadFilterDistrict =
     normalizeText(subroadFilterDistrictEl.value).trim();
+
+  const subroadFilterWalk =
+    Number(subroadFilterWalkEl.value) || null;
 
   return getActiveElectors().filter(elector => {
 
@@ -4495,11 +4570,14 @@ function getAllFilteredActiveElectors() {
 
     }
 
-    if (subroadFilter) {
+    if (subroadFilter || subroadFilterWalk) {
 
       if (
-        normalizeText(elector.subRoad) !== subroadFilter ||
-        normalizeText(elector.pollingDistrict) !== subroadFilterDistrict
+        normalizeText(elector.pollingDistrict) !== subroadFilterDistrict ||
+        (subroadFilter &&
+          normalizeText(elector.subRoad) !== subroadFilter) ||
+        (subroadFilterWalk &&
+          getEffectiveWalkNumberForElector(elector) !== subroadFilterWalk)
       ) {
         return false;
       }
