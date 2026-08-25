@@ -66,7 +66,7 @@
         const STORAGE_KEYS = {
             winnings: "tarian-lottery-winnings-v1",
             winningsOther: "tarian-lottery-winnings-other-v1",
-            outgoings: "tarian-lottery-outgoings-v1",
+            outgoings: "tarian-lottery-outgoings-v3",
             saved: "tarian-lottery-saved-v1"
         };
 
@@ -81,21 +81,20 @@
         const savedSectionEl = document.getElementById("lottery-saved-section");
         const savedListEl = document.getElementById("lottery-saved-list");
         const DEFAULT_OUTGOINGS = [
-            { description: "NEW HOUSE", amount: 390000 },
-            { description: "TO END FEB 2027", amount: 30000 },
-            { description: "BROTHER", amount: 45500 },
-            { description: "LEGAL FEES", amount: 4000 },
-            { description: "ELECTION", amount: 4000 },
-            { description: "COUSIN", amount: 2500 },
-            { description: "TAXES 1", amount: 4000 },
-            { description: "PARENTS 1", amount: 20000 },
-            { description: "TO END JULY 2027", amount: 20000 },
-            { description: "TAXES 2", amount: 10500 },
-            { description: "PARENTS 2", amount: 115000 },
-            { description: "REFURB", amount: 14500 },
-            { description: "REPAIR CAR", amount: 5000 },
-            { description: "SALE OF FLAT", amount: -165000 }
+            { description: "TOWARDS A NEW HOUSE", amount: 225000 },
+            { description: "PARENTS", amount: 140000 },
+            { description: "BROTHER", amount: 50000 },
+            { description: "REPAIR CAR", amount: 6000 },
+            { description: "TO END OF THE YEAR", amount: 22000 },
+            { description: "FURNISH NEW FLAT", amount: 25000 },
+            { description: "ELECTION", amount: 2000 },
+            { description: "TAXES", amount: 10000 },
+            { description: "TO JUNE 2027", amount: 20000 },
+            { description: "SALE OF FLAT", amount: -160000 },
+            { description: "LEGAL FEES / BUFFER", amount: 15000 },
+            { description: "TOWARDS A NEW HOUSE", amount: 145000 }
         ];
+        const PINNED_OUTGOINGS_COUNT = 3;
 
         let lastResult = null;
 
@@ -172,10 +171,12 @@
 
         }
 
-        function addRow(description, amount) {
+        function addRow(description, amount, isPinned) {
 
             const row = document.createElement("div");
-            row.className = "lottery-outgoing-row";
+            row.className =
+                "lottery-outgoing-row" +
+                (isPinned ? " lottery-outgoing-row--pinned" : "");
 
             row.innerHTML =
                 "<input type=\"text\" class=\"lottery-outgoing-description\" placeholder=\"Description (e.g. new house)\">" +
@@ -207,8 +208,10 @@
         function sortRowsByAmountDescending() {
 
             const rows = readRows();
+            const pinnedRows = rows.slice(-PINNED_OUTGOINGS_COUNT);
+            const sortableRows = rows.slice(0, -PINNED_OUTGOINGS_COUNT);
 
-            rows.sort((a, b) => {
+            sortableRows.sort((a, b) => {
                 const amountA = Number(a.amount);
                 const amountB = Number(b.amount);
                 return (Number.isFinite(amountB) ? amountB : -Infinity) -
@@ -216,7 +219,8 @@
             });
 
             rowsContainerEl.innerHTML = "";
-            rows.forEach(row => addRow(row.description, row.amount));
+            sortableRows.forEach(row => addRow(row.description, row.amount));
+            pinnedRows.forEach(row => addRow(row.description, row.amount, true));
 
         }
 
@@ -391,6 +395,7 @@
             } else {
                 DEFAULT_OUTGOINGS.forEach(row => addRow(row.description, row.amount));
             }
+            sortRowsByAmountDescending();
 
             renderSavedScenarios();
 

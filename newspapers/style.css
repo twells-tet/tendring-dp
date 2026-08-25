@@ -2315,6 +2315,11 @@ body.printer-friendly-mode .exit-printer-friendly-link {
   outline-offset: 1px;
 }
 
+.lottery-outgoing-row--pinned input {
+  border-color: #e67e22;
+  background: #fff4e8;
+}
+
 .lottery-outgoing-remove {
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--plaid-red);
@@ -2433,5 +2438,3 @@ body.printer-friendly-mode .exit-printer-friendly-link {
 .lottery-corner-link:hover {
   opacity: 1;
 }
-
-
