@@ -168,7 +168,7 @@
           data.district ||
           data.pd ||
           String(row[15] || "").trim();
-        const rowSubroad = data.subroad || String(row[48] || "").trim();
+        const rowSubroad = data.subroad || String(row[50] || "").trim();
         if (
           normalizeText(rowDistrict) !== normalizeText(district) ||
           normalizeText(rowSubroad) !== normalizeText(subroad)
@@ -178,8 +178,8 @@
 
         const number = String(row[46] || "").trim();
         const name = String(row[47] || "").trim();
-        const walk = String(row[50] || "").trim();
-        const sortOrder = String(row[49] || "").trim();
+        const walk = String(row[49] || "").trim();
+        const sortOrder = String(row[48] || "").trim();
         const coordinates = [
           String(row[43] || "").trim(),
           String(row[44] || "").trim()
@@ -193,8 +193,8 @@
         const group = groups.get(propertyKey) || {
           number,
           name,
-          walk: String(row[50] || "").trim(),
-          sortOrder: String(row[49] || "").trim(),
+          walk: String(row[49] || "").trim(),
+          sortOrder: String(row[48] || "").trim(),
           coordinates
         };
         groups.set(propertyKey, group);

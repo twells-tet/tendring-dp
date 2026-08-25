@@ -160,10 +160,10 @@
       <p id="mapping-summary" class="mapping-summary" role="status">Loading map data...</p>
       <div class="map-toggles" aria-label="Map layer controls">
         <button id="boundaries-toggle" class="map-toggle" type="button" aria-pressed="true">HIDE BOUNDARIES</button>
-        <button id="electors-toggle" class="map-toggle" type="button" aria-pressed="true">HIDE ELECTORS</button>
-        <button id="bypass-toggle" class="map-toggle" type="button" aria-pressed="true">HIDE BYPASS</button>
-        <button id="walks-toggle" class="map-toggle" type="button" aria-pressed="false">VIEW WALKS</button>
-        <button id="zoom-bypass" class="zoom-bypass" type="button">ZOOM TO BYPASS</button>
+        <button id="electors-toggle" class="map-toggle" type="button" aria-pressed="true" disabled>HIDE ELECTORS</button>
+        <button id="bypass-toggle" class="map-toggle" type="button" aria-pressed="true" disabled>HIDE BYPASS</button>
+        <button id="walks-toggle" class="map-toggle" type="button" aria-pressed="true">HIDE WALKS</button>
+        <button id="zoom-bypass" class="zoom-bypass" type="button" disabled>ZOOM TO BYPASS</button>
       </div>
       <div id="district-key" class="district-key" aria-label="Polling district key"></div>
       <label id="walk-picker" class="walk-picker" hidden>
@@ -214,7 +214,7 @@
     let bypassBounds = null;
     let postcodeMarkersVisible = true;
     let bypassLayerVisible = true;
-    let walksVisible = false;
+    let walksVisible = true;
     let propertyData = [];
     let walkColors = new Map();
     const hiddenWalks = new Set();
@@ -382,10 +382,10 @@
 
         const number = String(row[46] || "").trim();
         const name = String(row[47] || "").trim();
-        const subroad = String(row[48] || "").trim();
+        const subroad = String(row[50] || "").trim();
         const walk =
+          String(row[49] || "").trim() ||
           proposedWalks.get(householdId) ||
-          String(row[50] || "").trim() ||
           "Unassigned";
         const propertyKey = householdId || [
           pollingDistrict,
