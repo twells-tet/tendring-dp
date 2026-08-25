@@ -47,6 +47,10 @@
       background: #eee;
       color: #333;
     }
+    .map-toggle:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
 
     .zoom-bypass {
       align-self: center;
@@ -92,6 +96,48 @@
       height: 0.8rem;
       border-radius: 50%;
     }
+    .walk-key {
+      display: grid;
+      grid-template-columns: repeat(2, max-content);
+      gap: 0.5rem 1rem;
+      margin: 0 0 1rem;
+      font-size: 0.9rem;
+    }
+    .walk-picker {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0 0 1rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .walk-picker[hidden],
+    .walk-key[hidden] {
+      display: none;
+    }
+    .walk-picker select {
+      padding: 0.35rem 0.5rem;
+      border: 1px solid var(--border-strong);
+      border-radius: 0.4rem;
+      background: var(--surface);
+      color: var(--text);
+      font: inherit;
+    }
+    .walk-key-toggle {
+      margin-left: 0.2rem;
+      border: 0;
+      background: none;
+      color: #164a8a;
+      font: inherit;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    .walk-key-all-toggle {
+      grid-column: 1 / -1;
+      justify-self: start;
+    }
 
     .tarian-title-link {
       color: inherit;
@@ -116,9 +162,21 @@
         <button id="boundaries-toggle" class="map-toggle" type="button" aria-pressed="true">HIDE BOUNDARIES</button>
         <button id="electors-toggle" class="map-toggle" type="button" aria-pressed="true">HIDE ELECTORS</button>
         <button id="bypass-toggle" class="map-toggle" type="button" aria-pressed="true">HIDE BYPASS</button>
+        <button id="walks-toggle" class="map-toggle" type="button" aria-pressed="false">VIEW WALKS</button>
         <button id="zoom-bypass" class="zoom-bypass" type="button">ZOOM TO BYPASS</button>
       </div>
       <div id="district-key" class="district-key" aria-label="Polling district key"></div>
+      <label id="walk-picker" class="walk-picker" hidden>
+        Polling District
+        <select id="walk-district-select">
+          <option value="N1">N1 (Harlech)</option>
+          <option value="AF1">AF1 (Talsarnau)</option>
+          <option value="AE1">AE1 (Llanbedr)</option>
+          <option value="AU1">AU1 (Llanfair)</option>
+          <option value="N2">N2 (Llandanwg)</option>
+        </select>
+      </label>
+      <div id="walk-key" class="walk-key" aria-label="Delivery walk key" hidden></div>
       <div id="harlech-map" class="harlech-map" aria-label="Map of Harlech a Llanbedr elector totals by postcode"></div>
     </section>
   </main>
@@ -144,11 +202,22 @@
     const boundariesToggle = document.getElementById("boundaries-toggle");
     const electorsToggle = document.getElementById("electors-toggle");
     const bypassToggle = document.getElementById("bypass-toggle");
+    const walksToggle = document.getElementById("walks-toggle");
     const zoomBypassButton = document.getElementById("zoom-bypass");
+    const walkKey = document.getElementById("walk-key");
+    const walkPicker = document.getElementById("walk-picker");
+    const walkDistrictSelect = document.getElementById("walk-district-select");
     const postcodeMarkers = L.layerGroup().addTo(map);
+    const propertyMarkers = L.layerGroup();
     const bypassLayer = L.layerGroup().addTo(map);
     const boundariesLayer = L.layerGroup().addTo(map);
     let bypassBounds = null;
+    let postcodeMarkersVisible = true;
+    let bypassLayerVisible = true;
+    let walksVisible = false;
+    let propertyData = [];
+    let walkColors = new Map();
+    const hiddenWalks = new Set();
     const DISTRICT_COLORS = {
       N1: "#2167b5",
       AF1: "#1b8a5a",
@@ -171,6 +240,11 @@
       N2: 67
     };
     const FALLBACK_COLORS = ["#2167b5", "#1b8a5a", "#d76a17", "#7a4fb3", "#bf3c69"];
+    const WALK_COLORS = [
+      "#da291c", "#2167b5", "#1b8a5a", "#d76a17", "#7a4fb3", "#bf3c69",
+      "#008080", "#8b4513", "#6b8e23", "#ff1493", "#4b0082", "#daa520",
+      "#708090", "#dc143c", "#2e8b57", "#4682b4", "#ff8c00", "#9370db"
+    ];
 
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 18
@@ -273,6 +347,153 @@
       ));
     }
 
+    function loadProposedWalks() {
+      return fetch("proposed-walks.csv")
+        .then(response => {
+          if (!response.ok) throw new Error("Could not load proposed walks.");
+          return response.text();
+        })
+        .then(text => {
+          const assignments = new Map();
+          parseCsv(text).slice(1).forEach(row => {
+            const householdId = String(row[0] || "").trim();
+            const walk = String(row[2] || "").trim();
+            if (householdId && walk) assignments.set(householdId, walk);
+          });
+          return assignments;
+        })
+        .catch(() => new Map());
+    }
+
+    function renderPropertyMarkers(rows, proposedWalks) {
+      const properties = new Map();
+      rows.slice(1).forEach(row => {
+        const pollingDistrict = String(row[10] || "").trim();
+        const householdId = String(row[41] || "").trim();
+        const latitude = Number(row[43]);
+        const longitude = Number(row[44]);
+        if (
+          !DISTRICT_NAMES[pollingDistrict] ||
+          !Number.isFinite(latitude) ||
+          !Number.isFinite(longitude)
+        ) {
+          return;
+        }
+
+        const number = String(row[46] || "").trim();
+        const name = String(row[47] || "").trim();
+        const subroad = String(row[48] || "").trim();
+        const walk =
+          proposedWalks.get(householdId) ||
+          String(row[50] || "").trim() ||
+          "Unassigned";
+        const propertyKey = householdId || [
+          pollingDistrict,
+          number,
+          name,
+          subroad,
+          latitude,
+          longitude
+        ].join("\u0000");
+        if (!properties.has(propertyKey)) {
+          properties.set(propertyKey, {
+            latitude,
+            longitude,
+            pollingDistrict,
+            walk,
+            electors: 1,
+            address: [number, name, subroad].filter(Boolean).join(" ")
+          });
+        } else {
+          properties.get(propertyKey).electors += 1;
+        }
+      });
+
+      propertyData = [...properties.values()];
+      const walks = [...new Set(propertyData.map(property => property.walk))]
+        .sort((left, right) => left.localeCompare(right, undefined, { numeric: true }));
+      walkColors = new Map(
+        walks.map((walk, index) => [walk, WALK_COLORS[index % WALK_COLORS.length]])
+      );
+      renderVisiblePropertyMarkers();
+    }
+
+    function renderVisiblePropertyMarkers() {
+      propertyMarkers.clearLayers();
+      const district = walkDistrictSelect.value;
+      const districtProperties = propertyData.filter(property =>
+        property.pollingDistrict === district
+      );
+      const walks = [...new Set(districtProperties.map(property => property.walk))]
+        .sort((left, right) => left.localeCompare(right, undefined, { numeric: true }));
+
+      const allWalksHidden = walks.length && walks.every(walk => hiddenWalks.has(walk));
+      walkKey.innerHTML = walks.map(walk => {
+        const walkNumber = walk.replace(/^[A-Z0-9]+-/, "");
+        const isHidden = hiddenWalks.has(walk);
+        const walkProperties = districtProperties.filter(property => property.walk === walk);
+        const householdCount = walkProperties.length;
+        const electorCount = walkProperties.reduce(
+          (total, property) => total + property.electors,
+          0
+        );
+        return (
+          "<span class=\"district-key-item\"><span class=\"district-key-swatch\" style=\"background:" +
+          walkColors.get(walk) + ";\"></span>" + walkNumber + " [" +
+          householdCount + "/" + electorCount + "]" +
+          "<button type=\"button\" class=\"walk-key-toggle\" data-walk=\"" + walk + "\">" +
+          " (" + (isHidden ? "SHOW" : "HIDE") + ")</button></span>"
+        );
+      }).join("") +
+        "<button type=\"button\" class=\"walk-key-toggle walk-key-all-toggle\" data-action=\"toggle-all\">" +
+        (allWalksHidden ? "SHOW ALL" : "HIDE ALL") + "</button>";
+
+      districtProperties
+        .filter(property => !hiddenWalks.has(property.walk))
+        .forEach(property => {
+        const marker = L.circleMarker([property.latitude, property.longitude], {
+          pane: "postcode-markers",
+          radius: 6,
+          color: "#fff",
+          weight: 1.5,
+          fillColor: walkColors.get(property.walk),
+          fillOpacity: 1
+        }).addTo(propertyMarkers);
+        marker.bindPopup(
+          "<strong>" + (property.address || "Property") + "</strong><br>Walk " +
+          property.walk.replace(/^[A-Z0-9]+-/, "")
+        );
+        });
+    }
+
+    function setWalksVisible(isVisible) {
+      walksVisible = isVisible;
+      walksToggle.setAttribute("aria-pressed", String(isVisible));
+      walksToggle.textContent = isVisible ? "HIDE WALKS" : "VIEW WALKS";
+      electorsToggle.disabled = isVisible;
+      bypassToggle.disabled = isVisible;
+      zoomBypassButton.disabled = isVisible || !bypassLayerVisible;
+
+      if (isVisible) {
+        map.removeLayer(postcodeMarkers);
+        map.removeLayer(bypassLayer);
+        map.addLayer(propertyMarkers);
+        districtKey.hidden = true;
+        walkPicker.hidden = false;
+        walkKey.hidden = false;
+        renderVisiblePropertyMarkers();
+      } else {
+        map.removeLayer(propertyMarkers);
+        if (postcodeMarkersVisible) map.addLayer(postcodeMarkers);
+        if (bypassLayerVisible) map.addLayer(bypassLayer);
+        districtKey.hidden = !postcodeMarkersVisible;
+        walkPicker.hidden = true;
+        walkKey.hidden = true;
+      }
+    }
+
+    const proposedWalksPromise = loadProposedWalks();
+
     fetch(sheetUrl)
       .then(response => {
         if (!response.ok) throw new Error("Could not load mapping data.");
@@ -280,6 +501,10 @@
       })
       .then(text => {
         const rows = parseCsv(text);
+        return proposedWalksPromise.then(proposedWalks => ({ rows, proposedWalks }));
+      })
+      .then(({ rows, proposedWalks }) => {
+        renderPropertyMarkers(rows, proposedWalks);
         const points = rows.slice(1).map(row => ({
           postcode: row[0].trim(),
           electors: Number(row[1]) || 0,
@@ -340,6 +565,7 @@
         summary.textContent =
           points.length.toLocaleString("en-GB") + " postcode locations · " +
           totalElectors.toLocaleString("en-GB") + " electors";
+        if (walksVisible) setWalksVisible(true);
         return Promise.all([addProposedBypass(), addCommunityBoundaries()]);
       })
       .catch(error => {
@@ -363,10 +589,43 @@
 
     configureLayerToggle(boundariesToggle, boundariesLayer, "BOUNDARIES");
     configureLayerToggle(electorsToggle, postcodeMarkers, "ELECTORS", isVisible => {
+      postcodeMarkersVisible = isVisible;
       districtKey.hidden = !isVisible;
     });
     configureLayerToggle(bypassToggle, bypassLayer, "BYPASS", isVisible => {
+      bypassLayerVisible = isVisible;
       zoomBypassButton.disabled = !isVisible;
+    });
+    walksToggle.addEventListener("click", () => setWalksVisible(!walksVisible));
+    walkDistrictSelect.addEventListener("change", () => {
+      hiddenWalks.clear();
+      renderVisiblePropertyMarkers();
+    });
+    walkKey.addEventListener("click", event => {
+      const toggle = event.target.closest(".walk-key-toggle");
+      if (!toggle) return;
+      if (toggle.dataset.action === "toggle-all") {
+        const walks = [...new Set(propertyData
+          .filter(property => property.pollingDistrict === walkDistrictSelect.value)
+          .map(property => property.walk))];
+        const allWalksHidden = walks.length && walks.every(walk => hiddenWalks.has(walk));
+        walks.forEach(walk => {
+          if (allWalksHidden) {
+            hiddenWalks.delete(walk);
+          } else {
+            hiddenWalks.add(walk);
+          }
+        });
+        renderVisiblePropertyMarkers();
+        return;
+      }
+      const walk = toggle.dataset.walk;
+      if (hiddenWalks.has(walk)) {
+        hiddenWalks.delete(walk);
+      } else {
+        hiddenWalks.add(walk);
+      }
+      renderVisiblePropertyMarkers();
     });
     zoomBypassButton.addEventListener("click", () => {
       if (bypassBounds) map.fitBounds(bypassBounds, { padding: [28, 28] });

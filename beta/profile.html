@@ -96,6 +96,30 @@
       color: var(--text);
       max-width: 300px;
     }
+    .profile-date-fields {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 6rem));
+      gap: 0.5rem;
+    }
+    .profile-birth-details { display: grid; gap: 0.5rem; }
+    .profile-date-fields label {
+      display: grid;
+      gap: 0.2rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #555;
+    }
+    .profile-date-fields .profile-field-select { width: 100%; }
+    .profile-age {
+      display: inline-block;
+      width: fit-content;
+      padding: 0.35rem 0.55rem;
+      border: 1px solid var(--border-strong);
+      border-radius: 0.4rem;
+      background: #f4f4f4;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -122,6 +146,23 @@
         <div class="profile-field-row" style="margin-bottom:0.75rem">
           <span class="profile-field-label">Preferred Name</span>
           <input type="text" id="profile-preferred-name" class="profile-field-input" placeholder="Enter preferred name">
+        </div>
+        <div class="profile-field-row" style="margin-bottom:0.75rem">
+          <span class="profile-field-label">Date of Birth</span>
+          <div class="profile-birth-details">
+            <div class="profile-date-fields">
+              <label>YEAR
+                <select id="profile-birth-year" class="profile-field-select" autocomplete="bday-year"></select>
+              </label>
+              <label>MONTH
+                <select id="profile-birth-month" class="profile-field-select" autocomplete="bday-month"></select>
+              </label>
+              <label>DAY
+                <select id="profile-birth-day" class="profile-field-select" autocomplete="bday-day"></select>
+              </label>
+            </div>
+            <output id="profile-age" class="profile-age">Age: —</output>
+          </div>
         </div>
 
         <!-- HOUSEHOLD DATA -->
@@ -293,6 +334,13 @@
       if (!n) return ""; if (n.includes("postal")) return "Postal"; if (n.includes("proxy")) return "Proxy";
       return String(v).trim();
     }
+    function dateOfBirthFromAttainment(value) {
+      const match = String(value || "").match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+      if (!match) return "";
+      return match[1].padStart(2, "0") + "/" +
+        match[2].padStart(2, "0") + "/" +
+        (Number(match[3]) - 16);
+    }
     function escapeHtml(v) {
       return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
     }
@@ -333,6 +381,10 @@
         lng: parseFloat(data.longitude || data.lng || data.lon || row[22]) || null,
         postalProxy: formatPostalProxy(data.postalproxy || data.postalorproxy || row[17] || ""),
         pvStatusRaw: String(data.pvstatus || row[17] || "").trim(),
+        dateOfBirth:
+          data.dateofbirth ||
+          data.dob ||
+          dateOfBirthFromAttainment(data.dateofattainment || row[18] || ""),
         householdId: data.householdid || row[19] || "",
         householdGroupKey: normalizeText(data.householdkey || data.key || row[11] || "") || ("row-" + sourceRow)
       };
@@ -367,6 +419,7 @@
       const match = String(label).match(/\(([^)]+)\)/);
       const community = match ? match[1] : String(label).replace(/^[A-Za-z]+\d+\s*/, "");
       const value = normalizeText(community) === "llandanwg" ? "Llanfair" : community;
+      if (normalizeText(value) === "llanbedr") return "LLANBEDR";
       return String(value)
         .toLowerCase()
         .replace(/^./, character => character.toUpperCase());
@@ -385,6 +438,10 @@
       const raw = all[electorId] || {};
       return {
         preferredName:       raw.preferredName || "",
+        birthYear:           raw.birthYear || "",
+        birthMonth:          raw.birthMonth || "",
+        birthDay:            raw.birthDay || "",
+        community:           raw.community || "",
         canvassId:           raw.canvassId || raw.status || "No Data",
         supportIndependence: raw.supportIndependence || "No Data",
         firstLanguage:       raw.firstLanguage || "English",
@@ -450,6 +507,13 @@
         "</a></dd>";
     }
 
+    function getDateParts(value) {
+      const match = String(value || "").match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+      return match
+        ? { day: match[1].padStart(2, "0"), month: match[2].padStart(2, "0"), year: match[3] }
+        : { day: "", month: "", year: "" };
+    }
+
     function renderVotingHistory(elector) {
       const normalizedName = String(elector.name || "").trim().toLowerCase();
       const alwaysVotes = DEMO_ALWAYS_VOTES_NAMES.has(normalizedName);
@@ -487,6 +551,104 @@
           : (savedPreferredName || sourcePreferredName);
       prefNameEl.addEventListener("change", () => saveProgressField(elector.id, "preferredName", prefNameEl.value.trim()));
 
+      const sourceBirthDate = getDateParts(elector.dateOfBirth);
+      const birthYearEl = document.getElementById("profile-birth-year");
+      const birthMonthEl = document.getElementById("profile-birth-month");
+      const birthDayEl = document.getElementById("profile-birth-day");
+      const ageEl = document.getElementById("profile-age");
+      const selectedBirthDate = {
+        year: progress.birthYear || sourceBirthDate.year,
+        month: progress.birthMonth || sourceBirthDate.month,
+        day: progress.birthDay || sourceBirthDate.day
+      };
+      const currentYear = new Date().getFullYear();
+
+      function updateAge() {
+        const year = Number(birthYearEl.value);
+        const month = Number(birthMonthEl.value);
+        const day = Number(birthDayEl.value);
+        if (!year) {
+          ageEl.textContent = "Age: —";
+          return;
+        }
+
+        const today = new Date();
+        const ageAtEndOfYear = today.getFullYear() - year;
+        if (!month) {
+          ageEl.textContent = "Age: " +
+            Math.max(0, ageAtEndOfYear - 1) + "/" + ageAtEndOfYear;
+          return;
+        }
+        if (month < today.getMonth() + 1) {
+          ageEl.textContent = "Age: " + ageAtEndOfYear;
+          return;
+        }
+        if (month > today.getMonth() + 1 || !day) {
+          ageEl.textContent = "Age: " +
+            Math.max(0, ageAtEndOfYear - 1) + "/" + ageAtEndOfYear;
+          return;
+        }
+        ageEl.textContent = "Age: " +
+          Math.max(0, ageAtEndOfYear - (day > today.getDate() ? 1 : 0));
+      }
+
+      birthYearEl.innerHTML = "<option value=\"\">Year</option>" +
+        Array.from({ length: currentYear - 1929 }, (_, index) => {
+          const year = String(currentYear - index);
+          return "<option value=\"" + year + "\">" + year + "</option>";
+        }).join("");
+      birthMonthEl.innerHTML = "<option value=\"\">Month</option>" +
+        Array.from({ length: 12 }, (_, index) => {
+          const month = String(index + 1).padStart(2, "0");
+          return "<option value=\"" + month + "\">" + month + "</option>";
+        }).join("");
+
+      function updateBirthDateFields() {
+        const hasYear = Boolean(birthYearEl.value);
+        const hasMonth = hasYear && Boolean(birthMonthEl.value);
+        birthMonthEl.disabled = !hasYear;
+        birthDayEl.disabled = !hasMonth;
+        const selectedDay = birthDayEl.value;
+        const daysInMonth = hasMonth
+          ? new Date(Number(birthYearEl.value), Number(birthMonthEl.value), 0).getDate()
+          : 0;
+        birthDayEl.innerHTML = "<option value=\"\">Day</option>" +
+          Array.from({ length: daysInMonth }, (_, index) => {
+            const day = String(index + 1).padStart(2, "0");
+            return "<option value=\"" + day + "\">" + day + "</option>";
+          }).join("");
+        if (selectedDay && Number(selectedDay) <= daysInMonth) {
+          birthDayEl.value = selectedDay;
+        }
+        updateAge();
+      }
+
+      birthYearEl.value = selectedBirthDate.year;
+      birthMonthEl.value = selectedBirthDate.month;
+      updateBirthDateFields();
+      birthDayEl.value = selectedBirthDate.day;
+
+      birthYearEl.addEventListener("change", () => {
+        birthMonthEl.value = "";
+        birthDayEl.value = "";
+        updateBirthDateFields();
+        saveProgressField(elector.id, "birthYear", birthYearEl.value);
+        saveProgressField(elector.id, "birthMonth", "");
+        saveProgressField(elector.id, "birthDay", "");
+      });
+      birthMonthEl.addEventListener("change", () => {
+        birthDayEl.value = "";
+        updateBirthDateFields();
+        saveProgressField(elector.id, "birthMonth", birthMonthEl.value);
+        saveProgressField(elector.id, "birthDay", "");
+      });
+      birthDayEl.addEventListener("change", () =>
+        {
+          updateAge();
+          saveProgressField(elector.id, "birthDay", birthDayEl.value);
+        }
+      );
+
       // Address line
       const addressParts = [elector.addressLine1, elector.addressLine2, elector.postcode].filter(Boolean);
       const addressLine = addressParts.join(", ");
@@ -497,7 +659,7 @@
         dlRow("Address", addressLine) +
         dlRow("Local Authority", "GWYNEDD") +
         dlRow("Ward", "HARLECH A LLANBEDR") +
-        dlRow("COMMUNITY", getCommunity(elector.pollingDistrict));
+        dlRow("Community", progress.community || getCommunity(elector.pollingDistrict));
 
       // Delivery details
       const walkNum = elector.deliveryWalk ? String(elector.deliveryWalk).match(/\d+/) : null;

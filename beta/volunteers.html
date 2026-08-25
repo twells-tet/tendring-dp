@@ -45,14 +45,14 @@
 
       <h2 style="margin:1rem 0 1rem;font-size:1.1rem;color:var(--plaid-green);">Harlech a Llanbedr — Walks</h2>
 
-      <table class="activist-table" style="width:100%;border-collapse:collapse;font-size:0.88rem;">
+      <table class="activist-table" style="width:100%;border-collapse:collapse;font-size:0.88rem;white-space:nowrap;">
         <thead>
           <tr>
             <th style="text-align:left;padding:0.5rem 0.6rem;background:var(--plaid-green);color:#fff;white-space:nowrap;">Polling District</th>
             <th style="text-align:center;padding:0.5rem 0.6rem;background:var(--plaid-green);color:#fff;">Walk</th>
             <th style="text-align:left;padding:0.5rem 0.6rem;background:var(--plaid-green);color:#fff;">Deliverer</th>
-            <th style="text-align:left;padding:0.5rem 0.6rem;background:var(--plaid-green);color:#fff;">Deliverer Address</th>
-            <th style="text-align:left;padding:0.5rem 0.6rem;background:var(--plaid-green);color:#fff;">Elector ID</th>
+            <th style="text-align:left;padding:0.5rem 0.6rem;background:var(--plaid-green);color:#fff;width:19rem;white-space:nowrap;">Deliverer Address</th>
+            <th style="text-align:left;padding:0.5rem 0.6rem;background:var(--plaid-green);color:#fff;width:6.5rem;">Elector ID</th>
           </tr>
         </thead>
         <tbody id="walks-tbody">
@@ -87,8 +87,11 @@
     })();
 
     const WALKS_KEY = "harlech-walks-v1";
-    const DEFAULT_DELIVERER_NAME = "Chris Green";
-    const DEFAULT_DELIVERER_ADDRESS = "4 Pencei Flats, Sand Street, Pwllheli, LL53 5LB";
+    const PROFILE_PROGRESS_KEY = "abersoch-elector-progress-v1";
+    const KNOWN_DELIVERERS = {
+      "599999999": { name: "Chris Green", address: "4 Pencei Flats, Sand Street" },
+      "507243585": { name: "Karl Ciz", address: "Meirion House, Llanbedr" }
+    };
 
     const WALKS = [
       { district: "N1", community: "Harlech", walk: 1 },
@@ -111,8 +114,34 @@
       { district: "AU1", community: "Llanfair", walk: 2 },
     ];
 
+    const DEFAULT_DELIVERER_BY_WALK = Object.fromEntries(
+      WALKS.map(({ district, walk }) => [
+        rowKey(district, walk),
+        district === "AE1" ? "507243585" : "599999999"
+      ])
+    );
+
     let walksData = {};
     try { walksData = JSON.parse(localStorage.getItem(WALKS_KEY) || "{}"); } catch(e) {}
+
+    function getProfileDeliverersByWalk() {
+      let progress = {};
+      try { progress = JSON.parse(localStorage.getItem(PROFILE_PROGRESS_KEY) || "{}"); } catch(e) {}
+
+      const byWalk = {};
+      Object.entries(progress).forEach(([electorId, details]) => {
+        if (!details.activeDeliverer || !Array.isArray(details.delivererWalks)) return;
+        details.delivererWalks.forEach(walk => { byWalk[walk] = electorId; });
+      });
+      return byWalk;
+    }
+
+    function withoutPostcode(address) {
+      return String(address || "").replace(
+        /,?\s+[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\s*$/i,
+        ""
+      ).trim();
+    }
 
     function saveWalks() {
       localStorage.setItem(WALKS_KEY, JSON.stringify(walksData));
@@ -130,21 +159,29 @@
       "<td style='padding:0.45rem 0.6rem;border-bottom:1px solid #e5e7eb;" + (style || "") + "'>" + content + "</td>";
 
     const tbody = document.getElementById("walks-tbody");
+    const profileDeliverersByWalk = getProfileDeliverersByWalk();
 
-    WALKS.forEach(({ district, community, walk }) => {
+    WALKS.slice().sort((left, right) =>
+      left.district.localeCompare(right.district) || left.walk - right.walk
+    ).forEach(({ district, community, walk }) => {
       const key = rowKey(district, walk);
       const saved = walksData[key] || {};
-      const electorId = saved.electorId || "";
-      const delivererName = saved.delivererName || DEFAULT_DELIVERER_NAME;
-      const delivererAddress = saved.delivererAddress || DEFAULT_DELIVERER_ADDRESS;
+      const assignedElectorId =
+        profileDeliverersByWalk[key] || DEFAULT_DELIVERER_BY_WALK[key] || "";
+      const profileDeliverer = KNOWN_DELIVERERS[assignedElectorId] || {};
+      const electorId = saved.electorId || assignedElectorId;
+      const delivererName = saved.delivererName || profileDeliverer.name || "No assigned deliverer";
+      const delivererAddress = withoutPostcode(
+        saved.delivererAddress || profileDeliverer.address
+      ) || "—";
 
       const tr = document.createElement("tr");
       tr.innerHTML =
         td("<strong>" + district + " (" + community + ")</strong>") +
         td(walk, "text-align:center;") +
-        td(delivererName, "color:var(--plaid-green);font-weight:600;") +
-        td(delivererAddress, "color:#555;font-size:0.82rem;") +
-        td("<input type='text' class='walk-elector-id' data-key='" + key + "' value='" + electorId.replace(/'/g,"&#39;") + "' placeholder='Elector ID' style='padding:0.3rem 0.5rem;border:1px solid var(--border-strong);border-radius:0.4rem;font:inherit;font-size:0.82rem;width:9rem;'>");
+        td(delivererName, "color:#1f2937;font-weight:600;") +
+        td(delivererAddress, "color:#555;font-size:0.82rem;white-space:nowrap;") +
+        td("<input type='text' class='walk-elector-id' data-key='" + key + "' value='" + electorId.replace(/'/g,"&#39;") + "' placeholder='Elector ID' style='padding:0.3rem 0.5rem;border:1px solid var(--border-strong);border-radius:0.4rem;font:inherit;font-size:0.82rem;width:6.5rem;'>");
       tbody.appendChild(tr);
     });
 

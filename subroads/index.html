@@ -245,7 +245,6 @@
       });
 
       const subroads = [...groups.values()].sort((left, right) =>
-        left.households.size - right.households.size ||
         left.pollingDistrict.localeCompare(right.pollingDistrict) ||
         left.subroad.localeCompare(right.subroad)
       );
