@@ -676,6 +676,37 @@ body.mobile-mode .elector-list {
   background: var(--border);
 }
 
+.polling-district-toggles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(10rem, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.polling-district-toggle {
+  padding: 0.6rem 0.85rem;
+  border: 1px solid #b42318;
+  border-radius: 0.5rem;
+  background: #d92d20;
+  color: var(--surface);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.polling-district-toggle.is-selected {
+  border-color: var(--plaid-green-dark);
+  background: var(--plaid-green);
+  color: var(--surface);
+}
+
+.polling-district-toggle:hover,
+.polling-district-toggle:focus-visible {
+  background: #b42318;
+}
+
 .quick-name-search {
   background: var(--surface);
   border: 1px solid var(--border);

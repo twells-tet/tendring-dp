@@ -42,7 +42,7 @@
       <img src="tarian-shield.svg" alt="" class="page-header-logo">
     </a>
     <h1>TARIAN</h1>
-    <p class="page-subtitle">Voter Contact Database</p>
+    <p class="page-subtitle">Voter Contact Database - Harlech a Llanbedr</p>
   </header>
 
   <main class="app-shell">
@@ -51,7 +51,7 @@
 
     <section class="controls" aria-label="Filters">
 
-      <h3 class="choose-district-heading">Choose District</h3>
+      <h3 class="choose-district-heading">Choose Polling District</h3>
 
       <!-- Hidden filter selects kept for JS reference only -->
       <select id="local-authority" hidden>
@@ -69,23 +69,21 @@
 
       <div class="filter-grid" style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;">
 
-        <div style="display:flex;flex-direction:column;gap:0.2rem;">
-          <span style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-secondary,#555);">Ward</span>
-          <span style="font-weight:600;font-size:0.95rem;">Harlech a Llanbedr</span>
-        </div>
-
-        <label for="polling-district">
-          Polling District
-          <select id="polling-district">
-            <option value="" id="polling-district-all-opt" selected>All Districts</option>
-            <option value="ae1">AE1 (Llanbedr)</option>
-            <option value="af1">AF1 (Talsarnau)</option>
-            <option value="au1">AU1 (Llanfair)</option>
-            <option value="n1">N1 (Harlech)</option>
-            <option value="n2">N2 (Llandanwg)</option>
-          </select>
-        </label>
-
+        <fieldset class="polling-district-toggles">
+          <button type="button" class="polling-district-toggle" data-polling-district="ae1" aria-pressed="false">AE1 (Llanbedr)</button>
+          <button type="button" class="polling-district-toggle" data-polling-district="af1" aria-pressed="false">AF1 (Talsarnau)</button>
+          <button type="button" class="polling-district-toggle" data-polling-district="au1" aria-pressed="false">AU1 (Llanfair)</button>
+          <button type="button" class="polling-district-toggle is-selected" data-polling-district="n1" aria-pressed="true">N1 (Harlech)</button>
+          <button type="button" class="polling-district-toggle" data-polling-district="n2" aria-pressed="false">N2 (Llandanwg)</button>
+          <button type="button" id="select-all-polling-districts" class="polling-district-toggle" aria-pressed="false">Select All</button>
+        </fieldset>
+        <select id="polling-district" multiple hidden>
+          <option value="ae1">AE1 (Llanbedr)</option>
+          <option value="af1">AF1 (Talsarnau)</option>
+          <option value="au1">AU1 (Llanfair)</option>
+          <option value="n1" selected>N1 (Harlech)</option>
+          <option value="n2">N2 (Llandanwg)</option>
+        </select>
       </div>
 
     </section>
@@ -107,27 +105,14 @@
     </section>
 
 
-    <section class="filter-section" aria-label="Elector filter">
+    <section class="filter-section" aria-label="Elector filter" hidden>
 
       <label for="filter-type">
         Filter
         <select id="filter-type">
           <option value="" selected>No filter</option>
-          <option value="postal-proxy">Postal Voters</option>
-          <option value="first-language-english" disabled>First Language: English</option>
-          <option value="first-language-welsh" disabled>First Language: Welsh</option>
-          <option value="likely-conservative" disabled>Likely Conservative</option>
-          <option value="likely-labour" disabled>Likely Labour</option>
-          <option value="likely-reform" disabled>Likely Reform</option>
-          <option value="never-voted" disabled>No record of ever voting</option>
-          <option value="no-canvass-since-2020" disabled>No canvass data since 1 January 2020</option>
-          <option value="squeeze" disabled>Squeeze</option>
-          <option value="stay-at-home" disabled>Stay At Home</option>
-          <option value="supporters" disabled>Supporters</option>
-          <option value="switch" disabled>Switch</option>
-          <option value="voted-since-2021" disabled>Voted at least once since 1 January 2021</option>
-          <option value="voted-leave-2016" disabled>Voted Leave 2016</option>
-          <option value="voted-remain-2016" disabled>Voted Remain 2016</option>
+          <option value="postal-proxy">Postal/proxy voters</option>
+          <option value="age-known">Age: Known</option>
         </select>
       </label>
 
@@ -138,8 +123,8 @@
 
     <div class="search-actions-row">
       <section class="export-buttons" aria-label="Export options">
-        <button type="button" id="display-map-button" class="export-button display-map-button">HOUSEHOLDS</button>
-        <a href="https://www.tarian146.co.uk/beta/harlech-a-llanbedr/mapping" target="_blank" rel="noopener" class="export-button polling-day-button">MAPPING</a>
+        <button type="button" id="display-map-button" class="export-button display-map-button">SUBROADS</button>
+        <a href="/mapping" class="export-button polling-day-button">MAPPING</a>
         <a href="volunteers.html" class="export-button members-activists-button">DELIVERERS</a>
       </section>
 
@@ -302,7 +287,7 @@
               placeholder="Start typing an address...">
           </div>
 
-          <div class="address-search-row subroad-filter-row" hidden style="display:none!important">
+          <div class="address-search-row subroad-filter-row">
             <label for="subroad-filter-subroad-select">Filter by Subroad</label>
             <div class="subroad-filter-controls">
               <select id="subroad-filter-district-select" aria-label="Polling District">
@@ -411,27 +396,6 @@
 
     <button type="button" id="mobile-toggle" class="mobile-toggle-button">Mobile View</button>
 
-    <p class="disclaimer">
-      For demonstrative purposes. No part of this data may be copied, shared, downloaded, etc.
-      Electoral data has been anonymised. Address data from Council Tax records
-      www.mycounciltax.org.uk.
-      All voting intention data and other records are fictitious.
-    </p>
-    <p class="mapping-attribution">
-      Mapping Data: Data from OpenStreetMap. &copy;
-      <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>,
-      available under the Open Database Licence.
-      See <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">openstreetmap.org/copyright</a> - as Uses
-      <a href="https://www.ordnancesurvey.co.uk/products/os-open-data" target="_blank" rel="noopener">OS OpenData (see licence)</a>
-      and OpenStreetMap data. Map data &copy;
-      <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>,
-      <a href="https://creativecommons.org/licenses/by-sa/2.0/" target="_blank" rel="noopener">CC-BY-SA</a>.
-      Tiles courtesy of MapBox
-      (<a href="https://www.openstreetmap.org/edit" target="_blank" rel="noopener">Improve this map</a>).
-      Contains Ordnance Survey data &copy; Crown copyright and database right 2026. Contains Royal Mail data
-      &copy; Royal Mail copyright and database right 2026. Contains National Statistics data
-      &copy; Crown copyright and database right 2026.
-    </p>
     <p class="back-to-top"><a href="#top">Back to top of page</a></p>
   </footer>
 
@@ -538,15 +502,9 @@ const DEFAULT_WALK_DESCRIPTIONS = {
 
 
 const canvassIdOptions = [
-  "No Data",
-  "Definite Plaid",
-  "Probable Plaid",
-  "Conservative",
-  "Green",
   "Independent",
-  "Labour",
-  "Lib Dem",
-  "Reform"
+  "Plaid Cymru",
+  "Other"
 ];
 
 
@@ -662,6 +620,15 @@ const westminsterEl =
 
 const pollingDistrictEl =
   document.getElementById("polling-district");
+
+let selectedPollingDistricts =
+  new Set(["n1"]);
+
+const pollingDistrictToggleEls =
+  document.querySelectorAll(".polling-district-toggle[data-polling-district]");
+
+const selectAllPollingDistrictsEl =
+  document.getElementById("select-all-polling-districts");
 
 const wardPreviewEl =
   document.getElementById("ward-preview");
@@ -925,24 +892,29 @@ function initControls() {
 
 
 
-  runSearchButtonEl.addEventListener(
-    "click",
-    () => {
+  if (runSearchButtonEl) {
+    runSearchButtonEl.addEventListener(
+      "click",
+      () => {
 
-      const filterState = {
-        pollingDistrict: pollingDistrictEl.value,
-        filterType: filterTypeEl.value
-      };
+        const filterState = {
+          pollingDistrict: getSelectedPollingDistricts().length === 1
+            ? getSelectedPollingDistricts()[0]
+            : "",
+          pollingDistricts: getSelectedPollingDistricts(),
+          filterType: filterTypeEl.value
+        };
 
-      localStorage.setItem(
-        STORAGE_KEYS.currentListFilter,
-        JSON.stringify(filterState)
-      );
+        localStorage.setItem(
+          STORAGE_KEYS.currentListFilter,
+          JSON.stringify(filterState)
+        );
 
-      window.location.href = "current-list.html";
+        window.location.href = "current-list.html";
 
-    }
-  );
+      }
+    );
+  }
 
 
 
@@ -951,7 +923,10 @@ function initControls() {
     () => {
 
       const filterState = {
-        pollingDistrict: pollingDistrictEl.value,
+        pollingDistrict: getSelectedPollingDistricts().length === 1
+          ? getSelectedPollingDistricts()[0]
+          : "",
+        pollingDistricts: getSelectedPollingDistricts(),
         filterType: filterTypeEl.value
       };
 
@@ -960,7 +935,7 @@ function initControls() {
         JSON.stringify(filterState)
       );
 
-      window.location.href = "mapping.html";
+      window.location.href = "/subroads";
 
     }
   );
@@ -1120,39 +1095,46 @@ function initControls() {
   );
 
 
-  pollingDistrictEl.addEventListener(
-    "change",
-    () => {
-      populateSubroadFilterOptions();
-      handleFilterChange();
-    }
-  );
+  setSelectedPollingDistricts(["n1"]);
 
-  const savedPollingDistrict =
-    localStorage.getItem(
-      STORAGE_KEYS.pollingDistrict
-    );
-
-  if (
-    savedPollingDistrict &&
-    [...pollingDistrictEl.options].some(
-      option => option.value === savedPollingDistrict
-    )
-  ) {
-    pollingDistrictEl.value = savedPollingDistrict;
-  }
-
-  pollingDistrictEl.addEventListener(
-    "change",
-    () => {
-
-      localStorage.setItem(
-        STORAGE_KEYS.pollingDistrict,
-        pollingDistrictEl.value
+  pollingDistrictToggleEls.forEach(toggle => {
+    toggle.addEventListener("click", () => {
+      const district = toggle.dataset.pollingDistrict;
+      const option = [...pollingDistrictEl.options].find(
+        candidate => candidate.value === district
       );
 
-    }
-  );
+      if (option) {
+        const selectedDistricts = new Set(getSelectedPollingDistricts());
+
+        if (selectedDistricts.has(district)) {
+          selectedDistricts.delete(district);
+        } else {
+          selectedDistricts.add(district);
+        }
+
+        setSelectedPollingDistricts([...selectedDistricts]);
+        populateSubroadFilterOptions();
+        localStorage.setItem(
+          STORAGE_KEYS.pollingDistrict,
+          JSON.stringify(getSelectedPollingDistricts())
+        );
+        handleFilterChange();
+      }
+    });
+  });
+
+  selectAllPollingDistrictsEl.addEventListener("click", () => {
+    setSelectedPollingDistricts(
+      [...pollingDistrictEl.options].map(option => option.value)
+    );
+    populateSubroadFilterOptions();
+    localStorage.setItem(
+      STORAGE_KEYS.pollingDistrict,
+      JSON.stringify(getSelectedPollingDistricts())
+    );
+    handleFilterChange();
+  });
 
   populateSubroadFilterOptions();
 
@@ -1340,9 +1322,6 @@ function initControls() {
     "resize",
     () => requestAnimationFrame(syncHouseholdDetailsPanelHeight)
   );
-
-  initFooterPreview(".disclaimer", 100);
-  initFooterPreview(".mapping-attribution", 100);
 
 }
 
@@ -1599,6 +1578,107 @@ async function loadElectorsFromSheet(inputUrl) {
 
 
 
+function deriveDateOfBirth(sixteenthBirthday) {
+
+  const value = String(sixteenthBirthday || "").trim();
+  const ukDate = value.match(/^(\d{1,2})([\/.-])(\d{1,2})\2(\d{4})$/);
+
+  if (ukDate) {
+    return ukDate[1].padStart(2, "0") +
+      ukDate[2] +
+      ukDate[3].padStart(2, "0") +
+      ukDate[2] +
+      (Number(ukDate[4]) - 16);
+  }
+
+  const isoDate = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+  if (isoDate) {
+    return (Number(isoDate[1]) - 16) +
+      "-" +
+      isoDate[2] +
+      "-" +
+      isoDate[3];
+  }
+
+  return "";
+
+}
+
+
+function daysUntilSixteenthBirthday(sixteenthBirthday) {
+
+  const value = String(sixteenthBirthday || "").trim();
+  let year;
+  let month;
+  let day;
+  const ukDate = value.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
+  const isoDate = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+  if (ukDate) {
+    day = Number(ukDate[1]);
+    month = Number(ukDate[2]);
+    year = Number(ukDate[3]);
+  } else if (isoDate) {
+    year = Number(isoDate[1]);
+    month = Number(isoDate[2]);
+    day = Number(isoDate[3]);
+  } else {
+    return null;
+  }
+
+  const today = new Date();
+  const todayUtc = Date.UTC(
+    today.getUTCFullYear(),
+    today.getUTCMonth(),
+    today.getUTCDate()
+  );
+  const birthdayUtc = Date.UTC(year, month - 1, day);
+
+  return Math.round((birthdayUtc - todayUtc) / 86400000);
+
+}
+
+
+function ageFromSixteenthBirthday(sixteenthBirthday) {
+
+  const value = String(sixteenthBirthday || "").trim();
+  const ukDate = value.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
+  const isoDate = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  let year;
+  let month;
+  let day;
+
+  if (ukDate) {
+    day = Number(ukDate[1]);
+    month = Number(ukDate[2]);
+    year = Number(ukDate[3]);
+  } else if (isoDate) {
+    year = Number(isoDate[1]);
+    month = Number(isoDate[2]);
+    day = Number(isoDate[3]);
+  } else {
+    return null;
+  }
+
+  const today = new Date();
+  let age = today.getUTCFullYear() - (year - 16);
+
+  if (
+    today.getUTCMonth() + 1 < month ||
+    (
+      today.getUTCMonth() + 1 === month &&
+      today.getUTCDate() < day
+    )
+  ) {
+    age -= 1;
+  }
+
+  return age;
+
+}
+
+
 function mapRowToElector(row, headers, index) {
 
 
@@ -1685,6 +1765,12 @@ function mapRowToElector(row, headers, index) {
 
   const postcode =
     data.postcode || "";
+  const sixteenthBirthday =
+    data.dateof16thbirthday ||
+    data.sixteenthbirthday ||
+    data.dateturns16 ||
+    row[18] ||
+    "";
 
 
 
@@ -1776,7 +1862,7 @@ function mapRowToElector(row, headers, index) {
 
     subRoad:
       data.subroad ||
-      row[40] ||
+      row[48] ||
       "",
 
 
@@ -1816,6 +1902,12 @@ function mapRowToElector(row, headers, index) {
         row[17] ||
         ""
       ),
+
+    age:
+      sixteenthBirthday,
+
+    dateOfBirth:
+      deriveDateOfBirth(sixteenthBirthday),
 
     pvStatusRaw:
       String(
@@ -2057,7 +2149,7 @@ function renderElectorList() {
 
 
   // In "View All" mode (no specific district selected), render compact list
-  if (!pollingDistrictEl.value) {
+  if (areAllPollingDistrictsSelected()) {
     updateStats();
     updatePropertyMap(null);
     updateAiComments(null);
@@ -2090,7 +2182,7 @@ function renderElectorList() {
       row.addEventListener("click", () => {
         // Switch to single-district view for this household's district
         const districtVal = normalizeText(fe.pollingDistrict);
-        pollingDistrictEl.value = districtVal;
+        setSelectedPollingDistricts([districtVal]);
         state.householdPageIndex = 0;
         populateSubroadFilterOptions();
         handleFilterChange();
@@ -2510,28 +2602,19 @@ function renderElectorList() {
 
         <div class="anti-plaid-checkboxes">
 
-          <p class="anti-plaid-heading">Anti-Plaid?</p>
+          <p class="anti-plaid-heading">ANTI</p>
 
           <label class="checkbox-label">
             <input
             type="checkbox"
-            class="do-not-deliver-checkbox"
+            class="anti-checkbox"
             data-id="${escapeHtmlAttr(elector.id)}"
-            ${progress.doNotDeliver ? "checked" : ""}>
-            DO NOT DELIVER
-          </label>
-
-          <label class="checkbox-label">
-            <input
-            type="checkbox"
-            class="do-not-contact-checkbox"
-            data-id="${escapeHtmlAttr(elector.id)}"
-            ${progress.doNotContact ? "checked" : ""}>
-            DO NOT CONTACT
+            ${progress.doNotDeliver || progress.doNotContact ? "checked" : ""}>
+            DO NOT DELIVER/DOORSTEP
           </label>
 
           <p class="anti-plaid-warning">
-            Ticking one or both boxes will also apply this marker to every elector in the household
+            Ticking this box will also apply this marker to every elector in the household
           </p>
 
         </div>
@@ -2879,7 +2962,10 @@ function welshProperCase(str) {
 
       }
 
-      return word.replace(/[a-zA-Z]/, ch => ch.toUpperCase());
+      return word.replace(
+        /(^|[\/-])([a-zA-Z])/g,
+        (_match, prefix, character) => prefix + character.toUpperCase()
+      );
 
     });
 
@@ -3114,11 +3200,8 @@ function bindProgressEditors() {
   const askVolunteerInputs =
     listEl.querySelectorAll(".ask-volunteer-checkbox");
 
-  const doNotDeliverInputs =
-    listEl.querySelectorAll(".do-not-deliver-checkbox");
-
-  const doNotContactInputs =
-    listEl.querySelectorAll(".do-not-contact-checkbox");
+  const antiInputs =
+    listEl.querySelectorAll(".anti-checkbox");
 
   canvassInputs.forEach(input => {
 
@@ -3306,38 +3389,19 @@ function bindProgressEditors() {
 
   });
 
-  doNotDeliverInputs.forEach(input => {
+  antiInputs.forEach(input => {
 
     input.addEventListener("change", event => {
 
       const id = event.target.dataset.id;
       const isChecked = event.target.checked;
 
-      if (!confirmAntiPlaidSelection(isChecked, "Do Not Deliver")) {
+      if (!confirmAntiPlaidSelection(isChecked, "Do Not Deliver/Doorstep")) {
         event.target.checked = false;
         return;
       }
 
       propagateAntiPlaidFlag(id, "doNotDeliver", isChecked);
-
-      renderElectorList();
-
-    });
-
-  });
-
-  doNotContactInputs.forEach(input => {
-
-    input.addEventListener("change", event => {
-
-      const id = event.target.dataset.id;
-      const isChecked = event.target.checked;
-
-      if (!confirmAntiPlaidSelection(isChecked, "Do Not Contact")) {
-        event.target.checked = false;
-        return;
-      }
-
       propagateAntiPlaidFlag(id, "doNotContact", isChecked);
 
       renderElectorList();
@@ -3980,28 +4044,6 @@ function buildAiComments(household) {
   }
 
 
-  // Household size sentence
-  if (names.length === 1) {
-
-    sentences.push(
-      "There is one elector in this household: " +
-      escapeHtml(names[0]) +
-      "."
-    );
-
-  } else {
-
-    sentences.push(
-      "There are " +
-      numberToWords(names.length) +
-      " electors in this household: " +
-      escapeHtml(joinNames(names)) +
-      "."
-    );
-
-  }
-
-
   // Canvass data sentence
   const canvassEntries =
     electors.map(elector => {
@@ -4012,94 +4054,75 @@ function buildAiComments(household) {
       };
     });
 
-  const canvassWithData =
-    canvassEntries.filter(entry => entry.canvassId !== "No Data");
+  const uniqueCanvassIds =
+    [...new Set(canvassEntries.map(entry => entry.canvassId))];
 
-  if (!canvassWithData.length) {
+  if (uniqueCanvassIds.length === 1) {
 
     sentences.push(
-      "We have no canvass data against them. " +
-      "We have no record of ever knocking on their door."
+      "All electors in this household are recorded as " +
+      escapeHtml(uniqueCanvassIds[0]) +
+      "."
     );
 
   } else {
 
-    const uniqueCanvassIds =
-      [...new Set(canvassWithData.map(entry => entry.canvassId))];
+    const canvassSummary =
+      canvassEntries.map(entry =>
+        escapeHtml(entry.name) + ": " + escapeHtml(entry.canvassId)
+      ).join("; ");
 
-    if (canvassWithData.length === electors.length && uniqueCanvassIds.length === 1) {
-
-      sentences.push(
-        "All electors in this household are recorded as " +
-        escapeHtml(uniqueCanvassIds[0]) +
-        "."
-      );
-
-    } else {
-
-      const canvassSummary =
-        canvassEntries.map(entry =>
-          escapeHtml(entry.name) + ": " + escapeHtml(entry.canvassId)
-        ).join("; ");
-
-      sentences.push(
-        "Canvass ID data for this household: " +
-        canvassSummary +
-        "."
-      );
-
-    }
+    sentences.push(
+      "Canvass ID data for this household: " +
+      canvassSummary +
+      "."
+    );
 
   }
 
 
-  // Support Independence sentence
-  const independenceEntries =
-    electors.map(elector => {
-      const progress = getElectorProgress(elector.id);
-      return {
-        name: getDisplayName(elector),
-        supportIndependence: progress.supportIndependence || "No Data"
-      };
+  const electorsWithKnownAge =
+    electors.filter(elector => normalizeText(elector.age).trim());
+
+  if (!electorsWithKnownAge.length) {
+    sentences.push(
+      "We do not know the age of any electors in this household."
+    );
+  } else {
+    electorsWithKnownAge.forEach(elector => {
+      const days = daysUntilSixteenthBirthday(elector.age);
+
+      if (days !== null && days > 0) {
+        sentences.push(
+          escapeHtml(getDisplayName(elector)) +
+          " will be 16 in " +
+          days +
+          " day" +
+          (days === 1 ? "" : "s") +
+          " (DOB " +
+          escapeHtml(elector.dateOfBirth) +
+          ")" +
+          "."
+        );
+      } else if (days !== null) {
+        const age = ageFromSixteenthBirthday(elector.age);
+
+        if (age !== null) {
+          sentences.push(
+            escapeHtml(getDisplayName(elector)) +
+            " is " +
+            age +
+            "."
+          );
+        }
+      }
     });
 
-  const independenceWithData =
-    independenceEntries.filter(entry => entry.supportIndependence !== "No Data");
-
-  if (!independenceWithData.length) {
-
-    sentences.push(
-      "Independence: we have no data on whether they are For or Against."
-    );
-
-  } else {
-
-    const uniqueIndependenceValues =
-      [...new Set(independenceWithData.map(entry => entry.supportIndependence))];
-
-    if (independenceWithData.length === electors.length && uniqueIndependenceValues.length === 1) {
-
+    if (electorsWithKnownAge.length < electors.length) {
       sentences.push(
-        "All electors in this household are recorded as Support Independence: " +
-        escapeHtml(uniqueIndependenceValues[0]) +
-        "."
+        "We do not have age data against any other electors."
       );
-
-    } else {
-
-      const independenceSummary =
-        independenceEntries.map(entry =>
-          escapeHtml(entry.name) + ": " + escapeHtml(entry.supportIndependence)
-        ).join("; ");
-
-      sentences.push(
-        "Support Independence data for this household: " +
-        independenceSummary +
-        "."
-      );
-
     }
-
   }
 
 
@@ -4315,11 +4338,11 @@ function applyCanvassAffinityRules(canvassId, partyMember, volunteer, askToVolun
     poster === "Poster: Window" ||
     poster === "Poster: Garden"
   ) {
-    return "Definite Plaid";
+    return "Plaid Cymru";
   }
 
   if (askToVolunteer) {
-    return canvassId === "Definite Plaid" ? "Definite Plaid" : "Probable Plaid";
+    return "Plaid Cymru";
   }
 
   return canvassId;
@@ -4340,33 +4363,8 @@ function hasAntiPlaidFlag(progress) {
 // Colour-codes elector cards and "Jump to Elector" chips by party.
 function getPoliticalLeanClass(canvassId) {
 
-  const PLAID_LEAN_IDS = [
-    "Definite Plaid",
-    "Probable Plaid"
-  ];
-
-  if (PLAID_LEAN_IDS.includes(canvassId)) {
+  if (canvassId === "Plaid Cymru") {
     return "elector-lean-green";
-  }
-
-  if (canvassId === "Conservative") {
-    return "elector-lean-blue";
-  }
-
-  if (canvassId === "Green") {
-    return "elector-lean-light-green";
-  }
-
-  if (canvassId === "Lib Dem") {
-    return "elector-lean-orange";
-  }
-
-  if (canvassId === "Reform") {
-    return "elector-lean-turquoise";
-  }
-
-  if (canvassId === "Labour") {
-    return "elector-lean-red";
   }
 
   return "elector-lean-grey";
@@ -4378,15 +4376,72 @@ function normalizeCanvassId(value) {
 
   const cleaned = String(value || "").trim();
 
-  if (cleaned === "Tory") {
-    return "Conservative";
+  if (
+    cleaned === "Plaid" ||
+    cleaned === "Definite Plaid" ||
+    cleaned === "Probable Plaid" ||
+    cleaned === "Plaid Cymru"
+  ) {
+    return "Plaid Cymru";
   }
 
-  if (cleaned === "Plaid") {
-    return "Probable Plaid";
+  if (cleaned === "Independent") {
+    return "Independent";
   }
 
-  return cleaned || "No Data";
+  return "Other";
+
+}
+
+
+function getSelectedPollingDistricts() {
+
+  return [...selectedPollingDistricts];
+
+}
+
+
+function setSelectedPollingDistricts(districts) {
+
+  const selectedDistricts =
+    new Set((Array.isArray(districts) ? districts : []).map(normalizeText));
+
+  selectedPollingDistricts = selectedDistricts;
+
+  [...pollingDistrictEl.options].forEach(option => {
+    option.selected = selectedDistricts.has(normalizeText(option.value));
+  });
+
+  syncPollingDistrictToggles();
+
+}
+
+
+function syncPollingDistrictToggles() {
+
+  const selectedDistricts = new Set(getSelectedPollingDistricts());
+
+  pollingDistrictToggleEls.forEach(toggle => {
+    const selected =
+      selectedDistricts.has(normalizeText(toggle.dataset.pollingDistrict));
+
+    toggle.classList.toggle("is-selected", selected);
+    toggle.setAttribute("aria-pressed", String(selected));
+  });
+
+  const allSelected = areAllPollingDistrictsSelected();
+  selectAllPollingDistrictsEl.classList.toggle("is-selected", allSelected);
+  selectAllPollingDistrictsEl.setAttribute("aria-pressed", String(allSelected));
+
+}
+
+
+function areAllPollingDistrictsSelected() {
+
+  return (
+    pollingDistrictEl.options.length > 0 &&
+    getSelectedPollingDistricts().length === pollingDistrictEl.options.length
+  );
 
 }
 
@@ -4397,10 +4452,7 @@ function getActiveElectors() {
   const senedd = normalizeText(seneddEl.value);
   const westminster = normalizeText(westminsterEl.value);
   const ward = normalizeText(wardEl.value);
-  const pollingDistrict = normalizeText(pollingDistrictEl.value);
-
-  // If no district selected, show all (value="" = All Districts option)
-  // Never return early — empty value means show all
+  const pollingDistricts = new Set(getSelectedPollingDistricts());
 
   const results = state.electors.filter(elector => {
 
@@ -4427,7 +4479,10 @@ function getActiveElectors() {
 
     // Ward filter skipped — all data in this sheet belongs to Harlech a Llanbedr ward
 
-    if (pollingDistrict && electorPollingDistrict && electorPollingDistrict !== pollingDistrict) {
+    if (
+      !pollingDistricts.size ||
+      (electorPollingDistrict && !pollingDistricts.has(electorPollingDistrict))
+    ) {
       return false;
     }
 
@@ -4436,7 +4491,7 @@ function getActiveElectors() {
   });
 
   // When showing all districts, sort alphabetically (AE1, AF1, AU1, N1, N2)
-  if (!pollingDistrict) {
+  if (areAllPollingDistrictsSelected()) {
     results.sort((a, b) => {
       const da = normalizeText(a.pollingDistrict || "");
       const db = normalizeText(b.pollingDistrict || "");
@@ -4458,7 +4513,10 @@ function getActiveElectors() {
 function populateSubroadFilterOptions() {
 
   const selectedDistrict =
-    normalizeText(subroadFilterDistrictEl.value || pollingDistrictEl.value);
+    normalizeText(
+      subroadFilterDistrictEl.value ||
+      getSelectedPollingDistricts()[0]
+    );
 
   if (
     [...subroadFilterDistrictEl.options].some(
@@ -4474,7 +4532,10 @@ function populateSubroadFilterOptions() {
   }
 
   const wantedDistrict =
-    normalizeText(subroadFilterDistrictEl.value || pollingDistrictEl.value);
+    normalizeText(
+      subroadFilterDistrictEl.value ||
+      getSelectedPollingDistricts()[0]
+    );
 
   const previousSelection =
     subroadFilterSubroadEl.value;
@@ -4573,6 +4634,10 @@ function getFilteredActiveElectors() {
         return false;
       }
 
+    }
+
+    if (filterType === "age-known" && !normalizeText(elector.age).trim()) {
+      return false;
     }
 
     if (addressSearch) {
@@ -4799,54 +4864,6 @@ function escapeHtmlAttr(value) {
   return escapeHtml(value).replace(/`/g, "&#096;");
 }
 
-function initFooterPreview(selector, maxChars) {
-
-  const el = document.querySelector(selector);
-
-  if (!el) {
-    return;
-  }
-
-  const fullHtml = el.innerHTML;
-  const fullText = (el.textContent || "").replace(/\s+/g, " ").trim();
-
-  if (fullText.length <= maxChars) {
-    return;
-  }
-
-  const previewText = fullText.slice(0, maxChars).trimEnd();
-
-  function renderCollapsed() {
-    el.innerHTML = "";
-
-    const textNode =
-      document.createTextNode(previewText + "... ");
-
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "footer-see-more-button";
-    button.textContent = "(see more)";
-    button.addEventListener("click", renderExpanded);
-
-    el.appendChild(textNode);
-    el.appendChild(button);
-  }
-
-  function renderExpanded() {
-    el.innerHTML = fullHtml + " ";
-
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "footer-see-more-button";
-    button.textContent = "(see less)";
-    button.addEventListener("click", renderCollapsed);
-
-    el.appendChild(button);
-  }
-
-  renderCollapsed();
-
-}
   </script>
 </body>
 </html>
