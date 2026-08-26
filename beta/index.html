@@ -556,6 +556,13 @@ const posterOptions = [
   "Poster: Garden"
 ];
 
+const DEFAULT_ANTI_ELECTOR_IDS = new Set([
+  "511924578",
+  "511982671",
+  "512006782"
+]);
+
+
 const VOTING_HISTORY_YEARS = [
   "2026 (Senedd)",
   "2024 (PCC)",
@@ -1744,11 +1751,13 @@ function mapRowToElector(row, headers, index) {
 
 
   const name =
+    fixAddressCasing(
     data.name ||
     data.elector ||
     data.electorname ||
     ([data.firstname, data.surname].filter(Boolean).join(" ")) ||
-    "";
+    ""
+  );
 
 
 
@@ -4136,8 +4145,16 @@ function getElectorProgress(electorId, electorName) {
     posterOptions.includes(poster) ? poster : "No Poster";
   const volunteer = Boolean(existing.volunteer);
   const askToVolunteer = volunteer ? false : Boolean(existing.askToVolunteer);
-  const doNotDeliver = Boolean(existing.doNotDeliver);
-  const doNotContact = Boolean(existing.doNotContact);
+  const hasDefaultAntiStatus =
+    DEFAULT_ANTI_ELECTOR_IDS.has(String(electorId));
+  const doNotDeliver =
+    existing.doNotDeliver === undefined
+      ? hasDefaultAntiStatus
+      : Boolean(existing.doNotDeliver);
+  const doNotContact =
+    existing.doNotContact === undefined
+      ? hasDefaultAntiStatus
+      : Boolean(existing.doNotContact);
   const canvassId = applyCanvassAffinityRules(
     baseCanvassId,
     partyMember,

@@ -287,6 +287,11 @@
       "2026 (Senedd)", "2024 (PCC)", "2024 (General)", "2022 (Local)",
       "2021 (Senedd)"
     ];
+    const DEFAULT_ANTI_ELECTOR_IDS = new Set([
+      "511924578",
+      "511982671",
+      "512006782"
+    ]);
 
     const DEMO_ALWAYS_VOTES_NAMES = new Set(["pat postie", "sam sorefeet"]);
 
@@ -343,6 +348,13 @@
     function escapeHtml(v) {
       return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
     }
+    function formatElectorName(value) {
+      return String(value || "")
+        .toLowerCase()
+        .replace(/(^|[^a-zA-ZÀ-ÖØ-öø-ÿ])([a-zA-ZÀ-ÖØ-öø-ÿ])/g, (_match, prefix, character) =>
+          prefix + character.toUpperCase()
+        );
+    }
 
     function mapRowToElector(row, headers, index) {
       const data = {};
@@ -350,18 +362,22 @@
       const sourceRow = index + 2;
       const id = data.electorid || data.id || data.reference || data.uprn || ("row-" + sourceRow);
       const name =
-        data.name ||
-        data.elector ||
-        data.electorname ||
-        [data.firstname, data.surname].filter(Boolean).join(" ") ||
-        "";
+        formatElectorName(
+          data.name ||
+          data.elector ||
+          data.electorname ||
+          [data.firstname, data.surname].filter(Boolean).join(" ") ||
+          ""
+        );
       return {
         id: String(id),
         name,
-        preferredName: [row[14], row[16]]
-          .map(value => String(value || "").trim())
-          .filter(Boolean)
-          .join(" "),
+        preferredName: formatElectorName(
+          [row[14], row[16]]
+            .map(value => String(value || "").trim())
+            .filter(Boolean)
+            .join(" ")
+        ),
         addressLine1: data.address1 || "",
         addressLine2: data.address2 || "",
         postcode: data.postcode || "",
@@ -503,8 +519,14 @@
         poster:              raw.poster || "No Poster",
         volunteer:           Boolean(raw.volunteer),
         askToVolunteer:      Boolean(raw.askToVolunteer),
-        doNotDeliver:        Boolean(raw.doNotDeliver),
-        doNotContact:        Boolean(raw.doNotContact)
+        doNotDeliver:
+          raw.doNotDeliver === undefined
+            ? DEFAULT_ANTI_ELECTOR_IDS.has(String(electorId))
+            : Boolean(raw.doNotDeliver),
+        doNotContact:
+          raw.doNotContact === undefined
+            ? DEFAULT_ANTI_ELECTOR_IDS.has(String(electorId))
+            : Boolean(raw.doNotContact)
       };
     }
 
