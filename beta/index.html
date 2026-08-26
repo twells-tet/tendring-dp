@@ -169,11 +169,8 @@
         </div>
         <div id="quick-lookup-row" class="quick-lookup-grid">
           <div class="quick-lookup-row">
-            <input type="text" id="quick-search-first-name" class="quick-lookup-input" placeholder="First name" aria-label="First name">
-            <input type="text" id="quick-search-last-name" class="quick-lookup-input" placeholder="Last name" aria-label="Last name">
-          </div>
-          <div class="quick-lookup-row">
-            <input type="text" id="quick-search-postcode" class="quick-lookup-input" placeholder="LL46 2SH" aria-label="Postcode">
+            <input type="text" id="quick-search-name" class="quick-lookup-input" placeholder="Name" aria-label="Name">
+            <input type="text" id="quick-search-postcode" class="quick-lookup-input" placeholder="Postcode" aria-label="Postcode">
             <button type="button" id="quick-search-button" class="add-filter-button quick-lookup-btn">Run Search</button>
           </div>
           <div class="quick-lookup-row">
@@ -796,11 +793,8 @@ const subroadFilterWalkEl =
 const subroadFilterSubroadEl =
   document.getElementById("subroad-filter-subroad-select");
 
-const quickSearchFirstNameEl =
-  document.getElementById("quick-search-first-name");
-
-const quickSearchLastNameEl =
-  document.getElementById("quick-search-last-name");
+const quickSearchNameEl =
+  document.getElementById("quick-search-name");
 
 const quickSearchPostcodeEl =
   document.getElementById("quick-search-postcode");
@@ -1045,17 +1039,15 @@ function initControls() {
   const quickSearchResultsEl = document.getElementById("quick-search-results");
 
   function runQuickNameSearch() {
-    const firstName = normalizeText(quickSearchFirstNameEl.value.trim());
-    const lastName  = normalizeText(quickSearchLastNameEl.value.trim());
+    const nameSearch = normalizeText(quickSearchNameEl.value.trim());
     const postcode  = normalizeText(quickSearchPostcodeEl.value.trim());
-    if (!firstName && !lastName && !postcode) { quickSearchResultsEl.innerHTML = ""; return; }
+    if (!nameSearch && !postcode) { quickSearchResultsEl.innerHTML = ""; return; }
 
     const matches = (state.electors || []).filter(e => {
       const name = normalizeText(e.name || "");
       const pc   = normalizeText(e.postcode || "");
-      if (firstName && !name.includes(firstName)) return false;
-      if (lastName  && !name.includes(lastName))  return false;
-      if (postcode  && !pc.startsWith(postcode))  return false;
+      if (nameSearch && !name.includes(nameSearch)) return false;
+      if (postcode  && !pc.startsWith(postcode)) return false;
       return true;
     }).slice(0, 50);
 
@@ -1078,10 +1070,8 @@ function initControls() {
       "</tbody></table>" +
       (matches.length === 50 ? "<p style='font-size:0.8rem;color:#888;margin:0.2rem 0'>Showing first 50 results.</p>" : "");
   }
-
   quickSearchButtonEl.addEventListener("click", runQuickNameSearch);
-  quickSearchFirstNameEl.addEventListener("keydown", e => { if (e.key === "Enter") runQuickNameSearch(); });
-  quickSearchLastNameEl.addEventListener("keydown",  e => { if (e.key === "Enter") runQuickNameSearch(); });
+  quickSearchNameEl.addEventListener("keydown", e => { if (e.key === "Enter") runQuickNameSearch(); });
   quickSearchPostcodeEl.addEventListener("keydown",  e => { if (e.key === "Enter") runQuickNameSearch(); });
 
   function doIdLookup() {

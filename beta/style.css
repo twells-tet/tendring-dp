@@ -966,8 +966,8 @@ body.mobile-mode .elector-list {
   font-size: 0.85rem;
   padding: 0.55rem 0.85rem;
   align-self: stretch;
-  border: 1px solid var(--plaid-green-dark);
-  background: var(--plaid-green-dark);
+  border: 1px solid var(--plaid-green);
+  background: var(--plaid-green);
   color: #fff;
   border-radius: 0.4rem;
   font: inherit;
@@ -977,8 +977,8 @@ body.mobile-mode .elector-list {
 }
 
 .quick-lookup-btn:hover {
-  background: var(--plaid-green-deeper);
-  border-color: var(--plaid-green-deeper);
+  background: var(--plaid-green-dark);
+  border-color: var(--plaid-green-dark);
 }
 
 .quick-name-search.quick-name-search--collapsed .quick-lookup-grid {
