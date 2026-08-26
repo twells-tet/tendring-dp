@@ -594,7 +594,8 @@ const state = {
   householdPageIndex: 0,
   showingWardBoundary: false,
   currentMapElector: null,
-  expandedHouseholdElectorNav: new Set()
+  expandedHouseholdElectorNav: new Set(),
+  hasManualSubroadFilterDistrict: false
 };
 
 // Seed a demo poster scenario (Joe Bloggs wants a garden poster, Jane
@@ -1022,6 +1023,7 @@ function initControls() {
   subroadFilterDistrictEl.addEventListener(
     "change",
     () => {
+      state.hasManualSubroadFilterDistrict = true;
       subroadFilterWalkEl.value = "";
       subroadFilterSubroadEl.value = "";
       populateSubroadFilterOptions();
@@ -3582,7 +3584,7 @@ function getEffectiveWalkNumberForElector(elector) {
 
 function getTotalWalkCountForDistrict(pollingDistrict) {
 
-  const DEFAULT_WALK_COUNTS = { n1: 10, ae1: 2, af1: 2, au1: 2, n2: 2 };
+  const DEFAULT_WALK_COUNTS = { n1: 10, ae1: 2, af1: 4, au1: 2, n2: 2 };
 
   const districtKey = normalizeText(pollingDistrict);
   let maxWalk = DEFAULT_WALK_COUNTS[districtKey] || 2;
@@ -4472,6 +4474,10 @@ function populateSubroadFilterOptions() {
 }
 
 function syncSubroadFilterDistrict(elector) {
+
+  if (state.hasManualSubroadFilterDistrict) {
+    return;
+  }
 
   const matchingOption = [...subroadFilterDistrictEl.options].find(
     option =>

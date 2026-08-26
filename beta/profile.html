@@ -466,7 +466,10 @@
       const defaultChrisGreenWalks = [
         ...Array.from({ length: 10 }, (_, index) => "N1-" + (index + 1)),
         ...["AF1", "AU1", "N2"].flatMap(
-          district => ["1", "2"].map(walk => district + "-" + walk)
+          district => Array.from(
+            { length: district === "AF1" ? 4 : 2 },
+            (_, index) => district + "-" + (index + 1)
+          )
         )
       ];
       return {
@@ -750,7 +753,10 @@
       const delivererWalks = [
         ...Array.from({ length: 10 }, (_, index) => "N1-" + (index + 1)),
         ...["AE1", "AF1", "AU1", "N2"].flatMap(
-          district => ["1", "2"].map(walk => district + "-" + walk)
+          district => Array.from(
+            { length: district === "AF1" ? 4 : 2 },
+            (_, index) => district + "-" + (index + 1)
+          )
         )
       ];
 
