@@ -422,7 +422,7 @@
         const name = String(row[47] || "").trim();
         const subroad = String(row[50] || "").trim();
         const walk =
-          String(row[49] || "").trim() ||
+          String(row[51] || "").trim() ||
           proposedWalks.get(householdId) ||
           "Unassigned";
         const propertyKey = householdId || [

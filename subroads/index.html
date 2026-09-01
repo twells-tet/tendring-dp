@@ -214,7 +214,7 @@
         const subroad =
           data.subroad ||
           String(row[50] || "").trim();
-        const walk = String(row[49] || "").trim();
+        const walk = String(row[51] || "").trim() || data.walk;
 
         if (
           !pollingDistrict ||

@@ -178,7 +178,7 @@
 
         const number = String(row[46] || "").trim();
         const name = String(row[47] || "").trim();
-        const walk = String(row[49] || "").trim();
+        const walk = String(row[51] || "").trim() || data.walk;
         const sortOrder = String(row[48] || "").trim();
         const coordinates = [
           String(row[43] || "").trim(),
@@ -193,7 +193,7 @@
         const group = groups.get(propertyKey) || {
           number,
           name,
-          walk: String(row[49] || "").trim(),
+          walk: String(row[51] || "").trim() || data.walk,
           sortOrder: String(row[48] || "").trim(),
           coordinates
         };
