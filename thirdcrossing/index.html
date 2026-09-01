@@ -6,16 +6,51 @@
   <title>Third Crossing | Menai Straits</title>
   <meta name="description" content="A campaign for a resilient third crossing over the Menai Straits, connecting Anglesey and Bangor.">
   <meta name="theme-color" content="#0a1a3e">
-  <link rel="icon" href="../tdp-icon.svg" type="image/svg+xml">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css">
+  <style>
+    .thirdcrossing-hero-image {
+      margin: 0;
+      height: min(48vw, 580px);
+      min-height: 260px;
+      overflow: hidden;
+    }
+
+    .thirdcrossing-hero-image img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    .thirdcrossing-tag {
+      color: #ffffff;
+      border-color: #ffffff;
+      font-size: 17px;
+      padding: 12px 18px;
+    }
+
+    .thirdcrossing-actions .card {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .thirdcrossing-actions .btn {
+      margin-top: auto;
+    }
+  </style>
 </head>
 <body>
   <main>
+    <figure class="thirdcrossing-hero-image">
+      <img src="menai-suspension-bridge.jpg" alt="Menai Suspension Bridge between Anglesey and Gwynedd">
+    </figure>
     <section class="hero">
       <div class="container">
-        <div class="tag">THIRD MENAI CROSSING</div>
-        <h1>A THIRD<br><span class="yellow">CROSSING</span></h1>
+        <div class="tag thirdcrossing-tag">THIRD MENAI CROSSING</div>
+        <h1>IT'S TIME<br><span class="yellow">FOR ACTION</span></h1>
         <p class="lead">
           Anglesey and Bangor need a reliable, resilient connection across the Menai Straits.
           It is time to plan a third crossing for the future.
@@ -28,55 +63,30 @@
       </div>
     </section>
 
-    <section id="case" class="cards" aria-label="Why a third crossing is needed">
-      <article class="card">
-        <h2>Resilience</h2>
-        <p>
-          When a crossing closes or traffic is restricted, everyday journeys, public services and businesses are disrupted.
-          A third route would give the area a stronger, more dependable network.
-        </p>
+    <section class="cards thirdcrossing-actions" aria-label="Take action">
+      <article id="petition" class="card">
+        <h2>Petition</h2>
+        <p>Add your name to the call for a practical, future-proof third crossing over the Menai Straits.</p>
+        <a href="#petition" class="btn primary">ADD YOUR NAME</a>
       </article>
       <article class="card">
-        <h2>Opportunity</h2>
+        <h2>Donate</h2>
+        <p>Help fund the campaign for a resilient connection between Anglesey and Bangor.</p>
+        <a href="../donate/" class="btn secondary">DONATE</a>
+      </article>
+      <article id="force-action" class="card">
+        <h2>Force Action</h2>
         <p>
-          A well-planned crossing can support homes, jobs, education and healthcare on both sides of the Straits, helping
-          Anglesey and Bangor thrive together.
+          We want to stand 35 candidates to Isle of Anglesey Council in May 2027. If you live or work on Anglesey,
+          sign up here XXXX.
         </p>
       </article>
-      <article class="card">
-        <h2>A Better Plan</h2>
-        <p>
-          The campaign calls for an open, evidence-led discussion that puts local communities, safety, the environment
-          and long-term transport needs first.
-        </p>
-      </article>
-    </section>
-
-    <section class="form-section" aria-label="Take action">
-      <div class="container form-container">
-        <article id="petition" class="card">
-          <h2>Petition</h2>
-          <p>Add your name to the call for a practical, future-proof third crossing over the Menai Straits.</p>
-          <a href="#petition" class="btn primary">ADD YOUR NAME</a>
-        </article>
-        <article class="card">
-          <h2>Donate</h2>
-          <p>Help fund the campaign for a resilient connection between Anglesey and Bangor.</p>
-          <a href="../donate/" class="btn secondary">DONATE</a>
-        </article>
-        <article id="force-action" class="card">
-          <h2>Force Action</h2>
-          <p>
-            We want to stand 35 candidates to Isle of Anglesey Council in May 2027. If you live or work on Anglesey,
-            sign up here XXXX.
-          </p>
-        </article>
-      </div>
     </section>
   </main>
 
   <footer>
-    Third Crossing Campaign &middot; 2026 [contact]
+    Third Crossing Campaign &middot;
+    <a href="https://commons.wikimedia.org/wiki/File:Pont_y_Borth_(Menai_Suspension_Bridge)_a_godwyd_gan_Telford,_rhwng_Ynys_Mon_a_Gwynedd;_Mehefin_2023_12.jpg">Hero Image: Wikimedia Commons</a>
   </footer>
 </body>
 </html>

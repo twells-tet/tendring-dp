@@ -421,6 +421,8 @@
         const number = String(row[46] || "").trim();
         const name = String(row[47] || "").trim();
         const subroad = String(row[50] || "").trim();
+        const addressLine1 = String(row[20] || "").trim();
+        const addressLine2 = String(row[21] || "").trim();
         const walk =
           String(row[51] || "").trim() ||
           proposedWalks.get(householdId) ||
@@ -439,6 +441,8 @@
             longitude,
             pollingDistrict,
             postcode,
+            addressLine1,
+            addressLine2,
             subroad,
             walk,
             electors: 1,
@@ -528,9 +532,9 @@
           fillOpacity: 1
         }).addTo(propertyMarkers);
         marker.bindPopup(
-          "<strong>" + [property.postcode, property.subroad]
-            .filter(Boolean)
-            .join(", ") + " (" + property.propertyCount + ")</strong><br>Walk " +
+          "<strong>" + property.addressLine1 + "</strong><br>" +
+          [property.addressLine2, property.postcode].filter(Boolean).join("<br>") +
+          "<br>Walk " +
           property.walk.replace(/^[A-Z0-9]+-/, "")
         );
         });
