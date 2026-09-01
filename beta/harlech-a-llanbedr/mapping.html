@@ -392,6 +392,14 @@
       return String(walk || "").replace(/^[A-Z0-9]+-/, "");
     }
 
+    function formatAddressLine(value) {
+      return String(value || "")
+        .toLowerCase()
+        .replace(/([^a-zA-Z]|^)([a-zA-Z])/g, (match, prefix, character) =>
+          prefix + character.toUpperCase()
+        );
+    }
+
     function isFinalWalk(district, walk) {
       return getWalkNumber(walk) === FINAL_WALK_BY_DISTRICT[district];
     }
@@ -421,8 +429,8 @@
         const number = String(row[46] || "").trim();
         const name = String(row[47] || "").trim();
         const subroad = String(row[50] || "").trim();
-        const addressLine1 = String(row[20] || "").trim();
-        const addressLine2 = String(row[21] || "").trim();
+        const addressLine1 = formatAddressLine(row[20]);
+        const addressLine2 = formatAddressLine(row[21]);
         const walk =
           String(row[51] || "").trim() ||
           proposedWalks.get(householdId) ||
@@ -534,8 +542,8 @@
         marker.bindPopup(
           "<strong>" + property.addressLine1 + "</strong><br>" +
           [property.addressLine2, property.postcode].filter(Boolean).join("<br>") +
-          "<br>Walk " +
-          property.walk.replace(/^[A-Z0-9]+-/, "")
+          "<br><strong>Walk " +
+          property.walk.replace(/^[A-Z0-9]+-/, "") + "</strong>"
         );
         });
     }
