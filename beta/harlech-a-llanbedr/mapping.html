@@ -432,7 +432,8 @@
         .toLowerCase()
         .replace(/([^a-zA-Z]|^)([a-zA-Z])/g, (match, prefix, character) =>
           prefix + character.toUpperCase()
-        );
+        )
+        .replace(/\s+(Y|Yr)\s+/g, (match, article) => " " + article.toLowerCase() + " ");
     }
 
     function isFinalWalk(district, walk) {
