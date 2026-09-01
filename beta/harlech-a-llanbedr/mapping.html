@@ -199,6 +199,8 @@
       "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/export?format=csv&gid=439559888";
     const bypassUrl =
       "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/gviz/tq?tqx=out:csv&gid=439559888&range=G:I";
+    const walkDescriptionsUrl =
+      "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/gviz/tq?tqx=out:csv&gid=1494961114&range=J:L";
     const COMMUNITIES = [
       { name: "Talsarnau", url: "/beta/boundaries/harlech/talsarnau.geojson", color: "#1b8a5a" },
       { name: "Harlech", url: "/beta/boundaries/harlech/harlech.geojson", color: "#2167b5" },
@@ -233,6 +235,7 @@
     let walksVisible = true;
     let propertyData = [];
     let walkColors = new Map();
+    let walkDescriptions = new Map();
     const hiddenWalks = new Set();
     const DISTRICT_COLORS = {
       N1: "#2167b5",
@@ -388,8 +391,40 @@
         .catch(() => new Map());
     }
 
+    function loadWalkDescriptions() {
+      return fetch(walkDescriptionsUrl)
+        .then(response => {
+          if (!response.ok) throw new Error("Could not load walk descriptions.");
+          return response.text();
+        })
+        .then(text => {
+          const descriptions = new Map();
+          parseCsv(text).slice(1).forEach(row => {
+            const district = String(row[0] || "").trim();
+            const walk = String(row[1] || "").trim();
+            const description = String(row[2] || "").trim();
+            if (district && walk && description) {
+              descriptions.set(district + "-" + walk, description);
+            }
+          });
+          return descriptions;
+        })
+        .catch(() => new Map());
+    }
+
     function getWalkNumber(walk) {
       return String(walk || "").replace(/^[A-Z0-9]+-/, "");
+    }
+
+    function getWalkLabel(district, walk) {
+      const walkNumber = getWalkNumber(walk);
+      const walkId = district + "-" + walkNumber;
+      const description = walkDescriptions.get(walkId);
+      return description
+        ? description.includes("(Postal)")
+          ? walkId + " " + description
+          : walkId + " (" + description + ")"
+        : walkId;
     }
 
     function formatAddressLine(value) {
@@ -491,13 +526,12 @@
 
       const allWalksHidden = walks.length && walks.every(walk => hiddenWalks.has(walk));
       walkKey.innerHTML = walks.map(walk => {
-        const walkNumber = getWalkNumber(walk);
         const isHidden = hiddenWalks.has(walk);
         const walkProperties = districtProperties.filter(property => property.walk === walk);
         const propertyCount = walkProperties.length;
         return (
           "<span class=\"district-key-item\"><span class=\"district-key-swatch\" style=\"background:" +
-          getWalkColor(district, walk) + ";\"></span>" + walkNumber + " [" +
+          getWalkColor(district, walk) + ";\"></span>" + getWalkLabel(district, walk) + " [" +
           propertyCount + "]" +
           "<button type=\"button\" class=\"walk-key-toggle\" data-walk=\"" + walk + "\">" +
           " (" + (isHidden ? "SHOW" : "HIDE") + ")</button></span>"
@@ -540,10 +574,9 @@
           fillOpacity: 1
         }).addTo(propertyMarkers);
         marker.bindPopup(
-          "<strong>" + property.addressLine1 + "</strong><br>" +
+          property.addressLine1 + "<br>" +
           [property.addressLine2, property.postcode].filter(Boolean).join("<br>") +
-          "<br><strong>Walk " +
-          property.walk.replace(/^[A-Z0-9]+-/, "") + "</strong>"
+          "<br><strong>" + getWalkLabel(property.pollingDistrict, property.walk) + "</strong>"
         );
         });
     }
@@ -618,6 +651,7 @@
     }
 
     const proposedWalksPromise = loadProposedWalks();
+    const walkDescriptionsPromise = loadWalkDescriptions();
 
     fetch(sheetUrl)
       .then(response => {
@@ -626,9 +660,11 @@
       })
       .then(text => {
         const rows = parseCsv(text);
-        return proposedWalksPromise.then(proposedWalks => ({ rows, proposedWalks }));
+        return Promise.all([proposedWalksPromise, walkDescriptionsPromise])
+          .then(([proposedWalks, descriptions]) => ({ rows, proposedWalks, descriptions }));
       })
-      .then(({ rows, proposedWalks }) => {
+      .then(({ rows, proposedWalks, descriptions }) => {
+        walkDescriptions = descriptions;
         renderPropertyMarkers(rows, proposedWalks);
         const postcodeGroups = new Map();
 
