@@ -32,11 +32,31 @@
     }
 
     .thirdcrossing-language {
+      display: flex;
+      gap: 0.35rem;
+      justify-content: center;
       margin: 0 0 0.4rem;
-      color: #ffffff;
+    }
+
+    .thirdcrossing-language-button {
+      box-sizing: border-box;
+      width: 6.75rem;
+      padding: 0.3rem 0.5rem;
+      border: 1px solid #ffffff;
+      background: #ffffff;
+      color: #0a1a3e;
+      font: inherit;
       font-size: 0.7rem;
       font-weight: 700;
       letter-spacing: 0.12em;
+    }
+
+    .thirdcrossing-language-status {
+      min-height: 1.2rem;
+      margin: 0 0 0.4rem;
+      color: #ffffff;
+      font-size: 0.8rem;
+      font-weight: 700;
     }
 
     .thirdcrossing-actions .card {
@@ -71,7 +91,11 @@
     </figure>
     <section class="hero">
       <div class="container">
-        <div class="thirdcrossing-language">CYMRAEG</div>
+        <div class="thirdcrossing-language" aria-label="Language selection">
+          <button type="button" id="welsh-language-button" class="thirdcrossing-language-button">CYMRAEG</button>
+          <button type="button" id="english-language-button" class="thirdcrossing-language-button">ENGLISH</button>
+        </div>
+        <p id="language-status" class="thirdcrossing-language-status" role="status" aria-live="polite"></p>
         <div class="tag thirdcrossing-tag">THIRD MENAI CROSSING</div>
         <h1>IT'S TIME<br><span class="yellow">FOR ACTION</span></h1>
         <p class="lead">
@@ -112,5 +136,14 @@
     Third Crossing Campaign &middot;
     <a href="https://commons.wikimedia.org/wiki/File:Pont_y_Borth_(Menai_Suspension_Bridge)_a_godwyd_gan_Telford,_rhwng_Ynys_Mon_a_Gwynedd;_Mehefin_2023_12.jpg">Hero Image: Wikimedia Commons</a>
   </footer>
+  <script>
+    document.getElementById("welsh-language-button").addEventListener("click", function () {
+      document.getElementById("language-status").textContent = "Coming soon!";
+    });
+
+    document.getElementById("english-language-button").addEventListener("click", function () {
+      window.location.reload();
+    });
+  </script>
 </body>
 </html>
