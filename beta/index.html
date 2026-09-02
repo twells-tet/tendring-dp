@@ -126,9 +126,9 @@
       <div class="search-actions-controls">
         <section class="export-buttons" aria-label="Export options">
           <button type="button" id="display-map-button" class="export-button display-map-button">SUBROADS</button>
-          <a href="https://www.tarian146.co.uk/beta/harlech-a-llanbedr/mapping" class="export-button polling-day-button">MAPPING</a>
+          <a href="mapping.html" class="export-button polling-day-button">MAPPING</a>
           <a href="volunteers.html" class="export-button members-activists-button">DELIVERERS</a>
-          <a href="https://www.tarian146.co.uk/beta/harlech-a-llanbedr/" class="export-button display-map-button">DATA</a>
+          <a href="current-list.html" class="export-button display-map-button">DATA</a>
         </section>
 
         <div class="panel delivery-panel" id="delivery-panel">
@@ -955,7 +955,7 @@ function initControls() {
         JSON.stringify(filterState)
       );
 
-      window.location.href = "/subroads";
+      window.location.href = "../subroads/";
 
     }
   );
@@ -3832,15 +3832,23 @@ function buildDeliveryDescription(elector, pollingDistrict, walkNumber) {
     return "—";
   }
 
-  const sourceDescription = String(elector.deliveryDescription || "").trim();
-  if (sourceDescription) {
-    return sourceDescription;
-  }
-
   const district =
     normalizeText(pollingDistrict || elector.pollingDistrict || "");
+  const effectiveWalk = parseWalkNumber(walkNumber) || 1;
+  const sourceDescription = String(elector.deliveryDescription || "").trim();
+  const description =
+    sourceDescription || getWalkDescription(district, effectiveWalk);
 
-  return getWalkDescription(district, walkNumber || "1") || "—";
+  if (!description) {
+    return "—";
+  }
+
+  const postalDescription = description.replace(/\s*\(Postal\)\s*$/i, "").trim();
+  const isPostal = postalDescription !== description;
+
+  return isPostal
+    ? `${district.toUpperCase()} - ${postalDescription} (${effectiveWalk} - Postal)`
+    : `${district.toUpperCase()} - ${description} (${effectiveWalk})`;
 
 }
 
