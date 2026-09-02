@@ -19,8 +19,18 @@
     background: #fcf4ed;
   }
 
+  .comments-form .form-group {
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.75rem;
+  }
+
   .comments-form textarea {
     resize: vertical;
+  }
+
+  .comments-privacy-note {
+    margin-bottom: 1.5rem;
   }
 
   .comments-form .btn-large {
@@ -67,25 +77,21 @@
 <a class="tag menai-volunteer-tag comments-page-tag" href="../thirdcrossing/">THIRD MENAI CROSSING</a>
 <h1 class="comments-heading">COMMENTS</h1>
 <form id="comment-form" class="volunteer-form comments-form">
-<p class="form-hint">Your email and postcode are <em>never</em> published. Required fields are marked *</p>
+<p class="form-hint comments-privacy-note">Your email and postcode are <em>never</em> published. Required fields are marked *</p>
 <div class="form-group">
-<label for="name" class="form-label">Name *</label>
-<input type="text" id="name" name="name" placeholder="Jo Williams" required>
+<input type="text" id="name" name="name" placeholder="Name *" aria-label="Name" required>
 </div>
 
 <div class="form-group">
-<label for="email" class="form-label">Email *</label>
-<input type="email" id="email" name="email" placeholder="your@email.com" required>
+<input type="email" id="email" name="email" placeholder="Email *" aria-label="Email" required>
 </div>
 
 <div class="form-group">
-<label for="postcode" class="form-label">Postcode *</label>
-<input type="text" id="postcode" name="postcode" placeholder="LL57 1AA" required>
+<input type="text" id="postcode" name="postcode" placeholder="Postcode *" aria-label="Postcode" required>
 </div>
 
 <div class="form-group">
-<label for="message" class="form-label">Comment *</label>
-<textarea id="message" name="message" rows="6" minlength="30" required></textarea>
+<textarea id="message" name="message" rows="6" minlength="30" placeholder="Comment" aria-label="Comment" required></textarea>
 </div>
 
 <p id="status" class="error-message" role="status" aria-live="polite"></p>
@@ -94,9 +100,9 @@
 
 <section class="published-comments" aria-label="Example comments">
 <article class="published-comment">
-<strong>Gareth, Llangefni</strong>
-<time datetime="2026-09-01T09:42">1 Sep 2026 · 09:42</time>
-<p>It will be great to finally have a new bridge. Anglesey needs a reliable connection to the mainland.</p>
+<strong>Rhys, Beaumaris</strong>
+<time datetime="2026-09-02T20:53">2 Sep 2026 · 20:53</time>
+<p>This has been talked about for years. A third crossing would make a real difference to people who live and work on the island.</p>
 </article>
 <article class="published-comment">
 <strong>Carys, Porthaethwy</strong>
@@ -104,9 +110,9 @@
 <p>I’m sick of waiting in traffic every time there’s a problem with one of the bridges. We need a proper long-term solution.</p>
 </article>
 <article class="published-comment">
-<strong>Rhys, Beaumaris</strong>
-<time datetime="2026-09-02T20:53">2 Sep 2026 · 20:53</time>
-<p>This has been talked about for years. A third crossing would make a real difference to people who live and work on the island.</p>
+<strong>Gareth, Llangefni</strong>
+<time datetime="2026-09-01T09:42">1 Sep 2026 · 09:42</time>
+<p>It will be great to finally have a new bridge. Anglesey needs a reliable connection to the mainland.</p>
 </article>
 </section>
 </div>
