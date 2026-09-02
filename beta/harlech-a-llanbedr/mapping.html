@@ -260,6 +260,8 @@
       "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/gviz/tq?tqx=out:csv&gid=439559888&range=G:I";
     const walkDescriptionsUrl =
       "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/gviz/tq?tqx=out:csv&gid=1494961114&range=J:L";
+    const coordinateAddressesUrl =
+      "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/gviz/tq?tqx=out:csv&sheet=COORDINATES";
     const COMMUNITIES = [
       { name: "Talsarnau", url: "/beta/boundaries/harlech/talsarnau.geojson", color: "#1b8a5a" },
       { name: "Harlech", url: "/beta/boundaries/harlech/harlech.geojson", color: "#2167b5" },
@@ -474,6 +476,27 @@
         .catch(() => new Map());
     }
 
+    function loadCoordinateAddresses() {
+      return fetch(coordinateAddressesUrl)
+        .then(response => {
+          if (!response.ok) throw new Error("Could not load coordinate addresses.");
+          return response.text();
+        })
+        .then(text => {
+          const addresses = new Map();
+          parseCsv(text).slice(1).forEach(row => {
+            const householdId = String(row[0] || "").trim();
+            const addressLine1 = String(row[7] || "").trim();
+            const addressLine2 = String(row[8] || "").trim();
+            if (householdId && (addressLine1 || addressLine2)) {
+              addresses.set(householdId, { addressLine1, addressLine2 });
+            }
+          });
+          return addresses;
+        })
+        .catch(() => new Map());
+    }
+
     function getWalkNumber(walk) {
       return String(walk || "").replace(/^[A-Z0-9]+-/, "");
     }
@@ -508,7 +531,7 @@
         : walkColors.get(walk);
     }
 
-    function renderPropertyMarkers(rows, proposedWalks) {
+    function renderPropertyMarkers(rows, proposedWalks, coordinateAddresses) {
       const properties = new Map();
       rows.slice(1).forEach(row => {
         const pollingDistrict = String(row[10] || "").trim();
@@ -528,8 +551,17 @@
         const number = String(row[46] || "").trim();
         const name = String(row[47] || "").trim();
         const subroad = String(row[50] || "").trim();
-        const addressLine1 = formatAddressLine(row[20]);
-        const addressLine2 = formatAddressLine(row[21]);
+        const coordinateAddress = coordinateAddresses.get(householdId);
+        const addressLine1 = formatAddressLine(
+          coordinateAddress && coordinateAddress.addressLine1
+            ? coordinateAddress.addressLine1
+            : row[20]
+        );
+        const addressLine2 = formatAddressLine(
+          coordinateAddress && coordinateAddress.addressLine2
+            ? coordinateAddress.addressLine2
+            : row[21]
+        );
         const walk =
           String(row[51] || "").trim() ||
           proposedWalks.get(householdId) ||
@@ -757,6 +789,7 @@
 
     const proposedWalksPromise = loadProposedWalks();
     const walkDescriptionsPromise = loadWalkDescriptions();
+    const coordinateAddressesPromise = loadCoordinateAddresses();
 
     fetch(sheetUrl)
       .then(response => {
@@ -765,12 +798,20 @@
       })
       .then(text => {
         const rows = parseCsv(text);
-        return Promise.all([proposedWalksPromise, walkDescriptionsPromise])
-          .then(([proposedWalks, descriptions]) => ({ rows, proposedWalks, descriptions }));
+        return Promise.all([
+          proposedWalksPromise,
+          walkDescriptionsPromise,
+          coordinateAddressesPromise
+        ]).then(([proposedWalks, descriptions, coordinateAddresses]) => ({
+          rows,
+          proposedWalks,
+          descriptions,
+          coordinateAddresses
+        }));
       })
-      .then(({ rows, proposedWalks, descriptions }) => {
+      .then(({ rows, proposedWalks, descriptions, coordinateAddresses }) => {
         walkDescriptions = descriptions;
-        renderPropertyMarkers(rows, proposedWalks);
+        renderPropertyMarkers(rows, proposedWalks, coordinateAddresses);
         addJa1Marker(rows);
         const postcodeGroups = new Map();
 
