@@ -57,7 +57,7 @@
       padding: 0;
       border: 0;
       background: transparent;
-      color: #2167b5;
+      color: var(--plaid-green, #0a6d5e);
       font: inherit;
       font-size: 0.8rem;
       font-weight: 700;
@@ -66,11 +66,11 @@
 
     .ja1-toggle:hover,
     .ja1-toggle:focus-visible {
-      color: #164a8a;
+      color: var(--plaid-green-dark, #073d37);
     }
 
     .ja1-toggle[aria-pressed="true"] {
-      color: #164a8a;
+      color: var(--plaid-green-dark, #073d37);
     }
 
     .zoom-bypass {
@@ -593,6 +593,17 @@
       );
     }
 
+    function fitVisiblePropertyMarkers() {
+      const bounds = L.latLngBounds();
+      [postcodeMarkers, propertyMarkers, ja1Layer].forEach(layerGroup => {
+        if (!map.hasLayer(layerGroup)) return;
+        layerGroup.eachLayer(marker => {
+          if (typeof marker.getLatLng === "function") bounds.extend(marker.getLatLng());
+        });
+      });
+      if (bounds.isValid()) map.fitBounds(bounds, { padding: [28, 28] });
+    }
+
     function renderVisiblePropertyMarkers() {
       propertyMarkers.clearLayers();
       walkOutlines.clearLayers();
@@ -925,8 +936,10 @@
         map.removeLayer(ja1Layer);
       } else {
         map.addLayer(ja1Layer);
+        fitVisiblePropertyMarkers();
       }
       ja1Toggle.setAttribute("aria-pressed", String(!isVisible));
+      ja1Toggle.textContent = isVisible ? "JA1" : "JA1 (HIDE)";
     });
     walkDistrictSelect.addEventListener("change", () => {
       hiddenWalks.clear();
