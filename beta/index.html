@@ -3267,6 +3267,7 @@ function propagateAntiPlaidFlag(electorId, field, value) {
 function updatePropertyMap(elector) {
 
   state.currentMapElector = elector || null;
+  const renderVersion = ++propertyMapRenderVersion;
 
   if (manualLatInputEl && manualLngInputEl) {
     manualLatInputEl.value =
@@ -3350,6 +3351,9 @@ function updatePropertyMap(elector) {
     fillOpacity: 1
   }).addTo(wardPreviewLeafletMap);
   const refreshPropertyMap = () => {
+    if (renderVersion !== propertyMapRenderVersion) {
+      return;
+    }
     wardPreviewLeafletMap.invalidateSize({ pan: false });
     wardPreviewLeafletMap.setView([lat, lng], 19, { animate: false });
   };
@@ -3359,6 +3363,8 @@ function updatePropertyMap(elector) {
     requestAnimationFrame(refreshPropertyMap);
   });
   window.setTimeout(refreshPropertyMap, 150);
+  window.setTimeout(refreshPropertyMap, 500);
+  window.addEventListener("load", refreshPropertyMap, { once: true });
 
   wardPreviewCoordsEl.textContent =
     "GPS coordinates " + lat + ", " + lng;
@@ -3377,6 +3383,7 @@ const DISTRICT_COMMUNITY_GEOJSON = {
 let wardBoundaryLeafletMap = null;
 let wardPreviewLeafletMap = null;
 let wardPreviewMarker = null;
+let propertyMapRenderVersion = 0;
 let wardBoundaryGeoJson = null;
 let wardBoundaryLastDistrict = null;
 let wardBoundaryLayer = null;
