@@ -48,8 +48,8 @@
       <table class="activist-table" style="width:100%;border-collapse:collapse;font-size:0.88rem;white-space:nowrap;">
         <thead>
           <tr>
-            <th style="text-align:left;padding:0.5rem 0.6rem;background:var(--plaid-green);color:#fff;white-space:nowrap;">Polling District</th>
-            <th style="text-align:center;padding:0.5rem 0.6rem;background:var(--plaid-green);color:#fff;">Walk</th>
+            <th style="text-align:left;padding:0.5rem 0.6rem;background:var(--plaid-green);color:#fff;white-space:nowrap;">Walk Description</th>
+            <th style="text-align:center;padding:0.5rem 0.6rem;background:var(--plaid-green);color:#fff;">Polling District</th>
             <th style="text-align:left;padding:0.5rem 0.6rem;background:var(--plaid-green);color:#fff;">Deliverer</th>
             <th style="text-align:left;padding:0.5rem 0.6rem;background:var(--plaid-green);color:#fff;width:19rem;white-space:nowrap;">Deliverer Address</th>
             <th style="text-align:left;padding:0.5rem 0.6rem;background:var(--plaid-green);color:#fff;width:6.5rem;">Elector ID</th>
@@ -115,6 +115,17 @@
       { district: "AU1", community: "Llanfair", walk: 1 },
       { district: "AU1", community: "Llanfair", walk: 2 },
     ];
+    const WALK_DESCRIPTIONS = {
+      "N1-1": "Harlech", "N1-2": "Harlech", "N1-3": "Harlech",
+      "N1-4": "Harlech", "N1-5": "Harlech", "N1-6": "Harlech",
+      "N1-7": "Harlech", "N1-8": "Harlech", "N1-9": "Harlech",
+      "N1-10": "Harlech (Postal)", "N2-1": "Llanganwg",
+      "N2-2": "Llanganwg (Postal)", "AE1-1": "Llanbedr",
+      "AE1-2": "Llanbedr (Postal)", "AF1-1": "Talsarnau",
+      "AF1-2": "Llandecwyn", "AF1-3": "Ynys",
+      "AF1-4": "Talsarnau (Postal)", "AU1-1": "Llanfair",
+      "AU1-2": "Llanfair (Postal)"
+    };
 
     const DEFAULT_DELIVERER_BY_WALK = Object.fromEntries(
       WALKS.map(({ district, walk }) => [
@@ -157,8 +168,15 @@
       return walksData[rowKey(district, walk)] || {};
     }
 
+    function formatWalkDescription(district, walk) {
+      const description = WALK_DESCRIPTIONS[rowKey(district, walk)] || "";
+      const isPostal = /\s+\(Postal\)$/.test(description);
+      const label = description.replace(/\s+\(Postal\)$/, "");
+      return district + " - " + label + " (" + walk + (isPostal ? " - Postal" : "") + ")";
+    }
+
     const td = (content, style) =>
-      "<td style='padding:0.45rem 0.6rem;border-bottom:1px solid #e5e7eb;" + (style || "") + "'>" + content + "</td>";
+      "<td style='padding:0.45rem 0.6rem;border-bottom:1px solid #e5e7eb;vertical-align:middle;" + (style || "") + "'>" + content + "</td>";
 
     const tbody = document.getElementById("walks-tbody");
     const profileDeliverersByWalk = getProfileDeliverersByWalk();
@@ -179,8 +197,8 @@
 
       const tr = document.createElement("tr");
       tr.innerHTML =
-        td("<strong>" + community + "</strong>") +
-        td(walk, "text-align:center;") +
+        td(formatWalkDescription(district, walk)) +
+        td("<strong>" + district + "</strong>", "text-align:center;") +
         td(delivererName, "color:#1f2937;font-weight:600;") +
         td(delivererAddress, "color:#555;font-size:0.82rem;white-space:nowrap;") +
         td("<input type='text' class='walk-elector-id' data-key='" + key + "' value='" + electorId.replace(/'/g,"&#39;") + "' placeholder='Elector ID' style='padding:0.3rem 0.5rem;border:1px solid var(--border-strong);border-radius:0.4rem;font:inherit;font-size:0.82rem;width:6.5rem;'>");

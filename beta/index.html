@@ -1562,6 +1562,18 @@ async function loadElectorsFromSheet(inputUrl) {
             e.postcode
         );
 
+    const coordinateAddressOverrides =
+      await loadCoordinateAddressOverrides(inputUrl);
+    electors.forEach(elector => {
+      const override = coordinateAddressOverrides.get(String(elector.householdKey || "").trim());
+      if (!override) return;
+
+      elector.addressLine1 = override.addressLine1;
+      elector.addressLine2 = override.addressLine2;
+      elector.address = [override.addressLine1, override.addressLine2]
+        .filter(Boolean)
+        .join(", ");
+    });
 
 
     state.electors =
@@ -2965,11 +2977,27 @@ function formatHouseholdAddress(elector) {
 
   if (elector.address) {
 
-    const normalised =
+    let normalised =
       elector.address.replace(/,(?!\s)/g, ", ");
+    const subRoad = String(elector.subRoad || "").trim();
+    const compactSubRoad = subRoad.replace(/\s+/g, "");
+    const compactSubRoadIndex = normalised
+      .toLowerCase()
+      .indexOf(compactSubRoad.toLowerCase());
+
+    if (compactSubRoad && subRoad.includes(" ") && compactSubRoadIndex !== -1) {
+      normalised =
+        normalised.slice(0, compactSubRoadIndex) +
+        subRoad +
+        normalised.slice(compactSubRoadIndex + compactSubRoad.length);
+    }
 
     segments.push(welshProperCase(normalised));
 
+  }
+
+  if (elector.postTown) {
+    segments.push(elector.postTown.toUpperCase());
   }
 
   if (elector.postcode) {
@@ -4649,6 +4677,37 @@ function toGoogleCsvUrl(rawUrl) {
     gid
   );
 
+}
+
+async function loadCoordinateAddressOverrides(rawUrl) {
+  const match = String(rawUrl || "").match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+  const overrides = new Map();
+  if (!match) return overrides;
+
+  const url =
+    "https://docs.google.com/spreadsheets/d/" +
+    match[1] +
+    "/gviz/tq?tqx=out:csv&sheet=COORDINATES";
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error("Could not load COORDINATES address overrides.");
+    }
+
+    parseCsv(await response.text()).slice(1).forEach(row => {
+      const householdId = String(row[0] || "").trim();
+      const addressLine1 = String(row[7] || "").trim();
+      const addressLine2 = String(row[8] || "").trim();
+      if (householdId && (addressLine1 || addressLine2)) {
+        overrides.set(householdId, { addressLine1, addressLine2 });
+      }
+    });
+  } catch (error) {
+    console.warn(error.message);
+  }
+
+  return overrides;
 }
 
 
