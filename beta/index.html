@@ -1568,9 +1568,9 @@ async function loadElectorsFromSheet(inputUrl) {
       const override = coordinateAddressOverrides.get(String(elector.householdKey || "").trim());
       if (!override) return;
 
-      elector.addressLine1 = override.addressLine1;
-      elector.addressLine2 = override.addressLine2;
-      elector.address = [override.addressLine1, override.addressLine2]
+      elector.addressLine1 = override.addressLine1 || elector.addressLine1;
+      elector.addressLine2 = override.addressLine2 || elector.addressLine2;
+      elector.address = [elector.addressLine1, elector.addressLine2]
         .filter(Boolean)
         .join(", ");
     });
