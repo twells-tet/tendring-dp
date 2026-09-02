@@ -52,6 +52,27 @@
       cursor: not-allowed;
     }
 
+    .ja1-toggle {
+      margin-left: 0.35rem;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: #2167b5;
+      font: inherit;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .ja1-toggle:hover,
+    .ja1-toggle:focus-visible {
+      color: #164a8a;
+    }
+
+    .ja1-toggle[aria-pressed="true"] {
+      color: #164a8a;
+    }
+
     .zoom-bypass {
       align-self: center;
       padding: 0.4rem 0.65rem;
@@ -217,6 +238,7 @@
           <option value="AU1">AU1 (Llanfair)</option>
           <option value="N2">N2 (Llandanwg)</option>
         </select>
+        <button id="ja1-toggle" class="ja1-toggle" type="button" aria-pressed="false">JA1</button>
       </label>
       <div id="walk-key" class="walk-key" aria-label="Delivery walk key" hidden></div>
       <div id="harlech-map" class="harlech-map" aria-label="Map of Harlech a Llanbedr elector totals by postcode"></div>
@@ -253,9 +275,11 @@
     const walkKey = document.getElementById("walk-key");
     const walkPicker = document.getElementById("walk-picker");
     const walkDistrictSelect = document.getElementById("walk-district-select");
+    const ja1Toggle = document.getElementById("ja1-toggle");
     const postcodeMarkers = L.layerGroup().addTo(map);
     const propertyMarkers = L.layerGroup();
     const walkOutlines = L.layerGroup();
+    const ja1Layer = L.layerGroup();
     const bypassLayer = L.layerGroup().addTo(map);
     const boundariesLayer = L.layerGroup().addTo(map);
     let bypassBounds = null;
@@ -544,6 +568,31 @@
       renderVisiblePropertyMarkers();
     }
 
+    function addJa1Marker(rows) {
+      const row = rows.slice(1).find(candidate =>
+        String(candidate[41] || "").trim() === "599999998"
+      );
+      if (!row) return;
+
+      const latitude = Number(row[43]);
+      const longitude = Number(row[44]);
+      if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
+
+      const addressLine1 = formatAddressLine(row[20]);
+      const addressLine2 = formatAddressLine(row[21]);
+      const postcode = String(row[29] || "").trim();
+      L.circleMarker([latitude, longitude], {
+        pane: "postcode-markers",
+        radius: 7,
+        stroke: false,
+        fillColor: "#000",
+        fillOpacity: 1
+      }).addTo(ja1Layer).bindPopup(
+        [addressLine1, addressLine2, postcode].filter(Boolean).join("<br>") +
+        "<br><strong>JA1</strong>"
+      );
+    }
+
     function renderVisiblePropertyMarkers() {
       propertyMarkers.clearLayers();
       walkOutlines.clearLayers();
@@ -699,6 +748,7 @@
       .then(({ rows, proposedWalks, descriptions }) => {
         walkDescriptions = descriptions;
         renderPropertyMarkers(rows, proposedWalks);
+        addJa1Marker(rows);
         const postcodeGroups = new Map();
 
         rows.slice(1).forEach(row => {
@@ -869,6 +919,15 @@
       zoomBypassButton.disabled = !isVisible;
     });
     walksToggle.addEventListener("click", () => setWalksVisible(!walksVisible));
+    ja1Toggle.addEventListener("click", () => {
+      const isVisible = map.hasLayer(ja1Layer);
+      if (isVisible) {
+        map.removeLayer(ja1Layer);
+      } else {
+        map.addLayer(ja1Layer);
+      }
+      ja1Toggle.setAttribute("aria-pressed", String(!isVisible));
+    });
     walkDistrictSelect.addEventListener("change", () => {
       hiddenWalks.clear();
       renderVisiblePropertyMarkers();
