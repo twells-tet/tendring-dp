@@ -50,7 +50,7 @@ Join the campaign for a new crossing over the Menai.
 <form id="volunteer-form" class="volunteer-form">
 
 <div class="form-question">
-<h3>Do you live on the Isle of Anglesey?</h3>
+<h3>Do you live on Anglesey?</h3>
 <div class="radio-group">
 <label class="radio-label">
 <input type="radio" name="tendring" value="yes" checked required>
@@ -65,7 +65,7 @@ No
 
 <div id="tendring-yes" class="conditional-form">
 
-<div id="candidate-interest" class="form-group">
+<div class="form-group">
 <label for="name-yes" class="form-label">Your Name</label>
 <input 
 type="text"
@@ -135,7 +135,7 @@ Display a poster in my window or garden
 </label>
 </div>
 
-<div class="form-group">
+<div id="candidate-interest" class="form-group">
 <h4>Stand as a candidate</h4>
 <label class="checkbox-label">
 <input type="checkbox" name="stand_candidate" value="yes">
@@ -211,6 +211,7 @@ form.addEventListener("submit", async function(event) {
   
   const data = {
     tendring: tendring,
+    name: document.getElementById("name-yes").value.trim(),
     address: document.getElementById("address").value.trim(),
     postcode: document.getElementById("postcode-yes").value.trim().toUpperCase(),
     email: document.getElementById("email-yes").value.trim(),
