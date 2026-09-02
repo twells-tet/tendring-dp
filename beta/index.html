@@ -3334,37 +3334,42 @@ function updatePropertyMap(elector) {
 
   const lat = elector.lat;
   const lng = elector.lng;
-  if (!wardPreviewLeafletMap) {
-    wardPreviewLeafletMap = L.map("ward-preview", { attributionControl: false });
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19
-    }).addTo(wardPreviewLeafletMap);
-  }
-  if (wardPreviewMarker) {
-    wardPreviewMarker.remove();
-  }
-  wardPreviewMarker = L.circleMarker([lat, lng], {
-    radius: 7,
-    color: "#fff",
-    weight: 2,
-    fillColor: "#da291c",
-    fillOpacity: 1
-  }).addTo(wardPreviewLeafletMap);
-  const refreshPropertyMap = () => {
+  const renderPropertyMap = () => {
     if (renderVersion !== propertyMapRenderVersion) {
       return;
     }
+
+    if (!wardPreviewLeafletMap) {
+      wardPreviewLeafletMap = L.map("ward-preview", { attributionControl: false });
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19
+      }).addTo(wardPreviewLeafletMap);
+      wardPreviewResizeObserver = new ResizeObserver(() => {
+        wardPreviewLeafletMap.invalidateSize({ pan: false });
+      });
+      wardPreviewResizeObserver.observe(wardPreviewEl);
+    }
+    if (wardPreviewMarker) {
+      wardPreviewMarker.remove();
+    }
+    wardPreviewMarker = L.circleMarker([lat, lng], {
+      radius: 7,
+      color: "#fff",
+      weight: 2,
+      fillColor: "#da291c",
+      fillOpacity: 1
+    }).addTo(wardPreviewLeafletMap);
     wardPreviewLeafletMap.invalidateSize({ pan: false });
     wardPreviewLeafletMap.setView([lat, lng], 19, { animate: false });
   };
 
   requestAnimationFrame(() => {
-    refreshPropertyMap();
-    requestAnimationFrame(refreshPropertyMap);
+    renderPropertyMap();
+    requestAnimationFrame(renderPropertyMap);
   });
-  window.setTimeout(refreshPropertyMap, 150);
-  window.setTimeout(refreshPropertyMap, 500);
-  window.addEventListener("load", refreshPropertyMap, { once: true });
+  window.setTimeout(renderPropertyMap, 150);
+  window.setTimeout(renderPropertyMap, 500);
+  window.addEventListener("load", renderPropertyMap, { once: true });
 
   wardPreviewCoordsEl.textContent =
     "GPS coordinates " + lat + ", " + lng;
@@ -3384,6 +3389,7 @@ let wardBoundaryLeafletMap = null;
 let wardPreviewLeafletMap = null;
 let wardPreviewMarker = null;
 let propertyMapRenderVersion = 0;
+let wardPreviewResizeObserver = null;
 let wardBoundaryGeoJson = null;
 let wardBoundaryLastDistrict = null;
 let wardBoundaryLayer = null;
