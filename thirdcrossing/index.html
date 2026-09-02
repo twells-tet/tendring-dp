@@ -109,7 +109,7 @@
           Wales economy at least &pound;30 million every year.
         </p>
         <div class="buttons thirdcrossing-hero-actions">
-          <a href="https://petitions.senedd.wales/petitions/246931" class="btn primary" data-english-label="ADD YOUR NAME">ADD YOUR NAME</a>
+          <a id="hero-petition-action" href="https://petitions.senedd.wales/petitions/246931" class="btn primary" data-english-label="ADD YOUR NAME">ADD YOUR NAME</a>
           <a href="../donate/" class="btn secondary" data-english-label="DONATE">DONATE</a>
           <a href="../volunteer/" class="btn secondary" data-english-label="FORCE ACTION">FORCE ACTION</a>
           <a href="../comments/" class="btn secondary" data-english-label="LEAVE A COMMENT">LEAVE A COMMENT</a>
@@ -168,6 +168,10 @@
       document.getElementById("petition-description").textContent =
         "Dywedwch wrth Lywodraeth Cymru: Adeiladwch groesfan newydd dros y Fenai.";
       document.getElementById("petition-action").textContent = "LLOFNODWCH Y DDEISEB";
+      document.getElementById("hero-petition-action").href =
+        "https://deisebau.senedd.cymru/deisebau/246931";
+      document.getElementById("petition-action").href =
+        "https://deisebau.senedd.cymru/deisebau/246931";
 
       document.getElementById("donate-title").textContent = "Cyfrannu";
       document.getElementById("donate-description").textContent =
