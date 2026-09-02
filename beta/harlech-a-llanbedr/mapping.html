@@ -332,6 +332,7 @@
       AU1: "2",
       N2: "2"
     };
+    const JA1_HOUSEHOLD_ID = "599999998";
 
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 18
@@ -516,6 +517,7 @@
         const latitude = Number(row[43]);
         const longitude = Number(row[44]);
         if (
+          householdId === JA1_HOUSEHOLD_ID ||
           !DISTRICT_NAMES[pollingDistrict] ||
           !Number.isFinite(latitude) ||
           !Number.isFinite(longitude)
@@ -578,7 +580,7 @@
 
     function addJa1Marker(rows) {
       const row = rows.slice(1).find(candidate =>
-        String(candidate[41] || "").trim() === "599999998"
+        String(candidate[41] || "").trim() === JA1_HOUSEHOLD_ID
       );
       if (!row) return;
 
@@ -773,12 +775,14 @@
         const postcodeGroups = new Map();
 
         rows.slice(1).forEach(row => {
+          const householdId = String(row[41] || "").trim();
           const postcode = (row[29] || "").trim().toUpperCase();
           const pollingDistrict = (row[10] || "").trim() || "Unassigned";
           const latitude = Number(row[43]);
           const longitude = Number(row[44]);
 
           if (
+            householdId === JA1_HOUSEHOLD_ID ||
             !DISTRICT_NAMES[pollingDistrict] ||
             !postcode ||
             !Number.isFinite(latitude) ||
