@@ -100,6 +100,7 @@
       <div class="stat-card">
         <span class="stat-label">Electors</span>
         <strong id="stat-loaded">0</strong>
+        <small id="stat-cap-notice" hidden>*Only the first 1255 electors and 721 properties are shown below.</small>
       </div>
 
     </section>
@@ -122,11 +123,44 @@
 
 
     <div class="search-actions-row">
-      <section class="export-buttons" aria-label="Export options">
-        <button type="button" id="display-map-button" class="export-button display-map-button">SUBROADS</button>
-        <a href="/mapping" class="export-button polling-day-button">MAPPING</a>
-        <a href="volunteers.html" class="export-button members-activists-button">DELIVERERS</a>
-      </section>
+      <div class="search-actions-controls">
+        <section class="export-buttons" aria-label="Export options">
+          <button type="button" id="display-map-button" class="export-button display-map-button">SUBROADS</button>
+          <a href="https://www.tarian146.co.uk/beta/harlech-a-llanbedr/mapping" class="export-button polling-day-button">MAPPING</a>
+          <a href="volunteers.html" class="export-button members-activists-button">DELIVERERS</a>
+          <a href="https://www.tarian146.co.uk/beta/harlech-a-llanbedr/" class="export-button display-map-button">DATA</a>
+        </section>
+
+        <div class="panel delivery-panel" id="delivery-panel">
+
+          <div class="panel-heading">
+            <h2>Deliverer / Walk Details</h2>
+            <button type="button" id="toggle-delivery-details" class="map-toggle-button">Hide</button>
+          </div>
+
+          <dl class="delivery-details" id="delivery-details-body">
+            <dt>Walk</dt>
+            <dd id="delivery-walk">—</dd>
+
+            <dt>Description</dt>
+            <dd id="delivery-description">High Street and Harbour</dd>
+
+            <dt>Subroad</dt>
+            <dd>
+              <span id="delivery-area-input" class="delivery-area-text">—</span>
+            </dd>
+
+            <dt hidden><span id="sort-order-link">Sort Order</span></dt>
+            <dd hidden>
+              <span id="delivery-order">—</span>
+            </dd>
+
+            <dt>Deliverer</dt>
+            <dd id="delivery-deliverer">—</dd>
+          </dl>
+
+        </div>
+      </div>
 
       <section class="quick-name-search" id="quick-name-search-section" aria-label="Quick name search">
         <div class="quick-name-search-head panel-heading">
@@ -135,11 +169,8 @@
         </div>
         <div id="quick-lookup-row" class="quick-lookup-grid">
           <div class="quick-lookup-row">
-            <input type="text" id="quick-search-first-name" class="quick-lookup-input" placeholder="First name" aria-label="First name">
-            <input type="text" id="quick-search-last-name" class="quick-lookup-input" placeholder="Last name" aria-label="Last name">
-          </div>
-          <div class="quick-lookup-row">
-            <input type="text" id="quick-search-postcode" class="quick-lookup-input" placeholder="LL46 2SH" aria-label="Postcode">
+            <input type="text" id="quick-search-name" class="quick-lookup-input" placeholder="Name" aria-label="Name">
+            <input type="text" id="quick-search-postcode" class="quick-lookup-input" placeholder="Postcode" aria-label="Postcode">
             <button type="button" id="quick-search-button" class="add-filter-button quick-lookup-btn">Run Search</button>
           </div>
           <div class="quick-lookup-row">
@@ -174,11 +205,10 @@
         </p>
 
         <div class="ward-preview-crop">
-          <iframe
+          <div
             id="ward-preview"
-            title="Property location on OpenStreetMap"
-            loading="lazy">
-          </iframe>
+            title="Property location on OpenStreetMap">
+          </div>
           <div id="ward-boundary-map" class="ward-boundary-map" hidden></div>
           <p id="ward-boundary-error" class="ward-boundary-error" hidden>
             Ward boundary could not be loaded from MapIt right now (the shared boundary service may be temporarily rate-limited). Please try again shortly.
@@ -239,39 +269,6 @@
 
       <div class="list-column">
 
-        <div class="panel delivery-panel" id="delivery-panel">
-
-          <div class="panel-heading">
-            <h2>Deliverer / Walk Details</h2>
-            <button type="button" id="toggle-delivery-details" class="map-toggle-button">Hide</button>
-          </div>
-
-          <dl class="delivery-details" id="delivery-details-body">
-            <dt>Walk</dt>
-            <dd id="delivery-walk">—</dd>
-
-            <dt>Description</dt>
-            <dd id="delivery-description">High Street and Harbour</dd>
-
-            <dt hidden>Subroad</dt>
-            <dd hidden>
-              <span id="delivery-area-input" class="delivery-area-text">—</span>
-              <button type="button" id="road-area-help-toggle" class="road-area-help-toggle">What does this mean?</button>
-              <p id="road-area-help-text" class="road-area-help-text" hidden>This should be the smallest unit of individual properties: the road, lane, subroad, cul-de-sac, hamlet or block of flats. Deliveries will be organised by this unit, so it is important to be accurate and consistent.</p>
-            </dd>
-
-            <dt><a href="manage-walks.html" id="sort-order-link">Manage Walks</a></dt>
-            <dd>
-              <span id="delivery-order">—</span>
-            </dd>
-
-            <dt><a href="manage-deliverers.html" id="deliverer-link">Manage Deliverers</a></dt>
-            <dd id="delivery-deliverer">—</dd>
-          </dl>
-
-        </div>
-
-
         <div class="panel list-panel">
 
           <div class="list-head">
@@ -291,13 +288,17 @@
             <label for="subroad-filter-subroad-select">Filter by Subroad</label>
             <div class="subroad-filter-controls">
               <select id="subroad-filter-district-select" aria-label="Polling District">
-                <option value="N1" selected>N1 (Harlech)</option>
+                <option value="" selected disabled>Polling District</option>
+                  <option value="N1">N1 (Harlech)</option>
                   <option value="AF1">AF1 (Talsarnau)</option>
                   <option value="AE1">AE1 (Llanbedr)</option>
                   <option value="AU1">AU1 (Llanfair)</option>
                   <option value="N2">N2 (Llandanwg)</option>
               </select>
-              <select id="subroad-filter-subroad-select" aria-label="Subroad">
+              <select id="subroad-filter-walk-select" aria-label="Walk" disabled>
+                <option value="" selected disabled>Walk</option>
+              </select>
+              <select id="subroad-filter-subroad-select" aria-label="Subroad" disabled>
                 <option value="">All Subroads</option>
               </select>
             </div>
@@ -488,6 +489,26 @@ const STORAGE_KEYS = {
 // Kept in sync with the Manage Walks page's seed values, so both pages
 // agree on every Walk's name before anyone edits it there.
 const DEFAULT_WALK_DESCRIPTIONS = {
+  "n1|1": "Harlech",
+  "n1|2": "Harlech",
+  "n1|3": "Harlech",
+  "n1|4": "Harlech",
+  "n1|5": "Harlech",
+  "n1|6": "Harlech",
+  "n1|7": "Harlech",
+  "n1|8": "Harlech",
+  "n1|9": "Harlech",
+  "n1|10": "Harlech (Postal)",
+  "ae1|1": "Llanbedr",
+  "ae1|2": "Llanbedr (Postal)",
+  "au1|1": "Llanfair",
+  "au1|2": "Llanfair (Postal)",
+  "af1|1": "Talsarnau",
+  "af1|2": "Llandecwyn",
+  "af1|3": "Ynys",
+  "af1|4": "Talsarnau (Postal)",
+  "n2|1": "Llanganwg",
+  "n2|2": "Llanganwg (Postal)",
   "ra1|1": "High Street and Harbour",
   "ra1|2": "Cae Du",
   "ra1|3": "Village North",
@@ -502,17 +523,14 @@ const DEFAULT_WALK_DESCRIPTIONS = {
 
 
 const canvassIdOptions = [
+  "Plaid",
   "Independent",
-  "Plaid Cymru",
-  "Other"
+  "Other",
+  "No Data"
 ];
 
-
-const independenceOptions = [
-  "No Data",
-  "Yes",
-  "No"
-];
+const MAX_VISIBLE_ELECTORS = 1255;
+const MAX_VISIBLE_HOUSEHOLDS = 721;
 
 
 const languageOptions = [
@@ -537,19 +555,19 @@ const posterOptions = [
   "Poster: Garden"
 ];
 
+const DEFAULT_ANTI_ELECTOR_IDS = new Set([
+  "511924578",
+  "511982671",
+  "512006782"
+]);
+
+
 const VOTING_HISTORY_YEARS = [
   "2026 (Senedd)",
   "2024 (PCC)",
   "2024 (General)",
   "2022 (Local)",
-  "2021 (Senedd)",
-  "2019 (General)",
-  "2019 (European)",
-  "2017 (General)",
-  "2017 (Local)",
-  "2016 (Referendum)",
-  "2016 (Senedd)",
-  "2015 (General)"
+  "2021 (Senedd)"
 ];
 
 
@@ -582,7 +600,8 @@ const state = {
   householdPageIndex: 0,
   showingWardBoundary: false,
   currentMapElector: null,
-  expandedHouseholdElectorNav: new Set()
+  expandedHouseholdElectorNav: new Set(),
+  hasManualSubroadFilterDistrict: false
 };
 
 // Seed a demo poster scenario (Joe Bloggs wants a garden poster, Jane
@@ -768,14 +787,14 @@ const quickNameSearchSectionEl =
 const subroadFilterDistrictEl =
   document.getElementById("subroad-filter-district-select");
 
+const subroadFilterWalkEl =
+  document.getElementById("subroad-filter-walk-select");
+
 const subroadFilterSubroadEl =
   document.getElementById("subroad-filter-subroad-select");
 
-const quickSearchFirstNameEl =
-  document.getElementById("quick-search-first-name");
-
-const quickSearchLastNameEl =
-  document.getElementById("quick-search-last-name");
+const quickSearchNameEl =
+  document.getElementById("quick-search-name");
 
 const quickSearchPostcodeEl =
   document.getElementById("quick-search-postcode");
@@ -801,6 +820,9 @@ const statLoadedEl =
 const statCanvassEl =
   document.getElementById("stat-complete");
 
+const statCapNoticeEl =
+  document.getElementById("stat-cap-notice");
+
 let householdDetailsHeightRetryPending = false;
 
 const DEMO_PLAID_ELECTOR_NAMES = [
@@ -817,13 +839,11 @@ const DEMO_CANVASS_ID_BY_ELECTOR_ID = {
   "665650266": "Green",
   "911051031": "Reform",
   "693445390": "Independent",
+  "507243585": "Independent",
+  "507226537": "Independent",
   "954638525": "Lib Dem",
   "934314541": "Probable Plaid",
   "425577355": "Conservative"
-};
-
-const DEMO_SUPPORT_INDEPENDENCE_BY_ELECTOR_ID = {
-  "425577355": "No"
 };
 
 initControls();
@@ -994,9 +1014,21 @@ function initControls() {
     }
   );
 
+  subroadFilterWalkEl.addEventListener(
+    "change",
+    () => {
+      populateSubroadFilterOptions();
+      state.householdPageIndex = 0;
+      renderElectorList();
+    }
+  );
+
   subroadFilterDistrictEl.addEventListener(
     "change",
     () => {
+      state.hasManualSubroadFilterDistrict = true;
+      subroadFilterWalkEl.value = "";
+      subroadFilterSubroadEl.value = "";
       populateSubroadFilterOptions();
       state.householdPageIndex = 0;
       renderElectorList();
@@ -1007,17 +1039,15 @@ function initControls() {
   const quickSearchResultsEl = document.getElementById("quick-search-results");
 
   function runQuickNameSearch() {
-    const firstName = normalizeText(quickSearchFirstNameEl.value.trim());
-    const lastName  = normalizeText(quickSearchLastNameEl.value.trim());
+    const nameSearch = normalizeText(quickSearchNameEl.value.trim());
     const postcode  = normalizeText(quickSearchPostcodeEl.value.trim());
-    if (!firstName && !lastName && !postcode) { quickSearchResultsEl.innerHTML = ""; return; }
+    if (!nameSearch && !postcode) { quickSearchResultsEl.innerHTML = ""; return; }
 
     const matches = (state.electors || []).filter(e => {
       const name = normalizeText(e.name || "");
       const pc   = normalizeText(e.postcode || "");
-      if (firstName && !name.includes(firstName)) return false;
-      if (lastName  && !name.includes(lastName))  return false;
-      if (postcode  && !pc.startsWith(postcode))  return false;
+      if (nameSearch && !name.includes(nameSearch)) return false;
+      if (postcode  && !pc.startsWith(postcode)) return false;
       return true;
     }).slice(0, 50);
 
@@ -1040,10 +1070,8 @@ function initControls() {
       "</tbody></table>" +
       (matches.length === 50 ? "<p style='font-size:0.8rem;color:#888;margin:0.2rem 0'>Showing first 50 results.</p>" : "");
   }
-
   quickSearchButtonEl.addEventListener("click", runQuickNameSearch);
-  quickSearchFirstNameEl.addEventListener("keydown", e => { if (e.key === "Enter") runQuickNameSearch(); });
-  quickSearchLastNameEl.addEventListener("keydown",  e => { if (e.key === "Enter") runQuickNameSearch(); });
+  quickSearchNameEl.addEventListener("keydown", e => { if (e.key === "Enter") runQuickNameSearch(); });
   quickSearchPostcodeEl.addEventListener("keydown",  e => { if (e.key === "Enter") runQuickNameSearch(); });
 
   function doIdLookup() {
@@ -1126,7 +1154,9 @@ function initControls() {
 
   selectAllPollingDistrictsEl.addEventListener("click", () => {
     setSelectedPollingDistricts(
-      [...pollingDistrictEl.options].map(option => option.value)
+      areAllPollingDistrictsSelected()
+        ? []
+        : [...pollingDistrictEl.options].map(option => option.value)
     );
     populateSubroadFilterOptions();
     localStorage.setItem(
@@ -1280,13 +1310,15 @@ function initControls() {
   const roadAreaHelpTextEl =
     document.getElementById("road-area-help-text");
 
-  roadAreaHelpToggleEl.addEventListener(
-    "click",
-    () => {
-      roadAreaHelpTextEl.hidden =
-        !roadAreaHelpTextEl.hidden;
-    }
-  );
+  if (roadAreaHelpToggleEl && roadAreaHelpTextEl) {
+    roadAreaHelpToggleEl.addEventListener(
+      "click",
+      () => {
+        roadAreaHelpTextEl.hidden =
+          !roadAreaHelpTextEl.hidden;
+      }
+    );
+  }
 
 
   updateStats();
@@ -1711,11 +1743,13 @@ function mapRowToElector(row, headers, index) {
 
 
   const name =
+    fixAddressCasing(
     data.name ||
     data.elector ||
     data.electorname ||
     ([data.firstname, data.surname].filter(Boolean).join(" ")) ||
-    "";
+    ""
+  );
 
 
 
@@ -1844,13 +1878,18 @@ function mapRowToElector(row, headers, index) {
 
 
     deliveryWalk:
+      row[51] ||
       data.walk ||
-      row[37] ||
       "",
 
 
     deliveryOrder:
+      row[48] ||
       data.deliveryorder ||
+      "",
+
+    deliveryDescription:
+      data.description ||
       "",
 
 
@@ -1862,7 +1901,7 @@ function mapRowToElector(row, headers, index) {
 
     subRoad:
       data.subroad ||
-      row[48] ||
+      row[50] ||
       "",
 
 
@@ -2148,63 +2187,6 @@ function renderElectorList() {
 
 
 
-  // In "View All" mode (no specific district selected), render compact list
-  if (areAllPollingDistrictsSelected()) {
-    updateStats();
-    updatePropertyMap(null);
-    updateAiComments(null);
-    updateVotingHistory(null);
-    updateDeliveryDetails(null);
-    updateMapHouseholdNav(0, 0);
-    updateListHouseholdNav(0, 0);
-
-    const allSummary = document.createElement("div");
-    allSummary.className = "all-districts-summary";
-
-    let currentDistrict = null;
-    households.forEach((hh, idx) => {
-      const fe = hh.electors[0];
-      const district = fe.pollingDistrict || "—";
-      if (district !== currentDistrict) {
-        currentDistrict = district;
-        const heading = document.createElement("h3");
-        heading.className = "all-districts-heading";
-        heading.textContent = district;
-        allSummary.appendChild(heading);
-      }
-      const row = document.createElement("button");
-      row.className = "all-districts-row";
-      row.type = "button";
-      row.innerHTML = `
-        <span class="all-districts-address">${escapeHtml(formatHouseholdAddress(fe))}</span>
-        <span class="all-districts-count">${hh.electors.length} elector${hh.electors.length !== 1 ? "s" : ""}</span>
-      `;
-      row.addEventListener("click", () => {
-        // Switch to single-district view for this household's district
-        const districtVal = normalizeText(fe.pollingDistrict);
-        setSelectedPollingDistricts([districtVal]);
-        state.householdPageIndex = 0;
-        populateSubroadFilterOptions();
-        handleFilterChange();
-        // Find the household in the new list and navigate to it
-        const newElectors = getFilteredActiveElectors();
-        const newHouseholds = buildVisibleHouseholds(newElectors);
-        const targetIdx = newHouseholds.findIndex(
-          h => h.electors[0].householdGroupKey === fe.householdGroupKey
-        );
-        if (targetIdx >= 0) {
-          state.householdPageIndex = targetIdx;
-          renderElectorList();
-        }
-      });
-      allSummary.appendChild(row);
-    });
-
-    listEl.appendChild(allSummary);
-    syncHouseholdDetailsPanelHeight();
-    return;
-  }
-
   state.householdPageIndex =
     Math.min(
       state.householdPageIndex,
@@ -2223,6 +2205,7 @@ function renderElectorList() {
   const firstElector =
     household.electors[0];
 
+  syncSubroadFilterDistrict(firstElector);
 
 
   updatePropertyMap(
@@ -2454,30 +2437,6 @@ function renderElectorList() {
 
 
         <label>
-          Support Independence?
-
-          <select
-          class="independence-select"
-          data-id="${escapeHtmlAttr(elector.id)}">
-
-          ${
-            independenceOptions.map(option =>
-              `
-              <option
-              ${option === progress.supportIndependence ? "selected" : ""}
-              >
-              ${option}
-              </option>
-              `
-            ).join("")
-          }
-
-          </select>
-
-        </label>
-
-
-        <label>
           First language
 
           <select
@@ -2525,55 +2484,6 @@ function renderElectorList() {
           value="${escapeHtmlAttr(progress.email)}">
 
         </label>
-
-
-        <label>
-          Party Member
-
-          <select
-          class="party-member-select read-only-select"
-          data-id="${escapeHtmlAttr(elector.id)}"
-          title="Party membership is managed at the back end and cannot be amended here.">
-
-          ${
-            partyMemberOptions.map(option =>
-              `
-              <option
-              ${option === progress.partyMember ? "selected" : ""}
-              >
-              ${option}
-              </option>
-              `
-            ).join("")
-          }
-
-          </select>
-
-        </label>
-
-
-        <div class="volunteer-checkboxes">
-
-          <label class="checkbox-label">
-            <input
-            type="checkbox"
-            class="volunteer-checkbox"
-            data-id="${escapeHtmlAttr(elector.id)}"
-            ${progress.volunteer ? "checked" : ""}>
-            Active Volunteer
-          </label>
-
-          <label class="checkbox-label">
-            <input
-            type="checkbox"
-            class="ask-volunteer-checkbox"
-            data-id="${escapeHtmlAttr(elector.id)}"
-            ${progress.askToVolunteer ? "checked" : ""}
-            ${progress.volunteer ? "disabled" : ""}>
-            Ask to Volunteer
-          </label>
-
-        </div>
 
 
         <label>
@@ -3082,6 +2992,7 @@ function formatPollingDistrictSummary(elector) {
     "ae1": "AE1 (Llanbedr)",
     "au1": "AU1 (Llanfair)",
     "n2": "N2 (Llandanwg)",
+    "ka1": "KA1 (PWLLHELI NORTH)",
     "qb6": "QB6 (Llanengan)",
     "ra1": "RA1 (Abersoch)"
   };
@@ -3176,9 +3087,6 @@ function bindProgressEditors() {
   const canvassInputs =
     listEl.querySelectorAll(".canvass-select");
 
-  const independenceInputs =
-    listEl.querySelectorAll(".independence-select");
-
   const languageInputs =
     listEl.querySelectorAll(".language-select");
 
@@ -3188,17 +3096,8 @@ function bindProgressEditors() {
   const emailInputs =
     listEl.querySelectorAll(".email-input");
 
-  const partyMemberInputs =
-    listEl.querySelectorAll(".party-member-select");
-
   const posterInputs =
     listEl.querySelectorAll(".poster-select");
-
-  const volunteerInputs =
-    listEl.querySelectorAll(".volunteer-checkbox");
-
-  const askVolunteerInputs =
-    listEl.querySelectorAll(".ask-volunteer-checkbox");
 
   const antiInputs =
     listEl.querySelectorAll(".anti-checkbox");
@@ -3218,24 +3117,6 @@ function bindProgressEditors() {
       saveToStorage(STORAGE_KEYS.progress, state.progress);
 
       updateStats();
-
-    });
-
-  });
-
-  independenceInputs.forEach(input => {
-
-    input.addEventListener("change", event => {
-
-      const id = event.target.dataset.id;
-      const existing = getElectorProgress(id);
-
-      state.progress[id] = {
-        ...existing,
-        supportIndependence: event.target.value.trim()
-      };
-
-      saveToStorage(STORAGE_KEYS.progress, state.progress);
 
     });
 
@@ -3295,40 +3176,6 @@ function bindProgressEditors() {
 
   });
 
-  partyMemberInputs.forEach(input => {
-
-    // Party membership is set at the back end when the demo goes live.
-    // Users can still open the dropdown and browse the options, but their
-    // selection is only kept when the elector is currently "No" and they
-    // choose "Supporter" or "Ask to Join" - every other change is reverted.
-    input.addEventListener("change", event => {
-
-      const id = event.target.dataset.id;
-      const existing = getElectorProgress(id);
-      const currentValue = existing.partyMember || "No";
-      const newValue = event.target.value.trim();
-
-      if (currentValue === "No" && (newValue === "Supporter" || newValue === "Ask to Join")) {
-
-        state.progress[id] = {
-          ...existing,
-          partyMember: newValue
-        };
-
-        saveToStorage(STORAGE_KEYS.progress, state.progress);
-        updateStats();
-        renderElectorList();
-
-        return;
-
-      }
-
-      event.target.value = currentValue;
-
-    });
-
-  });
-
   posterInputs.forEach(input => {
 
     input.addEventListener("change", event => {
@@ -3342,48 +3189,6 @@ function bindProgressEditors() {
       };
 
       saveToStorage(STORAGE_KEYS.progress, state.progress);
-
-    });
-
-  });
-
-  volunteerInputs.forEach(input => {
-
-    input.addEventListener("change", event => {
-
-      const id = event.target.dataset.id;
-      const existing = getElectorProgress(id);
-      const volunteer = event.target.checked;
-
-      state.progress[id] = {
-        ...existing,
-        volunteer,
-        askToVolunteer: volunteer ? false : existing.askToVolunteer
-      };
-
-      saveToStorage(STORAGE_KEYS.progress, state.progress);
-      updateStats();
-      renderElectorList();
-
-    });
-
-  });
-
-  askVolunteerInputs.forEach(input => {
-
-    input.addEventListener("change", event => {
-
-      const id = event.target.dataset.id;
-      const existing = getElectorProgress(id);
-
-      state.progress[id] = {
-        ...existing,
-        askToVolunteer: event.target.checked
-      };
-
-      saveToStorage(STORAGE_KEYS.progress, state.progress);
-      updateStats();
-      renderElectorList();
 
     });
 
@@ -3462,6 +3267,7 @@ function propagateAntiPlaidFlag(electorId, field, value) {
 function updatePropertyMap(elector) {
 
   state.currentMapElector = elector || null;
+  const renderVersion = ++propertyMapRenderVersion;
 
   if (manualLatInputEl && manualLngInputEl) {
     manualLatInputEl.value =
@@ -3477,8 +3283,8 @@ function updatePropertyMap(elector) {
   if (state.showingWardBoundary) {
 
     propertyFullAddressEl.textContent =
-      ((state.selectedElector && state.selectedElector.ward
-        ? state.selectedElector.ward
+      ((state.currentMapElector && state.currentMapElector.ward
+        ? state.currentMapElector.ward
         : "HARLECH") + " COMMUNITY, GWYNEDD");
 
     toggleWardBoundaryEl.textContent =
@@ -3518,25 +3324,52 @@ function updatePropertyMap(elector) {
     elector.lat === null ||
     elector.lng === null
   ) {
-    wardPreviewEl.removeAttribute("src");
+    if (wardPreviewMarker) {
+      wardPreviewMarker.remove();
+      wardPreviewMarker = null;
+    }
     wardPreviewCoordsEl.textContent = "GPS coordinates —";
     return;
   }
 
   const lat = elector.lat;
   const lng = elector.lng;
-  const delta = 0.004;
+  const renderPropertyMap = () => {
+    if (renderVersion !== propertyMapRenderVersion) {
+      return;
+    }
 
-  const bbox = [
-    lng - delta,
-    lat - delta * 0.6,
-    lng + delta,
-    lat + delta * 0.6
-  ].join(",");
+    if (!wardPreviewLeafletMap) {
+      wardPreviewLeafletMap = L.map("ward-preview", { attributionControl: false });
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19
+      }).addTo(wardPreviewLeafletMap);
+      wardPreviewResizeObserver = new ResizeObserver(() => {
+        wardPreviewLeafletMap.invalidateSize({ pan: false });
+      });
+      wardPreviewResizeObserver.observe(wardPreviewEl);
+    }
+    if (wardPreviewMarker) {
+      wardPreviewMarker.remove();
+    }
+    wardPreviewMarker = L.circleMarker([lat, lng], {
+      radius: 7,
+      color: "#fff",
+      weight: 2,
+      fillColor: "#da291c",
+      fillOpacity: 1
+    }).addTo(wardPreviewLeafletMap);
+    wardPreviewLeafletMap.invalidateSize({ pan: false });
+    wardPreviewLeafletMap.setView([lat, lng], 19, { animate: false });
+  };
 
-  wardPreviewEl.src =
-    "https://www.openstreetmap.org/export/embed.html?bbox=" + bbox +
-    "&layer=mapnik&marker=" + lat + "," + lng;
+  requestAnimationFrame(() => {
+    renderPropertyMap();
+    requestAnimationFrame(renderPropertyMap);
+  });
+  window.setTimeout(renderPropertyMap, 150);
+  window.setTimeout(renderPropertyMap, 500);
+  window.addEventListener("load", renderPropertyMap, { once: true });
 
   wardPreviewCoordsEl.textContent =
     "GPS coordinates " + lat + ", " + lng;
@@ -3553,8 +3386,13 @@ const DISTRICT_COMMUNITY_GEOJSON = {
 };
 
 let wardBoundaryLeafletMap = null;
+let wardPreviewLeafletMap = null;
+let wardPreviewMarker = null;
+let propertyMapRenderVersion = 0;
+let wardPreviewResizeObserver = null;
 let wardBoundaryGeoJson = null;
 let wardBoundaryLastDistrict = null;
+let wardBoundaryLayer = null;
 
 function showWardBoundaryMap() {
 
@@ -3576,7 +3414,9 @@ function showWardBoundaryMap() {
     0
   );
 
-  const district = state.selectedElector && state.selectedElector.pollingDistrict || "N1";
+  const district = String(
+    state.currentMapElector && state.currentMapElector.pollingDistrict || "N1"
+  ).trim().toUpperCase();
   const geojsonUrl = DISTRICT_COMMUNITY_GEOJSON[district] ||
     "https://mapit.mysociety.org/area/165915.geojson?simplify_tolerance=0.0001";
 
@@ -3596,6 +3436,9 @@ function showWardBoundaryMap() {
       return response.json();
     })
     .then((geojson) => {
+      if (wardBoundaryLastDistrict !== district) {
+        return;
+      }
       wardBoundaryGeoJson = geojson;
       if (state.showingWardBoundary) {
         wardBoundaryErrorEl.hidden = true;
@@ -3614,11 +3457,15 @@ function showWardBoundaryMap() {
 
 function drawWardBoundary() {
 
-  const layer = L.geoJSON(wardBoundaryGeoJson, {
+  if (wardBoundaryLayer) {
+    wardBoundaryLeafletMap.removeLayer(wardBoundaryLayer);
+  }
+
+  wardBoundaryLayer = L.geoJSON(wardBoundaryGeoJson, {
     style: { color: "#38f", weight: 2, fillOpacity: 0.1 }
   }).addTo(wardBoundaryLeafletMap);
 
-  wardBoundaryLeafletMap.fitBounds(layer.getBounds());
+  wardBoundaryLeafletMap.fitBounds(wardBoundaryLayer.getBounds());
 
 }
 
@@ -3663,13 +3510,15 @@ function updateVotingHistory(household) {
           const normalizedName = rawName.trim().toLowerCase();
           return {
             displayName: escapeHtml(rawName),
-            alwaysVotesDemo: DEMO_ALWAYS_VOTES_NAMES.has(normalizedName)
+            alwaysVotesDemo: DEMO_ALWAYS_VOTES_NAMES.has(normalizedName),
+            postalVoter: elector.postalProxy === "Postal"
           };
         })
       : [
           {
             displayName: "—",
-            alwaysVotesDemo: false
+            alwaysVotesDemo: false,
+            postalVoter: false
           }
         ];
 
@@ -3681,11 +3530,16 @@ function updateVotingHistory(household) {
     VOTING_HISTORY_YEARS.map(year =>
       "<tr>" +
       "<th scope=\"row\">" + escapeHtml(year) + "</th>" +
-      electorEntries.map(entry => {
-        const voted =
-          entry.alwaysVotesDemo &&
-          !year.includes("(Local)");
-        return "<td class=\"voting-history-disabled-cell\">" + (voted ? "X" : "—") + "</td>";
+       electorEntries.map(entry => {
+       const assumedPostalAttendance =
+         entry.postalVoter &&
+         ["2026 (Senedd)", "2024 (PCC)", "2024 (General)"].includes(year);
+       const voted =
+         entry.alwaysVotesDemo &&
+         !year.includes("(Local)");
+       return "<td class=\"voting-history-disabled-cell\">" +
+         (assumedPostalAttendance ? "A" : (voted ? "X" : "—")) +
+         "</td>";
       }).join("") +
       "</tr>"
     ).join("");
@@ -3743,7 +3597,7 @@ function getEffectiveWalkNumberForElector(elector) {
 
 function getTotalWalkCountForDistrict(pollingDistrict) {
 
-  const DEFAULT_WALK_COUNTS = { n1: 10, ae1: 2, af1: 2, au1: 2, n2: 2 };
+  const DEFAULT_WALK_COUNTS = { n1: 10, ae1: 2, af1: 4, au1: 2, n2: 2 };
 
   const districtKey = normalizeText(pollingDistrict);
   let maxWalk = DEFAULT_WALK_COUNTS[districtKey] || 2;
@@ -3814,6 +3668,12 @@ function walkDelivererKey(pollingDistrict, walkNumber) {
   return normalizeText(pollingDistrict) + "|" + walkNumber;
 }
 
+function getDefaultDelivererName(pollingDistrict) {
+  return normalizeText(pollingDistrict) === "ae1"
+    ? "Karl Ciz"
+    : "Chris Green";
+}
+
 function getAssignedDelivererName(pollingDistrict, walkNumber) {
 
   const key = walkDelivererKey(pollingDistrict, walkNumber);
@@ -3827,7 +3687,7 @@ function getAssignedDelivererName(pollingDistrict, walkNumber) {
   const assignedRowKey = walkDeliverers[key];
 
   if (!assignedRowKey) {
-    return "No Assigned Deliverer";
+    return getDefaultDelivererName(pollingDistrict);
   }
 
   const volunteerOverrides =
@@ -3840,7 +3700,7 @@ function getAssignedDelivererName(pollingDistrict, walkNumber) {
     DEFAULT_VOLUNTEERS.find(v => v.rowKey === assignedRowKey);
 
   if (!volunteer) {
-    return "No Assigned Deliverer";
+    return getDefaultDelivererName(pollingDistrict);
   }
 
   const isRegularDeliverer =
@@ -3849,7 +3709,7 @@ function getAssignedDelivererName(pollingDistrict, walkNumber) {
       : volunteer.regularDeliverer;
 
   if (!isRegularDeliverer) {
-    return "No Assigned Deliverer";
+    return getDefaultDelivererName(pollingDistrict);
   }
 
   const override = volunteerOverrides[volunteer.rowKey];
@@ -3857,8 +3717,8 @@ function getAssignedDelivererName(pollingDistrict, walkNumber) {
   const firstName = (override && override.firstName) || volunteer.firstName;
   const lastName = (override && override.lastName) || volunteer.lastName;
 
-  return (firstName + " " + lastName).trim() || "No Assigned Deliverer";
-
+  return (firstName + " " + lastName).trim() ||
+    getDefaultDelivererName(pollingDistrict);
 }
 
 
@@ -3972,6 +3832,11 @@ function buildDeliveryDescription(elector, pollingDistrict, walkNumber) {
     return "—";
   }
 
+  const sourceDescription = String(elector.deliveryDescription || "").trim();
+  if (sourceDescription) {
+    return sourceDescription;
+  }
+
   const district =
     normalizeText(pollingDistrict || elector.pollingDistrict || "");
 
@@ -3999,9 +3864,28 @@ function buildAiComments(household) {
     electors.map(getDisplayName);
 
   const sentences = [];
+  const electorCount = electors.length;
+  const electorCountWord = [
+    "zero", "one", "two", "three", "four", "five",
+    "six", "seven", "eight", "nine", "ten"
+  ][electorCount] || String(electorCount);
+  const electorNames = names.map(escapeHtml);
+  const listedElectorNames =
+    electorNames.length === 2
+      ? electorNames.join(" and ")
+      : electorNames.slice(0, -1).join(", ") + ", and " +
+        electorNames[electorNames.length - 1];
+
+  sentences.push(
+    electorCount === 1
+      ? "There is one (1) elector in this household, " +
+        escapeHtml(getDisplayName(electors[0])) + "."
+      : "There are " + electorCountWord + " (" + electorCount +
+        ") electors in this household: " + listedElectorNames + "."
+  );
 
 
-  // Anti-Plaid sentence(s) - always shown first, flanked by a red
+  // Anti-Plaid sentence(s) follow the household summary, flanked by a red
   // exclamation mark either side, when any elector is flagged
   // "Do not deliver" and/or "Do not contact".
   const antiPlaidParts = [];
@@ -4112,6 +3996,10 @@ function buildAiComments(household) {
             escapeHtml(getDisplayName(elector)) +
             " is " +
             age +
+            " years of age" +
+            (elector.dateOfBirth
+              ? " (DOB: " + escapeHtml(elector.dateOfBirth) + ")"
+              : "") +
             "."
           );
         }
@@ -4142,71 +4030,34 @@ function buildAiComments(household) {
 
   if (!anyPostalProxy) {
 
-    if (names.length === 1) {
-
-      sentences.push(
-        escapeHtml(names[0]) +
-        " does not have a postal vote."
-      );
-
-    } else if (names.length === 2) {
-
-      sentences.push(
-        "Neither elector has a postal vote."
-      );
-
-    } else {
-
-      sentences.push(
-        "None of the electors have a postal vote."
-      );
-
-    }
+    sentences.push(
+      "Nobody in this household has a postal vote."
+    );
 
   } else {
 
-    const parts =
-      postalProxyEntries.map(entry => {
+    const postalVoterNames =
+      postalProxyEntries
+        .filter(
+          entry =>
+            entry.status === "Postal" ||
+            entry.status === "Proxy"
+        )
+        .map(entry => escapeHtml(entry.name));
 
-        if (entry.status === "Postal" || entry.status === "Proxy") {
-          return escapeHtml(entry.name) + " has a postal vote";
-        }
+    sentences.push(
+      joinNames(postalVoterNames) +
+      (postalVoterNames.length === 1 ? " has" : " have") +
+      " a postal vote."
+    );
 
-        return escapeHtml(entry.name) + " does not have a postal vote";
-
-      });
-
-    sentences.push(parts.join(". ") + ".");
-
-  }
-
-
-  // Party membership / support status sentence
-  const PARTY_MEMBER_SENTENCES = {
-    "Current": "is a current party member",
-    "Former": "is a former party member",
-    "Lapsed": "was a party member, but has lapsed",
-    "Supporter": "is a supporter",
-    "Ask to Join": "has been asked to join the party"
-  };
-
-  electors.forEach(elector => {
-
-    const progress = getElectorProgress(elector.id);
-    const status = PARTY_MEMBER_SENTENCES[progress.partyMember];
-
-    if (status) {
-
+    if (postalVoterNames.length < postalProxyEntries.length) {
       sentences.push(
-        escapeHtml(getDisplayName(elector)) +
-        " " +
-        status +
-        "."
+        "No other electors have a postal vote."
       );
-
     }
 
-  });
+  }
 
 
   return sentences.join("<br><br>");
@@ -4241,15 +4092,19 @@ function numberToWords(value) {
 
 function updateStats() {
 
-  const active = getFilteredActiveElectors();
+  const active = getAllFilteredActiveElectors();
 
   const householdCount =
     new Set(
       active.map(e => e.householdGroupKey)
     ).size;
 
-  statLoadedEl.textContent = String(active.length);
+  const isCapped =
+    active.length > MAX_VISIBLE_ELECTORS ||
+    householdCount > MAX_VISIBLE_HOUSEHOLDS;
+  statLoadedEl.textContent = String(active.length) + (isCapped ? " *" : "");
   statCanvassEl.textContent = String(householdCount);
+  statCapNoticeEl.hidden = !isCapped;
 
 }
 
@@ -4272,9 +4127,6 @@ function getElectorProgress(electorId, electorName) {
 
   const demoCanvassId =
     DEMO_CANVASS_ID_BY_ELECTOR_ID[String(electorId)];
-  const demoSupportIndependence =
-    DEMO_SUPPORT_INDEPENDENCE_BY_ELECTOR_ID[String(electorId)];
-
   const legacyCanvassId =
     existing.canvassId ||
     existing.status ||
@@ -4286,10 +4138,6 @@ function getElectorProgress(electorId, electorName) {
     );
 
   const baseCanvassId = normalizeCanvassId(legacyCanvassId);
-  const supportIndependence =
-    existing.supportIndependence ||
-    demoSupportIndependence ||
-    "No Data";
   const firstLanguage = existing.firstLanguage || "English";
   const phone = existing.phone || "";
   const email = existing.email || "";
@@ -4301,8 +4149,16 @@ function getElectorProgress(electorId, electorName) {
     posterOptions.includes(poster) ? poster : "No Poster";
   const volunteer = Boolean(existing.volunteer);
   const askToVolunteer = volunteer ? false : Boolean(existing.askToVolunteer);
-  const doNotDeliver = Boolean(existing.doNotDeliver);
-  const doNotContact = Boolean(existing.doNotContact);
+  const hasDefaultAntiStatus =
+    DEFAULT_ANTI_ELECTOR_IDS.has(String(electorId));
+  const doNotDeliver =
+    existing.doNotDeliver === undefined
+      ? hasDefaultAntiStatus
+      : Boolean(existing.doNotDeliver);
+  const doNotContact =
+    existing.doNotContact === undefined
+      ? hasDefaultAntiStatus
+      : Boolean(existing.doNotContact);
   const canvassId = applyCanvassAffinityRules(
     baseCanvassId,
     partyMember,
@@ -4314,8 +4170,6 @@ function getElectorProgress(electorId, electorName) {
   return {
     canvassId:
       canvassIdOptions.includes(canvassId) ? canvassId : "No Data",
-    supportIndependence:
-      independenceOptions.includes(supportIndependence) ? supportIndependence : "No Data",
     firstLanguage:
       languageOptions.includes(firstLanguage) ? firstLanguage : "English",
     phone,
@@ -4338,11 +4192,11 @@ function applyCanvassAffinityRules(canvassId, partyMember, volunteer, askToVolun
     poster === "Poster: Window" ||
     poster === "Poster: Garden"
   ) {
-    return "Plaid Cymru";
+    return "Plaid";
   }
 
   if (askToVolunteer) {
-    return "Plaid Cymru";
+    return "Plaid";
   }
 
   return canvassId;
@@ -4363,7 +4217,7 @@ function hasAntiPlaidFlag(progress) {
 // Colour-codes elector cards and "Jump to Elector" chips by party.
 function getPoliticalLeanClass(canvassId) {
 
-  if (canvassId === "Plaid Cymru") {
+  if (canvassId === "Plaid") {
     return "elector-lean-green";
   }
 
@@ -4380,17 +4234,20 @@ function normalizeCanvassId(value) {
     cleaned === "Plaid" ||
     cleaned === "Definite Plaid" ||
     cleaned === "Probable Plaid" ||
-    cleaned === "Plaid Cymru"
+    cleaned === "Plaid"
   ) {
-    return "Plaid Cymru";
+    return "Plaid";
   }
 
   if (cleaned === "Independent") {
     return "Independent";
   }
 
+  if (cleaned === "Other") {
   return "Other";
+  }
 
+  return "No Data";
 }
 
 
@@ -4432,6 +4289,8 @@ function syncPollingDistrictToggles() {
   const allSelected = areAllPollingDistrictsSelected();
   selectAllPollingDistrictsEl.classList.toggle("is-selected", allSelected);
   selectAllPollingDistrictsEl.setAttribute("aria-pressed", String(allSelected));
+  selectAllPollingDistrictsEl.textContent =
+    allSelected ? "Deselect All" : "Select All";
 
 }
 
@@ -4513,32 +4372,25 @@ function getActiveElectors() {
 function populateSubroadFilterOptions() {
 
   const selectedDistrict =
-    normalizeText(
-      subroadFilterDistrictEl.value ||
-      getSelectedPollingDistricts()[0]
-    );
+    normalizeText(subroadFilterDistrictEl.value);
 
-  if (
-    [...subroadFilterDistrictEl.options].some(
-      option => normalizeText(option.value) === selectedDistrict
-    )
-  ) {
-    const matchingOption = [...subroadFilterDistrictEl.options].find(
-      option => normalizeText(option.value) === selectedDistrict
-    );
-    if (matchingOption) {
-      subroadFilterDistrictEl.value = matchingOption.value;
-    }
+  if (!selectedDistrict) {
+    subroadFilterWalkEl.disabled = true;
+    subroadFilterSubroadEl.disabled = true;
+    subroadFilterWalkEl.innerHTML =
+      "<option value=\"\" selected disabled>Walk</option>";
+    subroadFilterSubroadEl.innerHTML =
+      "<option value=\"\">All Subroads</option>";
+    return;
   }
 
-  const wantedDistrict =
-    normalizeText(
-      subroadFilterDistrictEl.value ||
-      getSelectedPollingDistricts()[0]
-    );
+  const wantedDistrict = selectedDistrict;
 
   const previousSelection =
     subroadFilterSubroadEl.value;
+
+  const previousWalk =
+    subroadFilterWalkEl.value;
 
   const seenHouseholds = new Set();
   const subRoadEntriesByKey = new Map();
@@ -4565,30 +4417,63 @@ function populateSubroadFilterOptions() {
       return;
     }
 
-    const subRoadKey = normalizeText(effectiveSubRoad);
     const walkNumber = getEffectiveWalkNumberForElector(elector);
+    const subRoadKey =
+      normalizeText(effectiveSubRoad);
     const existing = subRoadEntriesByKey.get(subRoadKey);
 
     if (!existing) {
       subRoadEntriesByKey.set(subRoadKey, {
         name: effectiveSubRoad,
-        walkNumber
+        properties: 1,
+        propertiesByWalk: new Map([[walkNumber, 1]])
       });
       return;
     }
 
-    if (walkNumber < existing.walkNumber) {
-      existing.walkNumber = walkNumber;
-    }
+    existing.properties += 1;
+    existing.propertiesByWalk.set(
+      walkNumber,
+      (existing.propertiesByWalk.get(walkNumber) || 0) + 1
+    );
   });
+
+  const walkNumbers =
+    Array.from(
+      { length: getTotalWalkCountForDistrict(wantedDistrict) },
+      (_, index) => index + 1
+    );
+
+  subroadFilterWalkEl.innerHTML =
+    "<option value=\"\" selected disabled>Walk</option>" +
+    "<option value=\"all\">All Walks</option>" +
+    walkNumbers.map(walkNumber =>
+      "<option value=\"" + walkNumber + "\">" + walkNumber + "</option>"
+    ).join("");
+  subroadFilterWalkEl.disabled = false;
+
+  if (walkNumbers.includes(Number(previousWalk))) {
+    subroadFilterWalkEl.value = previousWalk;
+  } else {
+    subroadFilterWalkEl.value = "all";
+  }
+
+  const selectedWalk =
+    Number(subroadFilterWalkEl.value);
+
+  if (!subroadFilterWalkEl.value) {
+    subroadFilterSubroadEl.disabled = true;
+    subroadFilterSubroadEl.innerHTML =
+      "<option value=\"\">All Subroads</option>";
+    return;
+  }
 
   const subRoadEntries =
     Array.from(subRoadEntriesByKey.values()).sort((a, b) => {
-      if (a.walkNumber !== b.walkNumber) {
-        return a.walkNumber - b.walkNumber;
-      }
       return a.name.localeCompare(b.name);
-    });
+    }).filter(entry =>
+      !selectedWalk || entry.propertiesByWalk.has(selectedWalk)
+    );
 
   const subRoadNames = subRoadEntries.map(entry => entry.name);
 
@@ -4596,8 +4481,12 @@ function populateSubroadFilterOptions() {
     "<option value=\"\">All Subroads</option>" +
     subRoadEntries.map(entry =>
       "<option value=\"" + escapeHtmlAttr(entry.name) + "\">" +
-      escapeHtml(entry.name) + " [" + entry.walkNumber + "]</option>"
+      escapeHtml(entry.name) + " (" +
+      (selectedWalk
+        ? entry.propertiesByWalk.get(selectedWalk)
+        : entry.properties) + ")</option>"
     ).join("");
+  subroadFilterSubroadEl.disabled = false;
 
   if (subRoadNames.includes(previousSelection)) {
     subroadFilterSubroadEl.value = previousSelection;
@@ -4605,8 +4494,44 @@ function populateSubroadFilterOptions() {
 
 }
 
+function syncSubroadFilterDistrict(elector) {
+
+  if (state.hasManualSubroadFilterDistrict) {
+    return;
+  }
+
+  const matchingOption = [...subroadFilterDistrictEl.options].find(
+    option =>
+      normalizeText(option.value) === normalizeText(elector.pollingDistrict)
+  );
+
+  if (
+    matchingOption &&
+    subroadFilterDistrictEl.value !== matchingOption.value
+  ) {
+    subroadFilterDistrictEl.value = matchingOption.value;
+    subroadFilterWalkEl.value = "";
+    subroadFilterSubroadEl.value = "";
+    populateSubroadFilterOptions();
+  }
+
+}
+
 
 function getFilteredActiveElectors() {
+  const visibleHouseholds = new Set();
+  return getAllFilteredActiveElectors()
+    .filter(elector => {
+      const householdKey = elector.householdGroupKey;
+      if (visibleHouseholds.has(householdKey)) return true;
+      if (visibleHouseholds.size >= MAX_VISIBLE_HOUSEHOLDS) return false;
+      visibleHouseholds.add(householdKey);
+      return true;
+    })
+    .slice(0, MAX_VISIBLE_ELECTORS);
+}
+
+function getAllFilteredActiveElectors() {
 
   const filterType =
     filterTypeEl.value;
@@ -4622,6 +4547,9 @@ function getFilteredActiveElectors() {
 
   const subroadFilterDistrict =
     normalizeText(subroadFilterDistrictEl.value).trim();
+
+  const subroadFilterWalk =
+    Number(subroadFilterWalkEl.value) || null;
 
   return getActiveElectors().filter(elector => {
 
@@ -4662,11 +4590,14 @@ function getFilteredActiveElectors() {
 
     }
 
-    if (subroadFilter) {
+    if (subroadFilter || subroadFilterWalk) {
 
       if (
-        normalizeText(elector.subRoad) !== subroadFilter ||
-        normalizeText(elector.pollingDistrict) !== subroadFilterDistrict
+        normalizeText(elector.pollingDistrict) !== subroadFilterDistrict ||
+        (subroadFilter &&
+          normalizeText(elector.subRoad) !== subroadFilter) ||
+        (subroadFilterWalk &&
+          getEffectiveWalkNumberForElector(elector) !== subroadFilterWalk)
       ) {
         return false;
       }

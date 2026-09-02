@@ -106,7 +106,8 @@
       af1: "Talsarnau",
       au1: "Llanfair",
       n1: "Harlech",
-      n2: "Llandanwg"
+      n2: "Llandanwg",
+      ka1: "PWLLHELI NORTH"
     };
     const statusEl = document.getElementById("status");
     const subroadsEl = document.getElementById("subroads");
@@ -212,13 +213,14 @@
           String(row[15] || "").trim();
         const subroad =
           data.subroad ||
-          String(row[48] || "").trim();
-        const walk =
-          data.walk ||
-          String(row[37] || "").trim() ||
-          "1";
+          String(row[50] || "").trim();
+        const walk = String(row[51] || "").trim() || data.walk;
 
-        if (!pollingDistrict || !subroad) {
+        if (
+          !pollingDistrict ||
+          !subroad ||
+          normalizeHeader(pollingDistrict) === "ka1"
+        ) {
           return;
         }
 
@@ -247,11 +249,21 @@
         groups.set(groupKey, group);
       });
 
-      const subroads = [...groups.values()].sort((left, right) =>
-        left.households.size - right.households.size ||
-        left.pollingDistrict.localeCompare(right.pollingDistrict) ||
-        left.subroad.localeCompare(right.subroad)
-      );
+      const subroads = [...groups.values()].sort((left, right) => {
+        const leftDistrictName =
+          POLLING_DISTRICT_NAMES[left.pollingDistrict.toLowerCase()] ||
+          left.pollingDistrict;
+        const rightDistrictName =
+          POLLING_DISTRICT_NAMES[right.pollingDistrict.toLowerCase()] ||
+          right.pollingDistrict;
+
+        return (
+          leftDistrictName.localeCompare(rightDistrictName) ||
+          right.households.size - left.households.size ||
+          right.electors - left.electors ||
+          left.subroad.localeCompare(right.subroad)
+        );
+      });
 
       subroadsEl.innerHTML = subroads.map(group =>
         "<tr>" +
@@ -259,7 +271,13 @@
             POLLING_DISTRICT_NAMES[group.pollingDistrict.toLowerCase()] ||
             group.pollingDistrict
           ) + "</td>" +
-          "<td>" + escapeHtml(group.subroad) + "</td>" +
+          "<td><a href=\"subroad.html?district=" +
+            encodeURIComponent(group.pollingDistrict) +
+            "&subroad=" +
+            encodeURIComponent(group.subroad) +
+            "\">" +
+            escapeHtml(group.subroad) +
+            "</a></td>" +
           "<td>" + escapeHtml(group.walk) + "</td>" +
           "<td class=\"number\">" + group.households.size + "</td>" +
           "<td class=\"number\">" + group.electors + "</td>" +

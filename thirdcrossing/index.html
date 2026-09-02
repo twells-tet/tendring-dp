@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Third Crossing | Menai Straits</title>
+  <meta name="description" content="A campaign for a resilient third crossing over the Menai Straits, connecting Anglesey and Bangor.">
+  <meta name="theme-color" content="#0a1a3e">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    .thirdcrossing-hero-image {
+      margin: 0;
+      height: min(48vw, 580px);
+      min-height: 260px;
+      overflow: hidden;
+    }
+
+    .thirdcrossing-hero-image img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    .thirdcrossing-tag {
+      color: #ffffff;
+      border-color: #ffffff;
+      font-size: 17px;
+      padding: 12px 18px;
+    }
+
+    .thirdcrossing-actions .card {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .thirdcrossing-actions .btn {
+      margin-top: auto;
+    }
+
+    .thirdcrossing-actions .primary {
+      color: #ffffff;
+    }
+
+    .thirdcrossing-actions .secondary {
+      color: #fcf4ed;
+    }
+
+    .thirdcrossing-hero-actions .btn {
+      background: #1c3b7c;
+      border: 2px solid #1c3b7c;
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <figure class="thirdcrossing-hero-image">
+      <img src="menai-suspension-bridge.jpg" alt="Menai Suspension Bridge between Anglesey and Gwynedd">
+    </figure>
+    <section class="hero">
+      <div class="container">
+        <div class="tag thirdcrossing-tag">THIRD MENAI CROSSING</div>
+        <h1>IT'S TIME<br><span class="yellow">FOR ACTION</span></h1>
+        <p class="lead">
+          Anglesey and the mainland need a reliable, resilient new crossing. Delays and disruption are costing the North
+          Wales economy at least &pound;30 million every year.
+        </p>
+        <div class="buttons thirdcrossing-hero-actions">
+          <a href="https://petitions.senedd.wales/petitions/246931" class="btn primary">ADD YOUR NAME</a>
+          <a href="../donate/" class="btn secondary">DONATE</a>
+          <a href="../volunteer/" class="btn secondary">FORCE ACTION</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="cards thirdcrossing-actions" aria-label="Take action">
+      <article id="petition" class="card">
+        <h2>Petition</h2>
+        <p>Tell the Welsh Government: Build a new crossing over the Menai.</p>
+        <a href="https://petitions.senedd.wales/petitions/246931" class="btn primary">ADD YOUR NAME</a>
+      </article>
+      <article class="card">
+        <h2>Donate</h2>
+        <p>Help fund the campaign for a resilient connection between Anglesey and Bangor.</p>
+        <a href="../donate/" class="btn primary">DONATE</a>
+      </article>
+      <article id="force-action" class="card">
+        <h2>Force Action</h2>
+        <p>
+          We want to field 35 candidates to Isle of Anglesey Council at the local elections in May 2027. If you live
+        or work on the island and want to stand, sign up.
+        </p>
+        <a href="../volunteer/" class="btn primary">STAND FOR COUNCIL</a>
+      </article>
+    </section>
+  </main>
+
+  <footer>
+    Third Crossing Campaign &middot;
+    <a href="https://commons.wikimedia.org/wiki/File:Pont_y_Borth_(Menai_Suspension_Bridge)_a_godwyd_gan_Telford,_rhwng_Ynys_Mon_a_Gwynedd;_Mehefin_2023_12.jpg">Hero Image: Wikimedia Commons</a>
+  </footer>
+</body>
+</html>

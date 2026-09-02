@@ -1930,6 +1930,10 @@ body.printer-friendly-mode .exit-printer-friendly-link {
   box-shadow: 0 10px 30px rgba(10, 94, 73, 0.08);
 }
 
+.lottery-card {
+  text-align: left;
+}
+
 .tarian-homepage-card .eyebrow {
   margin: 0 0 0.5rem;
   color: var(--plaid-green);
@@ -2290,7 +2294,7 @@ body.printer-friendly-mode .exit-printer-friendly-link {
 
 .lottery-outgoing-row {
   display: grid;
-  grid-template-columns: 2fr 1fr auto;
+  grid-template-columns: 2fr 1fr;
   gap: 0.5rem;
   align-items: center;
 }
@@ -2313,6 +2317,29 @@ body.printer-friendly-mode .exit-printer-friendly-link {
 .lottery-outgoing-row input:focus {
   outline: 2px solid var(--plaid-green);
   outline-offset: 1px;
+}
+
+.lottery-outgoing-row--pinned input {
+  border-color: #c0392b;
+  background: #fff0f0;
+}
+
+.lottery-outgoing-row--pinned {
+  padding: 0.6rem 0.7rem;
+  border: 1px solid #c0392b;
+  border-radius: 0.5rem;
+  background: #fff0f0;
+}
+
+.lottery-outgoing-row--main {
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--plaid-green);
+  border-radius: 0.5rem;
+  background: #edf8f3;
+}
+
+.lottery-outgoing-row strong {
+  text-align: left;
 }
 
 .lottery-outgoing-remove {
@@ -2433,5 +2460,3 @@ body.printer-friendly-mode .exit-printer-friendly-link {
 .lottery-corner-link:hover {
   opacity: 1;
 }
-
-
