@@ -127,6 +127,14 @@
     .walk-key .district-key-item {
       width: 18rem;
     }
+    .walk-key.is-harlech-walks {
+      grid-template-columns: repeat(2, 18rem);
+      grid-template-rows: auto repeat(5, auto);
+      grid-auto-flow: column;
+    }
+    .walk-key.is-harlech-walks .walk-key-all-toggle {
+      grid-column: 1 / -1;
+    }
     .walk-picker {
       display: flex;
       align-items: center;
@@ -616,6 +624,7 @@
         .sort((left, right) => left.localeCompare(right, undefined, { numeric: true }));
 
       const allWalksHidden = walks.length && walks.every(walk => hiddenWalks.has(walk));
+      walkKey.classList.toggle("is-harlech-walks", district === "N1");
       walkKey.innerHTML =
         "<button type=\"button\" class=\"walk-key-toggle walk-key-all-toggle " +
         (allWalksHidden ? "is-show-all" : "is-hide-all") +
