@@ -912,7 +912,7 @@ body.mobile-mode .elector-list {
 @media (min-width: 1200px) {
   .search-actions-row {
     grid-template-columns: minmax(360px, 1fr) minmax(380px, 1fr);
-    align-items: start;
+    align-items: stretch;
   }
 
   .search-actions-row .search-actions-controls,
@@ -921,6 +921,10 @@ body.mobile-mode .elector-list {
     max-width: none;
     width: 100%;
     margin: 0;
+  }
+
+  .search-actions-row .quick-name-search {
+    align-self: stretch;
   }
 
   .quick-name-search-row {
@@ -2153,24 +2157,28 @@ body.mobile-mode .elector-list {
 }
 
 @media (min-width: 1041px) {
-  .workspace:not(:has(.map-panel--hidden)) {
+  .polling-district-toggles {
+    grid-template-columns: repeat(5, minmax(10rem, 1fr));
+  }
+
+  .workspace {
     align-items: stretch;
   }
 
-  .workspace:not(:has(.map-panel--hidden)) .list-column {
+  .workspace .list-column {
     height: 100%;
     display: flex;
     flex-direction: column;
   }
 
-  .workspace:not(:has(.map-panel--hidden)) .list-panel {
+  .workspace .list-panel {
     flex: 1;
     display: flex;
     flex-direction: column;
     min-height: 0;
   }
 
-  .workspace:not(:has(.map-panel--hidden)) .list-panel .elector-list {
+  .workspace .list-panel .elector-list {
     flex: 1;
     min-height: 0;
     max-height: none;
