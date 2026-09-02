@@ -584,8 +584,9 @@
       L.circleMarker([latitude, longitude], {
         pane: "postcode-markers",
         radius: 7,
-        stroke: false,
-        fillColor: "#000",
+        color: "#fff",
+        weight: 1.5,
+        fillColor: "#ff6400",
         fillOpacity: 1
       }).addTo(ja1Layer).bindPopup(
         [addressLine1, addressLine2, postcode].filter(Boolean).join("<br>") +
