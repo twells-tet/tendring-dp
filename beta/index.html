@@ -3338,7 +3338,7 @@ function updatePropertyMap(elector) {
 
   propertyFullAddressEl.textContent =
     elector
-      ? (getPropertyAddressLines(elector).join(", ").toUpperCase() || "—")
+      ? (formatHouseholdAddress(elector).toUpperCase() || "—")
       : "—";
 
   wardPreviewEl.hidden = false;
