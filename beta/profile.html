@@ -183,7 +183,8 @@
           <div class="profile-field-row">
             <span class="profile-field-label">CANVASS DATA</span>
             <select id="profile-canvass-data-select" class="profile-field-select" disabled>
-              <option>Plaid</option><option>Independent</option>
+              <option>Plaid Cymru</option><option>Definite Independent</option>
+              <option>Probable Independent</option>
               <option>Other</option><option>No Data</option>
             </select>
           </div>
@@ -224,8 +225,8 @@
                 <th>Date</th>
                 <th>Time</th>
                 <th>Canvasser</th>
-                <th>Channel</th>
-                <th>Notes</th>
+                <th>Not Home?</th>
+                <th>Canvass ID</th>
               </tr>
             </thead>
             <tbody id="contact-history-body">
@@ -238,7 +239,7 @@
         <div class="profile-section">
           <label class="checkbox-label">
             <input type="checkbox" id="profile-do-not-deliver-doorstep">
-            NO NOT DELIVER/DOORSTEP
+            DO NOT DELIVER / DOORSTEP
           </label>
         </div>
 
@@ -431,7 +432,7 @@
     }
 
     function getPoliticalLeanClass(canvassId) {
-      if (["Plaid", "Definite Plaid", "Probable Plaid"].includes(canvassId)) return "elector-lean-green";
+      if (["Plaid Cymru", "Plaid", "Definite Plaid", "Probable Plaid"].includes(canvassId)) return "elector-lean-green";
       if (canvassId === "Conservative")  return "elector-lean-blue";
       if (canvassId === "Green")         return "elector-lean-light-green";
       if (canvassId === "Lib Dem")       return "elector-lean-orange";
@@ -526,7 +527,9 @@
         doNotContact:
           raw.doNotContact === undefined
             ? DEFAULT_ANTI_ELECTOR_IDS.has(String(electorId))
-            : Boolean(raw.doNotContact)
+            : Boolean(raw.doNotContact),
+        contactHistory:
+          Array.isArray(raw.contactHistory) ? raw.contactHistory : []
       };
     }
 
@@ -727,11 +730,15 @@
       const addressLine = addressParts.join(", ");
 
       // Household data
+      const ward =
+        String(elector.householdId || elector.householdGroupKey) === "599999998"
+          ? "GOGLEDD PWLLHELI"
+          : "HARLECH A LLANBEDR";
       document.getElementById("profile-household-dl").innerHTML =
         dlRow("Household ID", elector.householdId || elector.householdGroupKey) +
         dlRow("Address", addressLine) +
         dlRow("Local Authority", "GWYNEDD") +
-        dlRow("Ward", "HARLECH A LLANBEDR") +
+        dlRow("Ward", ward) +
         dlRow(
           "Community",
           progress.community || elector.community || getCommunity(elector.pollingDistrict)
@@ -742,6 +749,10 @@
       const walkDesc = walkNum ? getWalkDescription(elector.pollingDistrict, parseInt(walkNum[0], 10)) : "";
       const coordinateValues = [elector.lat, elector.lng].filter(Boolean);
       const coordinates = coordinateValues.join(", ");
+      const subroad =
+        String(elector.householdId || elector.householdGroupKey) === "599999998"
+          ? "Y Traeth"
+          : elector.subRoad;
       const googleMapsUrl = coordinateValues.length === 2
         ? "https://www.google.com/maps/search/?api=1&query=" +
           encodeURIComponent(coordinateValues.join(","))
@@ -749,14 +760,14 @@
       document.getElementById("profile-delivery-dl").innerHTML =
         dlRow("Polling District", getPollingDistrictLabel(elector.pollingDistrict)) +
         dlRow("Walk", elector.deliveryWalk + (walkDesc ? " (" + walkDesc + ")" : "")) +
-        dlRow("Subroad", elector.subRoad) +
+        dlRow("Subroad", subroad) +
         dlRow("Sort Order", elector.deliveryOrder) +
         dlLinkRow("Coordinates", googleMapsUrl, coordinates);
 
       const canvassDataEl = document.getElementById("profile-canvass-data-select");
       const langEl = document.getElementById("profile-language-select");
       canvassDataEl.value =
-        ["Plaid", "Independent", "Other", "No Data"].includes(progress.canvassId)
+        ["Plaid Cymru", "Definite Independent", "Probable Independent", "Other", "No Data"].includes(progress.canvassId)
           ? progress.canvassId
           : "No Data";
       langEl.value = progress.firstLanguage;
@@ -767,6 +778,21 @@
 
       // Voting history
       document.getElementById("profile-voting-history").innerHTML = renderVotingHistory(elector);
+
+      const contactHistoryBodyEl =
+        document.getElementById("contact-history-body");
+      const contactHistory = [...progress.contactHistory].sort((left, right) =>
+        (Date.parse(right.date) || 0) - (Date.parse(left.date) || 0)
+      );
+      contactHistoryBodyEl.innerHTML = contactHistory.length
+        ? contactHistory.map(contact =>
+          "<tr><td>" + escapeHtml(contact.date || "—") + "</td>" +
+          "<td>" + escapeHtml(contact.time || "—") + "</td>" +
+          "<td>" + escapeHtml(contact.canvasser || "—") + "</td>" +
+          "<td>" + escapeHtml(contact.notHome ? "Yes" : "") + "</td>" +
+          "<td>" + escapeHtml(contact.canvassId || "No Data") + "</td></tr>"
+        ).join("")
+        : "<tr class=\"empty-row\"><td colspan=\"5\">No contact history recorded.</td></tr>";
 
       const activeDelivererEl =
         document.getElementById("profile-active-deliverer-checkbox");
