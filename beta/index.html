@@ -1559,7 +1559,11 @@ async function loadElectorsFromSheet(inputUrl) {
 
       elector.addressLine1 = override.addressLine1 || elector.addressLine1;
       elector.addressLine2 = override.addressLine2 || elector.addressLine2;
-      elector.address = [elector.addressLine1, elector.addressLine2]
+      elector.address = [
+        elector.addressLine1,
+        elector.addressLine2,
+        elector.addressLine3
+      ]
         .filter(Boolean)
         .join(", ");
     });
@@ -2994,6 +2998,18 @@ function formatHouseholdAddress(elector) {
 
 }
 
+function getPropertyAddressLines(elector) {
+
+  return [
+    elector.addressLine1,
+    elector.addressLine2,
+    elector.addressLine3
+  ]
+    .map(line => String(line || "").trim())
+    .filter(line => line && !POST_TOWN_NAMES.has(normalizeText(line)));
+
+}
+
 
 function formatPollingDistrictSummary(elector) {
 
@@ -3322,7 +3338,7 @@ function updatePropertyMap(elector) {
 
   propertyFullAddressEl.textContent =
     elector
-      ? formatHouseholdAddress(elector).toUpperCase()
+      ? (getPropertyAddressLines(elector).join(", ").toUpperCase() || "—")
       : "—";
 
   wardPreviewEl.hidden = false;
@@ -3375,12 +3391,7 @@ function updatePropertyMap(elector) {
       fillColor: "#da291c",
       fillOpacity: 1
     }).addTo(wardPreviewLeafletMap).bindPopup(
-      [elector.addressLine1, elector.addressLine2, elector.addressLine3]
-        .map(line => String(line || "").trim())
-        .filter(line =>
-          line &&
-          !POST_TOWN_NAMES.has(normalizeText(line))
-        )
+      getPropertyAddressLines(elector)
         .map(escapeHtml)
         .concat(
           "[" + householdElectorCount + " " +
