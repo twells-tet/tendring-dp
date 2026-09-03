@@ -293,6 +293,15 @@
       "511982671",
       "512006782"
     ]);
+    const DEFAULT_CONTACT_HISTORY_BY_ELECTOR_ID = {
+      "599999999": [{
+        date: "3 Sep 2026",
+        time: "13:00",
+        canvasser: "C. Green",
+        notHome: "",
+        canvassId: "Definite Independent"
+      }]
+    };
 
     const DEMO_ALWAYS_VOTES_NAMES = new Set(["pat postie", "sam sorefeet"]);
 
@@ -529,7 +538,9 @@
             ? DEFAULT_ANTI_ELECTOR_IDS.has(String(electorId))
             : Boolean(raw.doNotContact),
         contactHistory:
-          Array.isArray(raw.contactHistory) ? raw.contactHistory : []
+          Array.isArray(raw.contactHistory)
+            ? raw.contactHistory
+            : (DEFAULT_CONTACT_HISTORY_BY_ELECTOR_ID[String(electorId)] || [])
       };
     }
 

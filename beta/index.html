@@ -841,6 +841,16 @@ const DEMO_CANVASS_ID_BY_ELECTOR_ID = {
   "425577355": "Conservative"
 };
 
+const DEFAULT_CONTACT_HISTORY_BY_ELECTOR_ID = {
+  "599999999": [{
+    date: "3 Sep 2026",
+    time: "13:00",
+    canvasser: "C. Green",
+    notHome: "",
+    canvassId: "Definite Independent"
+  }]
+};
+
 initControls();
 
 
@@ -4206,7 +4216,7 @@ function getElectorProgress(electorId, electorName) {
     doNotContact,
     contactHistory: Array.isArray(existing.contactHistory)
       ? existing.contactHistory
-      : []
+      : (DEFAULT_CONTACT_HISTORY_BY_ELECTOR_ID[String(electorId)] || [])
   };
 
 }
