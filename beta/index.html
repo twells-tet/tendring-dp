@@ -825,6 +825,11 @@ const statCapNoticeEl =
 
 let householdDetailsHeightRetryPending = false;
 
+const POST_TOWN_NAMES = new Set([
+  "llanbedr", "harlech", "talsarnau", "llanfair",
+  "llandanwg", "barmouth", "abersoch"
+]);
+
 const DEMO_PLAID_ELECTOR_NAMES = [
   "pat postie",
   "sam sorefeet"
@@ -1749,9 +1754,6 @@ function mapRowToElector(row, headers, index) {
 
 
 
-  // POST TOWNS — standalone settlement names that should be treated as post town, not address lines
-  const POST_TOWNS = new Set(["llanbedr", "harlech", "talsarnau", "llanfair", "llandanwg", "barmouth", "abersoch"]);
-
   const POSTCODE_TOWN = {
     "ll42": "BARMOUTH", "ll43": "TALYBONT", "ll44": "DYFFRYN ARDUDWY",
     "ll45": "LLANBEDR", "ll46": "HARLECH", "ll47": "TALSARNAU",
@@ -1764,9 +1766,9 @@ function mapRowToElector(row, headers, index) {
     data.address7, data.address8, data.address9
   ].filter(p => p && p.trim());
 
-  const postTownFromParts = (addrParts3to9.find(p => POST_TOWNS.has(p.trim().toLowerCase())) || "").toUpperCase();
+  const postTownFromParts = (addrParts3to9.find(p => POST_TOWN_NAMES.has(p.trim().toLowerCase())) || "").toUpperCase();
   const address3Compressed = addrParts3to9
-    .filter(p => !POST_TOWNS.has(p.trim().toLowerCase()))
+    .filter(p => !POST_TOWN_NAMES.has(p.trim().toLowerCase()))
     .join(", ");
 
   const address =
@@ -1790,7 +1792,7 @@ function mapRowToElector(row, headers, index) {
   // Only use postcode-derived town if it doesn't already appear in the address
   const addressLower = [data.address1, data.address2, address3Compressed].join(" ").toLowerCase();
   const postTown = postTownFromParts ||
-    (data.address3 && POST_TOWNS.has(data.address3.trim().toLowerCase()) ? data.address3.trim().toUpperCase() : "") ||
+    (data.address3 && POST_TOWN_NAMES.has(data.address3.trim().toLowerCase()) ? data.address3.trim().toUpperCase() : "") ||
     (postcodeTown && !addressLower.includes(postcodeTown.toLowerCase()) ? postcodeTown : "");
 
   const postcode =
@@ -3377,10 +3379,13 @@ function updatePropertyMap(elector) {
         .map(line => String(line || "").trim())
         .filter(line =>
           line &&
-          normalizeText(line) !== normalizeText(elector.postTown || "")
+          !POST_TOWN_NAMES.has(normalizeText(line))
         )
         .map(escapeHtml)
-        .concat("[" + householdElectorCount + "]")
+        .concat(
+          "[" + householdElectorCount + " " +
+          (householdElectorCount === 1 ? "elector" : "electors") + "]"
+        )
         .join("<br>")
     );
     wardPreviewLeafletMap.invalidateSize({ pan: false });
