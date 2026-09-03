@@ -37,7 +37,6 @@
   </div>
 
   <header class="page-header" id="top">
-    <button type="button" class="language-toggle" id="language-toggle">CYM</button>
     <a href="index.html" class="page-header-logo-link" aria-label="TARIAN home">
       <img src="tarian-shield.svg" alt="" class="page-header-logo">
     </a>
@@ -442,16 +441,6 @@
 
     })();
 
-    (function initLanguageToggle() {
-
-      const toggleEl = document.getElementById("language-toggle");
-
-      toggleEl.addEventListener("click", () => {
-        alert("Welsh version in progress. Diolch yn fawr");
-      });
-
-    })();
-
     const EXPECTED_ELECTORS = 500;
 
 // Welsh connectives/prepositions that should stay lowercase mid-address.
@@ -523,8 +512,9 @@ const DEFAULT_WALK_DESCRIPTIONS = {
 
 
 const canvassIdOptions = [
-  "Plaid",
-  "Independent",
+  "Plaid Cymru",
+  "Definite Independent",
+  "Probable Independent",
   "Other",
   "No Data"
 ];
@@ -843,9 +833,9 @@ const DEMO_CANVASS_ID_BY_ELECTOR_ID = {
   "508891699": "Labour",
   "665650266": "Green",
   "911051031": "Reform",
-  "693445390": "Independent",
-  "507243585": "Independent",
-  "507226537": "Independent",
+  "693445390": "Definite Independent",
+  "507243585": "Definite Independent",
+  "507226537": "Definite Independent",
   "954638525": "Lib Dem",
   "934314541": "Probable Plaid",
   "425577355": "Conservative"
@@ -3976,40 +3966,26 @@ function buildAiComments(household) {
   }
 
 
-  // Canvass data sentence
-  const canvassEntries =
-    electors.map(elector => {
-      const progress = getElectorProgress(elector.id);
-      return {
-        name: getDisplayName(elector),
-        canvassId: progress.canvassId || "No Data"
-      };
-    });
+  const latestContact = electors.flatMap(elector =>
+    getElectorProgress(elector.id).contactHistory.map(contact => ({
+      elector,
+      contact,
+      timestamp: Date.parse(contact.date) || 0
+    }))
+  ).sort((left, right) => right.timestamp - left.timestamp)[0];
 
-  const uniqueCanvassIds =
-    [...new Set(canvassEntries.map(entry => entry.canvassId))];
-
-  if (uniqueCanvassIds.length === 1) {
-
-    sentences.push(
-      "All electors in this household are recorded as " +
-      escapeHtml(uniqueCanvassIds[0]) +
-      "."
-    );
-
+  if (!latestContact) {
+    sentences.push("We have no record of ever speaking to this elector.");
   } else {
-
-    const canvassSummary =
-      canvassEntries.map(entry =>
-        escapeHtml(entry.name) + ": " + escapeHtml(entry.canvassId)
-      ).join("; ");
-
+    const canvassId = latestContact.contact.canvassId || "No Data";
     sentences.push(
-      "Canvass ID data for this household: " +
-      canvassSummary +
+      "We last spoke to " +
+      escapeHtml(getDisplayName(latestContact.elector)) +
+      " on " + escapeHtml(latestContact.contact.date || "an unknown date") +
+      " and they were canvassed as " +
+      escapeHtml(canvassId) +
       "."
     );
-
   }
 
 
@@ -4181,7 +4157,7 @@ function getElectorProgress(electorId, electorName) {
     demoCanvassId ||
     (
       isDemoPlaidElector
-        ? "Definite Plaid"
+        ? "Plaid Cymru"
         : (isDemoProbablePlaidElector ? "Probable Plaid" : "No Data")
     );
 
@@ -4227,7 +4203,10 @@ function getElectorProgress(electorId, electorName) {
     volunteer,
     askToVolunteer,
     doNotDeliver,
-    doNotContact
+    doNotContact,
+    contactHistory: Array.isArray(existing.contactHistory)
+      ? existing.contactHistory
+      : []
   };
 
 }
@@ -4240,11 +4219,11 @@ function applyCanvassAffinityRules(canvassId, partyMember, volunteer, askToVolun
     poster === "Poster: Window" ||
     poster === "Poster: Garden"
   ) {
-    return "Plaid";
+    return "Plaid Cymru";
   }
 
   if (askToVolunteer) {
-    return "Plaid";
+    return "Plaid Cymru";
   }
 
   return canvassId;
@@ -4265,7 +4244,7 @@ function hasAntiPlaidFlag(progress) {
 // Colour-codes elector cards and "Jump to Elector" chips by party.
 function getPoliticalLeanClass(canvassId) {
 
-  if (canvassId === "Plaid") {
+  if (canvassId === "Plaid Cymru") {
     return "elector-lean-green";
   }
 
@@ -4279,16 +4258,21 @@ function normalizeCanvassId(value) {
   const cleaned = String(value || "").trim();
 
   if (
+    cleaned === "Plaid Cymru" ||
     cleaned === "Plaid" ||
     cleaned === "Definite Plaid" ||
     cleaned === "Probable Plaid" ||
     cleaned === "Plaid"
   ) {
-    return "Plaid";
+    return "Plaid Cymru";
   }
 
-  if (cleaned === "Independent") {
-    return "Independent";
+  if (cleaned === "Definite Independent" || cleaned === "Independent") {
+    return "Definite Independent";
+  }
+
+  if (cleaned === "Probable Independent") {
+    return "Probable Independent";
   }
 
   if (cleaned === "Other") {
