@@ -2166,6 +2166,7 @@ body.mobile-mode .elector-list {
   }
 
   .workspace .list-column {
+    align-self: stretch;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -2173,8 +2174,10 @@ body.mobile-mode .elector-list {
 
   .workspace .list-panel {
     flex: 1;
+    height: 100%;
     display: flex;
     flex-direction: column;
+    box-sizing: border-box;
     min-height: 0;
   }
 
