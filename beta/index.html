@@ -1400,24 +1400,8 @@ function syncHouseholdDetailsPanelHeight() {
     return;
   }
 
-  const listColumnEl = document.querySelector(".list-column");
-  const gapValue = listColumnEl
-    ? (
-      parseFloat(getComputedStyle(listColumnEl).rowGap) ||
-      parseFloat(getComputedStyle(listColumnEl).gap) ||
-      0
-    )
-    : 0;
-
   const targetHeight =
-    Math.max(
-      0,
-      Math.round(
-        mapPanelEl.getBoundingClientRect().height -
-        deliveryPanelEl.getBoundingClientRect().height -
-        gapValue
-      )
-    );
+    Math.max(0, Math.round(mapPanelEl.getBoundingClientRect().height));
 
   // Guard against intermittent first-render geometry races where the map
   // column has not fully measured yet, which can collapse Household Details.
@@ -3386,7 +3370,12 @@ function updatePropertyMap(elector) {
       weight: 2,
       fillColor: "#da291c",
       fillOpacity: 1
-    }).addTo(wardPreviewLeafletMap);
+    }).addTo(wardPreviewLeafletMap).bindPopup(
+      [elector.addressLine1, elector.addressLine2]
+        .map(line => escapeHtml(String(line || "").trim()))
+        .filter(Boolean)
+        .join("<br>")
+    );
     wardPreviewLeafletMap.invalidateSize({ pan: false });
     wardPreviewLeafletMap.setView([lat, lng], 19, { animate: false });
   };
