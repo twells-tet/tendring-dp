@@ -549,7 +549,10 @@
         }
 
         const number = String(row[46] || "").trim();
-        const name = String(row[47] || "").trim();
+        let name = String(row[45] || row[20] || "").trim();
+        if (number && name.startsWith(number)) {
+          name = name.slice(number.length).trim();
+        }
         const subroad = String(row[50] || "").trim();
         const coordinateAddress = coordinateAddresses.get(householdId);
         const addressLine1 = formatAddressLine(
