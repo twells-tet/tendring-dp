@@ -113,6 +113,13 @@
         "/gviz/tq?tqx=out:csv&sheet=COORDINATES";
     }
 
+    function loadCsv(url) {
+      const separator = url.includes("?") ? "&" : "?";
+      return fetch(url + separator + "cachebust=" + Date.now(), {
+        cache: "no-store"
+      });
+    }
+
     function parseCsv(csvText) {
       const rows = [];
       let row = [];
@@ -186,7 +193,7 @@
     }
 
     async function loadCoordinateAddressCorrections(sheetUrl) {
-      const response = await fetch(toCoordinatesCsvUrl(sheetUrl));
+      const response = await loadCsv(toCoordinatesCsvUrl(sheetUrl));
       if (!response.ok) {
         throw new Error("Could not load Coordinates address corrections.");
       }
@@ -212,7 +219,7 @@
       titleEl.textContent =
         districtName.toUpperCase() + " (" + districtCode + ") - " + subroad;
       const sheetUrl = localStorage.getItem("abersoch-sheet-url") || DEFAULT_SHEET_URL;
-      const response = await fetch(toCsvUrl(sheetUrl));
+      const response = await loadCsv(toCsvUrl(sheetUrl));
       if (!response.ok) throw new Error("Could not load elector data.");
 
       const [rows, coordinateAddressCorrections] = await Promise.all([
@@ -232,7 +239,7 @@
           data.district ||
           data.pd ||
           String(row[15] || "").trim();
-        const rowSubroad = data.subroad || String(row[50] || "").trim();
+        const rowSubroad = String(row[50] || "").trim();
         if (
           normalizeText(rowDistrict) !== normalizeText(district) ||
           normalizeText(rowSubroad) !== normalizeText(subroad)
@@ -252,12 +259,18 @@
         const name = sourceHouseName;
         const sourceAddressLine2 =
           (addressCorrection && addressCorrection.addressLine2) || row[21];
-        const addressRoad = String(row[20] || "")
+        const sourceAddressLine1 = String(row[20] || "").trim();
+        const culDeSacMatch = sourceAddressLine1.match(
+          /^\d+\s+(.+?),\s*ffordd\s+/i
+        );
+        const addressRoad = sourceAddressLine1
           .split(",")
           .map(part => part.trim())
           .find(part => /^ffordd\s+/i.test(part));
         const road = getRoad(
-          addressRoad
+          culDeSacMatch
+            ? culDeSacMatch[1]
+            : addressRoad
             ? addressRoad.replace(/^ffordd\s+/i, "")
             : sourceAddressLine2,
           rowSubroad
