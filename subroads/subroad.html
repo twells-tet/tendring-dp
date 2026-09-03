@@ -21,7 +21,7 @@
       border: 1px solid #9bd8c9;
       border-radius: 0.75rem;
     }
-    table { width: 100%; border-collapse: collapse; }
+    table { width: max-content; min-width: 100%; border-collapse: collapse; }
     th, td {
       padding: 0.75rem 1rem;
       text-align: left;
@@ -35,6 +35,7 @@
     }
     tbody tr:last-child td { border-bottom: 0; }
     .number { text-align: right; }
+    .name, .road, .coordinates { white-space: nowrap; }
     #status { margin: 0 0 1rem; color: #4b5753; }
   </style>
 </head>
@@ -56,7 +57,7 @@
           <tr>
             <th scope="col">Number</th>
             <th scope="col">Name</th>
-            <th scope="col">Walk</th>
+            <th scope="col">Road</th>
             <th scope="col">Sort Order</th>
             <th scope="col">Coordinates</th>
           </tr>
@@ -68,6 +69,14 @@
   <script>
     const DEFAULT_SHEET_URL =
       "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/edit?gid=439559888";
+    const POLLING_DISTRICT_NAMES = {
+      ae1: "Llanbedr",
+      af1: "Talsarnau",
+      au1: "Llanfair",
+      n1: "Harlech",
+      n2: "Llandanwg",
+      ka1: "PWLLHELI NORTH"
+    };
     const params = new URLSearchParams(window.location.search);
     const district = params.get("district") || "";
     const subroad = params.get("subroad") || "";
@@ -93,6 +102,15 @@
       const gid = gidMatch ? gidMatch[1] : "0";
       return "https://docs.google.com/spreadsheets/d/" + sheetMatch[1] +
         "/export?format=csv&gid=" + gid;
+    }
+
+    function toCoordinatesCsvUrl(rawUrl) {
+      const sheetMatch = rawUrl.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+      if (!sheetMatch) {
+        throw new Error("Could not identify the source spreadsheet.");
+      }
+      return "https://docs.google.com/spreadsheets/d/" + sheetMatch[1] +
+        "/gviz/tq?tqx=out:csv&sheet=COORDINATES";
     }
 
     function parseCsv(csvText) {
@@ -145,16 +163,48 @@
         escapeHtml(coordinates) + "</a>";
     }
 
+    function toProperCase(value) {
+      return String(value || "")
+        .toLowerCase()
+        .replace(/(^|[\s-])([a-z])/g, (match, prefix, letter) =>
+          prefix + letter.toUpperCase()
+        );
+    }
+
+    async function loadCoordinateAddressCorrections(sheetUrl) {
+      const response = await fetch(toCoordinatesCsvUrl(sheetUrl));
+      if (!response.ok) {
+        throw new Error("Could not load Coordinates address corrections.");
+      }
+      const corrections = new Map();
+      parseCsv(await response.text()).slice(1).forEach(row => {
+        const householdId = String(row[0] || "").trim();
+        const houseName = String(row[7] || "").trim();
+        const addressLine2 = String(row[8] || "").trim();
+        if (householdId && (houseName || addressLine2)) {
+          corrections.set(householdId, { houseName, addressLine2 });
+        }
+      });
+      return corrections;
+    }
+
     async function loadHouseholds() {
       if (!district || !subroad) {
         throw new Error("No subroad specified.");
       }
-      titleEl.textContent = district.toUpperCase() + " — " + subroad;
+      const districtCode = district.toUpperCase();
+      const districtName =
+        POLLING_DISTRICT_NAMES[district.toLowerCase()] || districtCode;
+      titleEl.textContent =
+        districtName.toUpperCase() + " (" + districtCode + ") - " + subroad;
       const sheetUrl = localStorage.getItem("abersoch-sheet-url") || DEFAULT_SHEET_URL;
       const response = await fetch(toCsvUrl(sheetUrl));
       if (!response.ok) throw new Error("Could not load elector data.");
 
-      const rows = parseCsv(await response.text());
+      const [rows, coordinateAddressCorrections] = await Promise.all([
+        response.text().then(parseCsv),
+        loadCoordinateAddressCorrections(sheetUrl)
+      ]);
       const headers = rows[0].map(normalizeHeader);
       const groups = new Map();
       rows.slice(1).forEach(row => {
@@ -176,23 +226,31 @@
           return;
         }
 
+        const householdId =
+          data.householdid ||
+          String(row[41] || "").trim();
+        const addressCorrection =
+          coordinateAddressCorrections.get(householdId);
         const number = String(row[46] || "").trim();
-        const name = String(row[47] || "").trim();
+        const name =
+          (addressCorrection && addressCorrection.houseName) ||
+          String(row[45] || "").trim();
+        const road = toProperCase(
+          (addressCorrection && addressCorrection.addressLine2) || rowSubroad
+        );
         const walk = String(row[51] || "").trim() || data.walk;
         const sortOrder = String(row[48] || "").trim();
         const coordinates = [
           String(row[43] || "").trim(),
           String(row[44] || "").trim()
         ].filter(Boolean).join(", ");
-        const householdId =
-          data.householdid ||
-          String(row[41] || "").trim();
         const propertyKey =
           householdId ||
           [number, name, walk, sortOrder].join("\u0000");
         const group = groups.get(propertyKey) || {
           number,
           name,
+          road,
           walk: String(row[51] || "").trim() || data.walk,
           sortOrder: String(row[48] || "").trim(),
           coordinates
@@ -207,15 +265,17 @@
       );
       householdsEl.innerHTML = properties.map(property =>
         "<tr>" +
-          "<td class=\"number\">" + escapeHtml(property.number) + "</td>" +
-          "<td>" + escapeHtml(property.name) + "</td>" +
-          "<td class=\"number\">" + escapeHtml(property.walk) + "</td>" +
+          "<td class=\"number\">" + escapeHtml(property.number || "—") + "</td>" +
+          "<td class=\"name\">" + escapeHtml(property.name) + "</td>" +
+          "<td class=\"road\">" + escapeHtml(property.road) + "</td>" +
           "<td class=\"number\">" + escapeHtml(property.sortOrder) + "</td>" +
-          "<td>" + coordinateLink(property.coordinates) + "</td>" +
+          "<td class=\"coordinates\">" + coordinateLink(property.coordinates) + "</td>" +
         "</tr>"
       ).join("");
+      const walks = [...new Set(properties.map(property => property.walk))];
       statusEl.textContent = properties.length + " propert" +
-        (properties.length === 1 ? "y" : "ies");
+        (properties.length === 1 ? "y" : "ies") +
+        (walks.length === 1 && walks[0] ? " (Walk " + walks[0] + ")" : "");
     }
 
     loadHouseholds().catch(error => {
