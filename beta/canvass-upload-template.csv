@@ -1,2 +1,2 @@
-elector_id,address_line_1,address_line_2,date,time,canvasser,canvass_id,not_home,email,phone,preferred_language,name
-599999999,4 Pencei,Y Traeth,2026-09-03,13:00,C. Green,Definite Independent,FALSE,,,English,Chris
+elector_id,address_line_1,address_line_2,date,time,canvasser,canvass_id,not_home,email,phone,preferred_language,name,ANTI,VOLUNTEER
+599999999,4 Pencei,Y Traeth,2026-09-03,13:00,C. Green,Definite Independent,FALSE,,,English,Chris,FALSE,FALSE
