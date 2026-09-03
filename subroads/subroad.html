@@ -171,6 +171,20 @@
         );
     }
 
+    function getRoad(addressLine2, subroad) {
+      const line = String(addressLine2 || "").trim();
+      const postTowns = new Set([
+        "abersoch", "barmouth", "harlech", "llanbedr", "llandanwg",
+        "llanfair", "talsarnau"
+      ]);
+      if (!line || postTowns.has(normalizeText(line))) {
+        return toProperCase(subroad);
+      }
+      return toProperCase(
+        line.split(",").pop().trim().replace(/^\d+\s+/, "")
+      );
+    }
+
     async function loadCoordinateAddressCorrections(sheetUrl) {
       const response = await fetch(toCoordinatesCsvUrl(sheetUrl));
       if (!response.ok) {
@@ -232,11 +246,21 @@
         const addressCorrection =
           coordinateAddressCorrections.get(householdId);
         const number = String(row[46] || "").trim();
-        const name =
+        const sourceHouseName =
           (addressCorrection && addressCorrection.houseName) ||
           String(row[45] || "").trim();
-        const road = toProperCase(
-          (addressCorrection && addressCorrection.addressLine2) || rowSubroad
+        const name = sourceHouseName;
+        const sourceAddressLine2 =
+          (addressCorrection && addressCorrection.addressLine2) || row[21];
+        const addressRoad = String(row[20] || "")
+          .split(",")
+          .map(part => part.trim())
+          .find(part => /^ffordd\s+/i.test(part));
+        const road = getRoad(
+          addressRoad
+            ? addressRoad.replace(/^ffordd\s+/i, "")
+            : sourceAddressLine2,
+          rowSubroad
         );
         const walk = String(row[51] || "").trim() || data.walk;
         const sortOrder = String(row[48] || "").trim();
@@ -259,6 +283,7 @@
       });
 
       const properties = [...groups.values()].sort((left, right) =>
+        left.road.localeCompare(right.road) ||
         Number(left.sortOrder || Infinity) - Number(right.sortOrder || Infinity) ||
         Number(left.number || Infinity) - Number(right.number || Infinity) ||
         left.name.localeCompare(right.name)
