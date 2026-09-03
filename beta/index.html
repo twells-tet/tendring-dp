@@ -3393,11 +3393,9 @@ function updatePropertyMap(elector) {
     }).addTo(wardPreviewLeafletMap).bindPopup(
       getPropertyAddressLines(elector)
         .map(escapeHtml)
-        .concat(
-          "[" + householdElectorCount + " " +
-          (householdElectorCount === 1 ? "elector" : "electors") + "]"
-        )
-        .join("<br>")
+        .join(",<br>") +
+      "<br>[" + householdElectorCount + " " +
+      (householdElectorCount === 1 ? "elector" : "electors") + "]"
     );
     wardPreviewLeafletMap.invalidateSize({ pan: false });
     wardPreviewLeafletMap.setView([lat, lng], 19, { animate: false });
