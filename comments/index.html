@@ -53,17 +53,23 @@
 
   .published-comment {
     margin: 1rem 0;
-    padding: 1.25rem;
+    padding: 1.25rem 1.25rem 1.25rem 2rem;
     border-left: 4px solid #e31b23;
     background: #ffffff;
+    text-align: left;
   }
 
   .published-comment p {
     margin: 0.5rem 0 0;
   }
 
+  .published-comment strong,
   .published-comment time {
     display: block;
+    margin-left: 1rem;
+  }
+
+  .published-comment time {
     margin-top: 0.25rem;
     color: #4b5753;
     font-size: 0.85rem;
@@ -87,7 +93,7 @@
 </div>
 
 <div class="form-group">
-<input type="text" id="postcode" name="postcode" placeholder="Postcode *" aria-label="Postcode" required>
+<input type="text" id="postcode" name="postcode" placeholder="Postcode *" aria-label="Postcode" pattern="[Ll][Ll][0-9]{1,2}\s?[0-9][A-Za-z]{2}" title="Enter a postcode beginning LL, for example LL47 6YF" required>
 </div>
 
 <div class="form-group">
