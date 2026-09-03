@@ -3364,6 +3364,8 @@ function updatePropertyMap(elector) {
     if (wardPreviewMarker) {
       wardPreviewMarker.remove();
     }
+    const householdElectorCount =
+      getFullHousehold(elector.householdGroupKey).electors.length || 1;
     wardPreviewMarker = L.circleMarker([lat, lng], {
       radius: 7,
       color: "#fff",
@@ -3371,9 +3373,14 @@ function updatePropertyMap(elector) {
       fillColor: "#da291c",
       fillOpacity: 1
     }).addTo(wardPreviewLeafletMap).bindPopup(
-      [elector.addressLine1, elector.addressLine2]
-        .map(line => escapeHtml(String(line || "").trim()))
-        .filter(Boolean)
+      [elector.addressLine1, elector.addressLine2, elector.addressLine3]
+        .map(line => String(line || "").trim())
+        .filter(line =>
+          line &&
+          normalizeText(line) !== normalizeText(elector.postTown || "")
+        )
+        .map(escapeHtml)
+        .concat("[" + householdElectorCount + "]")
         .join("<br>")
     );
     wardPreviewLeafletMap.invalidateSize({ pan: false });
