@@ -2619,6 +2619,9 @@ function buildVisibleHouseholds(electors) {
         householdNumber:
           elector.householdNumber ||
           Number.MAX_SAFE_INTEGER,
+        pollingDistrict: elector.pollingDistrict || "",
+        deliveryWalk: elector.deliveryWalk || "",
+        pollingElectorNumber: elector.pollingElectorNumber || "",
         electors: []
       });
     }
@@ -2630,6 +2633,14 @@ function buildVisibleHouseholds(electors) {
   return Array.from(groups.values())
     .sort(
       (a, b) =>
+        a.pollingDistrict.localeCompare(b.pollingDistrict, undefined, {
+          numeric: true,
+          sensitivity: "base"
+        }) ||
+        Number(a.deliveryWalk || Number.MAX_SAFE_INTEGER) -
+          Number(b.deliveryWalk || Number.MAX_SAFE_INTEGER) ||
+        Number(a.pollingElectorNumber || Number.MAX_SAFE_INTEGER) -
+          Number(b.pollingElectorNumber || Number.MAX_SAFE_INTEGER) ||
         a.householdNumber - b.householdNumber
     );
 
