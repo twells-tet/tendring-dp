@@ -4775,11 +4775,13 @@ function parseCsv(csvText) {
 }
 
 
-// Title-case an address part: capitalise after spaces, hyphens, and slashes
+// Title-case an address part while keeping accented Welsh letters within a word.
 function fixAddressCasing(s) {
   if (!s) return s;
-  // Lowercase everything first, then capitalise after word boundaries
-  return s.toLowerCase().replace(/([^a-zA-Z]|^)([a-zA-Z])/g, (m, pre, ch) => pre + ch.toUpperCase());
+  return s.toLowerCase().replace(
+    /(^|[^a-zA-ZÀ-ÖØ-öø-ÿ])([a-zA-ZÀ-ÖØ-öø-ÿ])/g,
+    (match, prefix, character) => prefix + character.toUpperCase()
+  );
 }
 
 function normalizeHeader(value) {
