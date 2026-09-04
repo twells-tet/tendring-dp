@@ -359,11 +359,7 @@
       return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
     }
     function formatElectorName(value) {
-      return String(value || "")
-        .toLowerCase()
-        .replace(/(^|[^a-zA-ZÀ-ÖØ-öø-ÿ])([a-zA-ZÀ-ÖØ-öø-ÿ])/g, (_match, prefix, character) =>
-          prefix + character.toUpperCase()
-        );
+      return String(value || "").trim();
     }
 
     function mapRowToElector(row, headers, index) {
