@@ -4052,17 +4052,23 @@ function buildAiComments(household) {
   ).sort((left, right) => right.timestamp - left.timestamp)[0];
 
   if (!latestContact) {
-    sentences.push("We have no record of ever speaking to this elector.");
+    sentences.push(
+      electorCount === 1
+        ? "We have no record of ever speaking to this elector."
+        : "We have no record of ever speaking to any of these electors."
+    );
   } else {
-    const canvassId = latestContact.contact.canvassId || "No Data";
+    const canvassId = String(latestContact.contact.canvassId || "").trim();
     sentences.push(
       "We last spoke to " +
       escapeHtml(getDisplayName(latestContact.elector)) +
-      " on " + escapeHtml(latestContact.contact.date || "an unknown date") +
-      " and they were canvassed as " +
-      escapeHtml(canvassId) +
-      "."
+      " on " + escapeHtml(latestContact.contact.date || "an unknown date") + "."
     );
+    if (canvassId) {
+      sentences.push(
+        "They are canvassed as " + escapeHtml(canvassId) + "."
+      );
+    }
   }
 
 
