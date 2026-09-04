@@ -1748,13 +1748,11 @@ function mapRowToElector(row, headers, index) {
 
 
   const name =
-    fixAddressCasing(
     data.name ||
     data.elector ||
     data.electorname ||
     ([data.firstname, data.surname].filter(Boolean).join(" ")) ||
-    ""
-  );
+    "";
 
 
 
@@ -3909,6 +3907,22 @@ function buildAiComments(household) {
   const names =
     electors.map(getDisplayName);
 
+  const postalProxyEntries =
+    electors.map(elector => ({
+      name: getDisplayName(elector),
+      status: elector.postalProxy || ""
+    }));
+  const postalVoterNames =
+    postalProxyEntries
+      .filter(
+        entry =>
+          entry.status === "Postal" ||
+          entry.status === "Proxy"
+      )
+      .map(entry => escapeHtml(entry.name));
+  const allElectorsHavePostalVote =
+    electors.length > 0 &&
+    postalVoterNames.length === postalProxyEntries.length;
   const sentences = [];
   const electorCount = electors.length;
   const electorCountWord = [
@@ -3929,6 +3943,14 @@ function buildAiComments(household) {
       : "There are " + electorCountWord + " (" + electorCount +
         ") electors in this household: " + listedElectorNames + "."
   );
+
+  if (allElectorsHavePostalVote) {
+    sentences.push(
+      electorCount === 1
+        ? "This elector has a postal vote."
+        : "All electors have a postal vote."
+    );
+  }
 
 
   // Anti-Plaid sentence(s) follow the household summary, flanked by a red
@@ -4046,36 +4068,17 @@ function buildAiComments(household) {
   }
 
 
-  // Postal / proxy vote sentence
-  const postalProxyEntries =
-    electors.map(elector => ({
-      name: getDisplayName(elector),
-      status: elector.postalProxy || ""
-    }));
-
+  // Postal / proxy vote sentence for households with mixed voting methods.
   const anyPostalProxy =
-    postalProxyEntries.some(
-      entry =>
-        entry.status === "Postal" ||
-        entry.status === "Proxy"
-    );
+    postalVoterNames.length > 0;
 
-  if (!anyPostalProxy) {
+  if (!allElectorsHavePostalVote && !anyPostalProxy) {
 
     sentences.push(
       "Nobody in this household has a postal vote."
     );
 
-  } else {
-
-    const postalVoterNames =
-      postalProxyEntries
-        .filter(
-          entry =>
-            entry.status === "Postal" ||
-            entry.status === "Proxy"
-        )
-        .map(entry => escapeHtml(entry.name));
+  } else if (!allElectorsHavePostalVote) {
 
     sentences.push(
       joinNames(postalVoterNames) +
