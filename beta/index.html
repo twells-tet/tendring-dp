@@ -1643,6 +1643,53 @@ function deriveDateOfBirth(sixteenthBirthday) {
 }
 
 
+function formatDateOfBirth(value) {
+
+  const date = String(value || "").trim();
+  const ukDate = date.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
+  const isoDate = date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const parts = ukDate
+    ? { day: Number(ukDate[1]), month: Number(ukDate[2]), year: ukDate[3] }
+    : isoDate
+      ? { day: Number(isoDate[3]), month: Number(isoDate[2]), year: isoDate[1] }
+      : null;
+  const months = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+  ];
+
+  if (!parts || parts.month < 1 || parts.month > 12 || parts.day < 1 || parts.day > 31) {
+    return date;
+  }
+
+  return parts.day + " " + months[parts.month - 1] + " " + parts.year;
+
+}
+
+
+function formatDateYearsLater(value, years) {
+
+  const date = String(value || "").trim();
+  const ukDate = date.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
+  const isoDate = date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+  if (ukDate) {
+    return formatDateOfBirth(
+      ukDate[1] + "/" + ukDate[2] + "/" + (Number(ukDate[3]) + years)
+    );
+  }
+
+  if (isoDate) {
+    return formatDateOfBirth(
+      (Number(isoDate[1]) + years) + "-" + isoDate[2] + "-" + isoDate[3]
+    );
+  }
+
+  return "";
+
+}
+
+
 function daysUntilSixteenthBirthday(sixteenthBirthday) {
 
   const value = String(sixteenthBirthday || "").trim();
@@ -4031,15 +4078,22 @@ function buildAiComments(household) {
       const days = daysUntilSixteenthBirthday(elector.age);
 
       if (days !== null && days > 0) {
+        const age = ageFromSixteenthBirthday(elector.age);
+        const sixteenthBirthday = formatDateOfBirth(elector.age);
+        const eighteenthBirthday = formatDateYearsLater(elector.age, 2);
+
         sentences.push(
           escapeHtml(getDisplayName(elector)) +
-          " will be 16 in " +
-          days +
-          " day" +
-          (days === 1 ? "" : "s") +
-          " (DOB " +
-          escapeHtml(elector.dateOfBirth) +
-          ")" +
+          " is " +
+          age +
+          " years of age" +
+          (elector.dateOfBirth
+            ? " (DOB: " + escapeHtml(formatDateOfBirth(elector.dateOfBirth)) + ")"
+            : "") +
+          ". They will turn 16 on " +
+          escapeHtml(sixteenthBirthday) +
+          " and 18 on " +
+          escapeHtml(eighteenthBirthday) +
           "."
         );
       } else if (days !== null) {
@@ -4052,7 +4106,7 @@ function buildAiComments(household) {
             age +
             " years of age" +
             (elector.dateOfBirth
-              ? " (DOB: " + escapeHtml(elector.dateOfBirth) + ")"
+              ? " (DOB: " + escapeHtml(formatDateOfBirth(elector.dateOfBirth)) + ")"
               : "") +
             "."
           );
