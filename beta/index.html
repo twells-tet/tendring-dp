@@ -216,10 +216,9 @@
 
         <p class="map-coords">
           <span id="ward-preview-coords">—</span>
-          <a
-            href="#edit-coordinates-box"
-            id="edit-location-link"
-            class="coords-edit-link">edit location of property</a>
+          <span id="postcode-centre-warning" class="postcode-centre-warning" hidden>
+            WARNING: MARKER SHOWS CENTRE OF POSTCODE ONLY
+          </span>
         </p>
 
         <div class="household-nav map-household-nav" id="map-household-nav">
@@ -368,32 +367,6 @@
   </main>
 
   <footer class="page-footer">
-
-    <section id="edit-coordinates-box" class="edit-coordinates-box" hidden>
-      <h3>EDIT COORDINATES</h3>
-      <p class="edit-coordinates-hint">
-        You can find coordinates data by right clicking on Google Maps.
-      </p>
-
-      <div class="manual-coords-row">
-        <label for="manual-lat-input">
-          Latitude
-          <input
-            type="text"
-            id="manual-lat-input"
-            placeholder="52.815036">
-        </label>
-        <label for="manual-lng-input">
-          Longitude
-          <input
-            type="text"
-            id="manual-lng-input"
-            placeholder="-4.5233969">
-        </label>
-        <button type="button" id="manual-coords-save" disabled>Save</button>
-      </div>
-    </section>
-
     <button type="button" id="mobile-toggle" class="mobile-toggle-button">Mobile View</button>
 
     <p class="back-to-top"><a href="#top">Back to top of page</a></p>
@@ -648,26 +621,17 @@ const wardBoundaryMapEl =
 const wardBoundaryErrorEl =
   document.getElementById("ward-boundary-error");
 
-const editLocationLinkEl =
-  document.getElementById("edit-location-link");
-
-const editCoordinatesBoxEl =
-  document.getElementById("edit-coordinates-box");
-
 const wardPreviewCoordsEl =
   document.getElementById("ward-preview-coords");
+
+const postcodeCentreWarningEl =
+  document.getElementById("postcode-centre-warning");
 
 const propertyFullAddressEl =
   document.getElementById("property-full-address-text");
 
 const centreMapButtonEl =
   document.getElementById("centre-map-button");
-
-const manualLatInputEl =
-  document.getElementById("manual-lat-input");
-
-const manualLngInputEl =
-  document.getElementById("manual-lng-input");
 
 const mapPanelEl =
   document.getElementById("map-panel");
@@ -1225,16 +1189,6 @@ function initControls() {
   );
 
 
-  editLocationLinkEl.addEventListener(
-    "click",
-    event => {
-      event.preventDefault();
-      editCoordinatesBoxEl.hidden = false;
-      editCoordinatesBoxEl.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  );
-
-
   const savedHideDeliveryDetails =
     localStorage.getItem(
       STORAGE_KEYS.hideDeliveryDetails
@@ -1566,6 +1520,7 @@ async function loadElectorsFromSheet(inputUrl) {
       ]
         .filter(Boolean)
         .join(", ");
+      elector.hasCoordinateUprn = override.hasUprn;
     });
 
 
@@ -3355,17 +3310,6 @@ function updatePropertyMap(elector) {
   state.currentMapElector = elector || null;
   const renderVersion = ++propertyMapRenderVersion;
 
-  if (manualLatInputEl && manualLngInputEl) {
-    manualLatInputEl.value =
-      elector && elector.lat !== null && elector.lat !== undefined
-        ? elector.lat
-        : "";
-    manualLngInputEl.value =
-      elector && elector.lng !== null && elector.lng !== undefined
-        ? elector.lng
-        : "";
-  }
-
   if (state.showingWardBoundary) {
 
     propertyFullAddressEl.textContent =
@@ -3378,7 +3322,6 @@ function updatePropertyMap(elector) {
 
     wardPreviewEl.hidden = true;
     wardBoundaryMapEl.hidden = false;
-    editLocationLinkEl.hidden = true;
     wardBoundaryErrorEl.hidden = true;
 
     wardPreviewCoordsEl.textContent = "SHOWING COMMUNITY BOUNDARY";
@@ -3399,7 +3342,6 @@ function updatePropertyMap(elector) {
 
   wardPreviewEl.hidden = false;
   wardBoundaryMapEl.hidden = true;
-  editLocationLinkEl.hidden = false;
   wardBoundaryErrorEl.hidden = true;
 
   wardPreviewEl.title =
@@ -3415,6 +3357,7 @@ function updatePropertyMap(elector) {
       wardPreviewMarker = null;
     }
     wardPreviewCoordsEl.textContent = "GPS coordinates —";
+    postcodeCentreWarningEl.hidden = true;
     return;
   }
 
@@ -3467,6 +3410,7 @@ function updatePropertyMap(elector) {
 
   wardPreviewCoordsEl.textContent =
     "GPS coordinates " + lat + ", " + lng;
+  postcodeCentreWarningEl.hidden = Boolean(elector.hasCoordinateUprn);
 
 }
 
@@ -4066,6 +4010,8 @@ function buildAiComments(household) {
     sentences.push(
       electorCount === 1
         ? "We have no record of ever speaking to this elector."
+        : electorCount === 2
+          ? "We have no record of ever speaking to either of these electors."
         : "We have no record of ever speaking to any of these electors."
     );
   } else {
@@ -4088,7 +4034,9 @@ function buildAiComments(household) {
 
   if (!electorsWithKnownAge.length) {
     sentences.push(
-      "We do not know the age of any electors in this household."
+      electorCount === 2
+        ? "We do not know the age of either of the electors in this household."
+        : "We do not know the age of any electors in this household."
     );
   } else {
     electorsWithKnownAge.forEach(elector => {
@@ -4775,10 +4723,15 @@ async function loadCoordinateAddressOverrides(rawUrl) {
 
     parseCsv(await response.text()).slice(1).forEach(row => {
       const householdId = String(row[0] || "").trim();
+      const hasUprn = Boolean(String(row[2] || "").trim());
       const addressLine1 = String(row[7] || "").trim();
       const addressLine2 = String(row[8] || "").trim();
-      if (householdId && (addressLine1 || addressLine2)) {
-        overrides.set(householdId, { addressLine1, addressLine2 });
+      if (householdId) {
+        overrides.set(householdId, {
+          addressLine1,
+          addressLine2,
+          hasUprn
+        });
       }
     });
   } catch (error) {

@@ -236,54 +236,6 @@ body.pin-locked > *:not(#pin-gate) {
   cursor: pointer;
 }
 
-.edit-coordinates-box {
-  max-width: 420px;
-  margin: 0 auto 1rem;
-  padding: 1rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 0.75rem;
-  text-align: left;
-}
-
-.edit-coordinates-box h3 {
-  margin: 0 0 0.4rem;
-  font-size: 0.95rem;
-}
-
-.edit-coordinates-hint {
-  margin: 0 0 0.6rem;
-  font-size: 0.78rem;
-  color: var(--text-muted);
-}
-
-.what3words-row {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.what3words-row input {
-  flex: 1;
-  padding: 0.5rem;
-  border: 1px solid var(--border-strong);
-  border-radius: 0.5rem;
-  font: inherit;
-  color: var(--text);
-  background: var(--surface);
-}
-
-.what3words-row button {
-  padding: 0.5rem 0.9rem;
-  border: 1px solid var(--plaid-green);
-  border-radius: 0.5rem;
-  background: var(--plaid-green);
-  color: #ffffff;
-  font: inherit;
-  font-weight: 600;
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
 .mobile-toggle-button {
   padding: 0.35rem 0.75rem;
   font-size: 0.8rem;
@@ -292,45 +244,6 @@ body.pin-locked > *:not(#pin-gate) {
   background: var(--surface);
   color: var(--plaid-green-dark);
   cursor: pointer;
-}
-
-.manual-coords-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 0.5rem;
-  margin-top: 0.6rem;
-}
-
-.manual-coords-row label {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-width: 120px;
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  gap: 0.2rem;
-}
-
-.manual-coords-row input {
-  padding: 0.5rem;
-  border: 1px solid var(--border-strong);
-  border-radius: 0.5rem;
-  font: inherit;
-  color: var(--text);
-  background: var(--surface);
-}
-
-.manual-coords-row button {
-  padding: 0.5rem 0.9rem;
-  border: 1px solid var(--plaid-green);
-  border-radius: 0.5rem;
-  background: var(--plaid-green);
-  color: #ffffff;
-  font: inherit;
-  font-weight: 600;
-  opacity: 0.55;
-  cursor: not-allowed;
 }
 
 .mobile-toggle-button:hover {
@@ -449,7 +362,6 @@ body.mobile-mode .quick-name-search,
 body.mobile-mode .export-buttons,
 body.mobile-mode .map-panel,
 body.mobile-mode .delivery-panel,
-body.mobile-mode .edit-coordinates-box,
 body.mobile-mode .sheet-url-section {
   display: none !important;
 }
@@ -2135,11 +2047,10 @@ body.mobile-mode .elector-list {
   color: var(--text-muted);
 }
 
-.coords-edit-link {
+.postcode-centre-warning {
   margin-left: 0.4rem;
-  color: var(--text-muted);
-  text-decoration: underline;
-  cursor: pointer;
+  color: var(--plaid-red);
+  font-weight: 700;
 }
 
 .map-attribution {
