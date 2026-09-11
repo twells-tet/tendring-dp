@@ -119,13 +119,13 @@
     }
     .walk-key {
       display: grid;
-      grid-template-columns: minmax(18rem, 1fr);
+      grid-template-columns: minmax(min(22rem, 100%), 1fr);
       gap: 0.5rem;
       margin: 0 0 1rem;
       font-size: 0.9rem;
     }
     .walk-key .district-key-item {
-      width: 18rem;
+      width: min(22rem, 100%);
     }
     .walk-key.is-harlech-walks {
       grid-template-columns: repeat(2, 18rem);
@@ -555,16 +555,12 @@
         }
         const subroad = String(row[50] || "").trim();
         const coordinateAddress = coordinateAddresses.get(householdId);
-        const addressLine1 = formatAddressLine(
-          coordinateAddress && coordinateAddress.addressLine1
-            ? coordinateAddress.addressLine1
-            : row[20]
-        );
-        const addressLine2 = formatAddressLine(
-          coordinateAddress && coordinateAddress.addressLine2
-            ? coordinateAddress.addressLine2
-            : row[21]
-        );
+        const addressLine1 = coordinateAddress && coordinateAddress.addressLine1
+          ? coordinateAddress.addressLine1
+          : formatAddressLine(row[20]);
+        const addressLine2 = coordinateAddress && coordinateAddress.addressLine2
+          ? coordinateAddress.addressLine2
+          : formatAddressLine(row[21]);
         const walk =
           String(row[51] || "").trim() ||
           proposedWalks.get(householdId) ||
