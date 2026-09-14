@@ -492,7 +492,8 @@
             { length: district === "AF1" ? 4 : 2 },
             (_, index) => district + "-" + (index + 1)
           )
-        )
+        ),
+        "AE1-2"
       ];
       return {
         preferredName:       raw.preferredName || "",
@@ -518,7 +519,7 @@
                 : (
                   isChrisGreen
                     ? defaultChrisGreenWalks
-                    : (isKarlCiz ? ["AE1-1", "AE1-2"] : [])
+                    : (isKarlCiz ? ["AE1-1"] : [])
                 )
             ),
         partyMember:         raw.partyMember || "No",
