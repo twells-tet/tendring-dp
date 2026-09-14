@@ -3374,7 +3374,7 @@ function updatePropertyMap(elector) {
         maxZoom: 19
       }).addTo(wardPreviewLeafletMap);
       wardPreviewResizeObserver = new ResizeObserver(() => {
-        wardPreviewLeafletMap.invalidateSize({ pan: false });
+        wardPreviewLeafletMap.invalidateSize({ animate: false });
       });
       wardPreviewResizeObserver.observe(wardPreviewEl);
     }
@@ -3396,7 +3396,7 @@ function updatePropertyMap(elector) {
       "<br>[" + householdElectorCount + " " +
       (householdElectorCount === 1 ? "elector" : "electors") + "]"
     );
-    wardPreviewLeafletMap.invalidateSize({ pan: false });
+    wardPreviewLeafletMap.invalidateSize({ animate: false });
     wardPreviewLeafletMap.setView([lat, lng], 19, { animate: false });
   };
 
