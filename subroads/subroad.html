@@ -214,6 +214,9 @@
         throw new Error("No subroad specified.");
       }
       const districtCode = district.toUpperCase();
+      if (["KA1", "JA1"].includes(districtCode)) {
+        throw new Error("This polling district is not available in Subroads.");
+      }
       const districtName =
         POLLING_DISTRICT_NAMES[district.toLowerCase()] || districtCode;
       titleEl.textContent =

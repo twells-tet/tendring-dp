@@ -220,7 +220,7 @@
         if (
           !pollingDistrict ||
           !subroad ||
-          normalizeHeader(pollingDistrict) === "ka1"
+          ["ka1", "ja1"].includes(normalizeHeader(pollingDistrict))
         ) {
           return;
         }
