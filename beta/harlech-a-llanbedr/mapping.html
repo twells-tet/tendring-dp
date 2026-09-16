@@ -471,6 +471,7 @@
               descriptions.set(district + "-" + walk, description);
             }
           });
+          descriptions.set("AF1-3", "Ynys & Glanywern");
           return descriptions;
         })
         .catch(() => new Map());
@@ -504,6 +505,9 @@
     function getWalkLabel(district, walk) {
       const walkNumber = getWalkNumber(walk);
       const walkId = district + "-" + walkNumber;
+      if (walkId === "AF1-3") {
+        return "AF1-3 (Ynys & Glanywern)";
+      }
       const description = walkDescriptions.get(walkId);
       return description
         ? description.includes("(Postal)")
