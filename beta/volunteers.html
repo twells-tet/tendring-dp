@@ -90,8 +90,8 @@
 
     const WALKS_KEY = "harlech-walks-v1";
     const PROFILE_PROGRESS_KEY = "abersoch-elector-progress-v1";
-    const ELECTOR_SHEET_URL =
-      "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/export?format=csv&gid=439559888";
+    const MASTER_ADDRESS_LIST_URL =
+      "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/gviz/tq?tqx=out:csv&sheet=MASTER%20ADDRESS%20LIST";
     const KNOWN_DELIVERERS = {
       "599999999": { name: "Chris Green", address: "4 Pencei, Y Traeth" },
       "507243585": { name: "Karl Ciz", address: "Meirion House, Llanbedr" }
@@ -221,20 +221,19 @@
     }
 
     async function loadHouseholdCounts() {
-      const response = await fetch(ELECTOR_SHEET_URL);
+      const response = await fetch(MASTER_ADDRESS_LIST_URL);
       if (!response.ok) {
         throw new Error("Could not load household counts.");
       }
       const counts = new Map();
-      const householdWalks = new Set();
       parseCsv(await response.text()).slice(1).forEach(row => {
-        const householdId = String(row[41] || "").trim();
-        const walk = String(row[51] || "").trim();
-        if (!householdId || !walk || householdWalks.has(householdId + "\u0000" + walk)) {
+        const pollingDistrict = String(row[2] || "").trim();
+        const walk = String(row[18] || "").trim();
+        if (!pollingDistrict || !walk) {
           return;
         }
-        householdWalks.add(householdId + "\u0000" + walk);
-        counts.set(walk, (counts.get(walk) || 0) + 1);
+        const walkKey = pollingDistrict + "-" + walk;
+        counts.set(walkKey, (counts.get(walkKey) || 0) + 1);
       });
       document.querySelectorAll("[data-household-count]").forEach(cell => {
         cell.textContent = counts.get(cell.dataset.householdCount) || "0";
