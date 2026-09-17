@@ -52,6 +52,16 @@
       cursor: not-allowed;
     }
 
+    .household-markers-toggle {
+      border-color: var(--plaid-red-dark, #9e1713);
+      background: var(--plaid-red, #da291c);
+    }
+
+    .household-markers-toggle:hover,
+    .household-markers-toggle:focus-visible {
+      background: var(--plaid-red-dark, #9e1713);
+    }
+
     .ja1-toggle {
       margin-left: 0.35rem;
       padding: 0;
@@ -730,7 +740,10 @@
       propertyData.forEach(property => {
         const marker = L.circleMarker([property.latitude, property.longitude], {
           pane: "postcode-markers", radius: 6, color: "#fff", weight: 1.5,
-          fillColor: DISTRICT_COLORS[property.pollingDistrict], fillOpacity: 1
+          fillColor: isFinalWalk(property.pollingDistrict, property.walk)
+            ? "#000000"
+            : DISTRICT_COLORS[property.pollingDistrict],
+          fillOpacity: 1
         }).addTo(propertyMarkers);
         marker.bindPopup(
           property.addressLine1 + "<br>" +
