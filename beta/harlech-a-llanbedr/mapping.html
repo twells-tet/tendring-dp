@@ -739,6 +739,7 @@
               renderAllHouseholdMarkers();
               districtKey.hidden = false;
               walkKey.hidden = true;
+              walkDistrictSelect.disabled = true;
               boundariesToggle.disabled = true;
               electorsToggle.disabled = true;
               bypassToggle.disabled = true;
@@ -758,6 +759,7 @@
             bypassToggle.disabled = false;
             walksToggle.disabled = false;
             ja1Toggle.disabled = false;
+            walkDistrictSelect.disabled = false;
             if (!previous) return;
 
             if (previous.boundaries) map.addLayer(boundariesLayer);
