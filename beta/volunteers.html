@@ -51,6 +51,7 @@
           <tr>
             <th style="text-align:left;padding:0.5rem 0.6rem;background:var(--plaid-green);color:#fff;white-space:nowrap;">Walk Description</th>
             <th style="text-align:center;padding:0.5rem 0.6rem;background:var(--plaid-green);color:#fff;">Polling District</th>
+            <th style="text-align:center;padding:0.5rem 0.6rem;background:var(--plaid-green);color:#fff;">Households</th>
             <th style="text-align:left;padding:0.5rem 0.6rem;background:var(--plaid-green);color:#fff;">Deliverer</th>
             <th style="text-align:left;padding:0.5rem 0.6rem;background:var(--plaid-green);color:#fff;width:19rem;white-space:nowrap;">Deliverer Address</th>
             <th style="text-align:left;padding:0.5rem 0.6rem;background:var(--plaid-green);color:#fff;width:6.5rem;">Elector ID</th>
@@ -89,6 +90,8 @@
 
     const WALKS_KEY = "harlech-walks-v1";
     const PROFILE_PROGRESS_KEY = "abersoch-elector-progress-v1";
+    const ELECTOR_SHEET_URL =
+      "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/export?format=csv&gid=439559888";
     const KNOWN_DELIVERERS = {
       "599999999": { name: "Chris Green", address: "4 Pencei, Y Traeth" },
       "507243585": { name: "Karl Ciz", address: "Meirion House, Llanbedr" }
@@ -183,6 +186,61 @@
       return district + " - " + label + " (" + walk + (isPostal ? " - Postal" : "") + ")";
     }
 
+    function parseCsv(text) {
+      const rows = [];
+      let row = [];
+      let value = "";
+      let quoted = false;
+      for (let index = 0; index < text.length; index += 1) {
+        const character = text[index];
+        if (character === '"') {
+          if (quoted && text[index + 1] === '"') {
+            value += '"';
+            index += 1;
+          } else {
+            quoted = !quoted;
+          }
+        } else if (character === "," && !quoted) {
+          row.push(value);
+          value = "";
+        } else if ((character === "\n" || character === "\r") && !quoted) {
+          if (character === "\r" && text[index + 1] === "\n") index += 1;
+          row.push(value);
+          if (row.some(cell => cell.trim())) rows.push(row);
+          row = [];
+          value = "";
+        } else {
+          value += character;
+        }
+      }
+      if (value || row.length) {
+        row.push(value);
+        rows.push(row);
+      }
+      return rows;
+    }
+
+    async function loadHouseholdCounts() {
+      const response = await fetch(ELECTOR_SHEET_URL);
+      if (!response.ok) {
+        throw new Error("Could not load household counts.");
+      }
+      const counts = new Map();
+      const householdWalks = new Set();
+      parseCsv(await response.text()).slice(1).forEach(row => {
+        const householdId = String(row[41] || "").trim();
+        const walk = String(row[51] || "").trim();
+        if (!householdId || !walk || householdWalks.has(householdId + "\u0000" + walk)) {
+          return;
+        }
+        householdWalks.add(householdId + "\u0000" + walk);
+        counts.set(walk, (counts.get(walk) || 0) + 1);
+      });
+      document.querySelectorAll("[data-household-count]").forEach(cell => {
+        cell.textContent = counts.get(cell.dataset.householdCount) || "0";
+      });
+    }
+
     const td = (content, style) =>
       "<td style='padding:0.45rem 0.6rem;border-bottom:1px solid #e5e7eb;vertical-align:middle;" + (style || "") + "'>" + content + "</td>";
 
@@ -207,10 +265,17 @@
       tr.innerHTML =
         td(formatWalkDescription(district, walk)) +
         td("<strong>" + district + "</strong>", "text-align:center;") +
+        td("<span data-household-count='" + key + "'>—</span>", "text-align:center;font-weight:600;") +
         td(delivererName, "color:#1f2937;font-weight:600;") +
         td(delivererAddress, "color:#555;font-size:0.82rem;white-space:nowrap;") +
         td("<input type='text' class='walk-elector-id' data-key='" + key + "' value='" + electorId.replace(/'/g,"&#39;") + "' placeholder='Elector ID' style='padding:0.3rem 0.5rem;border:1px solid var(--border-strong);border-radius:0.4rem;font:inherit;font-size:0.82rem;width:6.5rem;'>");
       tbody.appendChild(tr);
+    });
+
+    loadHouseholdCounts().catch(() => {
+      document.querySelectorAll("[data-household-count]").forEach(cell => {
+        cell.textContent = "—";
+      });
     });
 
     tbody.addEventListener("change", e => {
