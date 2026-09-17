@@ -44,6 +44,7 @@
       <a href="index.html" class="back-link back-to-main-button">&larr; back to main list</a>
 
       <h2 style="margin:1rem 0 1rem;font-size:1.1rem;color:var(--plaid-green);">Harlech a Llanbedr — Walks</h2>
+      <p id="walks-summary" style="margin:0 0 1rem;font-size:0.9rem;font-weight:600;color:var(--text-muted);"></p>
 
       <table class="activist-table" style="width:100%;border-collapse:collapse;font-size:0.88rem;white-space:nowrap;">
         <thead>
@@ -126,6 +127,13 @@
       "AF1-4": "Talsarnau (Postal)", "AU1-1": "Llanfair",
       "AU1-2": "Llanfair (Postal)"
     };
+    const postalWalkCount = WALKS.filter(({ district, walk }) =>
+      /\(Postal\)$/.test(WALK_DESCRIPTIONS[rowKey(district, walk)] || "")
+    ).length;
+    document.getElementById("walks-summary").textContent =
+      WALKS.length + " delivery walks · " +
+      (WALKS.length - postalWalkCount) + " by hand · " +
+      postalWalkCount + " postal";
 
     const DEFAULT_DELIVERER_BY_WALK = Object.fromEntries(
       WALKS.map(({ district, walk }) => [
