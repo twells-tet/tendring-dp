@@ -247,6 +247,7 @@
           <option value="N2">N2 (Llandanwg)</option>
         </select>
         <button id="ja1-toggle" class="ja1-toggle" type="button" aria-pressed="false">JA1</button>
+        <button id="household-markers-toggle" class="ja1-toggle" type="button" aria-pressed="false">SHOW ONLY HOUSEHOLD MARKERS</button>
       </label>
       <div id="walk-key" class="walk-key" aria-label="Delivery walk key" hidden></div>
       <div id="harlech-map" class="harlech-map" aria-label="Map of Harlech a Llanbedr elector totals by postcode"></div>
@@ -286,6 +287,7 @@
     const walkPicker = document.getElementById("walk-picker");
     const walkDistrictSelect = document.getElementById("walk-district-select");
     const ja1Toggle = document.getElementById("ja1-toggle");
+    const householdMarkersToggle = document.getElementById("household-markers-toggle");
     const postcodeMarkers = L.layerGroup().addTo(map);
     const propertyMarkers = L.layerGroup();
     const walkOutlines = L.layerGroup();
@@ -296,6 +298,8 @@
     let postcodeMarkersVisible = true;
     let bypassLayerVisible = true;
     let walksVisible = true;
+    let householdMarkersOnlyVisible = false;
+    let householdMarkersOnlyPreviousState = null;
     let propertyData = [];
     let walkColors = new Map();
     let walkDescriptions = new Map();
@@ -694,6 +698,91 @@
             return;
           }
 
+          function renderAllHouseholdMarkers() {
+            propertyMarkers.clearLayers();
+            propertyData.forEach(property => {
+              const marker = L.circleMarker([property.latitude, property.longitude], {
+                pane: "postcode-markers",
+                radius: 6,
+                color: "#fff",
+                weight: 1.5,
+                fillColor: DISTRICT_COLORS[property.pollingDistrict],
+                fillOpacity: 1
+              }).addTo(propertyMarkers);
+              marker.bindPopup(
+                property.addressLine1 + "<br>" +
+                [property.addressLine2, property.postcode].filter(Boolean).join("<br>") +
+                "<br><strong>" + (DISTRICT_NAMES[property.pollingDistrict] || property.pollingDistrict) + "</strong>"
+              );
+            });
+          }
+
+          function setHouseholdMarkersOnlyVisible(isVisible) {
+            householdMarkersOnlyVisible = isVisible;
+            householdMarkersToggle.setAttribute("aria-pressed", String(isVisible));
+            householdMarkersToggle.textContent = isVisible
+              ? "EXIT HOUSEHOLD MARKERS"
+              : "SHOW ONLY HOUSEHOLD MARKERS";
+
+            if (isVisible) {
+              householdMarkersOnlyPreviousState = {
+                boundaries: map.hasLayer(boundariesLayer),
+                postcodeMarkers: map.hasLayer(postcodeMarkers),
+                bypass: map.hasLayer(bypassLayer),
+                ja1: map.hasLayer(ja1Layer),
+                walks: walksVisible
+              };
+              [boundariesLayer, postcodeMarkers, bypassLayer, walkOutlines, ja1Layer].forEach(layer =>
+                map.removeLayer(layer)
+              );
+              map.addLayer(propertyMarkers);
+              renderAllHouseholdMarkers();
+              districtKey.hidden = false;
+              walkKey.hidden = true;
+              boundariesToggle.disabled = true;
+              electorsToggle.disabled = true;
+              bypassToggle.disabled = true;
+              walksToggle.disabled = true;
+              zoomBypassButton.disabled = true;
+              ja1Toggle.disabled = true;
+              fitVisiblePropertyMarkers();
+              return;
+            }
+
+            propertyMarkers.clearLayers();
+            map.removeLayer(propertyMarkers);
+            const previous = householdMarkersOnlyPreviousState;
+            householdMarkersOnlyPreviousState = null;
+            boundariesToggle.disabled = false;
+            electorsToggle.disabled = false;
+            bypassToggle.disabled = false;
+            walksToggle.disabled = false;
+            ja1Toggle.disabled = false;
+            if (!previous) return;
+
+            if (previous.boundaries) map.addLayer(boundariesLayer);
+            if (previous.ja1) map.addLayer(ja1Layer);
+            walksVisible = previous.walks;
+            if (previous.walks) {
+              map.removeLayer(postcodeMarkers);
+              map.removeLayer(bypassLayer);
+              map.addLayer(walkOutlines);
+              map.addLayer(propertyMarkers);
+              districtKey.hidden = true;
+              walkPicker.hidden = false;
+              walkKey.hidden = false;
+              renderVisiblePropertyMarkers();
+            } else {
+              map.removeLayer(walkOutlines);
+              if (previous.postcodeMarkers) map.addLayer(postcodeMarkers);
+              if (previous.bypass) map.addLayer(bypassLayer);
+              districtKey.hidden = !previous.postcodeMarkers;
+              walkPicker.hidden = true;
+              walkKey.hidden = true;
+            }
+            zoomBypassButton.disabled = walksVisible || !previous.bypass;
+          }
+
           L.polyline(outline, {
             pane: "walk-outlines",
             color: getWalkColor(district, walk),
@@ -998,6 +1087,9 @@
       }
       ja1Toggle.setAttribute("aria-pressed", String(!isVisible));
       ja1Toggle.textContent = isVisible ? "JA1" : "JA1 (HIDE)";
+    });
+    householdMarkersToggle.addEventListener("click", () => {
+      setHouseholdMarkersOnlyVisible(!householdMarkersOnlyVisible);
     });
     walkDistrictSelect.addEventListener("change", () => {
       hiddenWalks.clear();
