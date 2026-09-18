@@ -52,10 +52,15 @@
       cursor: not-allowed;
     }
 
-    .household-markers-toggle {
+    .household-markers-toggle,
+    .zoom-bypass {
+      padding: 0.65rem 1rem;
       border-color: var(--plaid-red-dark, #9e1713);
+      border-radius: 0.5rem;
       background: var(--plaid-red, #da291c);
       color: #ffffff;
+      font: inherit;
+      font-weight: 700;
     }
 
     .map-toggle.household-markers-toggle[aria-pressed="false"] {
@@ -65,7 +70,9 @@
     }
 
     .household-markers-toggle:hover,
-    .household-markers-toggle:focus-visible {
+    .household-markers-toggle:focus-visible,
+    .zoom-bypass:hover,
+    .zoom-bypass:focus-visible {
       background: var(--plaid-red-dark, #9e1713);
     }
 
@@ -92,20 +99,7 @@
 
     .zoom-bypass {
       align-self: center;
-      padding: 0.4rem 0.65rem;
-      border: 1px solid var(--plaid-red-dark, #9e1713);
-      border-radius: 0.4rem;
-      background: var(--plaid-red, #da291c);
-      color: #fff;
-      font: inherit;
-      font-size: 0.8rem;
-      font-weight: 700;
       cursor: pointer;
-    }
-
-    .zoom-bypass:hover,
-    .zoom-bypass:focus-visible {
-      background: var(--plaid-red-dark, #9e1713);
     }
 
     .zoom-bypass:disabled {
