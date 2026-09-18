@@ -763,13 +763,16 @@
           boundaries: map.hasLayer(boundariesLayer), postcodeMarkers: map.hasLayer(postcodeMarkers),
           bypass: map.hasLayer(bypassLayer), walks: walksVisible
         };
-        [boundariesLayer, postcodeMarkers, bypassLayer, walkOutlines, ja1Layer].forEach(layer => map.removeLayer(layer));
+        [postcodeMarkers, bypassLayer, walkOutlines, ja1Layer].forEach(layer => map.removeLayer(layer));
+        map.addLayer(boundariesLayer);
+        boundariesToggle.setAttribute("aria-pressed", "true");
+        boundariesToggle.textContent = "HIDE BOUNDARIES";
         map.addLayer(propertyMarkers);
         renderAllHouseholdMarkers();
         districtKey.hidden = false;
         walkKey.hidden = true;
         walkDistrictSelect.disabled = true;
-        boundariesToggle.disabled = electorsToggle.disabled = bypassToggle.disabled = walksToggle.disabled = true;
+        electorsToggle.disabled = bypassToggle.disabled = walksToggle.disabled = true;
         zoomBypassButton.disabled = ja1Toggle.disabled = true;
         fitVisiblePropertyMarkers();
         return;
@@ -781,7 +784,6 @@
       boundariesToggle.disabled = electorsToggle.disabled = bypassToggle.disabled = walksToggle.disabled = false;
       ja1Toggle.disabled = walkDistrictSelect.disabled = false;
       if (!previous) return;
-      if (previous.boundaries) map.addLayer(boundariesLayer);
       walksVisible = previous.walks;
       if (previous.walks) {
         map.addLayer(walkOutlines);
