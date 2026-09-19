@@ -537,7 +537,12 @@
         .replace(/([^a-zA-Z]|^)([a-zA-Z])/g, (match, prefix, character) =>
           prefix + character.toUpperCase()
         )
-        .replace(/\s+(Y|Yr)\s+/g, (match, article) => " " + article.toLowerCase() + " ");
+        .replace(/\b(Y|Yr)\b/g, (match, article, offset, address) => {
+          const precedingText = address.slice(0, offset).trim();
+          return !precedingText || /^[0-9]+[A-Za-z]?$/.test(precedingText)
+            ? article
+            : article.toLowerCase();
+        });
     }
 
     function isFinalWalk(district, walk) {
