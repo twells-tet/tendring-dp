@@ -401,6 +401,15 @@
       text-align: right;
     }
 
+    .site-footer {
+      width: min(100% - 2rem, 960px);
+      margin: 0 auto;
+      padding: 0 0 2rem;
+      color: #627187;
+      font-size: 0.75rem;
+      line-height: 1.5;
+    }
+
     .return {
       display: none;
       margin-top: 0.2rem;
@@ -437,6 +446,10 @@
         padding: 1rem;
       }
 
+      .site-footer {
+        width: min(100% - 1.5rem, 960px);
+      }
+
       .stake-panel {
         align-items: center;
         flex-wrap: wrap;
@@ -470,7 +483,7 @@
           <label for="stake">Your stake</label>
           <div class="stake-input-wrap">
             <span id="stake-symbol" aria-hidden="true">£</span>
-            <input id="stake" type="number" min="5" max="29999" step="1" inputmode="numeric" value="50" aria-describedby="stake-message">
+            <input id="stake" type="number" min="50" max="29999" step="1" inputmode="numeric" value="50" aria-describedby="stake-message">
           </div>
           <p id="stake-message" class="stake-message" aria-live="polite"></p>
         </div>
@@ -510,6 +523,9 @@
       <p id="exchange-rate" class="exchange-rate" aria-live="polite">Loading Bitcoin rate...</p>
     </footer>
   </main>
+  <footer class="site-footer">
+    326 Political Gambling (Trinity Street), 50/5 Bulevar Revolucije, Podgorica 81000, Montenegro
+  </footer>
   <script>
     const stakeInput = document.getElementById("stake");
     const stakeMessage = document.getElementById("stake-message");
@@ -519,7 +535,7 @@
     const bitcoinButton = document.querySelector('[data-currency="btc"]');
     const exchangeRate = document.getElementById("exchange-rate");
     const placeBetButton = document.getElementById("place-bet");
-    const MIN_GBP_STAKE = 5;
+    const MIN_GBP_STAKE = 50;
     const MAX_GBP_STAKE = 29999;
     let GBP_PER_BTC = null;
     let decimalPointAttempted = false;
@@ -552,7 +568,9 @@
       stakeInput.max = isBitcoin ? String(MAX_GBP_STAKE / GBP_PER_BTC) : String(MAX_GBP_STAKE);
       stakeInput.step = isBitcoin ? "0.0000001" : "1";
       stakeInput.inputMode = isBitcoin ? "decimal" : "numeric";
-      stakeInput.placeholder = isBitcoin ? "0.000016" : "5";
+      stakeInput.placeholder = isBitcoin
+        ? (MIN_GBP_STAKE / GBP_PER_BTC).toFixed(7)
+        : String(MIN_GBP_STAKE);
       stakeInput.value = nextStake === null
         ? ""
         : currency === "btc"
@@ -613,8 +631,8 @@
             : "Maximum stake £29,999."
           : decimalPointAttempted || (hasStake && !isValidStake)
             ? isBitcoin
-              ? "Minimum stake 0.000016 BTC."
-              : "Minimum stake £5. Whole pounds only."
+              ? "Minimum stake " + minimumStake.toFixed(7) + " BTC."
+              : "Minimum stake £50. Whole pounds only."
             : "";
       outcomes.forEach(outcome => {
         const returnLabel = outcome.querySelector(".return");
@@ -637,7 +655,7 @@
     stakeInput.addEventListener("keydown", event => {
       if (currency === "gbp" && event.key === ".") {
         decimalPointAttempted = true;
-        stakeMessage.textContent = "Minimum stake £5. Whole pounds only.";
+        stakeMessage.textContent = "Minimum stake £50. Whole pounds only.";
       }
     });
     currencyButtons.forEach(button =>
