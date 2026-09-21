@@ -635,6 +635,19 @@
         }
       });
     });
+    placeBetButton.addEventListener("click", () => {
+      const selectedOutcome = outcomes.find(outcome => outcome.classList.contains("is-selected"));
+      if (!selectedOutcome || placeBetButton.disabled) return;
+
+      const parameters = new URLSearchParams({
+        party: selectedOutcome.querySelector(".party-select").textContent,
+        fractional: selectedOutcome.querySelector(".fractional").textContent,
+        decimal: selectedOutcome.dataset.decimal,
+        stake: stakeInput.value,
+        currency
+      });
+      window.location.assign("/confirm/?" + parameters.toString());
+    });
     loadBitcoinRate();
   </script>
 </body>
