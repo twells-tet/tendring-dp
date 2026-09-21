@@ -365,7 +365,7 @@
     }
 
     .outcome[data-party="lib-dem"] {
-      --party-colour: #faa61a;
+      --party-colour: #ff6400;
     }
 
     .outcome[data-party="green"] {
@@ -556,7 +556,7 @@
       <div class="constituency-panel">
         <div class="constituency-field">
           <label for="constituency">Select constituency</label>
-          <input id="constituency" name="constituency" type="text" value="OVERALL SEATS" placeholder="Start typing a constituency" autocomplete="off" disabled aria-describedby="constituency-status">
+          <input id="constituency" name="constituency" type="text" placeholder="Start typing a constituency" autocomplete="off" disabled aria-describedby="constituency-status">
           <datalist id="constituency-list"></datalist>
           <p id="constituency-status" class="constituency-status" aria-live="polite">Loading constituencies...</p>
         </div>
@@ -615,7 +615,8 @@
     const placeBetButton = document.getElementById("place-bet");
     const MIN_GBP_STAKE = 50;
     const MAX_GBP_STAKE = 29999;
-    const DEFAULT_CONSTITUENCY_ODDS = "6/5";
+    const DEFAULT_ENGLAND_ODDS = "100/8";
+    const DEFAULT_SCOTLAND_WALES_ODDS = "100/9";
     const ODDS_SHEET_URL = "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/export?format=csv&gid=1260743543";
     const EXCLUDED_CONSTITUENCIES = new Set([
       "Belfast East",
@@ -769,7 +770,8 @@
 
     function updateMarketTitle() {
       const selectedConstituency = constituencyInput.value.trim();
-      const isOverallMarket = selectedConstituency === "OVERALL SEATS";
+      const isOverallMarket = selectedConstituency === "" ||
+        selectedConstituency === "OVERALL SEATS";
       const marketName = isOverallMarket
         ? "Most Seats"
         : constituencyNames.has(selectedConstituency)
@@ -830,10 +832,10 @@
       return rows;
     }
 
-    function parseOdds(value) {
+    function parseOdds(value, defaultOdds) {
       const sheetValue = value.trim();
       if (sheetValue !== "" && Number(sheetValue) === 0) return null;
-      const odds = sheetValue || DEFAULT_CONSTITUENCY_ODDS;
+      const odds = sheetValue || defaultOdds;
       const fractional = odds.match(/^(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)$/);
       if (fractional) {
         const numerator = Number(fractional[1]);
@@ -857,8 +859,8 @@
     }
 
     function renderConstituencyMarket(constituency) {
-      const parties = constituencyOdds.get(constituency);
-      if (!parties) {
+      const market = constituencyOdds.get(constituency);
+      if (!market) {
         outcomesBody.replaceChildren();
         bookTotal.textContent = "Odds unavailable for this constituency.";
         outcomes = [];
@@ -868,6 +870,16 @@
 
       const rows = document.createDocumentFragment();
       let book = 0;
+      const priorityParty = market.country === "wales"
+        ? "PLAID CYMRU"
+        : market.country === "scotland"
+          ? "SNP"
+          : null;
+      const parties = priorityParty
+        ? [...market.parties].sort(({ party: left }, { party: right }) =>
+          Number(right === priorityParty) - Number(left === priorityParty)
+        )
+        : market.parties;
       parties.forEach(({ party, odds }) => {
         const row = document.createElement("tr");
         row.className = "outcome";
@@ -924,17 +936,23 @@
         const response = await fetch(ODDS_SHEET_URL);
         if (!response.ok) throw new Error("The odds sheet request failed.");
         const [headers, ...rows] = parseCsv(await response.text());
-        if (!headers || headers[0] !== "CONSTITUENCY") {
+        if (!headers || headers[0] !== "CONSTITUENCY" || headers[1] !== "COUNTRY") {
           throw new Error("The odds sheet has an invalid header row.");
         }
 
         constituencyOdds = new Map(rows.flatMap(row => {
           const constituency = (row[0] || "").trim();
-          const parties = headers.slice(1).flatMap((party, index) => {
-            const odds = parseOdds(row[index + 1] || "");
+          const country = (row[1] || "").trim().toLowerCase();
+          const defaultOdds = country === "scotland" || country === "wales"
+            ? DEFAULT_SCOTLAND_WALES_ODDS
+            : DEFAULT_ENGLAND_ODDS;
+          const parties = headers.slice(2).flatMap((party, index) => {
+            const odds = parseOdds(row[index + 2] || "", defaultOdds);
             return odds ? [{ party, odds }] : [];
           });
-          return constituency && parties.length ? [[constituency, parties]] : [];
+          return constituency && parties.length
+            ? [[constituency, { country, parties }]]
+            : [];
         }));
         updateMarketTitle();
       } catch (error) {
