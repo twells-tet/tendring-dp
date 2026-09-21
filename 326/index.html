@@ -119,6 +119,41 @@
       background: #fafbfd;
     }
 
+    .currency-toggle {
+      display: flex;
+      overflow: hidden;
+      border: 1px solid #b9c4d0;
+      border-radius: 0.35rem;
+      background: #fff;
+    }
+
+    .currency-toggle button {
+      padding: 0.7rem 0.85rem;
+      border: 0;
+      border-right: 1px solid #b9c4d0;
+      background: transparent;
+      color: #627187;
+      font: inherit;
+      font-size: 0.8rem;
+      font-weight: 750;
+      cursor: pointer;
+    }
+
+    .currency-toggle button:last-child {
+      border-right: 0;
+    }
+
+    .currency-toggle button[aria-pressed="true"] {
+      background: #142338;
+      color: #fff;
+    }
+
+    .currency-toggle button:focus-visible {
+      position: relative;
+      outline: 3px solid #47d3b1;
+      outline-offset: -3px;
+    }
+
     .stake-field {
       display: grid;
       gap: 0.35rem;
@@ -310,6 +345,11 @@
       .outcomes td {
         padding: 1rem;
       }
+
+      .stake-panel {
+        align-items: stretch;
+        flex-direction: column;
+      }
     }
   </style>
 </head>
@@ -327,10 +367,14 @@
         <h1 id="market-title">Next United Kingdom General Election: Most Seats</h1>
       </header>
       <div class="stake-panel">
+        <div class="currency-toggle" aria-label="Stake currency">
+          <button type="button" data-currency="gbp" aria-pressed="true">GBP</button>
+          <button type="button" data-currency="btc" aria-pressed="false">BITCOIN</button>
+        </div>
         <div class="stake-field">
           <label for="stake">Your stake</label>
           <div class="stake-input-wrap">
-            <span aria-hidden="true">£</span>
+            <span id="stake-symbol" aria-hidden="true">£</span>
             <input id="stake" type="number" min="5" step="1" inputmode="numeric" placeholder="5" aria-describedby="stake-message">
           </div>
           <p id="stake-message" class="stake-message" aria-live="polite"></p>
@@ -362,19 +406,49 @@
     const stakeInput = document.getElementById("stake");
     const stakeMessage = document.getElementById("stake-message");
     const outcomes = [...document.querySelectorAll(".outcome")];
+    const currencyButtons = [...document.querySelectorAll("[data-currency]")];
+    const stakeSymbol = document.getElementById("stake-symbol");
     let decimalPointAttempted = false;
-    const formatter = new Intl.NumberFormat("en-GB", {
+    let currency = "gbp";
+    const gbpFormatter = new Intl.NumberFormat("en-GB", {
       style: "currency",
       currency: "GBP"
     });
 
+    function formatAmount(amount) {
+      return currency === "gbp"
+        ? gbpFormatter.format(amount)
+        : amount.toFixed(6) + " BTC";
+    }
+
+    function setCurrency(nextCurrency) {
+      currency = nextCurrency;
+      const isBitcoin = currency === "btc";
+      stakeSymbol.textContent = isBitcoin ? "₿" : "£";
+      stakeInput.min = isBitcoin ? "0.000016" : "5";
+      stakeInput.step = isBitcoin ? "0.000001" : "1";
+      stakeInput.inputMode = isBitcoin ? "decimal" : "numeric";
+      stakeInput.placeholder = isBitcoin ? "0.000016" : "5";
+      stakeInput.value = "";
+      decimalPointAttempted = false;
+      currencyButtons.forEach(button =>
+        button.setAttribute("aria-pressed", String(button.dataset.currency === currency))
+      );
+      updateReturns();
+    }
+
     function updateReturns() {
       const stake = Number(stakeInput.value);
       const hasStake = stakeInput.value !== "";
-      const isValidStake = Number.isInteger(stake) && stake >= 5;
+      const isBitcoin = currency === "btc";
+      const isValidStake = isBitcoin
+        ? Number.isFinite(stake) && stake >= 0.000016
+        : Number.isInteger(stake) && stake >= 5;
       if (isValidStake) decimalPointAttempted = false;
       stakeMessage.textContent = decimalPointAttempted || (hasStake && !isValidStake)
-        ? "Minimum stake £5. Whole pounds only."
+        ? isBitcoin
+          ? "Minimum stake 0.000016 BTC."
+          : "Minimum stake £5. Whole pounds only."
         : "";
       outcomes.forEach(outcome => {
         const returnLabel = outcome.querySelector(".return");
@@ -387,19 +461,22 @@
         const potentialReturn = stake * Number(outcome.dataset.decimal);
         const profit = potentialReturn - stake;
         returnLabel.textContent =
-          "Winnings " + formatter.format(profit) +
-          " · Return " + formatter.format(potentialReturn);
+          "Winnings " + formatAmount(profit) +
+          " · Return " + formatAmount(potentialReturn);
         returnLabel.style.display = "block";
       });
     }
 
     stakeInput.addEventListener("input", updateReturns);
     stakeInput.addEventListener("keydown", event => {
-      if (event.key === ".") {
+      if (currency === "gbp" && event.key === ".") {
         decimalPointAttempted = true;
         stakeMessage.textContent = "Minimum stake £5. Whole pounds only.";
       }
     });
+    currencyButtons.forEach(button =>
+      button.addEventListener("click", () => setCurrency(button.dataset.currency))
+    );
     outcomes.forEach(outcome => {
       outcome.querySelector(".party-select").addEventListener("click", () => {
         outcomes.forEach(candidate => {
