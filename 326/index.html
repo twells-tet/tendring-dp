@@ -110,6 +110,67 @@
       letter-spacing: -0.02em;
     }
 
+    .stake-panel {
+      display: flex;
+      align-items: end;
+      gap: 1rem;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid #e6ebf0;
+      background: #fafbfd;
+    }
+
+    .stake-field {
+      display: grid;
+      gap: 0.35rem;
+      width: min(100%, 13rem);
+    }
+
+    .stake-field label {
+      color: #627187;
+      font-size: 0.75rem;
+      font-weight: 750;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .stake-input-wrap {
+      position: relative;
+    }
+
+    .stake-input-wrap span {
+      position: absolute;
+      top: 50%;
+      left: 0.75rem;
+      color: #627187;
+      font-weight: 650;
+      pointer-events: none;
+      transform: translateY(-50%);
+    }
+
+    .stake-field input {
+      width: 100%;
+      padding: 0.7rem 0.75rem 0.7rem 1.75rem;
+      border: 1px solid #b9c4d0;
+      border-radius: 0.35rem;
+      background: #fff;
+      color: #142338;
+      font: inherit;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stake-field input:focus {
+      border-color: #278c77;
+      outline: 3px solid rgb(71 211 177 / 25%);
+    }
+
+    .stake-message {
+      min-height: 1rem;
+      margin: 0;
+      color: #b42318;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
     .outcomes {
       width: 100%;
       border-collapse: collapse;
@@ -133,6 +194,79 @@
       font-weight: 650;
     }
 
+    .outcome {
+      --party-colour: #8693a3;
+      cursor: pointer;
+    }
+
+    .outcome[data-party="labour"] {
+      --party-colour: #e4003b;
+    }
+
+    .outcome[data-party="reform"] {
+      --party-colour: #00a6a6;
+    }
+
+    .outcome[data-party="conservative"] {
+      --party-colour: #0087dc;
+    }
+
+    .outcome:hover th,
+    .outcome:hover td {
+      background: #f3f6f9;
+    }
+
+    .outcome.is-selected th,
+    .outcome.is-selected td {
+      background: color-mix(in srgb, var(--party-colour) 12%, white);
+    }
+
+    .outcome.is-selected th {
+      box-shadow: inset 4px 0 0 var(--party-colour);
+    }
+
+    .party-select {
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      min-width: min(100%, 12rem);
+      padding: 0.55rem 0.7rem;
+      border: 1px solid var(--party-colour);
+      border-radius: 0.3rem;
+      background: #fff;
+      color: var(--party-colour);
+      font: inherit;
+      font-weight: 750;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .party-select::after {
+      content: "Select";
+      font-size: 0.7rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .party-select:hover {
+      background: color-mix(in srgb, var(--party-colour) 8%, white);
+    }
+
+    .outcome.is-selected .party-select {
+      background: var(--party-colour);
+      color: #fff;
+    }
+
+    .outcome.is-selected .party-select::after {
+      content: "Selected";
+    }
+
+    .party-select:focus-visible {
+      outline: 3px solid var(--party-colour);
+      outline-offset: 4px;
+    }
+
     .outcomes td {
       width: 7.5rem;
       color: #142338;
@@ -151,6 +285,15 @@
       display: block;
       color: #142338;
       font-size: 1.05rem;
+    }
+
+    .return {
+      display: none;
+      margin-top: 0.2rem;
+      color: #278c77;
+      font-size: 0.75rem;
+      font-weight: 650;
+      white-space: nowrap;
     }
 
     @media (max-width: 560px) {
@@ -174,6 +317,7 @@
       }
 
       .market-header,
+      .stake-panel,
       .outcomes th,
       .outcomes td {
         padding: 1rem;
@@ -194,27 +338,90 @@
         <p>Politics</p>
         <h1 id="market-title">Next United Kingdom General Election: Most Seats</h1>
       </header>
+      <div class="stake-panel">
+        <div class="stake-field">
+          <label for="stake">Your stake</label>
+          <div class="stake-input-wrap">
+            <span aria-hidden="true">£</span>
+            <input id="stake" type="number" min="5" step="1" inputmode="numeric" placeholder="5" aria-describedby="stake-message">
+          </div>
+          <p id="stake-message" class="stake-message" aria-live="polite"></p>
+        </div>
+      </div>
       <table class="outcomes">
         <tbody>
-          <tr>
-            <th scope="row">Labour</th>
-            <td><span class="fractional">7/4</span><span class="decimal">2.75</span></td>
+          <tr class="outcome" data-party="labour" data-decimal="2.75">
+            <th scope="row"><button class="party-select" type="button" aria-pressed="false">Labour</button></th>
+            <td><span class="fractional">7/4</span><span class="decimal">2.75</span><span class="return" aria-live="polite"></span></td>
           </tr>
-          <tr>
-            <th scope="row">Reform</th>
-            <td><span class="fractional">2/1</span><span class="decimal">3.00</span></td>
+          <tr class="outcome" data-party="reform" data-decimal="3">
+            <th scope="row"><button class="party-select" type="button" aria-pressed="false">Reform</button></th>
+            <td><span class="fractional">2/1</span><span class="decimal">3.00</span><span class="return" aria-live="polite"></span></td>
           </tr>
-          <tr>
-            <th scope="row">Conservative</th>
-            <td><span class="fractional">10/1</span><span class="decimal">11.00</span></td>
+          <tr class="outcome" data-party="conservative" data-decimal="11">
+            <th scope="row"><button class="party-select" type="button" aria-pressed="false">Conservative</button></th>
+            <td><span class="fractional">10/1</span><span class="decimal">11.00</span><span class="return" aria-live="polite"></span></td>
           </tr>
-          <tr>
-            <th scope="row">Any Other</th>
-            <td><span class="fractional">50/1</span><span class="decimal">51.00</span></td>
+          <tr class="outcome" data-party="other" data-decimal="51">
+            <th scope="row"><button class="party-select" type="button" aria-pressed="false">Any Other</button></th>
+            <td><span class="fractional">50/1</span><span class="decimal">51.00</span><span class="return" aria-live="polite"></span></td>
           </tr>
         </tbody>
       </table>
     </section>
   </main>
+  <script>
+    const stakeInput = document.getElementById("stake");
+    const stakeMessage = document.getElementById("stake-message");
+    const outcomes = [...document.querySelectorAll(".outcome")];
+    let decimalPointAttempted = false;
+    const formatter = new Intl.NumberFormat("en-GB", {
+      style: "currency",
+      currency: "GBP"
+    });
+
+    function updateReturns() {
+      const stake = Number(stakeInput.value);
+      const hasStake = stakeInput.value !== "";
+      const isValidStake = Number.isInteger(stake) && stake >= 5;
+      if (isValidStake) decimalPointAttempted = false;
+      stakeMessage.textContent = decimalPointAttempted || (hasStake && !isValidStake)
+        ? "Minimum stake £5. Whole pounds only."
+        : "";
+      outcomes.forEach(outcome => {
+        const returnLabel = outcome.querySelector(".return");
+        if (!outcome.classList.contains("is-selected") || !isValidStake) {
+          returnLabel.textContent = "";
+          returnLabel.style.display = "none";
+          return;
+        }
+
+        const potentialReturn = stake * Number(outcome.dataset.decimal);
+        const profit = potentialReturn - stake;
+        returnLabel.textContent =
+          "Winnings " + formatter.format(profit) +
+          " · Return " + formatter.format(potentialReturn);
+        returnLabel.style.display = "block";
+      });
+    }
+
+    stakeInput.addEventListener("input", updateReturns);
+    stakeInput.addEventListener("keydown", event => {
+      if (event.key === ".") {
+        decimalPointAttempted = true;
+        stakeMessage.textContent = "Minimum stake £5. Whole pounds only.";
+      }
+    });
+    outcomes.forEach(outcome => {
+      outcome.querySelector(".party-select").addEventListener("click", () => {
+        outcomes.forEach(candidate => {
+          const isSelected = candidate === outcome;
+          candidate.classList.toggle("is-selected", isSelected);
+          candidate.querySelector(".party-select").setAttribute("aria-pressed", String(isSelected));
+        });
+        updateReturns();
+      });
+    });
+  </script>
 </body>
 </html>
