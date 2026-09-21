@@ -234,6 +234,11 @@
       cursor: pointer;
     }
 
+    .outcome:focus-visible {
+      outline: 3px solid var(--party-colour);
+      outline-offset: -3px;
+    }
+
     .outcome[data-party="labour"] {
       --party-colour: #e4003b;
     }
@@ -382,19 +387,19 @@
       </div>
       <table class="outcomes">
         <tbody>
-          <tr class="outcome" data-party="labour" data-decimal="2.75">
+          <tr class="outcome" data-party="labour" data-decimal="2.75" tabindex="0">
             <th scope="row"><button class="party-select" type="button" aria-pressed="false">LABOUR</button></th>
             <td><span class="fractional">7/4</span><span class="decimal">2.75</span><span class="return" aria-live="polite"></span></td>
           </tr>
-          <tr class="outcome" data-party="reform" data-decimal="4">
+          <tr class="outcome" data-party="reform" data-decimal="4" tabindex="0">
             <th scope="row"><button class="party-select" type="button" aria-pressed="false">REFORM</button></th>
             <td><span class="fractional">3/1</span><span class="decimal">4.00</span><span class="return" aria-live="polite"></span></td>
           </tr>
-          <tr class="outcome" data-party="conservative" data-decimal="7.333333333333333">
+          <tr class="outcome" data-party="conservative" data-decimal="7.333333333333333" tabindex="0">
             <th scope="row"><button class="party-select" type="button" aria-pressed="false">CONSERVATIVE</button></th>
             <td><span class="fractional">19/3</span><span class="decimal">7.33</span><span class="return" aria-live="polite"></span></td>
           </tr>
-          <tr class="outcome" data-party="other" data-decimal="11">
+          <tr class="outcome" data-party="other" data-decimal="11" tabindex="0">
             <th scope="row"><button class="party-select" type="button" aria-pressed="false">ANY OTHER</button></th>
             <td><span class="fractional">10/1</span><span class="decimal">11.00</span><span class="return" aria-live="polite"></span></td>
           </tr>
@@ -490,14 +495,22 @@
     currencyButtons.forEach(button =>
       button.addEventListener("click", () => setCurrency(button.dataset.currency))
     );
+    function selectOutcome(outcome) {
+      outcomes.forEach(candidate => {
+        const isSelected = candidate === outcome;
+        candidate.classList.toggle("is-selected", isSelected);
+        candidate.querySelector(".party-select").setAttribute("aria-pressed", String(isSelected));
+      });
+      updateReturns();
+    }
+
     outcomes.forEach(outcome => {
-      outcome.querySelector(".party-select").addEventListener("click", () => {
-        outcomes.forEach(candidate => {
-          const isSelected = candidate === outcome;
-          candidate.classList.toggle("is-selected", isSelected);
-          candidate.querySelector(".party-select").setAttribute("aria-pressed", String(isSelected));
-        });
-        updateReturns();
+      outcome.addEventListener("click", () => selectOutcome(outcome));
+      outcome.addEventListener("keydown", event => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          selectOutcome(outcome);
+        }
       });
     });
   </script>
