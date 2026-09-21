@@ -565,12 +565,16 @@
       currency = nextCurrency;
       const isBitcoin = currency === "btc";
       stakeSymbol.textContent = isBitcoin ? "₿" : "£";
-      stakeInput.min = isBitcoin ? String(MIN_GBP_STAKE / GBP_PER_BTC) : String(MIN_GBP_STAKE);
+      if (isBitcoin) {
+        stakeInput.removeAttribute("min");
+      } else {
+        stakeInput.min = String(MIN_GBP_STAKE);
+      }
       stakeInput.max = isBitcoin ? String(MAX_GBP_STAKE / GBP_PER_BTC) : String(MAX_GBP_STAKE);
       stakeInput.step = isBitcoin ? "0.0000001" : "1";
       stakeInput.inputMode = isBitcoin ? "decimal" : "numeric";
       stakeInput.placeholder = isBitcoin
-        ? (MIN_GBP_STAKE / GBP_PER_BTC).toFixed(7)
+        ? "0.0000000"
         : String(MIN_GBP_STAKE);
       stakeInput.value = nextStake === null
         ? ""
@@ -617,11 +621,10 @@
       const stake = Number(stakeInput.value);
       const hasStake = stakeInput.value !== "";
       const isBitcoin = currency === "btc";
-      const minimumStake = isBitcoin ? MIN_GBP_STAKE / GBP_PER_BTC : MIN_GBP_STAKE;
       const maximumStake = isBitcoin ? MAX_GBP_STAKE / GBP_PER_BTC : MAX_GBP_STAKE;
       const isValidStake = isBitcoin
-        ? Number.isFinite(stake) && stake >= minimumStake && stake <= maximumStake
-        : Number.isInteger(stake) && stake >= minimumStake && stake <= maximumStake;
+        ? Number.isFinite(stake) && stake > 0 && stake <= maximumStake
+        : Number.isInteger(stake) && stake >= MIN_GBP_STAKE && stake <= maximumStake;
       placeBetButton.disabled = !isValidStake ||
         !outcomes.some(outcome => outcome.classList.contains("is-selected"));
       if (isValidStake) decimalPointAttempted = false;
@@ -632,7 +635,7 @@
             : "Maximum stake £29,999."
           : decimalPointAttempted || (hasStake && !isValidStake)
             ? isBitcoin
-              ? "Minimum stake " + minimumStake.toFixed(7) + " BTC."
+                ? "Enter a Bitcoin stake."
               : "Minimum stake £50. Whole pounds only."
             : "";
       outcomes.forEach(outcome => {
