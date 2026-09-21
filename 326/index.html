@@ -168,6 +168,12 @@
       width: auto;
     }
 
+    .constituency-field {
+      display: grid;
+      gap: 0.35rem;
+      width: min(100%, 20rem);
+    }
+
     .place-bet {
       min-width: 9rem;
       padding: 0.7rem 1rem;
@@ -210,6 +216,14 @@
       white-space: nowrap;
     }
 
+    .constituency-field label {
+      color: #627187;
+      font-size: 0.75rem;
+      font-weight: 750;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
     .stake-input-wrap {
       position: relative;
       width: 13rem;
@@ -236,9 +250,32 @@
       font-variant-numeric: tabular-nums;
     }
 
+    .constituency-field input {
+      width: 100%;
+      padding: 0.7rem 0.75rem;
+      border: 1px solid #b9c4d0;
+      border-radius: 0.35rem;
+      background: #fff;
+      color: #142338;
+      font: inherit;
+    }
+
     .stake-field input:focus {
       border-color: #278c77;
       outline: 3px solid rgb(71 211 177 / 25%);
+    }
+
+    .constituency-field input:focus {
+      border-color: #278c77;
+      outline: 3px solid rgb(71 211 177 / 25%);
+    }
+
+    .constituency-status {
+      min-height: 1rem;
+      margin: 0;
+      color: #627187;
+      font-size: 0.75rem;
+      font-weight: 600;
     }
 
     .stake-message {
@@ -488,6 +525,12 @@
           </div>
           <p id="stake-message" class="stake-message" aria-live="polite"></p>
         </div>
+        <div class="constituency-field">
+          <label for="constituency">Constituency</label>
+          <input id="constituency" name="constituency" type="text" list="constituency-list" placeholder="Start typing a constituency" autocomplete="off" disabled aria-describedby="constituency-status">
+          <datalist id="constituency-list"></datalist>
+          <p id="constituency-status" class="constituency-status" aria-live="polite">Loading constituencies...</p>
+        </div>
         <button id="place-bet" class="place-bet" type="button" disabled>Place Bet</button>
       </div>
       <table class="outcomes">
@@ -530,6 +573,9 @@
   <script>
     const stakeInput = document.getElementById("stake");
     const stakeMessage = document.getElementById("stake-message");
+    const constituencyInput = document.getElementById("constituency");
+    const constituencyList = document.getElementById("constituency-list");
+    const constituencyStatus = document.getElementById("constituency-status");
     const outcomes = [...document.querySelectorAll(".outcome")];
     const currencyButtons = [...document.querySelectorAll("[data-currency]")];
     const stakeSymbol = document.getElementById("stake-symbol");
@@ -605,6 +651,50 @@
         const rate = candle && Number(candle[1]);
         if (!Number.isFinite(rate) || rate <= 0) {
           throw new Error("No current-day opening rate was returned.");
+        }
+
+        async function loadConstituencies() {
+          try {
+            const pageSize = 20;
+            const firstResponse = await fetch(
+              "https://members-api.parliament.uk/api/Location/Constituency/Search?searchText=&skip=0&take=" + pageSize
+            );
+            if (!firstResponse.ok) throw new Error("The constituency list request failed.");
+
+            const firstPage = await firstResponse.json();
+            const pageCount = Math.ceil(firstPage.totalResults / pageSize);
+            const remainingPages = await Promise.all(
+              Array.from({ length: pageCount - 1 }, (_, index) =>
+                fetch(
+                  "https://members-api.parliament.uk/api/Location/Constituency/Search?searchText=&skip=" +
+                  ((index + 1) * pageSize) + "&take=" + pageSize
+                ).then(response => {
+                  if (!response.ok) throw new Error("The constituency list request failed.");
+                  return response.json();
+                })
+              )
+            );
+            const constituencies = [firstPage, ...remainingPages]
+              .flatMap(page => page.items)
+              .map(item => item.value && item.value.name)
+              .filter(Boolean)
+              .sort((left, right) => left.localeCompare(right, "en-GB"));
+            if (constituencies.length !== 650) {
+              throw new Error("The complete constituency list was not returned.");
+            }
+
+            const options = document.createDocumentFragment();
+            constituencies.forEach(name => {
+              const option = document.createElement("option");
+              option.value = name;
+              options.appendChild(option);
+            });
+            constituencyList.appendChild(options);
+            constituencyInput.disabled = false;
+            constituencyStatus.textContent = "650 parliamentary constituencies available.";
+          } catch (error) {
+            constituencyStatus.textContent = "Constituencies unavailable: " + error.message;
+          }
         }
 
         GBP_PER_BTC = rate;
@@ -700,6 +790,7 @@
       window.location.assign("/confirm/?" + parameters.toString());
     });
     loadBitcoinRate();
+    loadConstituencies();
   </script>
 </body>
 </html>
