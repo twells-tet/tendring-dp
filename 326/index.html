@@ -380,6 +380,24 @@
       font-size: 1.05rem;
     }
 
+    .probability {
+      display: block;
+      margin-top: 0.15rem;
+      color: #627187;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .book-total {
+      margin: 0;
+      padding: 0.85rem 1.5rem;
+      border-top: 1px solid #e6ebf0;
+      color: #627187;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-align: right;
+    }
+
     .return {
       display: none;
       margin-top: 0.2rem;
@@ -457,24 +475,25 @@
       </div>
       <table class="outcomes">
         <tbody>
-          <tr class="outcome" data-party="labour" data-decimal="2.75" tabindex="0">
+          <tr class="outcome" data-party="labour" data-decimal="2.375" tabindex="0">
             <th scope="row"><button class="party-select" type="button" aria-pressed="false">LABOUR</button></th>
-            <td><span class="fractional">7/4</span><span class="decimal">2.75</span><span class="return" aria-live="polite"></span></td>
+            <td><span class="fractional">11/8</span><span class="decimal">2.38</span><span class="probability">42.11%</span><span class="return" aria-live="polite"></span></td>
           </tr>
-          <tr class="outcome" data-party="reform" data-decimal="4" tabindex="0">
+          <tr class="outcome" data-party="reform" data-decimal="3.4" tabindex="0">
             <th scope="row"><button class="party-select" type="button" aria-pressed="false">REFORM</button></th>
-            <td><span class="fractional">3/1</span><span class="decimal">4.00</span><span class="return" aria-live="polite"></span></td>
+            <td><span class="fractional">12/5</span><span class="decimal">3.40</span><span class="probability">29.41%</span><span class="return" aria-live="polite"></span></td>
           </tr>
-          <tr class="outcome" data-party="conservative" data-decimal="7.333333333333333" tabindex="0">
+          <tr class="outcome" data-party="conservative" data-decimal="5.5" tabindex="0">
             <th scope="row"><button class="party-select" type="button" aria-pressed="false">CONSERVATIVE</button></th>
-            <td><span class="fractional">19/3</span><span class="decimal">7.33</span><span class="return" aria-live="polite"></span></td>
+            <td><span class="fractional">9/2</span><span class="decimal">5.50</span><span class="probability">18.18%</span><span class="return" aria-live="polite"></span></td>
           </tr>
-          <tr class="outcome" data-party="other" data-decimal="11" tabindex="0">
+          <tr class="outcome" data-party="other" data-decimal="9.5" tabindex="0">
             <th scope="row"><button class="party-select" type="button" aria-pressed="false">ANY OTHER</button></th>
-            <td><span class="fractional">10/1</span><span class="decimal">11.00</span><span class="return" aria-live="polite"></span></td>
+            <td><span class="fractional">17/2</span><span class="decimal">9.50</span><span class="probability">10.53%</span><span class="return" aria-live="polite"></span></td>
           </tr>
         </tbody>
       </table>
+      <p class="book-total">Book: 100.23%</p>
     </section>
     <footer class="market-rules">
       <p>Market is for the most MPs of each party elected to the next House of Commons.</p>
