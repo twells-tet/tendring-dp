@@ -35,9 +35,6 @@
     }
 
     .wordmark {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
       color: inherit;
       font-size: 1.35rem;
       font-weight: 750;
@@ -45,9 +42,8 @@
       text-decoration: none;
     }
 
-    .brand-icon {
-      width: 1.65rem;
-      height: 1.65rem;
+    .wordmark::first-letter {
+      color: #47d3b1;
     }
 
     main {
@@ -247,10 +243,7 @@
 </head>
 <body>
   <header class="site-header">
-    <a class="wordmark" href="/326/" aria-label="326 home">
-      <img class="brand-icon" src="/326/icon.svg" alt="">
-      <span>326</span>
-    </a>
+    <a class="wordmark" href="/326/" aria-label="326 home">326</a>
   </header>
   <main>
     <section class="confirmation" aria-labelledby="confirmation-title">
