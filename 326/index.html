@@ -386,17 +386,17 @@
             <th scope="row"><button class="party-select" type="button" aria-pressed="false">LABOUR</button></th>
             <td><span class="fractional">7/4</span><span class="decimal">2.75</span><span class="return" aria-live="polite"></span></td>
           </tr>
-          <tr class="outcome" data-party="reform" data-decimal="3">
+          <tr class="outcome" data-party="reform" data-decimal="4">
             <th scope="row"><button class="party-select" type="button" aria-pressed="false">REFORM</button></th>
-            <td><span class="fractional">2/1</span><span class="decimal">3.00</span><span class="return" aria-live="polite"></span></td>
+            <td><span class="fractional">3/1</span><span class="decimal">4.00</span><span class="return" aria-live="polite"></span></td>
           </tr>
           <tr class="outcome" data-party="conservative" data-decimal="7.333333333333333">
             <th scope="row"><button class="party-select" type="button" aria-pressed="false">CONSERVATIVE</button></th>
             <td><span class="fractional">19/3</span><span class="decimal">7.33</span><span class="return" aria-live="polite"></span></td>
           </tr>
-          <tr class="outcome" data-party="other" data-decimal="6">
+          <tr class="outcome" data-party="other" data-decimal="11">
             <th scope="row"><button class="party-select" type="button" aria-pressed="false">ANY OTHER</button></th>
-            <td><span class="fractional">5/1</span><span class="decimal">6.00</span><span class="return" aria-live="polite"></span></td>
+            <td><span class="fractional">10/1</span><span class="decimal">11.00</span><span class="return" aria-live="polite"></span></td>
           </tr>
         </tbody>
       </table>
@@ -408,6 +408,7 @@
     const outcomes = [...document.querySelectorAll(".outcome")];
     const currencyButtons = [...document.querySelectorAll("[data-currency]")];
     const stakeSymbol = document.getElementById("stake-symbol");
+    const GBP_PER_BTC = 312500;
     let decimalPointAttempted = false;
     let currency = "gbp";
     const gbpFormatter = new Intl.NumberFormat("en-GB", {
@@ -422,6 +423,14 @@
     }
 
     function setCurrency(nextCurrency) {
+      if (nextCurrency === currency) return;
+      const stake = Number(stakeInput.value);
+      const hasValidStake = Number.isFinite(stake) && stake > 0;
+      const nextStake = hasValidStake
+        ? nextCurrency === "btc"
+          ? stake / GBP_PER_BTC
+          : stake * GBP_PER_BTC
+        : null;
       currency = nextCurrency;
       const isBitcoin = currency === "btc";
       stakeSymbol.textContent = isBitcoin ? "₿" : "£";
@@ -429,7 +438,11 @@
       stakeInput.step = isBitcoin ? "0.000001" : "1";
       stakeInput.inputMode = isBitcoin ? "decimal" : "numeric";
       stakeInput.placeholder = isBitcoin ? "0.000016" : "5";
-      stakeInput.value = "";
+      stakeInput.value = nextStake === null
+        ? ""
+        : currency === "btc"
+          ? nextStake.toFixed(6)
+          : String(Math.round(nextStake));
       decimalPointAttempted = false;
       currencyButtons.forEach(button =>
         button.setAttribute("aria-pressed", String(button.dataset.currency === currency))
