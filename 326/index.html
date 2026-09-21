@@ -670,7 +670,10 @@
         fractional: selectedOutcome.querySelector(".fractional").textContent,
         decimal: selectedOutcome.dataset.decimal,
         stake: stakeInput.value,
-        currency
+        currency,
+        gbpStake: currency === "btc"
+          ? String(Number(stakeInput.value) * GBP_PER_BTC)
+          : stakeInput.value
       });
       window.location.assign("/confirm/?" + parameters.toString());
     });
