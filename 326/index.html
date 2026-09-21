@@ -547,7 +547,7 @@
           <label for="stake">Your stake</label>
           <div class="stake-input-wrap">
             <span id="stake-symbol" aria-hidden="true">£</span>
-            <input id="stake" type="number" min="50" max="29999" step="1" inputmode="numeric" value="50" aria-describedby="stake-message">
+            <input id="stake" type="number" min="50" max="49999" step="1" inputmode="numeric" value="50" aria-describedby="stake-message">
           </div>
           <p id="stake-message" class="stake-message" aria-live="polite"></p>
         </div>
@@ -614,9 +614,9 @@
     const exchangeRate = document.getElementById("exchange-rate");
     const placeBetButton = document.getElementById("place-bet");
     const MIN_GBP_STAKE = 50;
-    const MAX_GBP_STAKE = 29999;
-    const DEFAULT_ENGLAND_ODDS = "100/8";
-    const DEFAULT_SCOTLAND_WALES_ODDS = "100/9";
+    const MAX_GBP_STAKE = 49999;
+    const DEFAULT_ENGLAND_ODDS = "7/1";
+    const DEFAULT_SCOTLAND_WALES_ODDS = "8/1";
     const ODDS_SHEET_URL = "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/export?format=csv&gid=1260743543";
     const EXCLUDED_CONSTITUENCIES = new Set([
       "Belfast East",
@@ -974,8 +974,8 @@
       stakeMessage.textContent =
         (hasStake && stake > maximumStake)
           ? isBitcoin
-            ? "Maximum stake 0.0959968 BTC."
-            : "Maximum stake £29,999."
+            ? "Maximum stake " + maximumStake.toFixed(7) + " BTC."
+            : "Maximum stake £49,999."
           : decimalPointAttempted || (hasStake && !isValidStake)
             ? isBitcoin
                 ? "Enter a Bitcoin stake."
@@ -1037,6 +1037,10 @@
     placeBetButton.addEventListener("click", () => {
       const selectedOutcome = outcomes.find(outcome => outcome.classList.contains("is-selected"));
       if (!selectedOutcome || placeBetButton.disabled) return;
+      const selectedConstituency = constituencyInput.value.trim();
+      const constituency = constituencyNames.has(selectedConstituency)
+        ? selectedConstituency
+        : "";
 
       const parameters = new URLSearchParams({
         party: selectedOutcome.querySelector(".party-select").textContent,
@@ -1044,6 +1048,7 @@
         decimal: selectedOutcome.dataset.decimal,
         stake: stakeInput.value,
         currency,
+        constituency,
         gbpStake: currency === "btc"
           ? String(Number(stakeInput.value) * GBP_PER_BTC)
           : stakeInput.value
