@@ -165,6 +165,39 @@
       width: min(100%, 13rem);
     }
 
+    .place-bet {
+      min-width: 9rem;
+      padding: 0.7rem 1rem;
+      border: 1px solid #278c77;
+      border-radius: 0.35rem;
+      background: #278c77;
+      color: #fff;
+      font: inherit;
+      font-size: 0.8rem;
+      font-weight: 750;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .place-bet:hover:not(:disabled),
+    .place-bet:focus-visible:not(:disabled) {
+      border-color: #1e6c5d;
+      background: #1e6c5d;
+    }
+
+    .place-bet:focus-visible {
+      outline: 3px solid rgb(71 211 177 / 45%);
+      outline-offset: 2px;
+    }
+
+    .place-bet:disabled {
+      border-color: #c5ced8;
+      background: #e5eaf0;
+      color: #8290a1;
+      cursor: not-allowed;
+    }
+
     .stake-field label {
       color: #627187;
       font-size: 0.75rem;
@@ -212,10 +245,26 @@
     }
 
     .exchange-rate {
-      margin: 0;
+      margin: 1.25rem 0 0;
       color: #627187;
       font-size: 0.75rem;
       font-weight: 600;
+      line-height: 1.5;
+    }
+
+    .market-rules {
+      margin: 1.25rem 0 0;
+      color: #627187;
+      font-size: 0.75rem;
+      line-height: 1.5;
+    }
+
+    .market-rules p {
+      margin: 0 0 0.5rem;
+    }
+
+    .market-rules p:last-child {
+      margin-bottom: 0;
     }
 
     .outcomes {
@@ -395,8 +444,8 @@
             <input id="stake" type="number" min="5" max="29999" step="1" inputmode="numeric" value="50" aria-describedby="stake-message">
           </div>
           <p id="stake-message" class="stake-message" aria-live="polite"></p>
-          <p id="exchange-rate" class="exchange-rate" aria-live="polite">Loading Bitcoin rate...</p>
         </div>
+        <button id="place-bet" class="place-bet" type="button" disabled>Place Bet</button>
       </div>
       <table class="outcomes">
         <tbody>
@@ -419,6 +468,12 @@
         </tbody>
       </table>
     </section>
+    <footer class="market-rules">
+      <p>Labour includes Labour and Co-operative Party.</p>
+      <p>Figures will be based on those of GB News after all 650 constituencies have declared. Figures do not include the Speaker.</p>
+      <p>Other means a single party, not all other parties added together.</p>
+      <p id="exchange-rate" class="exchange-rate" aria-live="polite">Loading Bitcoin rate...</p>
+    </footer>
   </main>
   <script>
     const stakeInput = document.getElementById("stake");
@@ -428,6 +483,7 @@
     const stakeSymbol = document.getElementById("stake-symbol");
     const bitcoinButton = document.querySelector('[data-currency="btc"]');
     const exchangeRate = document.getElementById("exchange-rate");
+    const placeBetButton = document.getElementById("place-bet");
     const MIN_GBP_STAKE = 5;
     const MAX_GBP_STAKE = 29999;
     let GBP_PER_BTC = null;
@@ -512,6 +568,8 @@
       const isValidStake = isBitcoin
         ? Number.isFinite(stake) && stake >= minimumStake && stake <= maximumStake
         : Number.isInteger(stake) && stake >= minimumStake && stake <= maximumStake;
+      placeBetButton.disabled = !isValidStake ||
+        !outcomes.some(outcome => outcome.classList.contains("is-selected"));
       if (isValidStake) decimalPointAttempted = false;
       stakeMessage.textContent =
         (hasStake && stake > maximumStake)
