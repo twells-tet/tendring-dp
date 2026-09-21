@@ -112,7 +112,7 @@
 
     .stake-panel {
       display: flex;
-      align-items: end;
+      align-items: center;
       gap: 1rem;
       padding: 1rem 1.5rem;
       border-bottom: 1px solid #e6ebf0;
@@ -160,9 +160,11 @@
     }
 
     .stake-field {
-      display: grid;
-      gap: 0.35rem;
-      width: min(100%, 13rem);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      width: auto;
     }
 
     .place-bet {
@@ -204,10 +206,12 @@
       font-weight: 750;
       letter-spacing: 0.06em;
       text-transform: uppercase;
+      white-space: nowrap;
     }
 
     .stake-input-wrap {
       position: relative;
+      width: 13rem;
     }
 
     .stake-input-wrap span {
@@ -237,8 +241,8 @@
     }
 
     .stake-message {
-      min-height: 1rem;
-      margin: 0;
+      flex-basis: 100%;
+      margin: -0.25rem 0 0;
       color: #b42318;
       font-size: 0.75rem;
       font-weight: 600;
@@ -413,8 +417,12 @@
       }
 
       .stake-panel {
-        align-items: stretch;
-        flex-direction: column;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .stake-field {
+        justify-content: center;
       }
     }
   </style>
@@ -469,6 +477,7 @@
       </table>
     </section>
     <footer class="market-rules">
+      <p>Market is for the most MPs of each party elected to the next House of Commons.</p>
       <p>Labour includes Labour and Co-operative Party.</p>
       <p>Figures will be based on those of GB News after all 650 constituencies have declared. Figures do not include the Speaker.</p>
       <p>Other means a single party, not all other parties added together.</p>
