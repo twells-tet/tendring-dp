@@ -590,6 +590,7 @@
     <footer class="market-rules">
       <p>Market is for the most MPs of each party elected to the next House of Commons.</p>
       <p>Labour includes Labour and Co-operative Party.</p>
+      <p>Green means Green Party of England and Wales except where otherwise stated.</p>
       <p>Figures will be based on those of GB News after all 650 constituencies have declared. Figures do not include the Speaker.</p>
       <p>Other means a single party, not all other parties added together.</p>
       <p id="exchange-rate" class="exchange-rate" aria-live="polite">Loading Bitcoin rate...</p>
@@ -881,9 +882,14 @@
         )
         : market.parties;
       parties.forEach(({ party, odds }) => {
+        const partyName = party === "GREEN"
+          ? market.country === "scotland"
+            ? "SCOTTISH GREEN PARTY"
+            : "GREEN"
+          : party;
         const row = document.createElement("tr");
         row.className = "outcome";
-        row.dataset.party = partySlug(party);
+        row.dataset.party = party === "GREEN" ? "green" : partySlug(party);
         row.dataset.decimal = String(odds.decimal);
         row.tabIndex = 0;
 
@@ -893,7 +899,7 @@
         partyButton.className = "party-select";
         partyButton.type = "button";
         partyButton.setAttribute("aria-pressed", "false");
-        partyButton.textContent = party;
+        partyButton.textContent = partyName;
         heading.appendChild(partyButton);
 
         const details = document.createElement("td");

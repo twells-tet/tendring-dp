@@ -185,6 +185,13 @@
       font-weight: 600;
     }
 
+    .proposal-notice {
+      margin: -0.25rem 0 0;
+      color: #627187;
+      font-size: 0.75rem;
+      line-height: 1.5;
+    }
+
     @media (max-width: 560px) {
       .site-header {
         height: 56px;
@@ -243,6 +250,7 @@
             <input id="email" name="email" type="email" autocomplete="email" required>
           </div>
           <button id="propose-bet" class="propose-bet" type="submit">Propose Bet</button>
+          <p class="proposal-notice">Your bet is not confirmed until matched and accepted.</p>
           <p id="payment-status" class="payment-status" aria-live="polite"></p>
         </form>
       </div>
