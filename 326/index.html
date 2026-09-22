@@ -889,16 +889,19 @@
 
       const rows = document.createDocumentFragment();
       let book = 0;
-      const priorityParty = market.country === "wales"
+      const nationalParty = market.country === "wales"
         ? "PLAID CYMRU"
         : market.country === "scotland"
           ? "SNP"
           : null;
-      const parties = priorityParty
-        ? [...market.parties].sort(({ party: left }, { party: right }) =>
-          Number(right === priorityParty) - Number(left === priorityParty)
-        )
-        : market.parties;
+      const firstParty = nationalParty || market.winnerParty;
+      const secondParty = nationalParty && market.winnerParty !== nationalParty
+        ? market.winnerParty
+        : null;
+      const parties = [...market.parties].sort(({ party: left }, { party: right }) => {
+        const priority = party => party === firstParty ? 0 : party === secondParty ? 1 : 2;
+        return priority(left) - priority(right);
+      });
       parties.forEach(({ party, odds }) => {
         const partyName = party === "GREEN"
           ? market.country === "scotland"
@@ -982,13 +985,17 @@
             ? DEFAULT_SCOTLAND_WALES_ODDS
             : DEFAULT_ENGLAND_ODDS;
           const parties = partyHeaders.flatMap((party, index) => {
-            const odds = party === winnerParty
+            const isFixedLongShot = party === "YOUR PARTY" ||
+              (party === "INDEPENDENT" && winnerParty !== "INDEPENDENT");
+            const odds = isFixedLongShot
+              ? parseOdds("100/1", defaultOdds)
+              : party === winnerParty
               ? parseOdds("1/2", defaultOdds)
               : parseOdds(row[index + 3] || "", defaultOdds);
             return odds ? [{ party, odds }] : [];
           });
           return constituency && parties.length
-            ? [[constituency, { country, parties }]]
+            ? [[constituency, { country, winnerParty, parties }]]
             : [];
         }));
         updateMarketTitle();
