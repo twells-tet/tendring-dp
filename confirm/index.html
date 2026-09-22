@@ -151,7 +151,7 @@
       outline: 3px solid rgb(71 211 177 / 25%);
     }
 
-    .place-bet {
+    .propose-bet {
       min-width: 9rem;
       padding: 0.7rem 1rem;
       border: 1px solid #278c77;
@@ -166,13 +166,13 @@
       cursor: pointer;
     }
 
-    .place-bet:hover,
-    .place-bet:focus-visible {
+    .propose-bet:hover,
+    .propose-bet:focus-visible {
       border-color: #1e6c5d;
       background: #1e6c5d;
     }
 
-    .place-bet:focus-visible {
+    .propose-bet:focus-visible {
       outline: 3px solid rgb(71 211 177 / 45%);
       outline-offset: 2px;
     }
@@ -188,39 +188,8 @@
     .proposal-notice {
       margin: -0.25rem 0 0;
       color: #627187;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       line-height: 1.5;
-    }
-
-    .bet-actions {
-      display: flex;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-    }
-
-    .propose-bet {
-      border-color: #142338;
-      background: #142338;
-    }
-
-    .propose-bet:hover,
-    .propose-bet:focus-visible {
-      border-color: #273b55;
-      background: #273b55;
-    }
-
-    .back-link {
-      display: inline-block;
-      margin-top: 1.5rem;
-      color: #1e6c5d;
-      font-size: 0.875rem;
-      font-weight: 700;
-      text-decoration: none;
-    }
-
-    .back-link:hover,
-    .back-link:focus-visible {
-      color: #142338;
     }
 
     @media (max-width: 560px) {
@@ -254,7 +223,7 @@
       <div class="confirmation-body">
         <dl>
           <dt>Market</dt>
-          <dd>Next United Kingdom General Election: Most Seats</dd>
+          <dd id="market"></dd>
           <dt>Selection</dt>
           <dd id="party"></dd>
           <dt>Odds</dt>
@@ -280,14 +249,10 @@
             <label for="email">Email Address</label>
             <input id="email" name="email" type="email" autocomplete="email" required>
           </div>
-          <div class="bet-actions">
-            <button id="place-bet" class="place-bet" type="submit">Place Bet</button>
-            <button id="propose-bet" class="place-bet propose-bet" type="button" hidden>Propose Bet</button>
-          </div>
-          <p id="proposal-notice" class="proposal-notice" hidden>Stakes of £1000 or more will be provided to you by email, as an invoice. The bet is not confirmed until the invoice is settled in full.</p>
+          <button id="propose-bet" class="propose-bet" type="submit">Propose Bet</button>
+          <p class="proposal-notice">Your bet is not confirmed until matched and accepted.</p>
           <p id="payment-status" class="payment-status" aria-live="polite"></p>
         </form>
-        <a class="back-link" href="/326/">Change selection</a>
       </div>
     </section>
   </main>
@@ -299,14 +264,16 @@
     const stake = Number(parameters.get("stake"));
     const currency = parameters.get("currency");
     const gbpStake = Number(parameters.get("gbpStake"));
+    const constituency = parameters.get("constituency") || "";
     const form = document.querySelector(".customer-details");
-    const placeBetButton = document.getElementById("place-bet");
     const proposeBetButton = document.getElementById("propose-bet");
-    const proposalNotice = document.getElementById("proposal-notice");
     const paymentStatus = document.getElementById("payment-status");
     const stakeInGbp = currency === "btc" ? gbpStake : stake;
-    const requiresProposal = Number.isFinite(stakeInGbp) && stakeInGbp > 999;
+    const market = constituency
+      ? "Winner: " + constituency
+      : "Next United Kingdom General Election: Most Seats";
 
+    document.getElementById("market").textContent = market;
     document.getElementById("party").textContent = party;
     document.getElementById("odds").textContent = Number.isFinite(decimal)
       ? fractional + " (" + decimal.toFixed(2) + ")"
@@ -316,21 +283,12 @@
         ? stake.toFixed(7) + " BTC"
         : new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" }).format(stake)
       : "—";
-    placeBetButton.disabled = requiresProposal;
-    placeBetButton.hidden = requiresProposal;
-    proposeBetButton.hidden = !requiresProposal;
-    proposalNotice.hidden = !requiresProposal;
-
     form.addEventListener("submit", event => {
       event.preventDefault();
-      paymentStatus.textContent =
-        "Stripe payment will be available here shortly.";
-    });
-    proposeBetButton.addEventListener("click", () => {
       if (!form.reportValidity()) return;
 
       const body = [
-        "Market: Next United Kingdom General Election: Most Seats",
+        "Market: " + market,
         "Selection: " + party,
         "Odds: " + fractional + " (" + decimal.toFixed(2) + ")",
         "Stake: " + document.getElementById("stake").textContent,
@@ -344,6 +302,8 @@
         "Postcode: " + document.getElementById("postcode").value,
         "Email Address: " + document.getElementById("email").value
       ].join("\n");
+      proposeBetButton.disabled = true;
+      paymentStatus.textContent = "Opening your email to send this proposal.";
       window.location.assign(
         "mailto:chris@trinitystreetcomms.co.uk?subject=" +
         encodeURIComponent("Proposed 326 election market bet") +
