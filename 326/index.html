@@ -895,7 +895,7 @@
       parties.forEach(({ party, odds }) => {
         const partyName = party === "GREEN"
           ? market.country === "scotland"
-            ? "SCOTTISH GREEN PARTY"
+            ? "SCOTTISH GREEN"
             : "GREEN"
           : party;
         const row = document.createElement("tr");
@@ -961,6 +961,11 @@
         ) {
           throw new Error("The odds sheet has an invalid header row.");
         }
+        const lastPartyColumn = headers.indexOf("YOUR PARTY");
+        if (lastPartyColumn === -1) {
+          throw new Error("The odds sheet is missing the final party column.");
+        }
+        const partyHeaders = headers.slice(3, lastPartyColumn + 1);
 
         constituencyOdds = new Map(rows.flatMap(row => {
           const constituency = (row[0] || "").trim();
@@ -969,7 +974,7 @@
           const defaultOdds = country === "scotland" || country === "wales"
             ? DEFAULT_SCOTLAND_WALES_ODDS
             : DEFAULT_ENGLAND_ODDS;
-          const parties = headers.slice(3).flatMap((party, index) => {
+          const parties = partyHeaders.flatMap((party, index) => {
             const odds = party === winnerParty
               ? parseOdds("1/2", defaultOdds)
               : parseOdds(row[index + 3] || "", defaultOdds);
