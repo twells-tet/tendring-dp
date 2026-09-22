@@ -588,7 +588,7 @@
       <p id="book-total" class="book-total">Book: 101.51%</p>
     </section>
     <footer class="market-rules">
-      <p>Market is for the most MPs of each party elected to the next House of Commons.</p>
+      <p>Market is for the most MPs of each party elected to the next House of Commons, or for the individual winner of specific constituencies at the next general election.</p>
       <p>Labour includes Labour and Co-operative Party.</p>
       <p>Green means Green Party of England and Wales except where otherwise stated.</p>
       <p>Figures will be based on those of GB News after all 650 constituencies have declared. Figures do not include the Speaker.</p>
@@ -618,6 +618,17 @@
     const MAX_GBP_STAKE = 49999;
     const DEFAULT_ENGLAND_ODDS = "7/1";
     const DEFAULT_SCOTLAND_WALES_ODDS = "8/1";
+    const PARTY_WINNER_COLUMNS = {
+      "Conservative": "CONSERVATIVE",
+      "Green": "GREEN",
+      "Independent": "INDEPENDENT",
+      "Labour": "LABOUR",
+      "Labour Co-op": "LABOUR",
+      "Liberal Democrats": "LIB DEM",
+      "Plaid Cymru": "PLAID CYMRU",
+      "Reform UK": "REFORM UK",
+      "Scottish National": "SNP"
+    };
     const ODDS_SHEET_URL = "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/export?format=csv&gid=1260743543";
     const EXCLUDED_CONSTITUENCIES = new Set([
       "Belfast East",
@@ -942,18 +953,26 @@
         const response = await fetch(ODDS_SHEET_URL);
         if (!response.ok) throw new Error("The odds sheet request failed.");
         const [headers, ...rows] = parseCsv(await response.text());
-        if (!headers || headers[0] !== "CONSTITUENCY" || headers[1] !== "COUNTRY") {
+        if (
+          !headers ||
+          headers[0] !== "CONSTITUENCY" ||
+          headers[1] !== "COUNTRY" ||
+          headers[2] !== "PARTY WINNER 2024"
+        ) {
           throw new Error("The odds sheet has an invalid header row.");
         }
 
         constituencyOdds = new Map(rows.flatMap(row => {
           const constituency = (row[0] || "").trim();
           const country = (row[1] || "").trim().toLowerCase();
+          const winnerParty = PARTY_WINNER_COLUMNS[(row[2] || "").trim()];
           const defaultOdds = country === "scotland" || country === "wales"
             ? DEFAULT_SCOTLAND_WALES_ODDS
             : DEFAULT_ENGLAND_ODDS;
-          const parties = headers.slice(2).flatMap((party, index) => {
-            const odds = parseOdds(row[index + 2] || "", defaultOdds);
+          const parties = headers.slice(3).flatMap((party, index) => {
+            const odds = party === winnerParty
+              ? parseOdds("1/2", defaultOdds)
+              : parseOdds(row[index + 3] || "", defaultOdds);
             return odds ? [{ party, odds }] : [];
           });
           return constituency && parties.length
