@@ -152,7 +152,7 @@ I will display a poster in my window or garden
 
 <p id="error" class="error-message"></p>
 
-<button class="btn primary btn-large" id="submit-button" type="submit">
+<button class="btn primary btn-large" id="submit-button" type="submit" disabled>
 SIGN ME UP →
 </button>
 
@@ -209,6 +209,7 @@ radioButtons.forEach(radio => {
 
 form.addEventListener("submit", async function(event) {
   event.preventDefault();
+  if (submitButton.disabled) return;
   
   document.getElementById("submit-button").disabled = true;
   

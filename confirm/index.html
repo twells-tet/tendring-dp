@@ -272,6 +272,7 @@
     const market = constituency
       ? "Winner: " + constituency
       : "Next United Kingdom General Election: Most Seats";
+    const PROPOSAL_FORM_URL = "https://tendring-volunteer.twells-tet.workers.dev";
 
     document.getElementById("market").textContent = market;
     document.getElementById("party").textContent = party;
@@ -283,32 +284,45 @@
         ? stake.toFixed(7) + " BTC"
         : new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" }).format(stake)
       : "—";
-    form.addEventListener("submit", event => {
+    form.addEventListener("submit", async event => {
       event.preventDefault();
       if (!form.reportValidity()) return;
 
-      const body = [
-        "Market: " + market,
-        "Selection: " + party,
-        "Odds: " + fractional + " (" + decimal.toFixed(2) + ")",
-        "Stake: " + document.getElementById("stake").textContent,
-        "GBP equivalent: " + new Intl.NumberFormat("en-GB", {
-          style: "currency",
-          currency: "GBP"
-        }).format(stakeInGbp),
-        "",
-        "Full Name: " + document.getElementById("full-name").value,
-        "Address: " + document.getElementById("address").value,
-        "Postcode: " + document.getElementById("postcode").value,
-        "Email Address: " + document.getElementById("email").value
-      ].join("\n");
       proposeBetButton.disabled = true;
-      paymentStatus.textContent = "Opening your email to send this proposal.";
-      window.location.assign(
-        "mailto:chris@trinitystreetcomms.co.uk?subject=" +
-        encodeURIComponent("Proposed 326 election market bet") +
-        "&body=" + encodeURIComponent(body)
-      );
+      paymentStatus.textContent = "Sending your proposal...";
+      try {
+        const response = await fetch(PROPOSAL_FORM_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            tendring: "yes",
+            name: document.getElementById("full-name").value.trim(),
+            address: document.getElementById("address").value.trim(),
+            postcode: document.getElementById("postcode").value.trim().toUpperCase(),
+            email: document.getElementById("email").value.trim(),
+            proposal_type: "326 election market bet",
+            market,
+            selection: party,
+            odds: fractional + " (" + decimal.toFixed(2) + ")",
+            stake: document.getElementById("stake").textContent,
+            gbp_equivalent: new Intl.NumberFormat("en-GB", {
+              style: "currency",
+              currency: "GBP"
+            }).format(stakeInGbp)
+          })
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+          throw new Error(result.error || "The proposal could not be sent.");
+        }
+        paymentStatus.textContent = "Thank you. Your proposal has been sent.";
+        form.reset();
+      } catch (error) {
+        paymentStatus.textContent = error.message || "Service unavailable. Please try again later.";
+        proposeBetButton.disabled = false;
+      }
     });
   </script>
 </body>
