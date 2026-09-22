@@ -614,6 +614,7 @@
     const bitcoinButton = document.querySelector('[data-currency="btc"]');
     const exchangeRate = document.getElementById("exchange-rate");
     const placeBetButton = document.getElementById("place-bet");
+    const requestedConstituency = new URLSearchParams(window.location.search).get("constituency");
     const MIN_GBP_STAKE = 50;
     const MAX_GBP_STAKE = 49999;
     const DEFAULT_ENGLAND_ODDS = "7/1";
@@ -775,6 +776,11 @@
         constituencyList.appendChild(options);
         constituencyInput.disabled = false;
         constituencyStatus.textContent = "";
+        if (requestedConstituency && constituencyNames.has(requestedConstituency)) {
+          constituencyInput.value = requestedConstituency;
+          updateMarketTitle();
+          updateConstituencySuggestions();
+        }
       } catch (error) {
         constituencyStatus.textContent = "Constituencies unavailable: " + error.message;
       }
@@ -867,6 +873,7 @@
     }
 
     function partySlug(name) {
+      if (name === "REFORM UK") return "reform";
       return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     }
 
