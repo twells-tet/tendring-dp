@@ -82,7 +82,7 @@
       </dl>
       <div class="stake-panel" id="stake-panel" hidden>
         <label for="stake">Your stake</label>
-        <div class="stake-input-wrap"><span aria-hidden="true">£</span><input id="stake" type="number" min="50" max="49999" step="1" inputmode="numeric" value="50" aria-describedby="stake-message"></div>
+        <div class="stake-input-wrap"><span aria-hidden="true">£</span><input id="stake" type="number" min="10" max="1999" step="1" inputmode="numeric" value="50" aria-describedby="stake-message"></div>
         <p id="stake-message" class="stake-message" aria-live="polite"></p>
       </div>
       <table class="candidates" id="candidates" hidden>
@@ -190,13 +190,13 @@
 
     function validStake() {
       const stake = Number(stakeInput.value);
-      return Number.isInteger(stake) && stake >= 50 && stake <= 49999;
+      return Number.isInteger(stake) && stake >= 10 && stake <= 1999;
     }
 
     function validateStake() {
       stakeMessage.textContent = stakeInput.value === "" || validStake()
         ? ""
-        : "Minimum stake £50. Maximum stake £49,999. Whole pounds only.";
+        : "Minimum stake £10. Maximum stake £1,999. Whole pounds only.";
       return validStake();
     }
 

@@ -266,10 +266,17 @@
     const gbpStake = Number(parameters.get("gbpStake"));
     const constituency = parameters.get("constituency") || "";
     const suppliedMarket = parameters.get("market") || "";
+    const isByElection = suppliedMarket !== "";
     const form = document.querySelector(".customer-details");
     const proposeBetButton = document.getElementById("propose-bet");
     const paymentStatus = document.getElementById("payment-status");
     const stakeInGbp = currency === "btc" ? gbpStake : stake;
+    const hasValidByElectionStake = !isByElection || (
+      currency === "gbp" &&
+      Number.isInteger(stake) &&
+      stake >= 10 &&
+      stake <= 1999
+    );
     const market = suppliedMarket || (constituency
       ? "Winner: " + constituency
       : "Next United Kingdom General Election: Most Seats");
@@ -286,8 +293,16 @@
         ? stake.toFixed(7) + " BTC"
         : new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" }).format(stake)
       : "—";
+    if (!hasValidByElectionStake) {
+      proposeBetButton.disabled = true;
+      paymentStatus.textContent = "By-election stakes must be whole pounds between £10 and £1,999.";
+    }
     form.addEventListener("submit", async event => {
       event.preventDefault();
+      if (!hasValidByElectionStake) {
+        paymentStatus.textContent = "By-election stakes must be whole pounds between £10 and £1,999.";
+        return;
+      }
       if (!form.reportValidity()) return;
 
       proposeBetButton.disabled = true;
