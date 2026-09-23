@@ -407,7 +407,7 @@
             oddsButton.className = "odds-button";
             oddsButton.type = "button";
             oddsButton.disabled = true;
-            oddsButton.textContent = "ODDS";
+            oddsButton.textContent = "VIEW ODDS";
             oddsButton.title = "Betting closed at 07:00 London time on election day.";
             oddsCell.appendChild(oddsButton);
           } else {
@@ -415,7 +415,7 @@
             const oddsLink = document.createElement("a");
             oddsLink.className = "odds-button";
             oddsLink.href = "/326/byelections/market/?" + parameters.toString();
-            oddsLink.textContent = "ODDS";
+            oddsLink.textContent = "VIEW ODDS";
             oddsCell.appendChild(oddsLink);
           }
           row.appendChild(oddsCell);
