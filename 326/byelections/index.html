@@ -220,6 +220,16 @@
       cursor: not-allowed;
     }
 
+    .candidate-list-status {
+      display: block;
+      max-width: 9rem;
+      margin-top: 0.35rem;
+      color: #627187;
+      font-size: 0.7rem;
+      font-weight: 600;
+      line-height: 1.25;
+    }
+
     .empty-state {
       margin: 0;
       padding: 1.5rem;
@@ -425,13 +435,17 @@
             oddsButton.className = "odds-button";
             oddsButton.type = "button";
             oddsButton.disabled = true;
-            oddsButton.textContent = candidateListPending
-              ? "Candidate list not yet confirmed"
-              : "VIEW ODDS";
+            oddsButton.textContent = "VIEW ODDS";
             oddsButton.title = candidateListPending
               ? "Candidate list not yet confirmed"
               : "Betting closed at 07:00 London time on election day.";
             oddsCell.appendChild(oddsButton);
+            if (candidateListPending) {
+              const candidateListStatus = document.createElement("span");
+              candidateListStatus.className = "candidate-list-status";
+              candidateListStatus.textContent = "Candidate list not yet confirmed";
+              oddsCell.appendChild(candidateListStatus);
+            }
           } else {
             const parameters = new URLSearchParams({ date, authority, ward });
             const oddsLink = document.createElement("a");
