@@ -52,10 +52,12 @@
     .candidates tbody tr { cursor: pointer; }
     .candidates tbody tr:focus-visible { outline: 3px solid var(--party-colour); outline-offset: -3px; }
     .status { margin: 0; color: #627187; line-height: 1.55; }
+    .site-footer { width: min(100% - 2rem, 960px); margin: 0 auto; padding: 0 0 2rem; color: #627187; font-size: 0.75rem; line-height: 1.5; }
     @media (max-width: 560px) {
       .site-header { height: 56px; padding: 0 1.25rem; }
       .primary-nav { gap: 1rem; }
       main { width: min(100% - 1.5rem, 960px); min-height: calc(100vh - 56px); padding: 1.5rem 0; }
+      .site-footer { width: min(100% - 1.5rem, 960px); }
       .market-header, .market-details, .stake-panel, .status, .candidates th, .candidates td { padding: 1rem; }
     }
   </style>
@@ -92,6 +94,9 @@
       <p class="status" id="status" aria-live="polite">Loading market...</p>
     </section>
   </main>
+  <footer class="site-footer">
+    326 Political Betting (United Kingdom), 50/5 Bulevar Revolucije, Podgorica 81000, Montenegro
+  </footer>
   <script>
     const ODDS_SHEET_URL = "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/export?format=csv&gid=1260743543";
     const parameters = new URLSearchParams(window.location.search);
@@ -209,6 +214,7 @@
         const authorityColumn = headers.indexOf("LOCAL AUTHORITY");
         const wardColumn = headers.indexOf("WARD / DIVISION");
         const defendingColumn = headers.indexOf("DEFENDING PARTY");
+        const candidateListPendingColumn = defendingColumn + 1;
         const firstOddsColumn = headers.indexOf("LABOUR", defendingColumn + 1);
         const lastOddsColumn = headers.indexOf("OTHER", firstOddsColumn + 1);
         const market = rows.find(row =>
@@ -218,6 +224,9 @@
         );
         if (!market || firstOddsColumn === -1 || lastOddsColumn === -1) {
           throw new Error("This by-election market is unavailable.");
+        }
+        if ((market[candidateListPendingColumn] || "").trim().toUpperCase() === "YES") {
+          throw new Error("Candidate list not yet confirmed");
         }
 
         document.getElementById("date").textContent = market[dateColumn];

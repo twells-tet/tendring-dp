@@ -231,6 +231,15 @@
       display: none;
     }
 
+    .site-footer {
+      width: min(100% - 2rem, 960px);
+      margin: 0 auto;
+      padding: 0 0 2rem;
+      color: #627187;
+      font-size: 0.75rem;
+      line-height: 1.5;
+    }
+
     @media (max-width: 560px) {
       .site-header {
         height: 56px;
@@ -245,6 +254,10 @@
         width: min(100% - 1.5rem, 960px);
         min-height: calc(100vh - 56px);
         padding: 1.5rem 0;
+      }
+
+      .site-footer {
+        width: min(100% - 1.5rem, 960px);
       }
 
       .page-header,
@@ -290,6 +303,9 @@
       <p class="empty-state" id="empty-state" aria-live="polite">Loading by-election markets...</p>
     </section>
   </main>
+  <footer class="site-footer">
+    326 Political Betting (United Kingdom), 50/5 Bulevar Revolucije, Podgorica 81000, Montenegro
+  </footer>
   <script>
     const ODDS_SHEET_URL = "https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/export?format=csv&gid=1260743543";
     const table = document.querySelector(".by-elections-table");
@@ -376,6 +392,7 @@
         const authorityColumn = headers.indexOf("LOCAL AUTHORITY");
         const wardColumn = headers.indexOf("WARD / DIVISION");
         const defendingColumn = headers.indexOf("DEFENDING PARTY");
+        const candidateListPendingColumn = defendingColumn + 1;
         if (dateColumn === -1 || authorityColumn === -1 || wardColumn === -1 || defendingColumn === -1) {
           throw new Error("The by-election columns are unavailable.");
         }
@@ -384,7 +401,8 @@
             date: (row[dateColumn] || "").trim(),
             authority: (row[authorityColumn] || "").trim(),
             ward: (row[wardColumn] || "").trim(),
-            defending: (row[defendingColumn] || "").trim()
+            defending: (row[defendingColumn] || "").trim(),
+            candidateListPending: (row[candidateListPendingColumn] || "").trim().toUpperCase() === "YES"
           }))
           .filter(({ date }) => /^\d{2}\s[A-Z][a-z]{2}\s\d{2}$/.test(date));
         if (!byElections.length) {
@@ -393,7 +411,7 @@
         }
 
         const entries = document.createDocumentFragment();
-        byElections.forEach(({ date, authority, ward, defending }) => {
+        byElections.forEach(({ date, authority, ward, defending, candidateListPending }) => {
           const row = document.createElement("tr");
           row.dataset.defending = defending.toLowerCase();
           [formatByElectionDate(date), authority || "—", ward || "—", defending || "—"].forEach(value => {
@@ -402,13 +420,17 @@
             row.appendChild(cell);
           });
           const oddsCell = document.createElement("td");
-          if (isBettingClosed(date)) {
+          if (candidateListPending || isBettingClosed(date)) {
             const oddsButton = document.createElement("button");
             oddsButton.className = "odds-button";
             oddsButton.type = "button";
             oddsButton.disabled = true;
-            oddsButton.textContent = "VIEW ODDS";
-            oddsButton.title = "Betting closed at 07:00 London time on election day.";
+            oddsButton.textContent = candidateListPending
+              ? "Candidate list not yet confirmed"
+              : "VIEW ODDS";
+            oddsButton.title = candidateListPending
+              ? "Candidate list not yet confirmed"
+              : "Betting closed at 07:00 London time on election day.";
             oddsCell.appendChild(oddsButton);
           } else {
             const parameters = new URLSearchParams({ date, authority, ward });
