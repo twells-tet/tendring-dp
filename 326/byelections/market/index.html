@@ -18,13 +18,20 @@
     .primary-nav a:hover, .primary-nav a:focus-visible, .primary-nav a[aria-current="page"] { border-bottom-color: #47d3b1; color: #fff; outline: none; }
     main { width: min(100% - 2rem, 960px); min-height: calc(100vh - 64px); margin: 0 auto; padding: 3rem 0; }
     .market { overflow: hidden; border: 1px solid #dbe2ea; border-radius: 0.5rem; background: #fff; box-shadow: 0 1px 2px rgb(20 35 56 / 4%); }
-    .market-header, .market-details, .status { padding: 1.5rem; }
+    .market-header, .market-details, .stake-panel, .status { padding: 1.5rem; }
     .market-header { border-bottom: 1px solid #e6ebf0; }
     .eyebrow { margin: 0 0 0.35rem; color: #627187; font-size: 0.75rem; font-weight: 750; letter-spacing: 0.08em; text-transform: uppercase; }
     h1 { margin: 0; font-size: clamp(1.2rem, 3vw, 1.5rem); letter-spacing: -0.02em; }
     .market-details { display: grid; grid-template-columns: auto 1fr; gap: 0.7rem 1.5rem; border-bottom: 1px solid #e6ebf0; }
     dt { color: #627187; font-size: 0.8rem; font-weight: 750; }
     dd { margin: 0; font-weight: 700; }
+    .stake-panel { display: flex; align-items: center; gap: 0.75rem; border-bottom: 1px solid #e6ebf0; background: #fafbfd; }
+    .stake-panel label { color: #627187; font-size: 0.75rem; font-weight: 750; letter-spacing: 0.06em; text-transform: uppercase; }
+    .stake-input-wrap { position: relative; width: 12rem; }
+    .stake-input-wrap span { position: absolute; top: 50%; left: 0.75rem; color: #627187; font-weight: 650; pointer-events: none; transform: translateY(-50%); }
+    .stake-input-wrap input { width: 100%; padding: 0.7rem 0.75rem 0.7rem 1.75rem; border: 1px solid #b9c4d0; border-radius: 0.35rem; background: #fff; color: #142338; font: inherit; font-variant-numeric: tabular-nums; }
+    .stake-input-wrap input:focus { border-color: #278c77; outline: 3px solid rgb(71 211 177 / 25%); }
+    .stake-message { margin: 0; color: #b42318; font-size: 0.75rem; font-weight: 600; }
     .candidates { width: 100%; border-collapse: collapse; }
     .candidates th, .candidates td { padding: 1rem 1.5rem; border-bottom: 1px solid #e6ebf0; text-align: left; }
     .candidates th { color: #627187; font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; }
@@ -42,12 +49,14 @@
     .candidates tbody tr[data-party="other"] { --party-colour: #8693a3; }
     .candidates tbody tr td { background: color-mix(in srgb, var(--party-colour) 11%, white); }
     .candidates tbody tr td:first-child { box-shadow: inset 4px 0 0 var(--party-colour); }
+    .candidates tbody tr { cursor: pointer; }
+    .candidates tbody tr:focus-visible { outline: 3px solid var(--party-colour); outline-offset: -3px; }
     .status { margin: 0; color: #627187; line-height: 1.55; }
     @media (max-width: 560px) {
       .site-header { height: 56px; padding: 0 1.25rem; }
       .primary-nav { gap: 1rem; }
       main { width: min(100% - 1.5rem, 960px); min-height: calc(100vh - 56px); padding: 1.5rem 0; }
-      .market-header, .market-details, .status, .candidates th, .candidates td { padding: 1rem; }
+      .market-header, .market-details, .stake-panel, .status, .candidates th, .candidates td { padding: 1rem; }
     }
   </style>
 </head>
@@ -71,6 +80,11 @@
         <dt>Ward / division</dt><dd id="ward"></dd>
         <dt>Defending</dt><dd id="defending"></dd>
       </dl>
+      <div class="stake-panel" id="stake-panel" hidden>
+        <label for="stake">Your stake</label>
+        <div class="stake-input-wrap"><span aria-hidden="true">£</span><input id="stake" type="number" min="50" max="49999" step="1" inputmode="numeric" value="50" aria-describedby="stake-message"></div>
+        <p id="stake-message" class="stake-message" aria-live="polite"></p>
+      </div>
       <table class="candidates" id="candidates" hidden>
         <thead><tr><th scope="col">Party</th><th scope="col">Odds</th></tr></thead>
         <tbody></tbody>
@@ -89,6 +103,9 @@
     const status = document.getElementById("status");
     const details = document.getElementById("market-details");
     const candidatesTable = document.getElementById("candidates");
+    const stakePanel = document.getElementById("stake-panel");
+    const stakeInput = document.getElementById("stake");
+    const stakeMessage = document.getElementById("stake-message");
     const PARTY_NAMES = {
       "LABOUR": "Labour",
       "CONSERVATIVE": "Conservative",
@@ -162,6 +179,18 @@
       return party.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     }
 
+    function validStake() {
+      const stake = Number(stakeInput.value);
+      return Number.isInteger(stake) && stake >= 50 && stake <= 49999;
+    }
+
+    function validateStake() {
+      stakeMessage.textContent = stakeInput.value === "" || validStake()
+        ? ""
+        : "Minimum stake £50. Maximum stake £49,999. Whole pounds only.";
+      return validStake();
+    }
+
     async function loadMarket() {
       try {
         const response = await fetch(ODDS_SHEET_URL);
@@ -189,23 +218,51 @@
         document.getElementById("market-title").textContent = market[wardColumn] + " by-election";
         const candidates = headers.slice(firstOddsColumn, lastOddsColumn + 1).flatMap((party, index) => {
           const odds = (market[firstOddsColumn + index] || "").trim();
-          return odds ? [{ party, odds: formatFractionalOdds(odds) }] : [];
+          const probability = Number(odds.replace(/%$/, "").trim());
+          return Number.isFinite(probability) && probability > 0
+            ? [{ party, fractional: formatFractionalOdds(odds), decimal: 100 / probability }]
+            : [];
         });
         if (!candidates.length) throw new Error("No candidate odds are currently available.");
 
         const fragment = document.createDocumentFragment();
-        candidates.forEach(({ party, odds }) => {
+        candidates.forEach(({ party, fractional, decimal }) => {
           const row = document.createElement("tr");
           row.dataset.party = partySlug(party);
+          row.tabIndex = 0;
           const partyCell = document.createElement("td");
           partyCell.textContent = PARTY_NAMES[party] || party;
           const oddsCell = document.createElement("td");
-          oddsCell.textContent = odds;
+          oddsCell.textContent = fractional;
           row.append(partyCell, oddsCell);
+          const continueToConfirmation = () => {
+            if (!validateStake()) {
+              stakeInput.focus();
+              return;
+            }
+            const query = new URLSearchParams({
+              market: market[wardColumn] + " by-election, " + market[dateColumn],
+              party: PARTY_NAMES[party] || party,
+              fractional,
+              decimal: String(decimal),
+              stake: stakeInput.value,
+              currency: "gbp",
+              gbpStake: stakeInput.value
+            });
+            window.location.assign("/confirm/?" + query.toString());
+          };
+          row.addEventListener("click", continueToConfirmation);
+          row.addEventListener("keydown", event => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              continueToConfirmation();
+            }
+          });
           fragment.appendChild(row);
         });
         candidatesTable.querySelector("tbody").appendChild(fragment);
         details.hidden = false;
+        stakePanel.hidden = false;
         candidatesTable.hidden = false;
         status.hidden = true;
       } catch (error) {
@@ -213,6 +270,7 @@
       }
     }
 
+    stakeInput.addEventListener("input", validateStake);
     loadMarket();
   </script>
 </body>

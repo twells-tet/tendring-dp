@@ -265,17 +265,19 @@
     const currency = parameters.get("currency");
     const gbpStake = Number(parameters.get("gbpStake"));
     const constituency = parameters.get("constituency") || "";
+    const suppliedMarket = parameters.get("market") || "";
     const form = document.querySelector(".customer-details");
     const proposeBetButton = document.getElementById("propose-bet");
     const paymentStatus = document.getElementById("payment-status");
     const stakeInGbp = currency === "btc" ? gbpStake : stake;
-    const market = constituency
+    const market = suppliedMarket || (constituency
       ? "Winner: " + constituency
-      : "Next United Kingdom General Election: Most Seats";
+      : "Next United Kingdom General Election: Most Seats");
+    const selection = suppliedMarket ? "Winner: " + party : party;
     const PROPOSAL_FORM_URL = "https://tendring-volunteer.twells-tet.workers.dev";
 
     document.getElementById("market").textContent = market;
-    document.getElementById("party").textContent = party;
+    document.getElementById("party").textContent = selection;
     document.getElementById("odds").textContent = Number.isFinite(decimal)
       ? fractional + " (" + decimal.toFixed(2) + ")"
       : fractional;
@@ -304,7 +306,7 @@
             email: document.getElementById("email").value.trim(),
             proposal_type: "326 election market bet",
             market,
-            selection: party,
+            selection,
             odds: fractional + " (" + decimal.toFixed(2) + ")",
             stake: document.getElementById("stake").textContent,
             gbp_equivalent: new Intl.NumberFormat("en-GB", {
