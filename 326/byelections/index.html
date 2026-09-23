@@ -150,6 +150,76 @@
       font-weight: 700;
     }
 
+    .by-elections-table tbody tr {
+      --party-colour: #8693a3;
+    }
+
+    .by-elections-table tbody tr[data-defending="lab"] {
+      --party-colour: #e4003b;
+    }
+
+    .by-elections-table tbody tr[data-defending="con"] {
+      --party-colour: #0087dc;
+    }
+
+    .by-elections-table tbody tr[data-defending="ld"] {
+      --party-colour: #ff6400;
+    }
+
+    .by-elections-table tbody tr[data-defending="ref"] {
+      --party-colour: #12b6cf;
+    }
+
+    .by-elections-table tbody tr[data-defending="grn"] {
+      --party-colour: #6ab023;
+    }
+
+    .by-elections-table tbody tr[data-defending="snp"] {
+      --party-colour: #d0b000;
+    }
+
+    .by-elections-table tbody tr[data-defending="ind"] {
+      --party-colour: #8856a7;
+    }
+
+    .by-elections-table tbody tr td {
+      background: color-mix(in srgb, var(--party-colour) 11%, white);
+    }
+
+    .by-elections-table tbody tr td:first-child {
+      box-shadow: inset 4px 0 0 var(--party-colour);
+    }
+
+    .odds-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 4.5rem;
+      padding: 0.5rem 0.7rem;
+      border: 1px solid #278c77;
+      border-radius: 0.3rem;
+      background: #278c77;
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 750;
+      letter-spacing: 0.04em;
+      text-decoration: none;
+    }
+
+    .odds-button:hover,
+    .odds-button:focus-visible {
+      border-color: #1e6c5d;
+      background: #1e6c5d;
+      outline: none;
+    }
+
+    .odds-button:disabled {
+      border-color: #c5ced8;
+      background: #e5eaf0;
+      color: #8290a1;
+      cursor: not-allowed;
+    }
+
     .empty-state {
       margin: 0;
       padding: 1.5rem;
@@ -202,8 +272,8 @@
   <main>
     <section class="page" aria-labelledby="page-title">
       <header class="page-header">
-        <p class="eyebrow">Politics</p>
-        <h1 id="page-title">By-elections</h1>
+        <p class="eyebrow">British Politics</p>
+        <h1 id="page-title">Forthcoming local by-elections</h1>
       </header>
       <table class="by-elections-table" hidden>
         <thead>
@@ -211,6 +281,8 @@
             <th scope="col">Date</th>
             <th scope="col">Council</th>
             <th scope="col">Ward</th>
+            <th scope="col">Defending</th>
+            <th scope="col">Odds</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -223,6 +295,10 @@
     const table = document.querySelector(".by-elections-table");
     const tableBody = table.querySelector("tbody");
     const emptyState = document.getElementById("empty-state");
+    const months = {
+      Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
+      Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11
+    };
 
     function parseCsv(csv) {
       const rows = [];
@@ -264,10 +340,6 @@
     function formatByElectionDate(value) {
       const match = value.match(/^(\d{2})\s([A-Z][a-z]{2})\s(\d{2})$/);
       if (!match) return value;
-      const months = {
-        Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
-        Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11
-      };
       const date = new Date(Date.UTC(2000 + Number(match[3]), months[match[2]], Number(match[1])));
       return new Intl.DateTimeFormat("en-GB", {
         weekday: "short",
@@ -278,6 +350,23 @@
       }).format(date);
     }
 
+    function isBettingClosed(value) {
+      const match = value.match(/^(\d{2})\s([A-Z][a-z]{2})\s(\d{2})$/);
+      if (!match) return true;
+      const electionDate = ["20" + match[3], String(months[match[2]] + 1).padStart(2, "0"), match[1]].join("-");
+      const london = new Intl.DateTimeFormat("en-GB", {
+        timeZone: "Europe/London",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        hourCycle: "h23"
+      }).formatToParts();
+      const parts = Object.fromEntries(london.map(({ type, value }) => [type, value]));
+      const londonDate = [parts.year, parts.month, parts.day].join("-");
+      return londonDate > electionDate || (londonDate === electionDate && Number(parts.hour) >= 7);
+    }
+
     async function loadByElections() {
       try {
         const response = await fetch(ODDS_SHEET_URL);
@@ -286,14 +375,16 @@
         const dateColumn = headers.indexOf("BY-ELECTION DATE");
         const authorityColumn = headers.indexOf("LOCAL AUTHORITY");
         const wardColumn = headers.indexOf("WARD / DIVISION");
-        if (dateColumn === -1 || authorityColumn === -1 || wardColumn === -1) {
+        const defendingColumn = headers.indexOf("DEFENDING PARTY");
+        if (dateColumn === -1 || authorityColumn === -1 || wardColumn === -1 || defendingColumn === -1) {
           throw new Error("The by-election columns are unavailable.");
         }
         const byElections = rows
           .map(row => ({
             date: (row[dateColumn] || "").trim(),
             authority: (row[authorityColumn] || "").trim(),
-            ward: (row[wardColumn] || "").trim()
+            ward: (row[wardColumn] || "").trim(),
+            defending: (row[defendingColumn] || "").trim()
           }))
           .filter(({ date }) => /^\d{2}\s[A-Z][a-z]{2}\s\d{2}$/.test(date));
         if (!byElections.length) {
@@ -302,13 +393,32 @@
         }
 
         const entries = document.createDocumentFragment();
-        byElections.forEach(({ date, authority, ward }) => {
+        byElections.forEach(({ date, authority, ward, defending }) => {
           const row = document.createElement("tr");
-          [formatByElectionDate(date), authority || "—", ward || "—"].forEach(value => {
+          row.dataset.defending = defending.toLowerCase();
+          [formatByElectionDate(date), authority || "—", ward || "—", defending || "—"].forEach(value => {
             const cell = document.createElement("td");
             cell.textContent = value;
             row.appendChild(cell);
           });
+          const oddsCell = document.createElement("td");
+          if (isBettingClosed(date)) {
+            const oddsButton = document.createElement("button");
+            oddsButton.className = "odds-button";
+            oddsButton.type = "button";
+            oddsButton.disabled = true;
+            oddsButton.textContent = "ODDS";
+            oddsButton.title = "Betting closed at 07:00 London time on election day.";
+            oddsCell.appendChild(oddsButton);
+          } else {
+            const parameters = new URLSearchParams({ date, authority, ward });
+            const oddsLink = document.createElement("a");
+            oddsLink.className = "odds-button";
+            oddsLink.href = "/326/byelections/market/?" + parameters.toString();
+            oddsLink.textContent = "ODDS";
+            oddsCell.appendChild(oddsLink);
+          }
+          row.appendChild(oddsCell);
           entries.appendChild(row);
         });
         tableBody.appendChild(entries);
