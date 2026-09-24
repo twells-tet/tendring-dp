@@ -105,6 +105,10 @@
       authority: parameters.get("authority") || "",
       ward: parameters.get("ward") || ""
     };
+    const months = {
+      Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
+      Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11
+    };
     const status = document.getElementById("status");
     const details = document.getElementById("market-details");
     const candidatesTable = document.getElementById("candidates");
@@ -198,6 +202,23 @@
       return Number.isInteger(stake) && stake >= 10 && stake <= 1999;
     }
 
+    function isWithinNextSevenDays(value) {
+      const match = value.match(/^(\d{2})\s([A-Z][a-z]{2})\s(\d{2})$/);
+      if (!match) return false;
+      const electionDate = ["20" + match[3], String(months[match[2]] + 1).padStart(2, "0"), match[1]].join("-");
+      const londonParts = new Intl.DateTimeFormat("en-GB", {
+        timeZone: "Europe/London",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }).formatToParts();
+      const london = Object.fromEntries(londonParts.map(({ type, value }) => [type, value]));
+      const londonDate = [london.year, london.month, london.day].join("-");
+      const windowEnd = new Date(londonDate + "T00:00:00Z");
+      windowEnd.setUTCDate(windowEnd.getUTCDate() + 6);
+      return electionDate >= londonDate && electionDate <= windowEnd.toISOString().slice(0, 10);
+    }
+
     function validateStake() {
       stakeMessage.textContent = stakeInput.value === "" || validStake()
         ? ""
@@ -226,7 +247,10 @@
           throw new Error("This by-election market is unavailable.");
         }
         if ((market[candidateListPendingColumn] || "").trim().toUpperCase() === "YES") {
-          throw new Error("Candidate list not yet confirmed");
+          throw new Error("Odds are unavailable.");
+        }
+        if (!isWithinNextSevenDays(market[dateColumn])) {
+          throw new Error("Odds are available only for elections in the next 7 days.");
         }
 
         document.getElementById("date").textContent = market[dateColumn];
