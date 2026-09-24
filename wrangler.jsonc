@@ -13,5 +13,11 @@
   },
   "compatibility_flags": [
     "nodejs_compat"
+  ],
+  "services": [
+    {
+      "binding": "VOLUNTEER_FORM",
+      "service": "tendring-volunteer"
+    }
   ]
 }
