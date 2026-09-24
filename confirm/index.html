@@ -364,7 +364,13 @@
             }).format(stakeInGbp)
           })
         });
-        const result = await response.json();
+        const responseText = await response.text();
+        let result;
+        try {
+          result = JSON.parse(responseText);
+        } catch {
+          throw new Error("The proposal service returned an unexpected response.");
+        }
         if (!response.ok || !result.success) {
           throw new Error(result.error || "The proposal could not be sent.");
         }

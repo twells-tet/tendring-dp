@@ -1,6 +1,4 @@
 const ALLOWED_ORIGIN = "https://threetwosix.co.uk";
-const PROPOSAL_FORM_URL = "https://tendring-volunteer.twells-tet.workers.dev";
-
 function corsHeaders() {
   return {
     "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
@@ -64,18 +62,37 @@ export default {
       });
     }
 
-    const response = await fetch(PROPOSAL_FORM_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
+    try {
+      const response = await env.VOLUNTEER_FORM.fetch(
+        new Request("https://tendring-volunteer.twells-tet.workers.dev/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        })
+      );
+      const contentType = response.headers.get("Content-Type") || "";
+      const body = contentType.includes("application/json")
+        ? await response.text()
+        : JSON.stringify({
+          success: false,
+          error: "The proposal service returned an unexpected response."
+        });
 
-    return new Response(response.body, {
-      status: response.status,
-      headers: {
-        ...corsHeaders(),
-        "Content-Type": response.headers.get("Content-Type") || "application/json"
-      }
-    });
+      return new Response(body, {
+        status: response.status,
+        headers: {
+          ...corsHeaders(),
+          "Content-Type": "application/json"
+        }
+      });
+    } catch {
+      return new Response(JSON.stringify({
+        success: false,
+        error: "The proposal service is unavailable. Please try again later."
+      }), {
+        status: 502,
+        headers: { ...corsHeaders(), "Content-Type": "application/json" }
+      });
+    }
   }
 };
