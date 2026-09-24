@@ -52,6 +52,15 @@
       padding: 3rem 0;
     }
 
+    .site-footer {
+      width: min(100% - 2rem, 640px);
+      margin: 0 auto;
+      padding: 0 0 2rem;
+      color: #627187;
+      font-size: 0.75rem;
+      line-height: 1.5;
+    }
+
     .confirmation {
       overflow: hidden;
       border: 1px solid #dbe2ea;
@@ -203,6 +212,10 @@
         padding: 1.5rem 0;
       }
 
+      .site-footer {
+        width: min(100% - 1.5rem, 640px);
+      }
+
       .confirmation header,
       .confirmation-body {
         padding: 1.25rem;
@@ -256,6 +269,9 @@
       </div>
     </section>
   </main>
+  <footer class="site-footer">
+    326 Political Betting (United Kingdom), 50/5 Bulevar Revolucije, Podgorica 81000, Montenegro
+  </footer>
   <script>
     const parameters = new URLSearchParams(window.location.search);
     const party = parameters.get("party") || "No selection";
