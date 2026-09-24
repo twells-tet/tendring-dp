@@ -220,6 +220,16 @@
       cursor: not-allowed;
     }
 
+    .odds-status {
+      display: block;
+      max-width: 9rem;
+      margin-top: 0.35rem;
+      color: #627187;
+      font-size: 0.7rem;
+      font-weight: 600;
+      line-height: 1.25;
+    }
+
     .empty-state {
       margin: 0;
       padding: 1.5rem;
@@ -400,6 +410,10 @@
           (london.hour > 22 || (london.hour === 22 && london.minute >= 1)));
     }
 
+    function isElectionToday(value) {
+      return electionDateKey(value) === londonTime().date;
+    }
+
     function isWithinNextSevenDays(value) {
       const electionDate = electionDateKey(value);
       if (!electionDate) return false;
@@ -465,6 +479,12 @@
             oddsButton.textContent = "VIEW ODDS";
             oddsButton.title = "Odds are unavailable.";
             oddsCell.appendChild(oddsButton);
+            if (!candidateListPending && isElectionToday(date) && isBettingClosed(date)) {
+              const oddsStatus = document.createElement("span");
+              oddsStatus.className = "odds-status";
+              oddsStatus.textContent = "Odds unavailable whilst polls are open";
+              oddsCell.appendChild(oddsStatus);
+            }
           } else {
             const parameters = new URLSearchParams({ date, authority, ward });
             const oddsLink = document.createElement("a");
