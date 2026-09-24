@@ -262,6 +262,10 @@
             <label for="email">Email Address</label>
             <input id="email" name="email" type="email" autocomplete="email" required>
           </div>
+          <div class="field">
+            <label for="confirm-email">Confirm Email Address</label>
+            <input id="confirm-email" name="confirm-email" type="email" autocomplete="email" required>
+          </div>
           <button id="propose-bet" class="propose-bet" type="submit">Propose Bet</button>
           <p class="proposal-notice">Your bet is not confirmed until matched and accepted.</p>
           <p id="payment-status" class="payment-status" aria-live="polite"></p>
@@ -286,6 +290,8 @@
     const form = document.querySelector(".customer-details");
     const proposeBetButton = document.getElementById("propose-bet");
     const paymentStatus = document.getElementById("payment-status");
+    const emailInput = document.getElementById("email");
+    const confirmEmailInput = document.getElementById("confirm-email");
     const stakeInGbp = currency === "btc" ? gbpStake : stake;
     const hasValidByElectionStake = !isByElection || (
       currency === "gbp" &&
@@ -313,13 +319,25 @@
       proposeBetButton.disabled = true;
       paymentStatus.textContent = "By-election stakes must be whole pounds between £10 and £1,999.";
     }
+
+    function validateEmailConfirmation() {
+      const emailAddressesMatch = emailInput.value === confirmEmailInput.value;
+      confirmEmailInput.setCustomValidity(
+        emailAddressesMatch ? "" : "Email addresses do not match."
+      );
+      return emailAddressesMatch;
+    }
+
+    emailInput.addEventListener("input", validateEmailConfirmation);
+    confirmEmailInput.addEventListener("input", validateEmailConfirmation);
+
     form.addEventListener("submit", async event => {
       event.preventDefault();
       if (!hasValidByElectionStake) {
         paymentStatus.textContent = "By-election stakes must be whole pounds between £10 and £1,999.";
         return;
       }
-      if (!form.reportValidity()) return;
+      if (!validateEmailConfirmation() || !form.reportValidity()) return;
 
       proposeBetButton.disabled = true;
       paymentStatus.textContent = "Sending your proposal...";
