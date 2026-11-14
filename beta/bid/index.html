@@ -929,16 +929,24 @@
               // Get all markers for this walk
               const allMarkers = walkMarkers[walkId] || [];
               
+              console.log(`Walk ${walkId}: showPVsOnly=${showPVsOnly}, allMarkers=${allMarkers.length}`);
+              
               // Filter based on SHOW PVs ONLY toggle
               let markersToCount = allMarkers;
               if (showPVsOnly) {
-                markersToCount = allMarkers.filter(m => m.isPostalVoter === true);
+                markersToCount = allMarkers.filter(m => {
+                  const isPV = m.isPostalVoter === true;
+                  console.log(`  Walk ${walkId} marker: isPostalVoter=${m.isPostalVoter}, filter result=${isPV}`);
+                  return isPV;
+                });
+                console.log(`  Walk ${walkId}: filtered to ${markersToCount.length} PVs`);
               }
               
               // Calculate totals
               let totalDoors = markersToCount.length;
               let totalElectors = markersToCount.reduce((sum, m) => sum + (m.electors || 0), 0);
               
+              console.log(`  Walk ${walkId}: doors=${totalDoors}, electors=${totalElectors}`);
               countDisplay.textContent = `${totalDoors} / ${totalElectors}`;
             });
           }
