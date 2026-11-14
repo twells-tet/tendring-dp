@@ -693,6 +693,30 @@
           }
         });
         console.log(`Total postal voters in walkMarkers: ${pvInWalkMarkers}`);
+        
+        // Create visible debug panel
+        const debugDiv = document.createElement('div');
+        debugDiv.id = 'debug-panel';
+        debugDiv.style.cssText = 'position: fixed; top: 10px; left: 10px; background: white; padding: 10px; border: 2px solid red; z-index: 9999; font-size: 12px; max-width: 300px; max-height: 200px; overflow: auto; border-radius: 4px;';
+        debugDiv.innerHTML = `
+          <strong style="color: red;">DEBUG - Postal Voters</strong><br>
+          Total items: ${items.length}<br>
+          Postal voters in CSV: ${pvCount}<br>
+          PV with coords: ${pvWithCoords}<br>
+          PV in walkMarkers: ${pvInWalkMarkers}<br>
+          <br>
+          <strong>Walk Details:</strong><br>
+        `;
+        
+        sortedWalkKeys.forEach(walkKey => {
+          const total = walkMarkers[walkKey].length;
+          const pvCount = walkMarkers[walkKey].filter(m => m.isPostalVoter).length;
+          if (total > 0) {
+            debugDiv.innerHTML += `Walk ${walkKey}: ${pvCount}/${total}<br>`;
+          }
+        });
+        
+        document.body.appendChild(debugDiv);
       }
 
       sortedWalkKeys.forEach(walkKey => {
