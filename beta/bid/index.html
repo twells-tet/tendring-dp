@@ -335,6 +335,10 @@
     let walkLayers = {};
     let walkPropertyCounts = {};
     let wardLayers = {};
+    
+    // Expose to global scope for debugging
+    window.DEBUG_walkMarkers = () => walkMarkers;
+    window.DEBUG_walkLayers = () => walkLayers;
 
     async function fetchAndCleanJSON(url) {
       const response = await fetch(url);
