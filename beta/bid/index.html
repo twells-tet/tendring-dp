@@ -413,23 +413,12 @@
         let pvCount = 0;
         let pvWithCoords = 0;
         
-        console.log(`Total lines in CSV: ${electorsLines.length}`);
-        console.log(`First line (header): ${electorsLines[0]}`);
-        if (electorsLines[1]) {
-          const firstRowCells = parseCSVLine(electorsLines[1]);
-          console.log(`First data row has ${firstRowCells.length} columns`);
-          console.log(`First data row: ${electorsLines[1].substring(0, 200)}`);
-        }
-        
         for (let i = 1; i < electorsLines.length; i++) {
           const line = electorsLines[i].trim();
           if (!line) continue;
           
           const cells = parseCSVLine(line);
-          if (cells.length < 20) {
-            if (i === 1) console.log(`Row ${i} skipped: only ${cells.length} columns`);
-            continue;
-          }
+          if (cells.length < 20) continue;
           
           const isPostalVoter = cells[4] && cells[4].trim() !== '';
           if (isPostalVoter) {
@@ -733,26 +722,6 @@
         }
         mapBoundsCoords.push([item.lat, item.lng]);
       });
-      
-      console.log(`=== Postal Voter Matching Results ===`);
-      console.log(`Total items: ${itemsList.length}`);
-      console.log(`Matched to hardcoded IDs: ${pvMatchCount}`);
-      console.log(`Sample hardcoded IDs (first 10):`, Array.from(postalVoterIds).slice(0, 10));
-      console.log(`Sample item IDs (first 10):`, itemsList.slice(0, 10).map(i => String(i.id || '')));
-      
-      // Debug: Log postal voters in walkMarkers
-      if (pvCount > 0) {
-        let pvInWalkMarkers = 0;
-        const pvByWalk = {};
-        sortedWalkKeys.forEach(walkKey => {
-          const pvInWalk = walkMarkers[walkKey].filter(m => m.isPostalVoter).length;
-          if (pvInWalk > 0) {
-            pvByWalk[walkKey] = pvInWalk;
-            pvInWalkMarkers += pvInWalk;
-          }
-        });
-        console.log(`Total postal voters in walkMarkers: ${pvInWalkMarkers}`, pvByWalk);
-      }
 
       sortedWalkKeys.forEach(walkKey => {
         const num = Number(walkKey);
