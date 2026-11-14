@@ -877,6 +877,7 @@
 
           function updateWalkCounts() {
             const showPVsOnly = showPVsOnlyToggle.checked;
+            let debugInfo = {};
 
             container.querySelectorAll('.walk-toggle-checkbox').forEach(chk => {
               const walkId = chk.getAttribute('data-walk');
@@ -887,38 +888,54 @@
               
               let electors = 0;
               let doors = 0;
+              let debugMsg = '';
               
               if (chk.checked) {
                 const markers = walkMarkers[walkId];
                 if (!markers || markers.length === 0) {
+                  debugMsg = 'no markers';
                   countSpan.textContent = '0 / 0';
-                  return;
+                } else {
+                  let pvCount = 0;
+                  let nonPvCount = 0;
+                  
+                  markers.forEach(({ isPostalVoter, electors: electorsCount }) => {
+                    if (isPostalVoter) {
+                      pvCount++;
+                    } else {
+                      nonPvCount++;
+                    }
+                    
+                    if (showPVsOnly && !isPostalVoter) return;
+                    electors += (electorsCount || 0);
+                    doors += 1;
+                  });
+                  
+                  if (showPVsOnly) {
+                    debugMsg = `${pvCount} PV, ${nonPvCount} NPV -> ${doors}/${electors}`;
+                  } else {
+                    debugMsg = `${doors}/${electors}`;
+                  }
+                  
+                  countSpan.textContent = `${doors} / ${electors}`;
+                  if (showPVsOnly && doors === 0 && markers.length > 0) {
+                    debugInfo[walkId] = {
+                      total: markers.length,
+                      pvCount,
+                      nonPvCount,
+                      counted: doors
+                    };
+                  }
                 }
-                
-                let countedMarkers = 0;
-                markers.forEach(({ isPostalVoter, electors: electorsCount }) => {
-                  if (showPVsOnly && !isPostalVoter) return;
-                  countedMarkers++;
-                  electors += electorsCount;
-                  doors += 1;
-                });
-                
-                // Debug: if showPVsOnly and no counted markers, log the state
-                if (showPVsOnly && countedMarkers === 0 && markers.length > 0) {
-                  window.lastDebugWalk = {
-                    walkId,
-                    showPVsOnly,
-                    totalMarkers: markers.length,
-                    pvMarkers: markers.filter(m => m.isPostalVoter).length,
-                    nonPvMarkers: markers.filter(m => !m.isPostalVoter).length,
-                    sampleMarker: markers[0]
-                  };
-                  console.log('DEBUG WALK WITH 0 COUNTED:', window.lastDebugWalk);
-                }
+              } else {
+                countSpan.textContent = '0 / 0';
               }
-              
-              countSpan.textContent = `${doors} / ${electors}`;
             });
+            
+            if (Object.keys(debugInfo).length > 0) {
+              console.log('WALKS WITH 0 COUNTED WHEN SHOW PVs ONLY:', debugInfo);
+              window.lastDebugInfo = debugInfo;
+            }
           }
 
           function onToggleChange() {
