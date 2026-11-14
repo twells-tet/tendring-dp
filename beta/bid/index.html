@@ -927,6 +927,12 @@
               
               if (!countDisplay) return;
               
+              // Hide Walk 18 count when SHOW PVs ONLY is enabled
+              if (showPVsOnly && walkId === '18') {
+                countDisplay.textContent = '0 / 0';
+                return;
+              }
+              
               // Only count if checkbox is checked
               if (!checkbox.checked) {
                 countDisplay.textContent = '0 / 0';
