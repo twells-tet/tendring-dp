@@ -351,7 +351,7 @@
     async function fetchMappingData() {
       // Fetch electors data live from Google Sheets CSV
       try {
-        const electorsUrl = 'https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/export?format=csv&gid=487796557';
+        const electorsUrl = 'https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/export?format=csv&gid=111968984';
         const refUrl = 'https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/export?format=csv&gid=276500892';
         
         const [eResponse, rResponse] = await Promise.all([
@@ -388,12 +388,12 @@
             addressLine3: cells[9] || '',
             postcode: cells[11] || '',
             electors: parseInt(cells[13]) || 1,
-            isPostalVoter: cells[15] === 'PV',
+            isPostalVoter: cells[4] === 'POSTAL',
             subroad: cells[16] || '',
             sortOrder: cells[17] || '',
             walk: String(cells[18] || ''),
-            lat: parseFloat(cells[23]) || 0,
-            lng: parseFloat(cells[24]) || 0
+            lat: parseFloat(cells[24]) || 0,
+            lng: parseFloat(cells[25]) || 0
           });
         }
         
