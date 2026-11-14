@@ -909,6 +909,7 @@
 
           function updateWalkCounts() {
             const showPVsOnly = showPVsOnlyToggle.checked;
+            console.log(`=== updateWalkCounts called, showPVsOnly=${showPVsOnly}, walkMarkers keys=${Object.keys(walkMarkers).join(',')}`);
 
             container.querySelectorAll('.walk-toggle-checkbox').forEach(chk => {
               const walkId = chk.getAttribute('data-walk');
@@ -922,12 +923,17 @@
               
               if (chk.checked) {
                 const markers = walkMarkers[walkId];
+                console.log(`Walk ${walkId}: markers object exists? ${!!markers}, length=${markers?.length || 'N/A'}`);
+                
                 if (markers && markers.length > 0) {
                   // Debug: Log walk data when SHOW PVs ONLY is active
-                  if (showPVsOnly && (walkId === '11' || walkId === '12')) {
+                  if (showPVsOnly) {
                     const pvCount = markers.filter(m => m.isPostalVoter).length;
-                    console.log(`Walk ${walkId}: Total markers=${markers.length}, PV markers=${pvCount}, showPVsOnly=${showPVsOnly}`);
+                    console.log(`Walk ${walkId} (SHOW PVs ONLY): Total markers=${markers.length}, PV markers=${pvCount}`);
+                  } else {
+                    console.log(`Walk ${walkId} (normal): Total markers=${markers.length}`);
                   }
+                  
                   markers.forEach(({ isPostalVoter, electors: electorsCount }) => {
                     // SHOW PVs ONLY: only count postal voters
                     if (showPVsOnly && !isPostalVoter) {
@@ -939,6 +945,7 @@
                 }
               }
               
+              console.log(`Walk ${walkId}: countSpan text = "${doors} / ${electors}"`);
               countSpan.textContent = `${doors} / ${electors}`;
             });
           }
