@@ -485,7 +485,7 @@
         }
       });
 
-      const itemsList = postcodesArray;
+      // itemsList is already destructured from mappingData in the Promise.all().then() callback above
       const walkKeysSet = new Set();
       if (walksConfig) {
         Object.keys(walksConfig).forEach(k => walkKeysSet.add(String(k)));
