@@ -420,8 +420,6 @@
           }
         }
         
-        console.log(`Loaded ${items.length} elector records from Google Sheets`);
-        console.log('Loaded reference walk counts:', refCounts);
         return { items, refCounts };
       } catch (error) {
         console.error('Error loading from Google Sheets:', error);
@@ -521,7 +519,11 @@
       // itemsList is already destructured from mappingData in the Promise.all().then() callback above
       const walkKeysSet = new Set();
       if (walksConfig) {
-        Object.keys(walksConfig).forEach(k => walkKeysSet.add(String(k)));
+        Object.keys(walksConfig).forEach(k => {
+          if (k && k !== '') {
+            walkKeysSet.add(String(k));
+          }
+        });
       }
       itemsList.forEach(item => {
         if (item.walk !== undefined && item.walk !== null && item.walk !== '') {
@@ -668,6 +670,9 @@
         }
       });
       refreshMapView();
+      
+      // Zoom to De (South) boundary on initial load since it's checked by default
+      setTimeout(() => zoomToDeBoundary(), 500);
 
       const WalksKeyControl = L.Control.extend({
         options: { position: 'topright' },
