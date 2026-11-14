@@ -413,12 +413,23 @@
         let pvCount = 0;
         let pvWithCoords = 0;
         
+        console.log(`Total lines in CSV: ${electorsLines.length}`);
+        console.log(`First line (header): ${electorsLines[0]}`);
+        if (electorsLines[1]) {
+          const firstRowCells = parseCSVLine(electorsLines[1]);
+          console.log(`First data row has ${firstRowCells.length} columns`);
+          console.log(`First data row: ${electorsLines[1].substring(0, 200)}`);
+        }
+        
         for (let i = 1; i < electorsLines.length; i++) {
           const line = electorsLines[i].trim();
           if (!line) continue;
           
           const cells = parseCSVLine(line);
-          if (cells.length < 25) continue;
+          if (cells.length < 20) {
+            if (i === 1) console.log(`Row ${i} skipped: only ${cells.length} columns`);
+            continue;
+          }
           
           const isPostalVoter = cells[4] && cells[4].trim() !== '';
           if (isPostalVoter) {
