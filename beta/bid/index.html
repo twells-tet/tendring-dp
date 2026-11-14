@@ -912,7 +912,8 @@
 
           function updateWalkCounts() {
             const showPVsOnly = showPVsOnlyToggle.checked;
-            console.log(`=== updateWalkCounts called, showPVsOnly=${showPVsOnly}`);
+            const keysStr = Object.keys(walkMarkers).join(',');
+            console.log(`=== updateWalkCounts called, showPVsOnly=${showPVsOnly}, walkMarkers keys=[${keysStr}]`);
 
             container.querySelectorAll('.walk-toggle-checkbox').forEach(chk => {
               const walkId = chk.getAttribute('data-walk');
@@ -931,9 +932,12 @@
                   if (walkId === '11' || walkId === '12' || showPVsOnly) {
                     // Log first marker structure for debugging
                     const firstMarker = markers[0];
-                    console.log(`Walk ${walkId}: First marker structure:`, firstMarker);
-                    console.log(`  - has isPostalVoter? ${firstMarker.hasOwnProperty('isPostalVoter')}`);
-                    console.log(`  - isPostalVoter value: ${firstMarker.isPostalVoter}`);
+                    console.log(`Walk ${walkId}: First marker structure:`, {
+                      hasIsPostalVoter: firstMarker.hasOwnProperty('isPostalVoter'),
+                      isPostalVoterValue: firstMarker.isPostalVoter,
+                      hasElectors: firstMarker.hasOwnProperty('electors'),
+                      electorsValue: firstMarker.electors
+                    });
                   }
                   
                   markers.forEach(markerObj => {
@@ -948,8 +952,10 @@
                   
                   if (showPVsOnly || walkId === '11' || walkId === '12') {
                     const pvCount = markers.filter(m => m.isPostalVoter).length;
-                    console.log(`Walk ${walkId}: Total=${markers.length}, PV=${pvCount}, doors=${doors}, electors=${electors}`);
+                    console.log(`Walk ${walkId}: Total markers=${markers.length}, PV count=${pvCount}, counted doors=${doors}, counted electors=${electors}`);
                   }
+                } else {
+                  console.log(`Walk ${walkId}: No markers found (markers=${markers}, length=${markers?.length})`);
                 }
               }
               
