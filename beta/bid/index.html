@@ -877,32 +877,46 @@
 
           function updateWalkCounts() {
             const showPVsOnly = showPVsOnlyToggle.checked;
+            console.log('updateWalkCounts called, showPVsOnly=' + showPVsOnly);
 
             container.querySelectorAll('.walk-toggle-checkbox').forEach(chk => {
               const walkId = chk.getAttribute('data-walk');
               const walkItem = chk.closest('.walk-item');
               const countSpan = walkItem?.querySelector('.walk-count');
               
-              if (!countSpan) return;
+              if (!countSpan) {
+                console.log(`Walk ${walkId}: no countSpan element`);
+                return;
+              }
               
               let electors = 0;
               let doors = 0;
               
               if (chk.checked) {
                 const markers = walkMarkers[walkId];
-                if (markers && markers.length > 0) {
-                  console.log(`Walk ${walkId}: ${markers.length} total markers, showPVsOnly=${showPVsOnly}`);
-                  markers.forEach(({ isPostalVoter, electors: electorsCount }) => {
-                    if (showPVsOnly && !isPostalVoter) {
-                      console.log(`  Skipping non-PV (electors=${electorsCount})`);
-                      return;
-                    }
-                    console.log(`  Counting: isPV=${isPostalVoter}, electors=${electorsCount}`);
-                    electors += electorsCount;
-                    doors += 1;
-                  });
-                  console.log(`  Result: ${doors} doors, ${electors} electors`);
+                if (!markers) {
+                  console.log(`Walk ${walkId}: walkMarkers[${walkId}] is undefined!`);
+                  countSpan.textContent = '0 / 0';
+                  return;
                 }
+                if (markers.length === 0) {
+                  console.log(`Walk ${walkId}: no markers in walkMarkers`);
+                  countSpan.textContent = '0 / 0';
+                  return;
+                }
+                
+                console.log(`Walk ${walkId}: ${markers.length} total markers, showPVsOnly=${showPVsOnly}`);
+                markers.forEach((markerObj, idx) => {
+                  const { isPostalVoter, electors: electorsCount } = markerObj;
+                  if (showPVsOnly && !isPostalVoter) {
+                    console.log(`  [${idx}] Skipping non-PV (electors=${electorsCount})`);
+                    return;
+                  }
+                  console.log(`  [${idx}] Counting: isPV=${isPostalVoter}, electors=${electorsCount}`);
+                  electors += electorsCount;
+                  doors += 1;
+                });
+                console.log(`Walk ${walkId} Result: ${doors} doors, ${electors} electors`);
               }
               
               countSpan.textContent = `${electors} / ${doors}`;
