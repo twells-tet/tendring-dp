@@ -1027,15 +1027,15 @@
                 const layer = walkLayers[walkId];
                 layer.clearLayers();
                 if (shouldShow) {
-                  walkMarkers[walkId].forEach(({ marker, isHidden, isPostalVoter, walkColor }) => {
-                    if (!isHidden) {
-                      if (!showPVsOnly || isPostalVoter) {
-                        let activeColor = walkColor;
-                        if (isPostalVoter && highlightPVs) {
+                  walkMarkers[walkId].forEach(markerData => {
+                    if (!markerData.isHidden) {
+                      if (!showPVsOnly || markerData.isPostalVoter) {
+                        let activeColor = markerData.walkColor;
+                        if (markerData.isPostalVoter && highlightPVs) {
                           activeColor = '#FFD700';
                         }
-                        marker.setStyle({ fillColor: activeColor });
-                        layer.addLayer(marker);
+                        markerData.marker.setStyle({ fillColor: activeColor });
+                        layer.addLayer(markerData.marker);
                       }
                     }
                   });
@@ -1072,15 +1072,15 @@
               
               layer.clearLayers();
               if (e.target.checked) {
-                walkMarkers[walkId].forEach(({ marker, isHidden, isPostalVoter, walkColor }) => {
-                  if (!isHidden) {
-                    if (!showPVsOnly || isPostalVoter) {
-                      let activeColor = walkColor;
-                      if (isPostalVoter && highlightPVs) {
+                walkMarkers[walkId].forEach(markerData => {
+                  if (!markerData.isHidden) {
+                    if (!showPVsOnly || markerData.isPostalVoter) {
+                      let activeColor = markerData.walkColor;
+                      if (markerData.isPostalVoter && highlightPVs) {
                         activeColor = '#FFD700';
                       }
-                      marker.setStyle({ fillColor: activeColor });
-                      layer.addLayer(marker);
+                      markerData.marker.setStyle({ fillColor: activeColor });
+                      layer.addLayer(markerData.marker);
                     }
                   }
                 });
