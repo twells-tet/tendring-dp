@@ -370,6 +370,7 @@
         const electorsLines = electorsCsv.split('\n');
         const items = [];
         let pvCount = 0;
+        let pvWithCoords = 0;
         
         for (let i = 1; i < electorsLines.length; i++) {
           const line = electorsLines[i].trim();
@@ -379,7 +380,14 @@
           if (cells.length < 25) continue;
           
           const isPostalVoter = cells[4] && cells[4].trim() !== '';
-          if (isPostalVoter) pvCount++;
+          if (isPostalVoter) {
+            pvCount++;
+            const lat = parseFloat(cells[23]);
+            const lng = parseFloat(cells[24]);
+            if (Number.isFinite(lat) && Number.isFinite(lng)) {
+              pvWithCoords++;
+            }
+          }
           
           items.push({
             id: cells[0],
@@ -401,7 +409,7 @@
           });
         }
         
-        console.log(`Loaded ${items.length} items with ${pvCount} postal voters`);
+        console.log(`Loaded ${items.length} items with ${pvCount} postal voters (${pvWithCoords} with valid coordinates`);
         
         // Parse reference counts from reference sheet
         const refLines = refCsv.split('\n');
