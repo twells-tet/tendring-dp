@@ -411,6 +411,11 @@
         
         console.log(`Loaded ${items.length} items with ${pvCount} postal voters (${pvWithCoords} with valid coordinates`);
         
+        // Debug: Log postal voter distribution across walks
+        if (pvCount > 0) {
+          console.log('Postal voters in items:', items.filter(i => i.isPostalVoter).length);
+        }
+        
         // Parse reference counts from reference sheet
         const refLines = refCsv.split('\n');
         const refCounts = {};
@@ -672,6 +677,19 @@
         }
         mapBoundsCoords.push([item.lat, item.lng]);
       });
+      
+      // Debug: Log postal voters in walkMarkers
+      if (pvCount > 0) {
+        let pvInWalkMarkers = 0;
+        sortedWalkKeys.forEach(walkKey => {
+          const pvInWalk = walkMarkers[walkKey].filter(m => m.isPostalVoter).length;
+          if (pvInWalk > 0) {
+            console.log(`Walk ${walkKey}: ${pvInWalk} postal voters`);
+            pvInWalkMarkers += pvInWalk;
+          }
+        });
+        console.log(`Total postal voters in walkMarkers: ${pvInWalkMarkers}`);
+      }
 
       sortedWalkKeys.forEach(walkKey => {
         const num = Number(walkKey);
