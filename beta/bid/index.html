@@ -420,7 +420,7 @@
           const cells = parseCSVLine(line);
           if (cells.length < 20) continue;
           
-          const isPostalVoter = cells[4] && cells[4].trim() !== '';
+          const isPostalVoter = cells[4] && cells[4].trim().toUpperCase() === 'POSTAL';
           if (isPostalVoter) {
             pvCount++;
             const lat = parseFloat(cells[23]);
