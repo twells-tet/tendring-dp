@@ -86,10 +86,72 @@
       background: #fcf4ed;
       color: #0a1a3e;
     }
+
+    header {
+      background-color: #fcf4ed;
+      padding: 20px 15px;
+      text-align: center;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .header-box {
+      display: inline-block;
+      border: 2px solid #0a1a3e;
+      padding: 10px 30px;
+      background: #fcf4ed;
+    }
+
+    .header-title {
+      color: #0a1a3e;
+      margin: 0;
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    footer {
+      background-color: #0a1a3e;
+      color: #fff;
+      text-align: center;
+      padding: 30px 15px;
+      margin-top: auto;
+    }
+
+    .footer-link {
+      color: #fff;
+      text-decoration: underline;
+      font-weight: 700;
+      display: block;
+      margin-bottom: 10px;
+      font-size: 0.95rem;
+    }
+
+    .footer-text {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    main {
+      flex: 1;
+    }
   </style>
 </head>
 
 <body>
+  <header>
+    <div class="header-box">
+      <h2 class="header-title">Ymlaen - Pwllheli</h2>
+    </div>
+  </header>
+
   <main>
     <div class="welcome-container">
       <div class="heading-box">
@@ -97,12 +159,19 @@
       </div>
       
       <p class="welcome-description">
-        CLICIWCH YMA I DDECHRAU'R AROLWG
+        Cliciwch yma i ddechrau'r arolwg
       </p>
 
       <a href="/survey" class="welcome-link" id="survey-link">Dechrau'r Arolwg</a>
     </div>
   </main>
+
+  <footer>
+    <p class="footer-link">Gwynech gyfraniad i gefnogi ein hymgyrchu</p>
+    <p class="footer-text">
+      YMLAEN - GRŴP PRESWYLWYR PWLLHELI. E-BOST: <a href="mailto:YMLAEN27@OUTLOOK.COM" style="color: #fff; text-decoration: none;">YMLAEN27@OUTLOOK.COM</a>
+    </p>
+  </footer>
 
   <script>
     document.getElementById('survey-link').addEventListener('click', function(e) {
