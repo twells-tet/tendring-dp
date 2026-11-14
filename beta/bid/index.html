@@ -393,6 +393,11 @@
             }
           }
           
+          // Debug first few rows
+          if (i <= 3) {
+            console.log(`Row ${i}: cell[4]="${cells[4]}" isPostalVoter=${isPostalVoter} walk=${cells[18]}`);
+          }
+          
           items.push({
             id: cells[0],
             envelopeName: cells[5] || '',
@@ -412,6 +417,9 @@
             lng: parseFloat(cells[24]) || 0
           });
         }
+        
+        console.log(`Loaded ${items.length} total items with ${pvCount} postal voters`);
+        console.log('Sample items with postal voters:', items.filter(i => i.isPostalVoter).slice(0, 3));
         
         // Parse reference counts from reference sheet
         const refLines = refCsv.split('\n');
@@ -678,13 +686,16 @@
       // Debug: Log postal voters in walkMarkers
       if (pvCount > 0) {
         let pvInWalkMarkers = 0;
+        const pvByWalk = {};
         sortedWalkKeys.forEach(walkKey => {
           const pvInWalk = walkMarkers[walkKey].filter(m => m.isPostalVoter).length;
           if (pvInWalk > 0) {
-            console.log(`Walk ${walkKey}: ${pvInWalk} postal voters`);
+            pvByWalk[walkKey] = pvInWalk;
             pvInWalkMarkers += pvInWalk;
           }
         });
+        console.log(`Total postal voters in walkMarkers: ${pvInWalkMarkers}`, pvByWalk);
+      }
 
       sortedWalkKeys.forEach(walkKey => {
         const num = Number(walkKey);
