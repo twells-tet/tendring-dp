@@ -899,6 +899,11 @@
               if (chk.checked) {
                 const markers = walkMarkers[walkId];
                 if (markers && markers.length > 0) {
+                  // Debug: Log walk data when SHOW PVs ONLY is active
+                  if (showPVsOnly && (walkId === '11' || walkId === '12')) {
+                    const pvCount = markers.filter(m => m.isPostalVoter).length;
+                    console.log(`Walk ${walkId}: Total markers=${markers.length}, PV markers=${pvCount}, showPVsOnly=${showPVsOnly}`);
+                  }
                   markers.forEach(({ isPostalVoter, electors: electorsCount }) => {
                     // SHOW PVs ONLY: only count postal voters
                     if (showPVsOnly && !isPostalVoter) {
