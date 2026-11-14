@@ -353,9 +353,8 @@
     }
 
     async function fetchMappingData() {
-      // COMMIT: 3692c57 - Fetch electors data live from Google Sheets CSV
+      // Fetch electors data live from Google Sheets CSV
       try {
-        console.log('Starting to fetch mapping data...');
         const electorsUrl = 'https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/export?format=csv&gid=111968984';
         const refUrl = 'https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/export?format=csv&gid=276500892';
         
@@ -372,12 +371,6 @@
         
         const electorsCsv = await eResponse.text();
         const refCsv = await rResponse.text();
-        
-        console.log(`Fetched CSV data: electors length=${electorsCsv.length}, ref length=${refCsv.length}`);
-        
-        // Parse electors CSV
-        const electorsLines = electorsCsv.split('\n');
-        console.log(`Split electors CSV into ${electorsLines.length} lines`);
         const items = [];
         let pvCount = 0;
         let pvWithCoords = 0;
@@ -397,11 +390,6 @@
             if (Number.isFinite(lat) && Number.isFinite(lng)) {
               pvWithCoords++;
             }
-          }
-          
-          // Debug first few rows
-          if (i <= 3) {
-            console.log(`Row ${i}: cell[4]="${cells[4]}" isPostalVoter=${isPostalVoter} walk=${cells[18]}`);
           }
           
           items.push({
@@ -425,11 +413,6 @@
         }
         
         console.log(`Loaded ${items.length} total items with ${pvCount} postal voters`);
-        console.log('Sample items with postal voters:', items.filter(i => i.isPostalVoter).slice(0, 3));
-        
-        // Update page title immediately with postal voter count
-        const pvItems = items.filter(i => i.isPostalVoter);
-        document.title = `[PV:${pvCount}] PWLLHELI - Walks`;
         
         // Parse reference counts from reference sheet
         const refLines = refCsv.split('\n');
