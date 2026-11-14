@@ -889,11 +889,20 @@
               let doors = 0;
               
               if (chk.checked) {
-                walkMarkers[walkId].forEach(({ isPostalVoter, electors: electorsCount }) => {
-                  if (showPVsOnly && !isPostalVoter) return;
-                  electors += electorsCount;
-                  doors += 1;
-                });
+                const markers = walkMarkers[walkId];
+                if (markers && markers.length > 0) {
+                  console.log(`Walk ${walkId}: ${markers.length} total markers, showPVsOnly=${showPVsOnly}`);
+                  markers.forEach(({ isPostalVoter, electors: electorsCount }) => {
+                    if (showPVsOnly && !isPostalVoter) {
+                      console.log(`  Skipping non-PV (electors=${electorsCount})`);
+                      return;
+                    }
+                    console.log(`  Counting: isPV=${isPostalVoter}, electors=${electorsCount}`);
+                    electors += electorsCount;
+                    doors += 1;
+                  });
+                  console.log(`  Result: ${doors} doors, ${electors} electors`);
+                }
               }
               
               countSpan.textContent = `${electors} / ${doors}`;
