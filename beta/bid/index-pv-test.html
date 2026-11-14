@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <!-- VERSION: 2026-11-14T16:59:00Z - Hardcoded postal voter IDs -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PWLLHELI - Walks</title>
+  <link rel="icon" type="image/svg+xml" href="https://threetwosix.co.uk/beta/tarian-shield.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    #map { height: 100vh; width: 100vw; position: relative; z-index: 1; }
+    body.pin-locked > *:not(#pin-gate) { display: none; }
+    .pin-gate {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      background: #0a5e49;
+      font-family: "Inter", sans-serif;
+    }
+    .pin-gate-box {
+      width: 100%;
+      max-width: 320px;
+      padding: 2rem;
+      border-radius: 0.75rem;
+      background: #fff;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    }
+    .pin-gate-box h2 {
+      margin: 0 0 0.5rem;
+      color: #0a5e49;
+    }
+    .pin-gate-logo {
+      display: block;
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 0.75rem;
+    }
+    .pin-gate-box p {
+      margin: 0 0 1rem;
+      color: #16765c;
+      font-size: 0.9rem;
+    }
+    .pin-gate-input {
+      width: 100%;
+      padding: 0.6rem;
+      margin-bottom: 0.75rem;
+      border: 1px solid #88cbb8;
+      border-radius: 0.5rem;
+      font-size: 1.4rem;
+      letter-spacing: 0.4rem;
+      text-align: center;
+      box-sizing: border-box;
+    }
+    .pin-gate-button {
+      border: 0;
+      width: 100%;
+      padding: 0.6rem;
+      border-radius: 0.5rem;
+      background: #0aa77d;
+      color: #fff;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .pin-gate-button:hover { opacity: 0.85; }
+    .pin-gate-error {
+      margin: 0.75rem 0 0;
+      color: #a31f16;
+      font-size: 0.85rem;
+    }
+    @media (max-width: 480px) {
+      .pin-gate-box { padding: 1.5rem; }
+      .pin-gate-logo {
+        width: 44px;
+        height: 44px;
+        margin: 0 auto 0.5rem;
+      }
+    }
+    .leaflet-top.leaflet-right {
+      z-index: 1000 !important;
+      pointer-events: auto;
+    }
+    .walks-key-control {
+      background: #ffffff;
+      padding: 12px 15px;
+      font-size: 13px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      border-radius: 8px;
+      line-height: 1.5;
+      min-width: 295px;
+      max-height: 85vh;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+    }
+    .walks-key-control.collapsed .key-content {
+      display: none;
+    }
+    .walks-key-control.collapsed {
+      min-width: auto;
+      padding: 8px 12px;
+    }
+    .key-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 6px;
+    }
+    .walks-key-control.collapsed .key-header {
+      margin-bottom: 0;
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    .key-header h4 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 700;
+      color: #222;
+    }
+    .key-actions {
+      display: flex;
+      gap: 5px;
+    }
+    .hide-key-btn {
+      background: #eef2f5;
+      border: 1px solid #dcdcdc;
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 4px;
+      cursor: pointer;
+      color: #333;
+    }
+    .hide-key-btn:hover {
+      background: #e2e8ec;
+    }
+    .section-title {
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+      color: #666;
+      margin: 10px 0 6px 0;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 2px;
+    }
+    .stats-panel {
+      background: #f8f9fa;
+      border: 1px solid #e2e8ec;
+      border-radius: 6px;
+      padding: 8px 10px;
+      margin-bottom: 10px;
+    }
+    .stats-row {
+      margin-bottom: 8px;
+    }
+    .stats-row:last-child {
+      margin-bottom: 0;
+    }
+    .stat-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+      font-size: 11px;
+      color: #222;
+    }
+    .stat-totals {
+      display: flex;
+      gap: 8px;
+      text-align: right;
+    }
+    .walk-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .walk-item label {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      flex-grow: 1;
+    }
+    .walk-color-box {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 8px;
+      border: 1.5px solid #ffffff;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.4);
+      flex-shrink: 0;
+    }
+    .ward-color-box {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      display: inline-block;
+      margin-right: 8px;
+      border: 2px solid;
+      flex-shrink: 0;
+    }
+    .ward-walk-visibility {
+      flex-grow: 0 !important;
+      white-space: nowrap;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .walk-info { flex-grow: 1; }
+    .walk-name { font-weight: 600; color: #222; }
+    .walk-count {
+      font-size: 11px;
+      font-weight: 600;
+      color: #444;
+      background: #eef2f5;
+      padding: 2px 7px;
+      border-radius: 12px;
+      margin-left: 8px;
+      flex-shrink: 0;
+      border: 1px solid #dcdcdc;
+    }
+    .key-footer-link {
+      display: flex;
+      gap: 6px;
+      justify-content: space-between;
+      margin-top: 12px;
+      padding-top: 8px;
+      border-top: 1px solid #eee;
+    }
+    .key-footer-link a {
+      flex: 1;
+      padding: 8px 4px;
+      border: 1px solid #0066cc;
+      border-radius: 4px;
+      background: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      color: #0066cc;
+      text-decoration: none;
+      text-align: center;
+    }
+    .key-footer-link a:hover {
+      background: #f0f7ff;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body class="pin-locked">
+  <div id="pin-gate" class="pin-gate">
+    <div class="pin-gate-box">
+      <img src="https://threetwosix.co.uk/beta/tarian-shield.svg" alt="" class="pin-gate-logo">
+      <h2>TARIAN</h2>
+      <p>Enter the 6-digit PIN to continue.</p>
+      <form id="pin-gate-form" autocomplete="off">
+        <input type="password" id="pin-gate-input" class="pin-gate-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" aria-label="6-digit PIN">
+        <button type="submit" class="pin-gate-button">Unlock</button>
+      </form>
+      <p id="pin-gate-error" class="pin-gate-error" hidden>Incorrect PIN. Please try again.</p>
+    </div>
+  </div>
+  <div id="map"></div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const map = L.map('map').setView([52.888, -4.415], 13);
+    map.createPane('propertyPane');
+    map.getPane('propertyPane').style.zIndex = 650;
+    
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    let mapBoundsCoords = [];
+    function refreshMapView() {
+      requestAnimationFrame(() => {
+        map.invalidateSize({ pan: false });
+        if (!document.body.classList.contains('pin-locked') && mapBoundsCoords.length) {
+          map.fitBounds(L.latLngBounds(mapBoundsCoords), { padding: [30, 30] });
+        }
+      });
+    }
+
+    function getBoundsFromGeoJSON(geoJSON) {
+      let bounds = null;
+      if (geoJSON.type === 'FeatureCollection') {
+        geoJSON.features.forEach(feature => {
+          if (feature.geometry && feature.geometry.coordinates) {
+            const coords = feature.geometry.coordinates;
+            if (feature.geometry.type === 'Polygon') {
+              coords[0].forEach(coord => {
+                const latLng = L.latLng(coord[1], coord[0]);
+                bounds = bounds ? bounds.extend(latLng) : L.latLngBounds(latLng, latLng);
+              });
+            }
+          }
+        });
+      }
+      return bounds;
+    }
+
+    async function zoomToDeBoundary() {
+      try {
+        const deData = await fetchAndCleanJSON('https://threetwosix.co.uk/beta/bid/de.json');
+        const deBounds = getBoundsFromGeoJSON(deData);
+        if (deBounds) {
+          map.fitBounds(deBounds, { padding: [50, 50] });
+        }
+      } catch (error) {
+        console.error('Error zooming to De boundary:', error);
+      }
+    }
+
+    const wardUrls = {
+      gogledd: 'https://threetwosix.co.uk/beta/bid/gogledd.json',
+      de: 'https://threetwosix.co.uk/beta/bid/de.json'
+    };
+
+    const wardConfigs = {
+      gogledd: { name: 'Gogledd / North', color: '#ff0000', fillOpacity: 0 },
+      de: { name: 'De / South', color: '#ff0000', fillOpacity: 0 }
+    };
+
+    let hiddenIds = new Set();
+    let walkMarkers = {};
+    let walkLayers = {};
+    let walkPropertyCounts = {};
+    let wardLayers = {};
+    
+    // Hardcoded list of 327 postal voter IDs
+    const postalVoterIds = new Set([
+      '99830731', '99831745', '99833305', '99830723', '99831679', '99832244', '99833243', '99923883', '99902756', '99903356',
+      '99903416', '99903597', '99904733', '99905925', '99906836', '99907208', '99908284', '99910149', '99911234', '99911628',
+      '99912508', '99912665', '99914122', '99914353', '99918389', '99918740', '99918773', '99919441', '99919939', '99920234',
+      '99921396', '99921597', '99921814', '99922734', '99924538', '99924908', '99984901', '99984936', '99985560', '99923871',
+      '99843081', '99843745', '99843827', '99847780', '99849154', '99850465', '99850960', '99851010', '99852781', '99853015',
+      '99853313', '99854242', '99856879', '99857138', '99899214', '99893127', '99895471', '99895489', '99895504', '99898815',
+      '99896607', '99897387', '99897750', '99899149', '99827641', '99828074', '99829213', '99974932', '99971824', '99974472',
+      '99991571', '99992072', '99993587', '99993931', '99993991', '99861256', '99875312', '99875460', '99875682', '99876156',
+      '99861068', '99862004', '99862759', '99868408', '99869942', '99871111', '99981379', '99981607', '99981760', '99982121',
+      '99982484', '99982893', '99983219', '99988923', '99989014', '99877255', '99859897', '99860633', '99878128', '99858316',
+      '99978083', '99927731', '99983376', '99930068', '99930302', '99984402', '99837053', '99837372', '99838052', '99838236',
+      '99838694', '99839832', '99840348', '99841758', '99842948', '99879359', '99878988', '99879352', '99879709', '99880402',
+      '99880851', '99882249', '99886310', '99888498', '99889230', '99964432', '99964434', '99931729', '99932242', '99989857',
+      '99989859', '99989860', '99932708', '99937196', '99939083', '99940320', '99941127', '99943257', '99945464', '99946208',
+      '99947667', '99950321', '99950373', '99951184', '99953335', '99955082', '99955179', '99957019', '99957421', '99959832',
+      '99960779', '99961083', '89535751', '89727316', '89768600', '16375116', '16418982', '16503810', '17202098', '18370916',
+      '18710627', '18758596', '18799350', '21870725', '19788651', '20601020', '21057075', '21581548', '88459358', '88496397',
+      '88764593', '95288679', '95412863', '87805754', '88935894', '89369427', '90793294', '90905840', '91261176', '91562402',
+      '91884212', '89000678', '92091775', '92304631', '92395247', '92680501', '93167352', '93455656', '93533860', '93773665',
+      '93810103', '94259696', '94323044', '10874626', '28988625', '50351921', '78971876', '79410121', '82626700', '11338285',
+      '12226083', '12249222', '63647372', '63946144', '28432583', '58539550', '58547206', '58583738', '58749572', '58869953',
+      '68237001', '68251383', '68870938', '69219892', '67585997', '70168735', '70946562', '83072713', '83433147', '48883113',
+      '48932386', '57362320', '51007710', '51030457', '51082986', '53289047', '76050315', '76880002', '14458156', '47719725',
+      '11112222', '58165504', '71859493', '72661558', '75091717', '85750763', '86964850', '39782476', '24547035', '24736324',
+      '25145917', '26058326', '26176106', '27016571', '27351386', '39156788', '32927601', '33713327', '34777690', '36293998',
+      '36567144', '36931164', '37918141', '38312220', '40066468', '40229864', '40312977', '23449724', '28264019', '48687297',
+      '66230767', '64842722', '65555673', '65833933', '66921517', '74182891', '96842636', '96816038', '14918075', '49950369',
+      '54958412', '54975298', '55181519', '56840873', '72219813', '72413322', '12774869', '45477215', '45523852', '43939517',
+      '31771182', '31835784', '32281258', '39011597', '40866603', '42470050', '42798303', '43494749', '83061495', '44663619',
+      '60400851', '59914626', '59974574', '60702126', '61053112', '61129148', '61401755', '61867253', '62308685', '62661860',
+      '62813619', '63139492'
+    ]);
+
+    async function fetchAndCleanJSON(url) {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('HTTP error loading ' + url + ': ' + response.status);
+      const text = await response.text();
+      const sanitized = text.replace(/[“”]/g, '"').replace(/[‘’]/g, "'");
+      try {
+        return JSON.parse(sanitized);
+      } catch (parseError) {
+        try {
+          return (new Function('return ' + sanitized))();
+        } catch (evalError) {
+          throw new Error(`JSON Syntax Error in ${url}: ${parseError.message}`);
+        }
+      }
+    }
+
+    async function fetchMappingData() {
+      // Fetch electors data live from Google Sheets CSV
+      try {
+        const electorsUrl = 'https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/export?format=csv&gid=111968984';
+        const refUrl = 'https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/export?format=csv&gid=276500892';
+        
+        const [eResponse, rResponse] = await Promise.all([
+          fetch(electorsUrl),
+          fetch(refUrl)
+        ]);
+        
+        console.log(`Fetch responses: electors=${eResponse.ok}, ref=${rResponse.ok}`);
+        
+        if (!eResponse.ok || !rResponse.ok) {
+          throw new Error('Failed to fetch from Google Sheets');
+        }
+        
+        const electorsCsv = await eResponse.text();
+        const refCsv = await rResponse.text();
+        const items = [];
+        let pvCount = 0;
+        let pvWithCoords = 0;
+        
+        for (let i = 1; i < electorsLines.length; i++) {
+          const line = electorsLines[i].trim();
+          if (!line) continue;
+          
+          const cells = parseCSVLine(line);
+          if (cells.length < 25) continue;
+          
+          const isPostalVoter = cells[4] && cells[4].trim() !== '';
+          if (isPostalVoter) {
+            pvCount++;
+            const lat = parseFloat(cells[23]);
+            const lng = parseFloat(cells[24]);
+            if (Number.isFinite(lat) && Number.isFinite(lng)) {
+              pvWithCoords++;
+            }
+          }
+          
+          items.push({
+            id: cells[0],
+            envelopeName: cells[5] || '',
+            labelPrefix: '',
+            labelHouseholdName: '',
+            addressText: '',
+            addressLine1: cells[7] || '',
+            addressLine2: cells[8] || '',
+            addressLine3: cells[9] || '',
+            postcode: cells[11] || '',
+            electors: parseInt(cells[13]) || 1,
+            isPostalVoter: isPostalVoter,
+            subroad: cells[16] || '',
+            sortOrder: cells[17] || '',
+            walk: String(cells[18] || ''),
+            lat: parseFloat(cells[23]) || 0,
+            lng: parseFloat(cells[24]) || 0
+          });
+        }
+        
+        console.log(`Loaded ${items.length} total items with ${pvCount} postal voters`);
+        
+        // Parse reference counts from reference sheet
+        const refLines = refCsv.split('\n');
+        const refCounts = {};
+        
+        for (let i = 1; i < refLines.length; i++) {
+          const line = refLines[i].trim();
+          if (!line) continue;
+          
+          const cells = parseCSVLine(line);
+          // Reference sheet has: E=POLLING DISTRICT, F=WALK, I=DOORS, J=ELECTORS
+          if (cells.length >= 10 && cells[5] && cells[8] && cells[9]) {
+            const walk = cells[5].trim();
+            if (walk && /^\d+$/.test(walk)) {
+              const doors = parseInt(cells[8]) || 0;
+              const electors = parseInt(cells[9]) || 0;
+              if (!refCounts[walk]) {
+                refCounts[walk] = { doors, electors };
+              }
+            }
+          }
+        }
+        
+        return { items, refCounts };
+      } catch (error) {
+        console.error('Error loading from Google Sheets:', error);
+        throw error;
+      }
+    }
+
+    function parseCSVLine(line) {
+      const cells = [];
+      let cell = '';
+      let inQuotes = false;
+      
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        const nextChar = line[i + 1];
+        
+        if (char === '"') {
+          if (inQuotes && nextChar === '"') {
+            cell += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === ',' && !inQuotes) {
+          cells.push(cell);
+          cell = '';
+        } else {
+          cell += char;
+        }
+      }
+      cells.push(cell);
+      return cells;
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[char]);
+    }
+
+    function normalizeWalkNumber(walk) {
+      const walkNum = String(walk);
+      if (walkNum === '0' || walkNum.toUpperCase() === 'DE' || walkNum.toUpperCase().includes('SOUTH')) {
+        return '11';
+      }
+      return walkNum;
+    }
+
+    Promise.all([
+      fetchAndCleanJSON('./walks.json'),
+      fetchMappingData(),
+      fetchAndCleanJSON(wardUrls.gogledd).catch(err => { console.warn('Could not load North Ward GeoJSON:', err); return null; }),
+      fetchAndCleanJSON(wardUrls.de).catch(err => { console.warn('Could not load South Ward GeoJSON:', err); return null; })
+    ]).then(([walksConfig, mappingData, gogleddGeoJson, deGeoJson]) => {
+      const { items: itemsList, refCounts } = mappingData;
+      walkLayers = {};
+      walkMarkers = {};
+      walkPropertyCounts = refCounts ? { ...refCounts } : {};
+      const wardTotals = {
+        gogledd: { households: 0, electors: 0 },
+        de: { households: 0, electors: 0 }
+      };
+      mapBoundsCoords = [];
+      wardLayers = {};
+
+      const rawWards = { gogledd: gogleddGeoJson, de: deGeoJson };
+      Object.keys(rawWards).forEach(key => {
+        const geojson = rawWards[key];
+        if (geojson) {
+          const cfg = wardConfigs[key];
+          const layer = L.geoJSON(geojson, {
+            style: {
+              color: cfg.color,
+              weight: 3,
+              opacity: 1,
+              fillColor: cfg.color,
+              fillOpacity: cfg.fillOpacity
+            },
+            onEachFeature: (feature, l) => {
+              l.bindPopup(`<strong>Ward Boundary:</strong><br>${cfg.name}`);
+            }
+          });
+          wardLayers[key] = layer;
+          // Add De ward to map on startup
+          if (key === 'de') {
+            layer.addTo(map);
+          }
+        }
+      });
+
+      // itemsList is already destructured from mappingData in the Promise.all().then() callback above
+      const walkKeysSet = new Set();
+      if (walksConfig) {
+        Object.keys(walksConfig).forEach(k => {
+          if (k && k !== '') {
+            walkKeysSet.add(String(k));
+          }
+        });
+      }
+      itemsList.forEach(item => {
+        if (item.walk !== undefined && item.walk !== null && item.walk !== '') {
+          const walkNum = normalizeWalkNumber(item.walk);
+          if (walkNum && walkNum !== '') {
+            walkKeysSet.add(walkNum);
+          }
+        }
+      });
+      // Ensure walk 18 exists for suppressed properties
+      walkKeysSet.add('18');
+      
+      const sortedWalkKeys = Array.from(walkKeysSet).sort((a, b) => Number(a) - Number(b));
+
+      sortedWalkKeys.forEach(walkKey => {
+        walkLayers[walkKey] = L.layerGroup();
+        walkMarkers[walkKey] = [];
+        // Keep reference counts from refCounts; only initialize if not already set
+        if (!walkPropertyCounts[walkKey]) {
+          walkPropertyCounts[walkKey] = { doors: 0, electors: 0 };
+        }
+      });
+
+      const allBuiltMarkers = [];
+
+      itemsList.forEach(item => {
+        const itemId = String(item.id || item.electorId || item.propertyId || '').trim();
+        const isHidden = itemId && hiddenIds.has(itemId);
+
+        let walkNum = normalizeWalkNumber(item.walk);
+        
+        // Reassign hidden properties to walk 18 (SHOW SUPPRESSED PROPERTIES)
+        if (isHidden) {
+          walkNum = '18';
+        }
+        
+        const electorsCount = Number(item.electors || 1);
+        const wardKey = Number(walkNum) < 11 ? 'gogledd' : 'de';
+        
+        wardTotals[wardKey].households += 1;
+        wardTotals[wardKey].electors += electorsCount;
+        const walkCfg = walksConfig[walkNum] || { color: '#ff0000', description: 'UNKNOWN' };
+        
+        // Check if this is a postal voter - if so, use gold color
+        const isPostalVoter = postalVoterIds.has(itemId);
+        const fillColor = isPostalVoter ? '#FFD700' : walkCfg.color;
+
+        const markerRadius = 7;
+        if (!Number.isFinite(item.lat) || !Number.isFinite(item.lng)) {
+          return;
+        }
+        const marker = L.circleMarker([item.lat, item.lng], {
+          radius: markerRadius,
+          color: '#ffffff',
+          fillColor: fillColor,
+          fillOpacity: 1,
+          weight: 2,
+          pane: 'propertyPane'
+        });
+        
+        let cleanAddress = String(item.addressText || '').replace(/\*$/, '').trim();
+        // Remove leading erroneous number if formatted like "1, 32 Y Ddol" -> "32 Y Ddol"
+        cleanAddress = cleanAddress.replace(/^\d+,\s*/, '');
+        const addressParts = cleanAddress.split(',');
+        const householdName = addressParts.length > 1 ? addressParts[0].trim() : '';
+        const streetAddressParts = addressParts.length > 1 ? addressParts.slice(1) : [cleanAddress];
+        const householdLabel = String(walkNum) === '18'
+          ? item.labelHouseholdName || item.envelopeName || householdName
+          : item.envelopeName || householdName;
+        if (String(walkNum) === '18' && householdLabel) {
+          const normalizedHouseholdLabel = String(householdLabel).trim().toLowerCase();
+          for (let index = streetAddressParts.length - 1; index >= 0; index -= 1) {
+            if (streetAddressParts[index].trim().toLowerCase() === normalizedHouseholdLabel) {
+              streetAddressParts.splice(index, 1);
+            }
+          }
+        }
+        let streetAddress = streetAddressParts.join(',').trim();
+
+        // Insert "Pwllheli" before postcode (e.g. LL53 5PA becomes Pwllheli LL53 5PA)
+        streetAddress = streetAddress.replace(/,\s*([A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2})$/i, ', Pwllheli $1');
+
+        const labelTitle = String(walkNum) === '18'
+          ? [item.labelPrefix, householdLabel]
+            .map(value => String(value ?? '').trim())
+            .filter(Boolean)
+            .join(' ')
+          : householdLabel;
+        const popupTitle = labelTitle
+          ? `${escapeHtml(labelTitle)}<br>`
+          : '';
+          
+        const pvBadge = item.isPostalVoter ? ' [PV]' : '';
+        const walkInfo = item.subroad
+          ? `<strong>Walk: ${escapeHtml(item.walk)} / ${escapeHtml(item.subroad)} / ${escapeHtml(item.sortOrder)}</strong>`
+          : `<strong>Walk: ${escapeHtml(item.walk)} / ${escapeHtml(item.sortOrder)}</strong>`;
+        
+        // Build address display - for Walk 18, use original format; for others, use individual address columns with Pwllheli
+        let addressDisplay = '';
+        if (String(walkNum) === '18') {
+          // Walk 18: use original comma-separated format from streetAddressParts
+          addressDisplay = streetAddressParts.map(part => escapeHtml(part.trim())).join('<br>');
+        } else {
+          // Other walks: build from individual address line columns (H, I, J) + postcode with Pwllheli
+          const parts = [];
+          if (item.addressLine1) parts.push(escapeHtml(item.addressLine1));
+          if (item.addressLine2) parts.push(escapeHtml(item.addressLine2));
+          if (item.addressLine3) parts.push(escapeHtml(item.addressLine3));
+          if (item.postcode) parts.push(`PWLLHELI ${escapeHtml(item.postcode)}`);
+          
+          addressDisplay = parts.length > 0 ? parts.join('<br>') : 'Unknown Address';
+        }
+        
+        marker.bindPopup(
+          `${popupTitle}` +
+          `${addressDisplay || 'Unknown Address'}<br>` +
+          `Electors (${electorsCount})${pvBadge}<br>` +
+          `${walkInfo}`
+        );
+        
+        const markerData = {
+          marker,
+          walkNum,
+          isHidden,
+          isPostalVoter: item.isPostalVoter,
+          electors: electorsCount,
+          walkColor: walkCfg.color
+        };
+
+        allBuiltMarkers.push(markerData);
+
+        if (walkLayers[walkNum]) {
+          walkMarkers[walkNum].push(markerData);
+          if (!isHidden) {
+            walkLayers[walkNum].addLayer(marker);
+          }
+        }
+        mapBoundsCoords.push([item.lat, item.lng]);
+      });
+      
+      // Debug: Log postal voters in walkMarkers
+      if (pvCount > 0) {
+        let pvInWalkMarkers = 0;
+        const pvByWalk = {};
+        sortedWalkKeys.forEach(walkKey => {
+          const pvInWalk = walkMarkers[walkKey].filter(m => m.isPostalVoter).length;
+          if (pvInWalk > 0) {
+            pvByWalk[walkKey] = pvInWalk;
+            pvInWalkMarkers += pvInWalk;
+          }
+        });
+        console.log(`Total postal voters in walkMarkers: ${pvInWalkMarkers}`, pvByWalk);
+      }
+
+      sortedWalkKeys.forEach(walkKey => {
+        const num = Number(walkKey);
+        // Add walks 11-17 and walk 18 (suppressed properties)
+        if (num >= 11 && num <= 18) {
+          walkLayers[walkKey].addTo(map);
+        }
+      });
+      refreshMapView();
+      
+      // Zoom to De (South) boundary on initial load since it's checked by default
+      setTimeout(() => zoomToDeBoundary(), 500);
+
+      const WalksKeyControl = L.Control.extend({
+        options: { position: 'topright' },
+        onAdd: function (mapInstance) {
+          const container = L.DomUtil.create('div', 'walks-key-control');
+          L.DomEvent.disableClickPropagation(container);
+          L.DomEvent.disableScrollPropagation(container);
+          
+          let html = `
+            <div class="key-header">
+              <h4 id="keyTitle">Electors</h4>
+              <div class="key-actions">
+                <button type="button" class="hide-key-btn" id="hideKeyBtn">Hide Key</button>
+              </div>
+            </div>
+            <div class="key-content">
+              <div class="stats-panel">
+                <div class="stats-row">
+                  <div class="stat-line">
+                    <span class="stat-ward">GOGLEDD / NORTH</span>
+                    <span class="stat-totals">
+                      <span>ELECTORS: ${wardTotals.gogledd.electors}</span>
+                      <span>DOORS: ${wardTotals.gogledd.households}</span>
+                    </span>
+                  </div>
+                </div>
+                <div class="stats-row">
+                  <div class="stat-line">
+                    <span class="stat-ward">DE / SOUTH</span>
+                    <span class="stat-totals">
+                      <span>ELECTORS: ${wardTotals.de.electors}</span>
+                      <span>DOORS: ${wardTotals.de.households}</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="section-title">Ward Boundaries</div>
+          `;
+
+          ['gogledd', 'de'].forEach(key => {
+            const cfg = wardConfigs[key];
+            const isLoaded = !!wardLayers[key];
+            const isChecked = key === 'de';
+            html += `
+              <div class="walk-item">
+                <label>
+                  <input type="checkbox" class="ward-toggle-checkbox" data-ward="${key}" ${isChecked ? 'checked' : ''} ${!isLoaded ? 'disabled' : ''} style="margin-right:8px;">
+                  <span class="ward-color-box" style="border-color: ${cfg.color}; background: transparent;"></span>
+                  <div class="walk-info">
+                    <div class="walk-name">${cfg.name} ${!isLoaded ? '(Not Loaded)' : ''}</div>
+                  </div>
+                </label>
+                <label class="ward-walk-visibility">
+                  <input type="checkbox" class="ward-walk-toggle" data-ward-walk="${key === 'gogledd' ? 'JA1' : 'JB1'}" style="margin-right:4px;">
+                  SHOW/HIDE ${key === 'gogledd' ? 'JA1' : 'JB1'} Walks
+                </label>
+              </div>
+            `;
+          });
+
+          html += `
+           <div class="section-title">Walks</div>`;
+
+          sortedWalkKeys.forEach(walkKey => {
+            // Skip walk 18 placeholder, it will be shown below with updated counter logic
+            if (walkKey === '18') return;
+            
+            const cfg = walksConfig[walkKey] || { description: `WALK ${walkKey}`, color: '#000000' };
+            const stats = walkPropertyCounts[walkKey] || { doors: 0, electors: 0 };
+            const num = Number(walkKey);
+            const isChecked = (num >= 11 && num <= 17); // Default: walks 11-17
+            
+            const displayName = `<strong>${walkKey}: ${cfg.description}</strong>`;
+            
+            html += `
+              <div class="walk-item">
+                <label>
+                  <input type="checkbox" class="walk-toggle-checkbox" data-walk="${walkKey}" ${isChecked ? 'checked' : ''} style="margin-right:8px;">
+                  <span class="walk-color-box" style="background-color: ${cfg.color};"></span>
+                  <div class="walk-info">
+                    <div class="walk-name">${displayName}</div>
+                  </div>
+                </label>
+                <span class="walk-count" title="${stats.doors || 0} doors, ${stats.electors || 0} electors">${stats.doors || 0} / ${stats.electors || 0}</span>
+              </div>
+            `;
+          });
+          
+          // Add Walk 18 (SHOW SUPPRESSED PROPERTIES)
+          const walk18Cfg = walksConfig['18'] || { description: 'SHOW SUPPRESSED PROPERTIES', color: '#000000' };
+          const walk18Stats = walkPropertyCounts['18'] || { electors: 0, doors: 0 };
+          html += `
+            <div class="walk-item">
+              <label>
+                <input type="checkbox" class="walk-toggle-checkbox" data-walk="18" style="margin-right:8px;">
+                <span class="walk-color-box" style="background-color: ${walk18Cfg.color};"></span>
+                <div class="walk-info">
+                  <div class="walk-name">${walk18Cfg.description}</div>
+                </div>
+              </label>
+              <span class="walk-count" title="${walk18Stats.doors || 0} doors, ${walk18Stats.electors || 0} electors">${walk18Stats.doors || 0} / ${walk18Stats.electors || 0}</span>
+            </div>
+          `;
+
+          html += `
+           <div class="walk-item">
+            <label>
+              <input type="checkbox" id="show-pvs-only-toggle" style="margin-right:8px;">
+              <span class="walk-color-box" style="background-color: #FFD700;"></span>
+              <div class="walk-info">
+                <div class="walk-name">SHOW PVs ONLY</div>
+              </div>
+            </label>
+          </div>
+          <div class="walk-item">
+            <label>
+              <input type="checkbox" id="highlight-pvs-toggle" style="margin-right:8px;">
+              <span class="walk-color-box" style="background-color: #FFD700;"></span>
+              <div class="walk-info">
+                <div class="walk-name">HIGHLIGHT PVs</div>
+              </div>
+            </label>
+          </div>`;
+
+          html += `
+            <div class="key-footer-link">
+              <a href="https://threetwosix.co.uk/beta/candidates.html">CANDIDATES</a>
+              <a href="https://threetwosix.co.uk/beta/volunteers.html">VOLUNTEERS</a>
+              <a href="https://threetwosix.co.uk/beta/shuttleworth">SHUTTLEWORTH</a>
+            </div>
+          </div>`;
+          container.innerHTML = html;
+
+          const titleEl = container.querySelector('#keyTitle');
+          const hideKeyBtn = container.querySelector('#hideKeyBtn');
+          const showPVsOnlyToggle = container.querySelector('#show-pvs-only-toggle');
+          const highlightPVsToggle = container.querySelector('#highlight-pvs-toggle');
+
+          function updateToggleColors() {
+            // Update SHOW PVs only toggle color
+            const showPVsColorBox = showPVsOnlyToggle.parentElement.querySelector('.walk-color-box');
+            if (showPVsColorBox) {
+              showPVsColorBox.style.backgroundColor = showPVsOnlyToggle.checked ? '#0aa77d' : '#da291c';
+            }
+          }
+
+          function updateMarkersVisibility() {
+            const showPVsOnly = showPVsOnlyToggle.checked;
+            const highlightPVs = highlightPVsToggle.checked;
+
+            container.querySelectorAll('.walk-toggle-checkbox').forEach(chk => {
+              const walkKey = chk.getAttribute('data-walk');
+              const layer = walkLayers[walkKey];
+              const isWalkChecked = chk.checked;
+
+              layer.clearLayers();
+              walkMarkers[walkKey].forEach(markerData => {
+                if (isWalkChecked) {
+                  // SHOW PVs ONLY: hide non-postal-voter markers
+                  if (showPVsOnly && !markerData.isPostalVoter) {
+                    return; // Skip this marker - don't add it to the layer
+                  }
+                  
+                  // Set color: gold if PV + HIGHLIGHT enabled, otherwise use walk color
+                  let markerColor = markerData.walkColor;
+                  if (markerData.isPostalVoter && highlightPVs) {
+                    markerColor = '#FFD700';
+                  }
+                  markerData.marker.setStyle({ fillColor: markerColor });
+                  layer.addLayer(markerData.marker);
+                }
+              });
+            });
+            updateTotalElectors();
+            updateWalkCounts();
+          }
+
+          function updateWalkCounts() {
+            const showPVsOnly = showPVsOnlyToggle.checked;
+
+            container.querySelectorAll('.walk-toggle-checkbox').forEach(checkbox => {
+              const walkId = checkbox.getAttribute('data-walk');
+              const walkItemDiv = checkbox.closest('.walk-item');
+              const countDisplay = walkItemDiv?.querySelector('.walk-count');
+              
+              if (!countDisplay) return;
+              
+              // Only count if checkbox is checked
+              if (!checkbox.checked) {
+                countDisplay.textContent = '0 / 0';
+                return;
+              }
+              
+              // Get all markers for this walk
+              const allMarkers = walkMarkers[walkId] || [];
+              
+              // Filter based on SHOW PVs ONLY toggle
+              let markersToCount = allMarkers;
+              if (showPVsOnly) {
+                markersToCount = allMarkers.filter(m => m.isPostalVoter === true);
+                // Debug all walks to understand structure
+                const pvMarkers = allMarkers.filter(m => m.isPostalVoter);
+                if (allMarkers.length > 0) {
+                  console.log(`Walk ${walkId}: ${allMarkers.length} total markers. Postal voters: ${pvMarkers.length}. Sample marker:`, allMarkers[0]);
+                }
+              }
+              
+              // Calculate totals
+              let totalDoors = markersToCount.length;
+              let totalElectors = markersToCount.reduce((sum, m) => sum + (m.electors || 0), 0);
+              
+              countDisplay.textContent = `${totalDoors} / ${totalElectors}`;
+            });
+          }
+
+          function onToggleChange() {
+            console.log(`=== onToggleChange fired ===`);
+            console.log(`HIGHLIGHT PVs: ${highlightPVsToggle.checked}, SHOW PVs ONLY: ${showPVsOnlyToggle.checked}`);
+            const panel = document.getElementById('debug-panel');
+            if (panel) {
+              panel.innerHTML += `<div style="color: blue; margin-top: 5px;">Toggle change: HIGHLIGHT=${highlightPVsToggle.checked}, SHOW_PVs=${showPVsOnlyToggle.checked}</div>`;
+            }
+            updateToggleColors();
+            updateMarkersVisibility();
+            updateWalkCounts();
+            updateTotalElectors();
+          }
+
+          L.DomEvent.on(showPVsOnlyToggle, 'change', onToggleChange);
+          L.DomEvent.on(highlightPVsToggle, 'change', updateMarkersVisibility);
+
+          // Initialize toggle colors on load
+          updateToggleColors();
+          updateMarkersVisibility();
+
+          function updateTotalElectors() {
+            let total = 0;
+            let doors = 0;
+            const showPVsOnly = showPVsOnlyToggle.checked;
+
+            container.querySelectorAll('.walk-toggle-checkbox').forEach(chk => {
+              if (!chk.checked) return;
+              const walkId = chk.getAttribute('data-walk');
+              walkMarkers[walkId].forEach(({ isPostalVoter, electors }) => {
+                if (showPVsOnly && !isPostalVoter) return;
+                total += electors;
+                doors += 1;
+              });
+            });
+            titleEl.textContent = `Electors (${total}) Doors (${doors})`;
+          }
+
+          function isWalkInWard(walkNumber, wardCode) {
+            return (wardCode === 'JA1' && walkNumber >= 1 && walkNumber <= 10) ||
+              (wardCode === 'JB1' && walkNumber >= 11 && walkNumber <= 17);
+          }
+
+          function updateWardWalkToggleState() {
+            container.querySelectorAll('.ward-walk-toggle').forEach(toggle => {
+              const wardCode = toggle.getAttribute('data-ward-walk');
+              const wardWalks = Array.from(container.querySelectorAll('.walk-toggle-checkbox'))
+                .filter(walkToggle => {
+                  const walkNumber = Number(walkToggle.getAttribute('data-walk'));
+                  return isWalkInWard(walkNumber, wardCode);
+                });
+              const checkedCount = wardWalks.filter(walkToggle => walkToggle.checked).length;
+              toggle.checked = wardWalks.length > 0 && checkedCount === wardWalks.length;
+              toggle.indeterminate = checkedCount > 0 && checkedCount < wardWalks.length;
+            });
+          }
+
+          container.querySelectorAll('.ward-walk-toggle').forEach(toggle => {
+            L.DomEvent.on(toggle, 'change', function (e) {
+              const wardCode = e.target.getAttribute('data-ward-walk');
+              const shouldShow = e.target.checked;
+              const showPVsOnly = showPVsOnlyToggle.checked;
+              const highlightPVs = highlightPVsToggle.checked;
+
+              container.querySelectorAll('.walk-toggle-checkbox').forEach(walkToggle => {
+                const walkId = walkToggle.getAttribute('data-walk');
+                const walkNumber = Number(walkId);
+                if (!isWalkInWard(walkNumber, wardCode)) return;
+                walkToggle.checked = shouldShow;
+                
+                const layer = walkLayers[walkId];
+                layer.clearLayers();
+                if (shouldShow) {
+                  walkMarkers[walkId].forEach(markerData => {
+                    if (!markerData.isHidden) {
+                      if (!showPVsOnly || markerData.isPostalVoter) {
+                        let activeColor = markerData.walkColor;
+                        if (markerData.isPostalVoter && highlightPVs) {
+                          activeColor = '#FFD700';
+                        }
+                        markerData.marker.setStyle({ fillColor: activeColor });
+                        layer.addLayer(markerData.marker);
+                      }
+                    }
+                  });
+                  mapInstance.addLayer(layer);
+                } else {
+                  mapInstance.removeLayer(layer);
+                }
+              });
+              updateWardWalkToggleState();
+              updateTotalElectors();
+              updateWalkCounts();
+            });
+          });
+
+          container.querySelectorAll('.ward-toggle-checkbox').forEach(chk => {
+            L.DomEvent.on(chk, 'change', function (e) {
+              const wardKey = e.target.getAttribute('data-ward');
+              if (wardLayers[wardKey]) {
+                if (e.target.checked) {
+                  mapInstance.addLayer(wardLayers[wardKey]);
+                } else {
+                  mapInstance.removeLayer(wardLayers[wardKey]);
+                }
+              }
+            });
+          });
+
+          container.querySelectorAll('.walk-toggle-checkbox').forEach(chk => {
+            L.DomEvent.on(chk, 'change', function (e) {
+              const walkId = e.target.getAttribute('data-walk');
+              const showPVsOnly = showPVsOnlyToggle.checked;
+              const highlightPVs = highlightPVsToggle.checked;
+              const layer = walkLayers[walkId];
+              
+              layer.clearLayers();
+              if (e.target.checked) {
+                walkMarkers[walkId].forEach(markerData => {
+                  if (!markerData.isHidden) {
+                    if (!showPVsOnly || markerData.isPostalVoter) {
+                      let activeColor = markerData.walkColor;
+                      if (markerData.isPostalVoter && highlightPVs) {
+                        activeColor = '#FFD700';
+                      }
+                      markerData.marker.setStyle({ fillColor: activeColor });
+                      layer.addLayer(markerData.marker);
+                    }
+                  }
+                });
+                mapInstance.addLayer(layer);
+              } else {
+                mapInstance.removeLayer(layer);
+              }
+              updateWardWalkToggleState();
+              updateTotalElectors();
+              updateWalkCounts();
+            });
+          });
+
+          L.DomEvent.on(hideKeyBtn, 'click', function (e) {
+            e.preventDefault();
+            container.classList.toggle('collapsed');
+            hideKeyBtn.textContent = container.classList.contains('collapsed') ? 'Show Key' : 'Hide Key';
+          });
+
+          updateWardWalkToggleState();
+          updateTotalElectors();
+          return container;
+        }
+      });
+      map.addControl(new WalksKeyControl());
+    }).catch(error => {
+      console.error('Error loading configuration or data files:', error);
+      alert('Map Loading Error: ' + error.message);
+    });
+  </script>
+  <script>
+    const PIN_GATE_CODE = "202705";
+    const PIN_GATE_SESSION_KEY = "vote2027PinUnlocked";
+    const pinGate = document.getElementById("pin-gate");
+    const pinForm = document.getElementById("pin-gate-form");
+    const pinInput = document.getElementById("pin-gate-input");
+    const pinError = document.getElementById("pin-gate-error");
+
+    function unlockPinGate() {
+      document.body.classList.remove("pin-locked");
+      pinGate.style.display = "none";
+      sessionStorage.setItem(PIN_GATE_SESSION_KEY, "true");
+      refreshMapView();
+    }
+
+    if (sessionStorage.getItem(PIN_GATE_SESSION_KEY) === "true") {
+      unlockPinGate();
+    } else {
+      pinForm.addEventListener("submit", event => {
+        event.preventDefault();
+        if (pinInput.value.trim() === PIN_GATE_CODE) {
+          unlockPinGate();
+        } else {
+          pinError.hidden = false;
+          pinInput.value = "";
+          pinInput.focus();
+        }
+      });
+      pinInput.focus();
+    }
+  </script>
+</body>
+</html>
