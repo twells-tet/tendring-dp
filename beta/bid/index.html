@@ -407,6 +407,8 @@
         
         const electorsCsv = await eResponse.text();
         const refCsv = await rResponse.text();
+        
+        const electorsLines = electorsCsv.split('\n');
         const items = [];
         let pvCount = 0;
         let pvWithCoords = 0;
