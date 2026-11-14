@@ -860,14 +860,18 @@
               layer.clearLayers();
               walkMarkers[walkKey].forEach(({ marker, isPostalVoter, walkColor }) => {
                 if (isWalkChecked) {
-                  if (!showPVsOnly || isPostalVoter) {
-                    let activeColor = walkColor;
-                    if (isPostalVoter && highlightPVs) {
-                      activeColor = '#FFD700';
-                    }
-                    marker.setStyle({ fillColor: activeColor });
-                    layer.addLayer(marker);
+                  // SHOW PVs ONLY: hide non-postal-voter markers
+                  if (showPVsOnly && !isPostalVoter) {
+                    return; // Skip this marker - don't add it to the layer
                   }
+                  
+                  // Set color: gold if PV + HIGHLIGHT enabled, otherwise use walk color
+                  let markerColor = walkColor;
+                  if (isPostalVoter && highlightPVs) {
+                    markerColor = '#FFD700';
+                  }
+                  marker.setStyle({ fillColor: markerColor });
+                  layer.addLayer(marker);
                 }
               });
             });
@@ -877,7 +881,6 @@
 
           function updateWalkCounts() {
             const showPVsOnly = showPVsOnlyToggle.checked;
-            let debugInfo = {};
 
             container.querySelectorAll('.walk-toggle-checkbox').forEach(chk => {
               const walkId = chk.getAttribute('data-walk');
@@ -886,56 +889,25 @@
               
               if (!countSpan) return;
               
-              let electors = 0;
               let doors = 0;
-              let debugMsg = '';
+              let electors = 0;
               
               if (chk.checked) {
                 const markers = walkMarkers[walkId];
-                if (!markers || markers.length === 0) {
-                  debugMsg = 'no markers';
-                  countSpan.textContent = '0 / 0';
-                } else {
-                  let pvCount = 0;
-                  let nonPvCount = 0;
-                  
+                if (markers && markers.length > 0) {
                   markers.forEach(({ isPostalVoter, electors: electorsCount }) => {
-                    if (isPostalVoter) {
-                      pvCount++;
-                    } else {
-                      nonPvCount++;
+                    // SHOW PVs ONLY: only count postal voters
+                    if (showPVsOnly && !isPostalVoter) {
+                      return;
                     }
-                    
-                    if (showPVsOnly && !isPostalVoter) return;
-                    electors += (electorsCount || 0);
                     doors += 1;
+                    electors += (electorsCount || 0);
                   });
-                  
-                  if (showPVsOnly) {
-                    debugMsg = `${pvCount} PV, ${nonPvCount} NPV -> ${doors}/${electors}`;
-                  } else {
-                    debugMsg = `${doors}/${electors}`;
-                  }
-                  
-                  countSpan.textContent = `${doors} / ${electors}`;
-                  if (showPVsOnly && doors === 0 && markers.length > 0) {
-                    debugInfo[walkId] = {
-                      total: markers.length,
-                      pvCount,
-                      nonPvCount,
-                      counted: doors
-                    };
-                  }
                 }
-              } else {
-                countSpan.textContent = '0 / 0';
               }
+              
+              countSpan.textContent = `${doors} / ${electors}`;
             });
-            
-            if (Object.keys(debugInfo).length > 0) {
-              console.log('WALKS WITH 0 COUNTED WHEN SHOW PVs ONLY:', debugInfo);
-              window.lastDebugInfo = debugInfo;
-            }
           }
 
           function onToggleChange() {
