@@ -877,7 +877,8 @@
 
           function updateWalkCounts() {
             const showPVsOnly = showPVsOnlyToggle.checked;
-            console.log('updateWalkCounts called, showPVsOnly=' + showPVsOnly);
+            
+            let debugOutput = `updateWalkCounts: showPVsOnly=${showPVsOnly}\n`;
 
             container.querySelectorAll('.walk-toggle-checkbox').forEach(chk => {
               const walkId = chk.getAttribute('data-walk');
@@ -885,7 +886,7 @@
               const countSpan = walkItem?.querySelector('.walk-count');
               
               if (!countSpan) {
-                console.log(`Walk ${walkId}: no countSpan element`);
+                debugOutput += `Walk ${walkId}: no countSpan\n`;
                 return;
               }
               
@@ -895,32 +896,37 @@
               if (chk.checked) {
                 const markers = walkMarkers[walkId];
                 if (!markers) {
-                  console.log(`Walk ${walkId}: walkMarkers[${walkId}] is undefined!`);
+                  debugOutput += `Walk ${walkId}: walkMarkers undefined\n`;
                   countSpan.textContent = '0 / 0';
                   return;
                 }
                 if (markers.length === 0) {
-                  console.log(`Walk ${walkId}: no markers in walkMarkers`);
+                  debugOutput += `Walk ${walkId}: no markers\n`;
                   countSpan.textContent = '0 / 0';
                   return;
                 }
                 
-                console.log(`Walk ${walkId}: ${markers.length} total markers, showPVsOnly=${showPVsOnly}`);
+                debugOutput += `Walk ${walkId}: ${markers.length} markers\n`;
                 markers.forEach((markerObj, idx) => {
                   const { isPostalVoter, electors: electorsCount } = markerObj;
                   if (showPVsOnly && !isPostalVoter) {
-                    console.log(`  [${idx}] Skipping non-PV (electors=${electorsCount})`);
+                    debugOutput += `  [${idx}] skip (isPV=${isPostalVoter})\n`;
                     return;
                   }
-                  console.log(`  [${idx}] Counting: isPV=${isPostalVoter}, electors=${electorsCount}`);
+                  debugOutput += `  [${idx}] count (isPV=${isPostalVoter}, electors=${electorsCount})\n`;
                   electors += electorsCount;
                   doors += 1;
                 });
-                console.log(`Walk ${walkId} Result: ${doors} doors, ${electors} electors`);
+                debugOutput += `Walk ${walkId}: ${doors}/${electors}\n`;
               }
               
-              countSpan.textContent = `${electors} / ${doors}`;
+              // Display should be doors / electors
+              countSpan.textContent = `${doors} / ${electors}`;
             });
+            
+            // Write debug to console AND to window for inspection
+            console.log(debugOutput);
+            window.lastUpdateWalkCountsDebug = debugOutput;
           }
 
           function onToggleChange() {
