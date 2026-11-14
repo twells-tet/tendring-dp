@@ -694,30 +694,33 @@
         });
         console.log(`Total postal voters in walkMarkers: ${pvInWalkMarkers}`);
         
-        // Create visible debug panel
+        // Create visible debug panel - ALWAYS show
         const debugDiv = document.createElement('div');
         debugDiv.id = 'debug-panel';
-        debugDiv.style.cssText = 'position: fixed; top: 10px; left: 10px; background: white; padding: 10px; border: 2px solid red; z-index: 9999; font-size: 12px; max-width: 300px; max-height: 200px; overflow: auto; border-radius: 4px;';
+        debugDiv.style.cssText = 'position: fixed; top: 10px; left: 10px; background: white; padding: 10px; border: 3px solid red; z-index: 9999; font-size: 12px; max-width: 400px; max-height: 300px; overflow: auto; border-radius: 4px;';
         debugDiv.innerHTML = `
-          <strong style="color: red;">DEBUG - Postal Voters</strong><br>
-          Total items: ${items.length}<br>
-          Postal voters in CSV: ${pvCount}<br>
-          PV with coords: ${pvWithCoords}<br>
+          <strong style="color: red;">DEBUG PANEL - Postal Voters</strong><br>
+          Total items in CSV: ${items.length}<br>
+          Postal voters detected: ${pvCount}<br>
+          PV with valid coords: ${pvWithCoords}<br>
           PV in walkMarkers: ${pvInWalkMarkers}<br>
           <br>
-          <strong>Walk Details:</strong><br>
+          <strong>Walk Breakdown (PV/Total):</strong><br>
         `;
         
         sortedWalkKeys.forEach(walkKey => {
           const total = walkMarkers[walkKey].length;
-          const pvCount = walkMarkers[walkKey].filter(m => m.isPostalVoter).length;
+          const pvInWalk = walkMarkers[walkKey].filter(m => m.isPostalVoter).length;
           if (total > 0) {
-            debugDiv.innerHTML += `Walk ${walkKey}: ${pvCount}/${total}<br>`;
+            debugDiv.innerHTML += `Walk ${walkKey}: ${pvInWalk}/${total}<br>`;
           }
         });
         
+        debugDiv.innerHTML += `<br><strong>Toggles:</strong><br>`;
+        debugDiv.innerHTML += `HIGHLIGHT PVs: ${highlightPVsToggle.checked}<br>`;
+        debugDiv.innerHTML += `SHOW PVs ONLY: ${showPVsOnlyToggle.checked}<br>`;
+        
         document.body.appendChild(debugDiv);
-      }
 
       sortedWalkKeys.forEach(walkKey => {
         const num = Number(walkKey);
@@ -951,6 +954,12 @@
           }
 
           function onToggleChange() {
+            console.log(`=== onToggleChange fired ===`);
+            console.log(`HIGHLIGHT PVs: ${highlightPVsToggle.checked}, SHOW PVs ONLY: ${showPVsOnlyToggle.checked}`);
+            const panel = document.getElementById('debug-panel');
+            if (panel) {
+              panel.innerHTML += `<div style="color: blue; margin-top: 5px;">Toggle change: HIGHLIGHT=${highlightPVsToggle.checked}, SHOW_PVs=${showPVsOnlyToggle.checked}</div>`;
+            }
             updateToggleColors();
             updateMarkersVisibility();
             updateWalkCounts();
