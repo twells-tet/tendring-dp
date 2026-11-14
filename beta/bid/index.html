@@ -349,51 +349,81 @@
     }
 
     async function fetchMappingData() {
-      // Load pre-built data from electors.json for fast page load
+      // Fetch electors data live from Google Sheets CSV
       try {
-        const response = await fetch('electors.json');
-        if (!response.ok) {
-          throw new Error('HTTP error loading electors.json: ' + response.status);
+        const electorsUrl = 'https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/export?format=csv&gid=487796557';
+        const refUrl = 'https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/export?format=csv&gid=276500892';
+        
+        const [eResponse, rResponse] = await Promise.all([
+          fetch(electorsUrl),
+          fetch(refUrl)
+        ]);
+        
+        if (!eResponse.ok || !rResponse.ok) {
+          throw new Error('Failed to fetch from Google Sheets');
         }
-        const data = await response.json();
-        const items = data.items || [];
-        const refCounts = data.refCounts || {};
         
-        // Transform items to match expected format
-        const transformedItems = items.map(item => ({
-          id: item.id,
-          labelPrefix: item.labelPrefix || '',
-          labelHouseholdName: item.labelHouseholdName || '',
-          envelopeName: item.envelopeName || '',
-          addressText: item.addressText || '',
-          addressLine1: item.addressLine1 || '',
-          addressLine2: item.addressLine2 || '',
-          addressLine3: item.addressLine3 || '',
-          isPostalVoter: item.isPostalVoter || false,
-          lat: parseFloat(item.lat) || 0,
-          lng: parseFloat(item.lng) || 0,
-          walk: String(item.walk || ''),
-          sortOrder: String(item.sortOrder || ''),
-          subroad: item.subroad || '',
-          postcode: item.postcode || '',
-          electors: parseInt(item.electors) || 1
-        }));
+        const electorsCsv = await eResponse.text();
+        const refCsv = await rResponse.text();
         
-        // Transform refCounts if needed
-        const transformedRefCounts = {};
-        Object.keys(refCounts).forEach(walk => {
-          const count = refCounts[walk];
-          transformedRefCounts[walk] = {
-            properties: parseInt(count.doors) || 0,
-            electors: parseInt(count.electors) || 0
-          };
-        });
+        // Parse electors CSV
+        const electorsLines = electorsCsv.split('\n');
+        const items = [];
         
-        console.log(`Loaded ${transformedItems.length} elector records from electors.json`);
-        console.log('Loaded reference walk counts:', transformedRefCounts);
-        return { items: transformedItems, refCounts: transformedRefCounts };
+        for (let i = 1; i < electorsLines.length; i++) {
+          const line = electorsLines[i].trim();
+          if (!line) continue;
+          
+          const cells = parseCSVLine(line);
+          if (cells.length < 25) continue;
+          
+          items.push({
+            id: cells[0],
+            envelopeName: cells[5] || '',
+            labelPrefix: '',
+            labelHouseholdName: '',
+            addressText: '',
+            addressLine1: cells[7] || '',
+            addressLine2: cells[8] || '',
+            addressLine3: cells[9] || '',
+            postcode: cells[11] || '',
+            electors: parseInt(cells[13]) || 1,
+            isPostalVoter: cells[15] === 'PV',
+            subroad: cells[16] || '',
+            sortOrder: cells[17] || '',
+            walk: String(cells[18] || ''),
+            lat: parseFloat(cells[23]) || 0,
+            lng: parseFloat(cells[24]) || 0
+          });
+        }
+        
+        // Parse reference counts from reference sheet
+        const refLines = refCsv.split('\n');
+        const refCounts = {};
+        
+        for (let i = 1; i < refLines.length; i++) {
+          const line = refLines[i].trim();
+          if (!line) continue;
+          
+          const cells = parseCSVLine(line);
+          // Reference sheet has: E=POLLING DISTRICT, F=WALK, I=DOORS, J=ELECTORS
+          if (cells.length >= 10 && cells[5] && cells[8] && cells[9]) {
+            const walk = cells[5].trim();
+            if (walk && /^\d+$/.test(walk)) {
+              const doors = parseInt(cells[8]) || 0;
+              const electors = parseInt(cells[9]) || 0;
+              if (!refCounts[walk]) {
+                refCounts[walk] = { doors, electors };
+              }
+            }
+          }
+        }
+        
+        console.log(`Loaded ${items.length} elector records from Google Sheets`);
+        console.log('Loaded reference walk counts:', refCounts);
+        return { items, refCounts };
       } catch (error) {
-        console.error('Error loading electors.json:', error);
+        console.error('Error loading from Google Sheets:', error);
         throw error;
       }
     }
@@ -714,14 +744,14 @@
                     <div class="walk-name">${displayName}</div>
                   </div>
                 </label>
-                <span class="walk-count" title="${stats.properties || 0} locations, ${stats.electors || 0} electors">${stats.electors || 0} / ${stats.properties || 0}</span>
+                <span class="walk-count" title="${stats.doors || 0} doors, ${stats.electors || 0} electors">${stats.doors || 0} / ${stats.electors || 0}</span>
               </div>
             `;
           });
           
           // Add Walk 18 (SHOW SUPPRESSED PROPERTIES)
           const walk18Cfg = walksConfig['18'] || { description: 'SHOW SUPPRESSED PROPERTIES', color: '#000000' };
-          const walk18Stats = walkPropertyCounts['18'] || { electors: 0, properties: 0 };
+          const walk18Stats = walkPropertyCounts['18'] || { electors: 0, doors: 0 };
           html += `
             <div class="walk-item">
               <label>
@@ -731,7 +761,7 @@
                   <div class="walk-name">${walk18Cfg.description}</div>
                 </div>
               </label>
-              <span class="walk-count" title="${walk18Stats.properties || 0} locations, ${walk18Stats.electors || 0} electors">${walk18Stats.electors || 0} / ${walk18Stats.properties || 0}</span>
+              <span class="walk-count" title="${walk18Stats.doors || 0} doors, ${walk18Stats.electors || 0} electors">${walk18Stats.doors || 0} / ${walk18Stats.electors || 0}</span>
             </div>
           `;
 
