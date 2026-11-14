@@ -901,8 +901,10 @@
               let markersToCount = allMarkers;
               if (showPVsOnly) {
                 markersToCount = allMarkers.filter(m => m.isPostalVoter === true);
-                if (walkId === '11' && allMarkers.length > 0) {
-                  console.log(`Walk ${walkId}: ${allMarkers.length} total, ${markersToCount.length} postal voters. Sample:`, allMarkers.slice(0, 1));
+                // Debug all walks to understand structure
+                const pvMarkers = allMarkers.filter(m => m.isPostalVoter);
+                if (allMarkers.length > 0) {
+                  console.log(`Walk ${walkId}: ${allMarkers.length} total markers. Postal voters: ${pvMarkers.length}. Sample marker:`, allMarkers[0]);
                 }
               }
               
