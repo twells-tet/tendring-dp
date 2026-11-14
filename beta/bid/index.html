@@ -331,6 +331,10 @@
     };
 
     let hiddenIds = new Set();
+    let walkMarkers = {};
+    let walkLayers = {};
+    let walkPropertyCounts = {};
+    let wardLayers = {};
 
     async function fetchAndCleanJSON(url) {
       const response = await fetch(url);
@@ -497,15 +501,15 @@
       fetchAndCleanJSON(wardUrls.de).catch(err => { console.warn('Could not load South Ward GeoJSON:', err); return null; })
     ]).then(([walksConfig, mappingData, gogleddGeoJson, deGeoJson]) => {
       const { items: itemsList, refCounts } = mappingData;
-      const walkLayers = {};
-      const walkMarkers = {};
-      let walkPropertyCounts = refCounts ? { ...refCounts } : {};
+      walkLayers = {};
+      walkMarkers = {};
+      walkPropertyCounts = refCounts ? { ...refCounts } : {};
       const wardTotals = {
         gogledd: { households: 0, electors: 0 },
         de: { households: 0, electors: 0 }
       };
       mapBoundsCoords = [];
-      const wardLayers = {};
+      wardLayers = {};
 
       const rawWards = { gogledd: gogleddGeoJson, de: deGeoJson };
       Object.keys(rawWards).forEach(key => {
