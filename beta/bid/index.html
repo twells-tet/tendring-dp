@@ -353,7 +353,7 @@
     }
 
     async function fetchMappingData() {
-      // Fetch electors data live from Google Sheets CSV
+      // COMMIT: 3692c57 - Fetch electors data live from Google Sheets CSV
       try {
         console.log('Starting to fetch mapping data...');
         const electorsUrl = 'https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/export?format=csv&gid=111968984';
@@ -427,8 +427,9 @@
         console.log(`Loaded ${items.length} total items with ${pvCount} postal voters`);
         console.log('Sample items with postal voters:', items.filter(i => i.isPostalVoter).slice(0, 3));
         
-        // Update page title to show postal voter count (for debugging)
-        document.title = `PWLLHELI - Walks (PVs: ${pvCount})`;
+        // Update page title immediately with postal voter count
+        const pvItems = items.filter(i => i.isPostalVoter);
+        document.title = `[PV:${pvCount}] PWLLHELI - Walks`;
         
         // Parse reference counts from reference sheet
         const refLines = refCsv.split('\n');
