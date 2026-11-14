@@ -414,6 +414,7 @@
               const electors = parseInt(cells[9]) || 0;
               if (!refCounts[walk]) {
                 refCounts[walk] = { doors, electors };
+                if (i <= 5) console.log(`DEBUG: Walk ${walk} -> ${doors} doors, ${electors} electors (cells[5]=${cells[5]}, cells[8]=${cells[8]}, cells[9]=${cells[9]})`);
               }
             }
           }
@@ -483,6 +484,8 @@
       const walkLayers = {};
       const walkMarkers = {};
       let walkPropertyCounts = refCounts ? { ...refCounts } : {};
+      console.log('DEBUG: refCounts received:', refCounts);
+      console.log('DEBUG: walkPropertyCounts after copy:', walkPropertyCounts);
       const wardTotals = {
         gogledd: { households: 0, electors: 0 },
         de: { households: 0, electors: 0 }
