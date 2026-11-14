@@ -598,8 +598,9 @@
       });
 
       const allBuiltMarkers = [];
+      let pvMatchCount = 0;
 
-      itemsList.forEach(item => {
+      itemsList.forEach((item, itemIndex) => {
         const itemId = String(item.id || item.electorId || item.propertyId || '').trim();
         const isHidden = itemId && hiddenIds.has(itemId);
 
@@ -619,6 +620,12 @@
         
         // Check if this is a postal voter - if so, use gold color
         const isPostalVoter = postalVoterIds.has(itemId);
+        if (isPostalVoter) {
+          pvMatchCount++;
+          if (pvMatchCount <= 5) {
+            console.log(`[PV Match ${pvMatchCount}] ID: ${itemId}, Walk: ${walkNum}`);
+          }
+        }
         const fillColor = isPostalVoter ? '#FFD700' : walkCfg.color;
 
         const markerRadius = 7;
@@ -713,6 +720,12 @@
         }
         mapBoundsCoords.push([item.lat, item.lng]);
       });
+      
+      console.log(`=== Postal Voter Matching Results ===`);
+      console.log(`Total items: ${itemsList.length}`);
+      console.log(`Matched to hardcoded IDs: ${pvMatchCount}`);
+      console.log(`Sample hardcoded IDs (first 10):`, Array.from(postalVoterIds).slice(0, 10));
+      console.log(`Sample item IDs (first 10):`, itemsList.slice(0, 10).map(i => String(i.id || '')));
       
       // Debug: Log postal voters in walkMarkers
       if (pvCount > 0) {
