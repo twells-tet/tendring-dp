@@ -912,9 +912,7 @@
 
           function updateWalkCounts() {
             const showPVsOnly = showPVsOnlyToggle.checked;
-            const keysStr = Object.keys(walkMarkers).join(',');
-            console.log(`=== updateWalkCounts called, showPVsOnly=${showPVsOnly}, walkMarkers keys=[${keysStr}]`);
-
+            
             container.querySelectorAll('.walk-toggle-checkbox').forEach(chk => {
               const walkId = chk.getAttribute('data-walk');
               const walkItem = chk.closest('.walk-item');
@@ -925,38 +923,22 @@
               let doors = 0;
               let electors = 0;
               
+              console.log(`Walk ${walkId}: chk.checked=${chk.checked}`);
+              
               if (chk.checked) {
-                const markers = walkMarkers[walkId];
+                const markers = walkMarkers[walkId] || [];
+                console.log(`Walk ${walkId}: markers length=${markers.length}`);
                 
-                if (markers && markers.length > 0) {
-                  if (walkId === '11' || walkId === '12' || showPVsOnly) {
-                    // Log first marker structure for debugging
-                    const firstMarker = markers[0];
-                    console.log(`Walk ${walkId}: First marker structure:`, {
-                      hasIsPostalVoter: firstMarker.hasOwnProperty('isPostalVoter'),
-                      isPostalVoterValue: firstMarker.isPostalVoter,
-                      hasElectors: firstMarker.hasOwnProperty('electors'),
-                      electorsValue: firstMarker.electors
-                    });
+                markers.forEach(m => {
+                  console.log(`  Marker: isPostalVoter=${m.isPostalVoter}, electors=${m.electors}, showPVsOnly=${showPVsOnly}`);
+                  if (showPVsOnly && !m.isPostalVoter) {
+                    console.log(`    -> SKIPPED (not a PV)`);
+                    return;
                   }
-                  
-                  markers.forEach(markerObj => {
-                    const { isPostalVoter, electors: electorsCount } = markerObj;
-                    // SHOW PVs ONLY: only count postal voters
-                    if (showPVsOnly && !isPostalVoter) {
-                      return;
-                    }
-                    doors += 1;
-                    electors += (electorsCount || 0);
-                  });
-                  
-                  if (showPVsOnly || walkId === '11' || walkId === '12') {
-                    const pvCount = markers.filter(m => m.isPostalVoter).length;
-                    console.log(`Walk ${walkId}: Total markers=${markers.length}, PV count=${pvCount}, counted doors=${doors}, counted electors=${electors}`);
-                  }
-                } else {
-                  console.log(`Walk ${walkId}: No markers found (markers=${markers}, length=${markers?.length})`);
-                }
+                  doors += 1;
+                  electors += (m.electors || 0);
+                  console.log(`    -> COUNTED (doors now ${doors}, electors now ${electors})`);
+                });
               }
               
               countSpan.textContent = `${doors} / ${electors}`;
