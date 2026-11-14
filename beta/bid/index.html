@@ -369,6 +369,7 @@
         // Parse electors CSV
         const electorsLines = electorsCsv.split('\n');
         const items = [];
+        let pvCount = 0;
         
         for (let i = 1; i < electorsLines.length; i++) {
           const line = electorsLines[i].trim();
@@ -376,6 +377,9 @@
           
           const cells = parseCSVLine(line);
           if (cells.length < 25) continue;
+          
+          const isPostalVoter = cells[4] && cells[4].trim() !== '';
+          if (isPostalVoter) pvCount++;
           
           items.push({
             id: cells[0],
@@ -388,7 +392,7 @@
             addressLine3: cells[9] || '',
             postcode: cells[11] || '',
             electors: parseInt(cells[13]) || 1,
-            isPostalVoter: cells[4] && cells[4].trim() !== '',
+            isPostalVoter: isPostalVoter,
             subroad: cells[16] || '',
             sortOrder: cells[17] || '',
             walk: String(cells[18] || ''),
@@ -396,6 +400,8 @@
             lng: parseFloat(cells[24]) || 0
           });
         }
+        
+        console.log(`Loaded ${items.length} items with ${pvCount} postal voters`);
         
         // Parse reference counts from reference sheet
         const refLines = refCsv.split('\n');
