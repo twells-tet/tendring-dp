@@ -355,6 +355,7 @@
     async function fetchMappingData() {
       // Fetch electors data live from Google Sheets CSV
       try {
+        console.log('Starting to fetch mapping data...');
         const electorsUrl = 'https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/export?format=csv&gid=111968984';
         const refUrl = 'https://docs.google.com/spreadsheets/d/1OS8iu7s0CAD__v1i_2kIOiIGvgmNiRN3KAAI4V9XyaE/export?format=csv&gid=276500892';
         
@@ -363,6 +364,8 @@
           fetch(refUrl)
         ]);
         
+        console.log(`Fetch responses: electors=${eResponse.ok}, ref=${rResponse.ok}`);
+        
         if (!eResponse.ok || !rResponse.ok) {
           throw new Error('Failed to fetch from Google Sheets');
         }
@@ -370,8 +373,11 @@
         const electorsCsv = await eResponse.text();
         const refCsv = await rResponse.text();
         
+        console.log(`Fetched CSV data: electors length=${electorsCsv.length}, ref length=${refCsv.length}`);
+        
         // Parse electors CSV
         const electorsLines = electorsCsv.split('\n');
+        console.log(`Split electors CSV into ${electorsLines.length} lines`);
         const items = [];
         let pvCount = 0;
         let pvWithCoords = 0;
