@@ -890,6 +890,12 @@
               const isWalkChecked = chk.checked;
 
               layer.clearLayers();
+              
+              // Hide Walk 18 when SHOW PVs ONLY is enabled
+              if (showPVsOnly && walkKey === '18') {
+                return; // Don't add any markers from Walk 18
+              }
+              
               walkMarkers[walkKey].forEach(markerData => {
                 if (isWalkChecked) {
                   // SHOW PVs ONLY: hide non-postal-voter markers
