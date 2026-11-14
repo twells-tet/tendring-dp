@@ -524,9 +524,11 @@
         Object.keys(walksConfig).forEach(k => walkKeysSet.add(String(k)));
       }
       itemsList.forEach(item => {
-        if (item.walk !== undefined && item.walk !== null) {
+        if (item.walk !== undefined && item.walk !== null && item.walk !== '') {
           const walkNum = normalizeWalkNumber(item.walk);
-          walkKeysSet.add(walkNum);
+          if (walkNum && walkNum !== '') {
+            walkKeysSet.add(walkNum);
+          }
         }
       });
       // Ensure walk 18 exists for suppressed properties
@@ -537,8 +539,10 @@
       sortedWalkKeys.forEach(walkKey => {
         walkLayers[walkKey] = L.layerGroup();
         walkMarkers[walkKey] = [];
-        // Initialize from reference counts; if not in refCounts, use 0
-        walkPropertyCounts[walkKey] = walkPropertyCounts[walkKey] || { properties: 0, electors: 0 };
+        // Keep reference counts from refCounts; only initialize if not already set
+        if (!walkPropertyCounts[walkKey]) {
+          walkPropertyCounts[walkKey] = { doors: 0, electors: 0 };
+        }
       });
 
       const allBuiltMarkers = [];
@@ -732,7 +736,7 @@
             if (walkKey === '18') return;
             
             const cfg = walksConfig[walkKey] || { description: `WALK ${walkKey}`, color: '#000000' };
-            const stats = walkPropertyCounts[walkKey] || { electors: 0, properties: 0 };
+            const stats = walkPropertyCounts[walkKey] || { doors: 0, electors: 0 };
             const num = Number(walkKey);
             const isChecked = (num >= 11 && num <= 17); // Default: walks 11-17
             
