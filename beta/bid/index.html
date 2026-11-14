@@ -912,36 +912,34 @@
 
           function updateWalkCounts() {
             const showPVsOnly = showPVsOnlyToggle.checked;
-            
-            container.querySelectorAll('.walk-toggle-checkbox').forEach(chk => {
-              const walkId = chk.getAttribute('data-walk');
-              const walkItem = chk.closest('.walk-item');
-              const countSpan = walkItem?.querySelector('.walk-count');
+
+            container.querySelectorAll('.walk-toggle-checkbox').forEach(checkbox => {
+              const walkId = checkbox.getAttribute('data-walk');
+              const walkItemDiv = checkbox.closest('.walk-item');
+              const countDisplay = walkItemDiv?.querySelector('.walk-count');
               
-              if (!countSpan) return;
+              if (!countDisplay) return;
               
-              let doors = 0;
-              let electors = 0;
-              
-              console.log(`Walk ${walkId}: chk.checked=${chk.checked}`);
-              
-              if (chk.checked) {
-                const markers = walkMarkers[walkId] || [];
-                console.log(`Walk ${walkId}: markers length=${markers.length}`);
-                
-                markers.forEach(m => {
-                  console.log(`  Marker: isPostalVoter=${m.isPostalVoter}, electors=${m.electors}, showPVsOnly=${showPVsOnly}`);
-                  if (showPVsOnly && !m.isPostalVoter) {
-                    console.log(`    -> SKIPPED (not a PV)`);
-                    return;
-                  }
-                  doors += 1;
-                  electors += (m.electors || 0);
-                  console.log(`    -> COUNTED (doors now ${doors}, electors now ${electors})`);
-                });
+              // Only count if checkbox is checked
+              if (!checkbox.checked) {
+                countDisplay.textContent = '0 / 0';
+                return;
               }
               
-              countSpan.textContent = `${doors} / ${electors}`;
+              // Get all markers for this walk
+              const allMarkers = walkMarkers[walkId] || [];
+              
+              // Filter based on SHOW PVs ONLY toggle
+              let markersToCount = allMarkers;
+              if (showPVsOnly) {
+                markersToCount = allMarkers.filter(m => m.isPostalVoter === true);
+              }
+              
+              // Calculate totals
+              let totalDoors = markersToCount.length;
+              let totalElectors = markersToCount.reduce((sum, m) => sum + (m.electors || 0), 0);
+              
+              countDisplay.textContent = `${totalDoors} / ${totalElectors}`;
             });
           }
 
