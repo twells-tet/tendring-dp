@@ -335,10 +335,6 @@
     let walkLayers = {};
     let walkPropertyCounts = {};
     let wardLayers = {};
-    
-    // Expose to global scope for debugging
-    window.DEBUG_walkMarkers = () => walkMarkers;
-    window.DEBUG_walkLayers = () => walkLayers;
 
     async function fetchAndCleanJSON(url) {
       const response = await fetch(url);
@@ -809,7 +805,7 @@
             const num = Number(walkKey);
             const isChecked = (num >= 11 && num <= 17); // Default: walks 11-17
             
-            const displayName = `${walkKey}: ${cfg.description}`;
+            const displayName = `<strong>${walkKey}: ${cfg.description}</strong>`;
             
             html += `
               <div class="walk-item">
